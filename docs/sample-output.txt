@@ -1,0 +1,68 @@
+﻿
+ RUN  v5.0.0 C:/Users/22145/Projects/trade-cost-engine
+
+stdout | tests/virtual-scenario.test.ts > 虚拟数值测试 · 结果速览 > 打印完整结果供人工复核
+
+══ 虚拟交易：1,200 台小家电 · 出口德国汉堡 · 海运整箱 ══
+报价 CIF 汉堡 USD 106800（合同汇率 7.10 → CNY 758280.00）
+
+── 逐项明细 ──
+费用                          节点            核算金额(CNY)      责任      归属依据
+商品货值                    SELLER_PREMISES        681600.00  卖方      CIF.SELLER_PREMISES
+包装费                     SELLER_PREMISES          3600.00  卖方      CIF.SELLER_PREMISES
+出口国内陆运费                 INLAND_TRANSPORT         4800.00  卖方      CIF.INLAND_TRANSPORT
+出口报关费                   EXPORT_CLEARANCE          800.00  卖方      CIF.EXPORT_CLEARANCE
+出口商检费                   EXPORT_CLEARANCE         1200.00  卖方      CIF.EXPORT_CLEARANCE
+熏蒸费                     EXPORT_CLEARANCE          900.00  卖方      CIF.EXPORT_CLEARANCE
+订舱费                     ORIGIN_TERMINAL           500.00  卖方      CIF.ORIGIN_TERMINAL
+起运港港杂费                  ORIGIN_TERMINAL          2400.00  卖方      CIF.ORIGIN_TERMINAL
+国际海运费                   MAIN_CARRIAGE           58220.00  卖方      CIF.MAIN_CARRIAGE
+保险费（CIF 卖方投保）           MAIN_CARRIAGE            4260.00  卖方      CIF.INSURANCE
+目的港港杂费                  DESTINATION_TERMIN       3200.00  买方      CIF.DESTINATION_TERMINAL
+目的港滞箱费                  DESTINATION_TERMIN        781.00  买方      RR.BUYER_FAULT
+进口报关代理费                 IMPORT_CLEARANCE         1500.00  买方      CIF.IMPORT_CLEARANCE
+目的地内陆运输费                DESTINATION_TRANSP       4200.00  买方      CIF.DESTINATION_TRANSPORT
+进口关税                    IMPORT_DUTIES           27453.41  买方      CIF.IMPORT_DUTIES
+进口消费税                   IMPORT_DUTIES               0.00  买方      CIF.IMPORT_DUTIES
+进口增值税                   IMPORT_DUTIES          100026.86  买方      CIF.IMPORT_DUTIES
+
+── 卖方 ──
+  报价收入           758280.00
+  承担费用       -    76680.00
+  采购含税成本   -   520000.00
+  出口退税       +    59823.01
+  利润               221423.01   （不含退税 161600.00）
+  利润率                 29.2%   （退税贡献 27.0%）
+
+── 买方 ──
+  报价金额           758280.00
+  关税            +    27453.41
+  增值税          +   100026.86
+  报价外其他费用  +     9681.00
+  落地成本（含税）   895441.27
+
+── 11 术语对比（固定报价基准）──
+术语   报价金额      承担费用      卖方利润      买方总支付    承担节点
+EXW      758280.00       3600.00     294503.01     968521.27         1
+FCA      758280.00      11300.00     286803.01     960821.27         3
+FAS      758280.00      14200.00     283903.01     957921.27         4
+FOB      758280.00      14200.00     283903.01     957921.27         4
+CFR      758280.00      72420.00     225683.01     899701.27         5
+CIF      758280.00      76680.00     221423.01     895441.27         5
+CPT      758280.00      79820.00     218283.01     892301.27         7
+CIP      758280.00      84080.00     214023.01     888041.27         7
+DAP      758280.00      84080.00     214023.01     888041.27         7
+DPU      758280.00      84080.00     214023.01     888041.27         7
+DDP      758280.00     213060.27      85042.74     759061.00         9
+最优：卖方利润 EXW · 买方总支付最低 DDP
+
+── 校验与提示 ──
+  [INFO] GOODS_VALUE_EXCLUDED 费用「商品货值」代表货物本身的价值，不计入卖方成本汇总（卖方成本由采购成本代表），仅用于报价构成与完税价格
+
+ ✓ tests/virtual-scenario.test.ts (17 tests) 17ms
+
+ Test Files  1 passed (1)
+      Tests  17 passed (17)
+   Start at  15:31:32
+   Duration  340ms (transform 75%, import 16%, tests 8%, worker 1%)
+

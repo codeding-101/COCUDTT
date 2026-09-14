@@ -1,0 +1,8 @@
+# 统一以 LF 存入仓库，检出时按平台转换，避免整仓库出现 CRLF 噪声
+* text=auto eol=lf
+
+# 发布产物不做行尾转换：它是构建结果，字节应与构建输出一致
+trade-cost-engine.html -text
+
+# 二进制文件
+*.png binary

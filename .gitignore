@@ -1,0 +1,22 @@
+# 依赖与构建中间产物
+node_modules/
+dist/
+
+# 工具与测试的临时输出
+*.log
+audit-report.txt
+stress.txt
+virtual-report.txt
+
+# 编辑器与系统文件
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Playwright MCP 的产物目录（只在本机出现）
+.playwright-mcp/
+
+# 注意：trade-cost-engine.html 是**发布产物**，故意不忽略。
+# 它是使用者真正要用的东西（双击即打开），放在仓库里便于直接下载。
+# 若将来改用 GitHub Releases 分发，把它加到这里即可。
