@@ -1,7 +1,7 @@
-﻿
- RUN  v5.0.0 C:/Users/22145/Projects/trade-cost-engine
+# 样例输出
 
-stdout | tests/virtual-scenario.test.ts > 虚拟数值测试 · 结果速览 > 打印完整结果供人工复核
+由 tests/virtual-scenario.test.ts 的"结果速览"用例打印，对应虚拟交易
+（1,200 台小家电出口德国汉堡）的完整计算结果。
 
 ══ 虚拟交易：1,200 台小家电 · 出口德国汉堡 · 海运整箱 ══
 报价 CIF 汉堡 USD 106800（合同汇率 7.10 → CNY 758280.00）
@@ -60,9 +60,3 @@ DDP      758280.00     213060.27      85042.74     759061.00         9
   [INFO] GOODS_VALUE_EXCLUDED 费用「商品货值」代表货物本身的价值，不计入卖方成本汇总（卖方成本由采购成本代表），仅用于报价构成与完税价格
 
  ✓ tests/virtual-scenario.test.ts (17 tests) 17ms
-
- Test Files  1 passed (1)
-      Tests  17 passed (17)
-   Start at  15:31:32
-   Duration  340ms (transform 75%, import 16%, tests 8%, worker 1%)
-
