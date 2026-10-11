@@ -488,6 +488,7 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
 .f.params { flex-wrap: wrap; white-space: normal; }
 .f.flags { gap: 12px; }
 .f.flags label { display: inline-flex; align-items: center; gap: 4px; color: var(--text-2); }
+.f.term-options { flex: 1 1 100%; flex-wrap: wrap; white-space: normal; max-width: 100%; }
 
 .item-note {
   margin-top: 6px;

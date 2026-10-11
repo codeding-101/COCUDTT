@@ -67,6 +67,8 @@ const baseRef: Validator = (value, path) => {
 };
 const costItem = shape({
   cost_id: string, cost_name: string, cost_category: oneOf(COST_CATEGORIES), trade_node: oneOf(TRADE_NODES),
+  applicable_incoterms: optional(array(oneOf(INCOTERMS))),
+  alternative_group: optional(string),
   location: optional(string),
   timing: optional(shape({
     date: optional(string), start: optional(string), end: optional(string),
@@ -166,6 +168,8 @@ export function validateProjectStructure(value: unknown): void {
     const id = item.cost_id as string;
     if (id.trim() === '' || ids.has(id)) fail(`project.items[${index}].cost_id`, '不能为空或与其他费用重复');
     ids.add(id);
+    const terms = item.applicable_incoterms as string[] | undefined;
+    if (terms !== undefined && new Set(terms).size !== terms.length) fail(`project.items[${index}].applicable_incoterms`, '术语不能重复');
   });
 }
 

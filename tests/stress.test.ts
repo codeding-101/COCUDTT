@@ -451,8 +451,8 @@ describe('压力测试 · 渲染规模', () => {
     const count = 80;
     const html = renderItemsPanel(projectWith(count), new Map());
     const options = (html.match(/<option/g) ?? []).length;
-    // 每张卡片约 40 个静态选项（节点/类别/计费方式/汇率类型/发生原因）+ 1 个"未含于他项"
-    expect(options).toBeLessThan(count * 50);
+    // 原有静态选项加5个适用范围选项；仍不生成费用项之间的全量候选列表。
+    expect(options).toBeLessThan(count * 55);
     // 若退回 O(n²)，这里会是 80×79 + 静态项 ≈ 9,500
     expect(options).toBeLessThan(5000);
   });

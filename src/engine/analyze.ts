@@ -28,6 +28,7 @@ import { computeImportTaxes, type ImportTaxResult } from './tax/import-tax.js';
 import { computeRebate, noExportRebate, type RebateResult } from './tax/rebate.js';
 import { isChinaImport, validateChinaImportContext } from './tax/china-import.js';
 import { assessDecision, type DecisionReadiness } from './decision-readiness.js';
+import { costsForTerm } from './scenario-costs.js';
 
 const SHIPMENT_BOUNDARY: TradeNode = 'CARRIER_HANDOVER';
 
@@ -70,6 +71,8 @@ export interface AnalysisResult {
   incoterm: Incoterm;
   base_currency: CurrencyCode;
   items: EnrichedCostItem[];
+  /** 未启用项未解析金额或汇率，也未计入税基与买卖方汇总。 */
+  inactive_items: CostItem[];
   seller: SellerSummary;
   buyer: BuyerSummary;
   rebate: RebateResult;
@@ -141,7 +144,9 @@ function requireNumericInput(value: Numeric | undefined, label: string): void {
  * 输入同一套交易事实与一个方案，输出该方案下买卖双方的成本与利润。
  */
 export function analyze(input: AnalysisInput): AnalysisResult {
-  const { trade, scenario, taxProfile, fxBooks } = input;
+  const { scenario, taxProfile, fxBooks } = input;
+  const selected = costsForTerm(input.trade, scenario.incoterm);
+  const trade = selected.trade;
   const ruleSet = input.ruleSet ?? INCOTERMS_2020_RULESET;
   const base = scenario.base_currency ?? trade.base_currency;
   const warnings: Warning[] = [];
@@ -431,6 +436,7 @@ export function analyze(input: AnalysisInput): AnalysisResult {
     incoterm: scenario.incoterm,
     base_currency: base,
     items,
+    inactive_items: selected.inactive,
     seller: aggregated.seller,
     buyer: aggregated.buyer,
     rebate,
