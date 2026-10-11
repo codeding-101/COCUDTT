@@ -10,7 +10,7 @@ import type { TradeRoute } from '../domain/import-context.js';
 import { EngineError } from '../engine/errors.js';
 import { validateProjectStructure } from './project-validation.js';
 
-export const SCHEMA_VERSION = '0.5';
+export const SCHEMA_VERSION = '0.6';
 
 export interface QuoteTemplate {
   amount: string;
@@ -102,10 +102,10 @@ export function parseProject(text: string): ProjectFile {
   if (typeof version !== 'string') {
     throw new EngineError('PROJECT_PARSE_FAILED', '项目文件缺少 schema_version，无法确认格式版本');
   }
-  if (![SCHEMA_VERSION, '0.1', '0.2', '0.3', '0.4'].includes(version)) {
+  if (![SCHEMA_VERSION, '0.1', '0.2', '0.3', '0.4', '0.5'].includes(version)) {
     throw new EngineError(
       'PROJECT_VERSION_UNSUPPORTED',
-      `项目文件版本为 ${version}，当前程序支持 0.1、0.2、0.3、0.4 及 ${SCHEMA_VERSION}，请先迁移`,
+      `项目文件版本为 ${version}，当前程序支持 0.1–0.5 及 ${SCHEMA_VERSION}，请先迁移`,
       { version, supported: SCHEMA_VERSION },
     );
   }

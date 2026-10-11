@@ -23,6 +23,7 @@ import {
   availableIncoterms,
   isIncotermAvailable,
   type PricingMethod,
+  type Incoterm,
   type Responsibility,
 } from '../domain/enums.js';
 import { DUTY_RATE_BASES, DUTY_RATE_BASIS_LABELS, DUTY_TYPES, DUTY_TYPE_LABELS } from '../domain/hs-rate.js';
@@ -217,7 +218,7 @@ function responsibilityTag(responsibility: Responsibility | undefined): string {
   return '<span class="tag muted">共担</span>';
 }
 
-function renderItemCard(item: CostItem, allItems: readonly CostItem[], enrichment: ItemEnrichment | undefined): string {
+function renderItemCard(item: CostItem, allItems: readonly CostItem[], enrichment: ItemEnrichment | undefined, term: Incoterm): string {
   const needsConfirm = enrichment !== undefined && enrichment.responsibility === 'CONDITIONAL';
   const parent = allItems.find((candidate) => candidate.cost_id === item.contained_in_cost_id);
   return `<div class="item-card${needsConfirm ? ' needs-confirm' : ''}">
@@ -225,6 +226,7 @@ function renderItemCard(item: CostItem, allItems: readonly CostItem[], enrichmen
       <input class="item-name" type="text" value="${escapeHtml(item.cost_name)}" ${itemAttr(item.cost_id, 'cost_name')} />
       ${item.is_custom ? '<span class="tag muted">自定义</span>' : ''}
       ${item.source === 'DERIVED' ? '<span class="tag muted">系统推算</span>' : ''}
+      ${item.applicable_incoterms !== undefined && !item.applicable_incoterms.includes(term) ? '<span class="tag muted">本方案未启用</span>' : ''}
       <span class="item-spacer"></span>
       <span class="item-amount">${enrichment !== undefined ? dec(enrichment.base_amount) : '—'}<small>${escapeHtml(item.currency)}</small></span>
       ${responsibilityTag(enrichment?.responsibility)}
@@ -265,6 +267,21 @@ function renderItemCard(item: CostItem, allItems: readonly CostItem[], enrichmen
       </span>
     </div>
     ${renderTierEditor(item)}
+    <details class="evidence" data-evidence-section="applicability:${escapeHtml(item.cost_id)}">
+      <summary>适用贸易术语：${item.applicable_incoterms === undefined ? '所有术语' : item.applicable_incoterms.length === 0 ? '不启用' : escapeHtml(item.applicable_incoterms.join('、'))}</summary>
+      <div class="item-fields">
+        <label class="f"><span>选择范围</span><select ${itemAttr(item.cost_id, 'applicability')}>
+          <option value="ALL"${item.applicable_incoterms === undefined ? ' selected' : ''}>所有术语</option>
+          <option value="NONE"${item.applicable_incoterms?.length === 0 ? ' selected' : ''}>不启用</option>
+          <option value="SELLER">卖方运价常用范围（需核对）</option>
+          <option value="BUYER">买方运价常用范围（需核对）</option>
+          <option value="CUSTOM"${item.applicable_incoterms !== undefined && item.applicable_incoterms.length > 0 ? ' selected' : ''}>按下方逐项选择</option>
+        </select></label>
+        <label class="f"><span>替代报价组</span><input type="text" size="16" value="${escapeHtml(item.alternative_group ?? '')}" ${itemAttr(item.cost_id, 'alternative_group')} placeholder="同一运段的替代报价填同名" /></label>
+        <span class="f flags term-options">${INCOTERMS.map(t => `<label><input type="checkbox" ${itemAttr(item.cost_id, 'applicable_term')} data-term="${t}"${item.applicable_incoterms === undefined || item.applicable_incoterms.includes(t) ? ' checked' : ''} />${t}</label>`).join('')}</span>
+      </div>
+      <p class="hint block">按实际组织方式选择。常用范围仅帮助录入，承担费用不等于安排运输。替代报价组最多启用一项；独立运输分段请分别录入，不设为同组。未启用项不计入本方案金额和税基。</p>
+    </details>
     ${item.fx_rate !== undefined ? renderSourceEditor(item.fx_evidence, 'cost', item.cost_id) : ''}
     ${
       enrichment !== undefined && enrichment.note !== ''
@@ -456,7 +473,7 @@ export function renderItemsPanel(
 
   const body = `
     <div class="item-list">
-      ${project.items.map((item) => renderItemCard(item, project.items, enrichment.get(item.cost_id))).join('')}
+      ${project.items.map((item) => renderItemCard(item, project.items, enrichment.get(item.cost_id), project.incoterm)).join('')}
     </div>
     <div class="panel-actions">
       <select data-action="add-preset">

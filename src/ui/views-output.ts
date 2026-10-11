@@ -181,6 +181,7 @@ function renderItemDetail(result: AnalysisResult): string {
   <section class="panel">
     <div class="panel-body">
       <h3 class="panel-heading">逐项明细</h3>
+      ${result.inactive_items.length ? `<details class="evidence"><summary>本方案未启用 ${result.inactive_items.length} 项费用</summary><ul>${result.inactive_items.map(item => `<li>${escapeHtml(item.cost_name)} · 适用：${item.applicable_incoterms?.length ? escapeHtml(item.applicable_incoterms.join('、')) : '不启用'}${item.alternative_group ? ` · 替代报价组：${escapeHtml(item.alternative_group)}` : ''} · 未解析金额，未计入税基与汇总</li>`).join('')}</ul></details>` : ''}
       <table class="grid stackable">
         <thead>
           <tr>
@@ -319,7 +320,7 @@ function renderComparison(comparison: Comparison): string {
         </tbody>
       </table>
       <p class="hint block">
-        本次比较固定交易费用、计税价格和税率。在这些假设内，各术语进口税费相同，承担方不同；真实价格或费用变化时应重新核算。
+        ${comparison.uses_scenario_costs ? '本次按适用术语启用费用，各方案重新计算税基与税额，运价差异会影响进口税费。替代报价组不得同时启用两项；固定报价仍假设各术语报价金额相同，请核对比较基准。' : '本次比较固定交易费用、计税价格和税率。在这些假设内，各术语进口税费相同，承担方不同；真实价格或费用变化时应重新核算。'}
         高亮仅比较可参与排名的方案。来源仍待核对、税基不完整或存在未计入成本的费用时，保留参考金额并排除排名。
       </p>
     </div>
@@ -339,7 +340,7 @@ export function renderOutputColumn(state: OutputState): string {
         </div>
         <p class="hint block">引擎不会在缺数据时猜一个结果。请按提示补全输入——常见原因是缺少对应类型的汇率簿，或费用项缺少计费参数。</p>
       </div>
-    </section>`;
+    </section>${state.comparison !== null ? renderComparison(state.comparison) : ''}`;
   }
   if (state.result === null) {
     return '<section class="panel"><div class="panel-body"><p class="empty">暂无可显示的结果</p></div></section>';

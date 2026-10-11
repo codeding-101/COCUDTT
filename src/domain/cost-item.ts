@@ -4,6 +4,7 @@ import type {
   DateStr,
   DayBasis,
   FxType,
+  Incoterm,
   OccurrenceReason,
   Party,
   PricingMethod,
@@ -53,6 +54,10 @@ export interface CostItem {
   // ---- 标识 ----
   cost_id: string;
   cost_name: string;
+  /** 未设置适用所有术语；空数组表示不启用。用于按方案选择实际发生的费用。 */
+  applicable_incoterms?: Incoterm[];
+  /** 同组费用是替代报价，同一方案最多启用一项；空值表示独立费用。 */
+  alternative_group?: string;
   cost_category: CostCategory;
   trade_node: TradeNode;
   location?: string;

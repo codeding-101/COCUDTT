@@ -12,8 +12,9 @@ import { DEFAULT_DERIVED_TAX_IDS } from './aggregate.js';
 import { analyze, type AnalysisResult, type EnrichedCostItem } from './analyze.js';
 import { convertAmount, resolveFxRate, type FxResolution } from './fx.js';
 import { checkFxSources } from './decision-readiness.js';
+import { costsForTerm } from './scenario-costs.js';
 import { isChinaImport } from './tax/china-import.js';
-import { EngineError } from './errors.js';
+import { EngineError, isEngineError } from './errors.js';
 import { INCOTERMS_2020_RULESET } from './responsibility/rules-incoterms2020.js';
 import { resolveResponsibility } from './responsibility/resolver.js';
 import type { BuyerSummary, SellerSummary } from './aggregate.js';
@@ -78,6 +79,7 @@ export interface Comparison {
   /** 买方落地成本最低的术语 */
   best_buyer_landed: Incoterm | null;
   warnings: Warning[];
+  uses_scenario_costs: boolean;
 }
 
 export interface ConditionalSensitivity {
@@ -116,6 +118,7 @@ function deriveIncludedIds(
   scenario: Scenario,
   ruleSet: IncotermsRuleSet,
 ): string[] {
+  trade = costsForTerm(trade, scenario.incoterm).trade;
   const decisions = resolveResponsibility({ trade, scenario, ruleSet });
   const included = new Set<string>();
   for (const decision of decisions) {
@@ -267,8 +270,7 @@ function countSellerItems(items: readonly EnrichedCostItem[]): number {
 /**
  * 11 个术语的横向对比（设计文档第 11 节）。
  *
- * 注意：进口税费总额在 11 个术语下是同一个数——完税价格以货物成交价、运费、保险费为基础，
- * 与贸易术语无关，术语改变的只是"由谁承担"。这是对比表里一个容易被忽略的恒定量。
+ * 计税事实相同时各术语税额相同；按术语启用不同运价时，税基与税额逐方案重新计算。
  */
 export function compare(input: CompareInput): Comparison {
   const ruleSet = input.ruleSet ?? INCOTERMS_2020_RULESET;
@@ -341,7 +343,20 @@ export function compare(input: CompareInput): Comparison {
       continue;
     }
 
-    const solved = solveQuote(input, incoterm, anchor, initialQuote, targetBuyerTotal, ruleSet);
+    let solved: SolveState;
+    try {
+      solved = solveQuote(input, incoterm, anchor, initialQuote, targetBuyerTotal, ruleSet);
+    } catch (error) {
+      // 某术语启用的费用未完成时，只阻止该列，不丢失其他可计算方案。
+      if (!isEngineError(error) || !input.trade.items.some(item => item.applicable_incoterms !== undefined || item.alternative_group?.trim())) throw error;
+      columns.push({ incoterm, available: true, feasible: false, decision_ready: false,
+        decision_issues: [error instanceof Error ? error.message : String(error)],
+        infeasible_reason: error instanceof Error ? error.message : String(error),
+        quote_amount: initialQuote, iterations: 0, seller: emptySeller(), buyer: emptyBuyer(),
+        import_tax_total: d(0), seller_cost_nodes: 0, seller_cost_items: 0, conditional_count: 0,
+        warning_count: 0, transfer_point: '', transfer_node: 'SELLER_PREMISES', risk_separation: false, result: null });
+      continue;
+    }
 
     if (!solved.converged) {
       columns.push({
@@ -435,6 +450,7 @@ export function compare(input: CompareInput): Comparison {
     best_seller_margin: bestSeller,
     best_buyer_landed: bestBuyer,
     warnings,
+    uses_scenario_costs: input.trade.items.some(item => item.applicable_incoterms !== undefined || item.alternative_group?.trim()),
   };
 }
 

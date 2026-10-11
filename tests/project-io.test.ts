@@ -101,6 +101,36 @@ describe('打开、保存项目的失败处理', () => {
     }
   }
 
+  it('费用适用范围的真实事件写入草稿，逐项选择、空选和恢复全部均生效', async () => {
+    await start(); chinaImport();
+    const costId = JSON.parse(storage.get(key)!).project.items.find((item: { cost_category: string })=>item.cost_category==='MAIN_CARRIAGE').cost_id;
+    const itemField = (field:string,value:string,checked=false,term='')=>{
+      const input=new InputStub();input.id='';input.dataset.item=costId;input.dataset.itemField=field;input.dataset.term=term;
+      input.value=value;input.type=field==='applicable_term'?'checkbox':'text';input.checked=checked;listeners.get('change')!({target:input});
+    };
+    itemField('applicability','BUYER');
+    expect(JSON.parse(storage.get(key)!).project.items.find((x:{cost_id:string})=>x.cost_id===costId).applicable_incoterms).toEqual(['EXW','FCA','FAS','FOB']);
+    expect(html).toContain('本方案未启用');
+    itemField('applicable_term','',true,'CIF');
+    expect(JSON.parse(storage.get(key)!).project.items.find((x:{cost_id:string})=>x.cost_id===costId).applicable_incoterms).toContain('CIF');
+    itemField('alternative_group','运输替代报价');
+    expect(JSON.parse(storage.get(key)!).project.items.find((x:{cost_id:string})=>x.cost_id===costId).alternative_group).toBe('运输替代报价');
+    itemField('applicability','NONE'); expect(html).toContain('适用贸易术语：不启用');
+    itemField('applicability','ALL');
+    expect(JSON.parse(storage.get(key)!).project.items.find((x:{cost_id:string})=>x.cost_id===costId).applicable_incoterms).toBeUndefined();
+    expect(html).toContain('901,101.49');
+  });
+
+  it('当前术语费用缺失时仍显示其他可计算方案，不沿用当前旧金额', async () => {
+    await start(); chinaImport();
+    const draft=JSON.parse(storage.get(key)!);const freight=draft.project.items.find((x:{cost_category:string})=>x.cost_category==='MAIN_CARRIAGE');
+    freight.applicable_incoterms=['CIF'];freight.amount='';
+    open(async()=>serializeProject(draft.project));
+    await vi.waitFor(()=>expect(html).toContain('无法计算'));
+    expect(html).toContain('11 术语横向对比'); expect(html).toContain('FOB');
+    expect(html).not.toContain('901,101.49');
+  });
+
   it('示例来源未核对时显示参考状态；逐项完成核对后恢复排名', async () => {
     await start(); chinaImport();
     expect(html).toContain('当前没有可参与排名的方案');

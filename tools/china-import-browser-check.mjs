@@ -110,7 +110,7 @@ try {
     document.querySelector('[data-action="save"]').click();
     await new Promise(resolve => setTimeout(resolve, 150));
     const file = JSON.parse(saved);
-    const persisted = file.schema_version === '0.5' && file.tax_profile.import.rateEvidence.status === 'USER_CONFIRMED' && file.tax_profile.import.eligibility.duty_evidence.values_key && file.route.origin_country && file.fx_books.every(book => book.evidence['USD/CNY'].values_key);
+    const persisted = file.schema_version === '0.6' && file.tax_profile.import.rateEvidence.status === 'USER_CONFIRMED' && file.tax_profile.import.eligibility.duty_evidence.values_key && file.route.origin_country && file.fx_books.every(book => book.evidence['USD/CNY'].values_key);
     const transfer = new DataTransfer(); transfer.items.add(new File([saved], 'browser-verified.json', { type: 'application/json' }));
     const input = document.querySelector('#file-input'); input.files = transfer.files; input.dispatchEvent(new Event('change', { bubbles: true }));
     await new Promise(resolve => setTimeout(resolve, 150));
@@ -159,6 +159,50 @@ try {
     return { empty, feeStartsEmpty, calculated, bundledBlocked, recovered };
   })()`);
   if (Object.values(blankWorkflow).some(value => value === false)) throw new Error(JSON.stringify(blankWorkflow));
+  const scenarioCosts = await evaluate(`(async () => {
+    document.querySelector('[data-action="new-china-import"]').click();
+    const p=JSON.parse(localStorage.getItem('trade-cost-engine:draft-v1')).project;
+    p.goods.trade_value={amount:'10000',currency:'CNY'};p.goods.seller_goods_cost={amount:'',currency:'CNY'};
+    p.quote={amount:'10700',currency:'CNY',fx_type:'CONTRACT'};p.fx_books=[];
+    const freight=p.items.find(x=>x.cost_category==='MAIN_CARRIAGE');const insurance=p.items.find(x=>x.cost_category==='INSURANCE');
+    p.items=[{...freight,cost_id:'seller-freight',cost_name:'卖方取得的运价',amount:'600',currency:'CNY',alternative_group:'国际主运输',applicable_incoterms:['CFR','CIF','CPT','CIP','DAP','DPU','DDP']},
+      {...freight,cost_id:'buyer-freight',cost_name:'买方取得的运价',amount:'1000',currency:'CNY',alternative_group:'国际主运输',applicable_incoterms:['EXW','FCA','FAS','FOB']},
+      {...insurance,pricing_method:'ACTUAL',amount:'100',currency:'CNY'}];
+    const open=async project=>{const transfer=new DataTransfer();transfer.items.add(new File([JSON.stringify(project)],'scenario-costs.json',{type:'application/json'}));const e=document.querySelector('#file-input');e.files=transfer.files;e.dispatchEvent(new Event('change',{bubbles:true}));await new Promise(r=>setTimeout(r,120));};
+    await open(p);
+    const cif=document.body.innerText.includes('12,695.55')&&document.body.innerText.includes('10,700.00');
+    const setPath=(path,value)=>{const e=document.querySelector('[data-path="'+path+'"]');e.value=value;e.dispatchEvent(new Event('change',{bubbles:true}));};
+    const field=(id,name,value,checked=false,term='')=>{const e=[...document.querySelectorAll('[data-item-field]')].find(e=>e.dataset.item===id&&e.dataset.itemField===name&&(!term||e.dataset.term===term));if(!e)throw new Error('找不到费用字段'+id+name);e.focus();e.value=value;e.checked=checked;e.dispatchEvent(new Event('change',{bubbles:true}));};
+    const panel=document.querySelector('[data-evidence-section="applicability:buyer-freight"]');panel.open=true;await new Promise(r=>setTimeout(r,50));
+    field('buyer-freight','applicable_term','',true,'CIF');
+    const overlapBlocked=document.body.innerText.includes('同时启用')&&document.body.innerText.includes('11 术语横向对比');
+    const panelStayedOpen=document.querySelector('[data-evidence-section="applicability:buyer-freight"]').open;
+    const focusMaintained=document.activeElement.dataset.term==='CIF';
+    field('buyer-freight','applicable_term','',false,'CIF');
+    const recovered=document.body.innerText.includes('12,695.55');
+    setPath('incoterm','FOB');
+    const fob=document.body.innerText.includes('13,870.15')&&document.body.innerText.includes('11,100.00');
+    field('buyer-freight','amount','');
+    const partialResultKept=document.body.innerText.includes('无法计算')&&document.body.innerText.includes('12,695.55')&&document.body.innerText.includes('11 术语横向对比');
+    setPath('incoterm','CIF');
+    let saved='';window.showSaveFilePicker=async()=>({name:'scenario-costs.json',createWritable:async()=>({write:async t=>{saved=t;},close:async()=>{}})});
+    document.querySelector('[data-action="save"]').click();await new Promise(r=>setTimeout(r,120));
+    const snapshot=JSON.parse(saved);await open(snapshot);
+    const persisted=snapshot.schema_version==='0.6'&&snapshot.items[1].applicable_incoterms.join(',')==='EXW,FCA,FAS,FOB'&&snapshot.items[1].alternative_group==='国际主运输'&&document.body.innerText.includes('12,695.55');
+    let report='';window.showSaveFilePicker=async()=>({name:'scenario-cost-report.html',createWritable:async()=>({write:async t=>{report=t;},close:async()=>{}})});
+    document.querySelector('[data-action="export-report"]').click();await new Promise(r=>setTimeout(r,120));window.__verifiedScenarioReport=report;
+    const reportExported=report.includes('12,695.55')&&report.includes('本方案未启用 1 项费用')&&report.includes('运价差异会影响进口税费')&&!report.includes('<script');
+    return {cif,fob,overlapBlocked,recovered,partialResultKept,panelStayedOpen,focusMaintained,persisted,reportExported};
+  })()`);
+  if(Object.values(scenarioCosts).some(value=>value===false))throw new Error(JSON.stringify(scenarioCosts));
+  await writeFile(join(root,'scenario-cost-report-example.html'),await evaluate('window.__verifiedScenarioReport'));
+  await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+  await evaluate("document.querySelectorAll('details[data-evidence-section^=\"applicability:\"]').forEach(e=>{e.open=true;});document.querySelector('[data-section=\"items\"]').scrollIntoView();");
+  const scenarioMobile=await evaluate('({viewportWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth})');
+  await writeFile(join(root,'scenario-costs-mobile.png'),Buffer.from((await call('Page.captureScreenshot',{format:'png'})).data,'base64'));
+  await call('Emulation.setDeviceMetricsOverride',{width:320,height:844,deviceScaleFactor:1,mobile:true});
+  const scenarioNarrow=await evaluate('({viewportWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth})');
+  if(scenarioMobile.scrollWidth>scenarioMobile.viewportWidth||scenarioNarrow.scrollWidth>scenarioNarrow.viewportWidth)throw new Error(JSON.stringify({scenarioMobile,scenarioNarrow}));
   await evaluate("document.querySelector('[data-action=\"new-china-import\"]').click()");
   await evaluate("var vat = document.querySelector('[data-path=\"tax_profile.import.vatDeductibleForBuyer\"]'); vat.checked = true; vat.dispatchEvent(new Event('change', {bubbles:true}));");
   await call('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
@@ -168,7 +212,7 @@ try {
   await writeFile(join(root, 'china-import-mobile.png'), Buffer.from(mobileImage.data, 'base64'));
   await call('Emulation.setDeviceMetricsOverride', { width: 320, height: 844, deviceScaleFactor: 1, mobile: true });
   const narrow = await evaluate("({ viewportWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth, overflow: [...document.querySelectorAll('body *')].filter(e => e.getBoundingClientRect().right > document.documentElement.clientWidth + 1).map(e => ({tag:e.tagName, cls:e.className, right:e.getBoundingClientRect().right, text:e.innerText?.slice(0,70)})).slice(0,12) })");
-  const report = { desktop, mobile, narrow, badFile, sampleReferenceOnly, sourceFlow, blankWorkflow, sourcePanelsExpandedOnMobile: true, expiredFxBlocks: true, recoveredAfterDateCorrection: true, exceptions, protocol: 'file://', browser: 'Microsoft Edge' };
+  const report = { desktop, mobile, narrow, scenarioMobile, scenarioNarrow, badFile, sampleReferenceOnly, sourceFlow, blankWorkflow, scenarioCosts, sourcePanelsExpandedOnMobile: true, expiredFxBlocks: true, recoveredAfterDateCorrection: true, exceptions, protocol: 'file://', browser: 'Microsoft Edge' };
   await writeFile(join(root, 'china-import-browser-report.json'), JSON.stringify(report, null, 2));
   if (desktop.scrollWidth > desktop.width || mobile.scrollWidth > mobile.viewportWidth || narrow.scrollWidth > narrow.viewportWidth || exceptions.length) throw new Error(JSON.stringify(report));
   console.log(JSON.stringify(report, null, 2));

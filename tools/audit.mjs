@@ -46,11 +46,12 @@ const uiText = srcFiles
 const allText = srcFiles.map((file) => ({ file, text: read(file) }));
 
 // ---------- 1. 渲染字段 / 动作 是否都有处理分支 ----------
-const handledFields = matchAll(appTs, /^\s+case '([a-zA-Z_]+)':/gm);
+const handledFields = matchAll(appTs, /^\s+case '([a-zA-Z_-]+)':/gm);
 const renderedFields = new Set([
   ...matchAll(uiText, /data-item-field="([a-z_]+)"/g),
   ...matchAll(uiText, /data-fx-field="([a-z_]+)"/g),
   ...matchAll(uiText, /data-hs-field="([a-z_]+)"/g),
+  ...matchAll(uiText, /itemAttr\([^,]+,\s*'([a-z_-]+)'\)/g),
 ]);
 for (const field of renderedFields) {
   if (!handledFields.has(field)) {

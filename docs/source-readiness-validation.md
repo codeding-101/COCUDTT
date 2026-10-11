@@ -2,7 +2,7 @@
 
 日期：2026-10-11。目标用户：外贸业务人员；首条支持路线：中国一般贸易进口、单商品一票。此轮改动在本地，尚未部署。
 
-本文保留第三轮0.3格式及397项测试的历史验收记录。当前格式0.5、449项测试，后续进展见 [业务前提验收](import-context-validation.md)、[买方流程与报告验收](buyer-workflow-validation.md) 和 [后续展望](project-outlook.md)。下表中原定“下一阶段”已有部分完成，以新文档为准。
+本文保留第三轮0.3格式及397项测试的历史验收记录。当前格式0.6、466项测试，后续进展见 [业务前提验收](import-context-validation.md)、[买方流程与报告验收](buyer-workflow-validation.md)、[方案费用验收](scenario-costs-validation.md) 和 [后续展望](project-outlook.md)。下表中原定“下一阶段”已有部分完成，以新文档为准。
 
 ## 现状判断
 

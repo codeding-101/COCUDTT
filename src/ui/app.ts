@@ -12,6 +12,7 @@ import { validateDraftFxRows } from '../data/project-validation.js';
 import { emptyEvidence, evidenceKey, fxEvidenceValues, hsEvidenceValues, invalidateEvidence, taxEvidenceValues, type SourceEvidence } from '../domain/source-evidence.js';
 import { eligibilityValues, emptyEligibility, emptyRoute } from '../domain/import-context.js';
 import type { BaseRef, CostItem } from '../domain/cost-item.js';
+import { INCOTERMS, type Incoterm } from '../domain/enums.js';
 import type { DutyType, HsRateTable } from '../domain/hs-rate.js';
 import type {
   CostCategory,
@@ -159,6 +160,13 @@ function recompute(persistDraft = true): void {
     state.result = null;
     state.comparison = null;
     state.error = isEngineError(error) ? `[${error.code}] ${error.message}` : `[未知错误] ${String(error)}`;
+    if (isEngineError(error) && project.items.some(item => item.applicable_incoterms !== undefined || item.alternative_group?.trim())) {
+      try {
+        state.comparison = compare({ trade: toTrade(project), template: toScenario(project), anchor: project.anchor,
+          taxProfile: project.tax_profile, fxBooks: project.fx_books,
+          ...(project.export_date !== undefined ? { today: project.export_date } : {}) });
+      } catch { /* 公共输入不完整时仍显示错误，不沿用旧结果。 */ }
+    }
     state.status = '输入不足以完成计算';
     state.statusLevel = 'error';
   }
@@ -190,7 +198,7 @@ function focusKeyOf(element: Element): string | null {
   }
   if (dataset.path !== undefined) return `path:${dataset.path}`;
   if (dataset.item !== undefined && dataset.itemField !== undefined) {
-    return `item:${dataset.item}:${dataset.itemField}`;
+    return `item:${dataset.item}:${dataset.itemField}${dataset.term === undefined ? '' : `:${dataset.term}`}`;
   }
   if (dataset.fx !== undefined && dataset.fxField !== undefined) {
     return `fx:${dataset.fx}:${dataset.fxField}`;
@@ -271,6 +279,23 @@ function onItemField(costId: string, field: string, target: HTMLInputElement | H
   if (['currency', 'fx_type', 'fx_date'].includes(field)) invalidateEvidence(item.fx_evidence);
   const isCheckbox = target instanceof HTMLInputElement && target.type === 'checkbox';
   switch (field) {
+    case 'applicability':
+      item.applicable_incoterms = value === 'ALL' ? undefined : value === 'NONE' ? []
+        : value === 'SELLER' ? ['CFR', 'CIF', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP']
+        : value === 'BUYER' ? ['EXW', 'FCA', 'FAS', 'FOB'] : [state.project.incoterm];
+      break;
+    case 'applicable_term': {
+      if (!(target instanceof HTMLInputElement)) break;
+      const term = target.dataset.term as Incoterm;
+      if (!INCOTERMS.includes(term)) break;
+      const terms = new Set(item.applicable_incoterms ?? INCOTERMS);
+      if (target.checked) terms.add(term); else terms.delete(term);
+      item.applicable_incoterms = INCOTERMS.filter(t => terms.has(t));
+      break;
+    }
+    case 'alternative_group':
+      item.alternative_group = value.trim() || undefined;
+      break;
     case 'cost_name':
       item.cost_name = value;
       break;
@@ -791,7 +816,7 @@ function render(): void {
     const key = element.dataset.section;
     if (key !== undefined && collapsedSections.has(key)) element.open = false;
   });
-  document.querySelectorAll<HTMLDetailsElement>('details.source-editor').forEach((element) => {
+  document.querySelectorAll<HTMLDetailsElement>('details[data-evidence-section]').forEach((element) => {
     if (element.dataset.evidenceSection !== undefined && expandedEvidenceSections.has(element.dataset.evidenceSection)) element.open = true;
   });
   restoreFocus(focused);
