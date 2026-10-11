@@ -3,6 +3,7 @@ import {
   parseProject,
   serializeProject,
   toScenario,
+  toScenarios,
   toTrade,
   touchProject,
   type ProjectFile,
@@ -24,6 +25,8 @@ import type {
   TradeNode,
 } from '../domain/enums.js';
 import type { ComparisonAnchor } from '../domain/scenario.js';
+import { overrideEvidenceValues, quoteEvidenceValues } from '../domain/contract-evidence.js';
+import { emptyContractQuote } from './contracts-input.js';
 import { analyze, type AnalysisResult } from '../engine/analyze.js';
 import { compare, scenarioWithDerivedInclusions, type Comparison } from '../engine/compare.js';
 import { isEngineError } from '../engine/errors.js';
@@ -144,6 +147,7 @@ function recompute(persistDraft = true): void {
     state.comparison = compare({
       trade,
       template,
+      scenarios: toScenarios(project),
       anchor: project.anchor,
       taxProfile: project.tax_profile,
       fxBooks: project.fx_books,
@@ -160,9 +164,10 @@ function recompute(persistDraft = true): void {
     state.result = null;
     state.comparison = null;
     state.error = isEngineError(error) ? `[${error.code}] ${error.message}` : `[未知错误] ${String(error)}`;
-    if (isEngineError(error) && project.items.some(item => item.applicable_incoterms !== undefined || item.alternative_group?.trim())) {
+    if (isEngineError(error) && (project.anchor.kind === 'ACTUAL_QUOTES' || project.term_scenarios !== undefined || project.items.some(item => item.applicable_incoterms !== undefined || item.alternative_group?.trim()))) {
       try {
         state.comparison = compare({ trade: toTrade(project), template: toScenario(project), anchor: project.anchor,
+          scenarios: toScenarios(project),
           taxProfile: project.tax_profile, fxBooks: project.fx_books,
           ...(project.export_date !== undefined ? { today: project.export_date } : {}) });
       } catch { /* 公共输入不完整时仍显示错误，不沿用旧结果。 */ }
@@ -197,6 +202,7 @@ function focusKeyOf(element: Element): string | null {
     return `evidence:${dataset.evidenceOwner}:${dataset.evidenceId ?? ''}:${dataset.evidenceField}`;
   }
   if (dataset.path !== undefined) return `path:${dataset.path}`;
+  if (dataset.contractCost !== undefined) return `contract:${dataset.contractCost}:${dataset.contractField}`;
   if (dataset.item !== undefined && dataset.itemField !== undefined) {
     return `item:${dataset.item}:${dataset.itemField}${dataset.term === undefined ? '' : `:${dataset.term}`}`;
   }
@@ -208,7 +214,7 @@ function focusKeyOf(element: Element): string | null {
 
 function restoreFocus(key: string | null): void {
   if (key === null) return;
-  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner]')).find(
+  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner],[data-contract-cost]')).find(
     (candidate) => focusKeyOf(candidate) === key,
   );
   element?.focus();
@@ -233,6 +239,19 @@ function setPath(path: string, raw: string): void {
 }
 
 function onProjectField(path: string, target: HTMLInputElement | HTMLSelectElement): void {
+  if (path.startsWith('term_scenarios.')) {
+    const term = path.split('.')[1] as Incoterm;
+    if (!INCOTERMS.includes(term)) return;
+    const record = (state.project.term_scenarios ??= {})[term] ??= {};
+    record.quote ??= emptyContractQuote(state.project);
+    invalidateEvidence(record.quote_evidence);
+  }
+  if (path.startsWith('goods.') || path.startsWith('facts.') || path === 'base_currency') {
+    for (const record of Object.values(state.project.term_scenarios ?? {})) {
+      invalidateEvidence(record.quote_evidence);
+      if (path.startsWith('facts.') || path === 'base_currency') Object.values(record.responsibility_overrides ?? {}).forEach(override => invalidateEvidence(override.evidence));
+    }
+  }
   const rules = state.project.tax_profile.import;
   if (path.startsWith('route.')) state.project.route ??= emptyRoute();
   if (path.startsWith('tax_profile.import.eligibility.')) rules.eligibility ??= emptyEligibility();
@@ -266,7 +285,7 @@ function onProjectField(path: string, target: HTMLInputElement | HTMLSelectEleme
         ? { kind, buyer_total: fallbackTotal, currency: state.project.base_currency }
         : kind === 'FIXED_MARGIN_RATE'
           ? { kind, margin_rate: '0.2' }
-          : { kind: 'FIXED_QUOTE' };
+          : kind === 'ACTUAL_QUOTES' ? { kind } : { kind: 'FIXED_QUOTE' };
     return;
   }
   setPath(path, target.value);
@@ -275,6 +294,7 @@ function onProjectField(path: string, target: HTMLInputElement | HTMLSelectEleme
 function onItemField(costId: string, field: string, target: HTMLInputElement | HTMLSelectElement): void {
   const item = state.project.items.find((candidate) => candidate.cost_id === costId);
   if (item === undefined) return;
+  for (const record of Object.values(state.project.term_scenarios ?? {})) invalidateEvidence(record.responsibility_overrides?.[costId]?.evidence);
   const value = target.value;
   if (['currency', 'fx_type', 'fx_date'].includes(field)) invalidateEvidence(item.fx_evidence);
   const isCheckbox = target instanceof HTMLInputElement && target.type === 'checkbox';
@@ -483,7 +503,20 @@ function onFxField(rowId: string, field: string, target: HTMLInputElement | HTML
 function onEvidenceField(owner: string, id: string, field: string, value: string): void {
   let evidence: SourceEvidence;
   let values: unknown;
-  if (owner === 'tax') {
+  if (owner === 'quote') {
+    const term = id as Incoterm;
+    if (!INCOTERMS.includes(term)) return;
+    const record = (state.project.term_scenarios ??= {})[term] ??= {};
+    record.quote ??= emptyContractQuote(state.project);
+    evidence = record.quote_evidence ??= emptyEvidence();
+    values = quoteEvidenceValues(toTrade(state.project), toScenario(state.project, term));
+  } else if (owner === 'contract-cost') {
+    const [term, costId] = JSON.parse(id) as [Incoterm, string];
+    const override = state.project.term_scenarios?.[term]?.responsibility_overrides?.[costId];
+    if (!override) return;
+    evidence = override.evidence ??= emptyEvidence();
+    values = overrideEvidenceValues(toTrade(state.project), toScenario(state.project, term), costId);
+  } else if (owner === 'tax') {
     evidence = state.project.tax_profile.import.rateEvidence ??= emptyEvidence();
     values = taxEvidenceValues(state.project.tax_profile.import);
   }
@@ -524,6 +557,17 @@ function onEvidenceField(owner: string, id: string, field: string, value: string
 }
 
 // ---------- 动作 ----------
+
+function onContractField(costId: string, field: string, value: string): void {
+  if (!state.project.items.some(item => item.cost_id === costId) && value !== 'DEFAULT') return;
+  const record = (state.project.term_scenarios ??= {})[state.project.incoterm] ??= {};
+  const overrides = record.responsibility_overrides ??= {};
+  if (field === 'responsibility' && value === 'DEFAULT') { delete overrides[costId]; return; }
+  if (field === 'responsibility' && (value === 'SELLER' || value === 'BUYER')) {
+    overrides[costId] = { ...overrides[costId], responsibility: value };
+  } else if (field === 'reason' && overrides[costId]) overrides[costId]!.reason = value.trim();
+  invalidateEvidence(overrides[costId]?.evidence);
+}
 
 function addPresetItem(presetKey: string): void {
   const preset = COST_PRESETS.find((candidate) => candidate.key === presetKey);
@@ -596,6 +640,9 @@ function removeTier(item: CostItem, index: number): void {
 }
 
 function removeItem(costId: string): void {
+  for (const record of Object.values(state.project.term_scenarios ?? {})) {
+    if (record.responsibility_overrides) delete record.responsibility_overrides[costId];
+  }
   state.project.items = state.project.items.filter((item) => item.cost_id !== costId);
   state.project.items.forEach((item) => {
     if (item.contained_in_cost_id === costId) item.contained_in_cost_id = undefined;
@@ -914,6 +961,11 @@ function bind(): void {
       commit();
       return;
     }
+    if (target.dataset.contractCost !== undefined && target.dataset.contractField !== undefined) {
+      onContractField(target.dataset.contractCost, target.dataset.contractField, target.value);
+      commit();
+      return;
+    }
 
     if (target.dataset.action === 'add-preset') {
       if (target.value !== '') addPresetItem(target.value);
@@ -943,6 +995,17 @@ function bind(): void {
     const action = target.dataset.action;
     if (action === undefined) return;
     switch (action) {
+      case 'remove-contract-override': {
+        if (target.dataset.contractCost) onContractField(target.dataset.contractCost, 'responsibility', 'DEFAULT');
+        commit();
+        break;
+      }
+      case 'clear-contract-quote': {
+        const record = state.project.term_scenarios?.[state.project.incoterm];
+        if (record) { delete record.quote; delete record.quote_evidence; }
+        commit();
+        break;
+      }
       case 'add-custom':
         addCustomItem();
         commit();

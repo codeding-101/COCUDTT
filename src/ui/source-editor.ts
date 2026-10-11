@@ -19,6 +19,6 @@ export function renderSourceEditor(evidence: SourceEvidence | undefined, owner: 
       ${fields.map(([field, label, placeholder]) => `<label class="field${field === 'reference' ? ' wide' : ''}">${label}<input type="text" value="${escapeHtml(evidence?.[field] ?? '')}" placeholder="${placeholder}" ${binding} data-evidence-field="${field}" /></label>`).join('')}
       <label class="field">核对状态<select ${binding} data-evidence-field="status">${Object.entries(SOURCE_STATUS_LABELS).map(([value, label]) => `<option value="${value}"${value === (evidence?.status ?? 'UNVERIFIED') ? ' selected' : ''}>${label}</option>`).join('')}</select></label>
     </div>
-    <p class="hint block">核对记录由你填写，程序不自动认证来源。修改税率、汇率或来源记录后，需要重新确认。</p>
+    <p class="hint block">核对记录由你填写，程序不自动认证来源。修改已核对数据或来源记录后，需要重新确认。</p>
   </details>`;
 }

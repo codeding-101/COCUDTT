@@ -65,6 +65,11 @@ const handledActions = new Set([
   ...matchAll(appTs, /dataset\.action === '([a-z-]+)'/g),
 ]);
 const renderedActions = matchAll(uiText, /data-action="([a-z-]+)"/g);
+const contractFields = matchAll(uiText, /data-contract-field="([a-z_]+)"/g);
+const handledContractFields = matchAll(appTs, /field === '([a-z_]+)'/g);
+for (const field of contractFields) {
+  if (!handledContractFields.has(field)) problems.push(`[合同字段未处理] ${field} 没有对应处理分支`);
+}
 for (const action of renderedActions) {
   if (!handledActions.has(action)) {
     problems.push(`[动作未处理] 界面渲染了 data-action="${action}"，但 app.ts 中没有对应分支`);
@@ -117,6 +122,7 @@ const projectPaths = new Set([
   'quote.currency',
   'quote.fx_type',
   'quote.fx_date',
+  'evaluation_date', '${prefix}.amount', '${prefix}.currency', '${prefix}.fx_type', '${prefix}.fx_date', '${prefix}.named_place',
   'incoterm',
   'anchor.kind',
   'anchor.buyer_total',
@@ -143,6 +149,7 @@ for (const path of matchAll(uiText, /data-path="([^"]+)"/g)) {
 if (problems.length === 0) {
   console.log('静态审查通过：没有发现未处理的字段/动作、未使用的错误码或告警码。');
 } else {
+  process.exitCode = 1;
   console.log(`静态审查发现 ${problems.length} 项：`);
   for (const problem of problems) console.log(`  · ${problem}`);
 }

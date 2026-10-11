@@ -285,7 +285,9 @@ function renderComparison(comparison: Comparison): string {
       <h3 class="panel-heading">11 术语横向对比</h3>
       <div class="panel-actions" style="margin:0 0 10px">
         <span class="tag accent">基准：${
-          comparison.anchor.kind === 'FIXED_QUOTE'
+          comparison.anchor.kind === 'ACTUAL_QUOTES'
+            ? '各方案实际报价'
+            : comparison.anchor.kind === 'FIXED_QUOTE'
             ? 'A 固定报价金额'
             : comparison.anchor.kind === 'FIXED_MARKET_PRICE'
               ? 'B 固定买方总支付'
@@ -321,7 +323,7 @@ function renderComparison(comparison: Comparison): string {
         </tbody>
       </table>
       <p class="hint block">
-        ${comparison.uses_scenario_costs ? '本次按适用术语启用费用，各方案重新计算税基与税额，运价差异会影响进口税费。替代报价组不得同时启用两项；固定报价仍假设各术语报价金额相同，请核对比较基准。' : '本次比较固定交易费用、计税价格和税率。在这些假设内，各术语进口税费相同，承担方不同；真实价格或费用变化时应重新核算。'}
+        ${comparison.anchor.kind === 'ACTUAL_QUOTES' ? '本次采用独立合同报价，各方案按启用费用重新核算。缺失报价不计算；报价有效期按合同比较日期核对。商品净价仍是共同输入，若各报价的净价或商品范围不同，请分项目测算。' : comparison.uses_scenario_costs ? '本次按适用术语启用费用，各方案重新计算税基与税额，运价差异会影响进口税费。替代报价组不得同时启用两项；固定报价仍假设各术语报价金额相同，请核对比较基准。' : '本次比较固定交易费用、计税价格和税率。在这些假设内，各术语进口税费相同，承担方不同；真实价格或费用变化时应重新核算。'}
         高亮仅比较可参与排名的方案。来源仍待核对、税基不完整或存在未计入成本的费用时，保留参考金额并排除排名。
       </p>
     </div>

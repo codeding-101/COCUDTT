@@ -1,6 +1,7 @@
 import type { CurrencyCode, DateStr, FxType, Incoterm, Party, Responsibility } from './enums.js';
 import type { Numeric } from './decimal.js';
 import type { ScenarioFacts } from './rule.js';
+import type { SourceEvidence } from './source-evidence.js';
 
 /** 成交报价（设计文档 8.1） */
 export interface Quote {
@@ -13,6 +14,8 @@ export interface Quote {
   fx_rate?: Numeric;
   fx_type?: FxType;
   fx_date?: DateStr;
+  named_place?: string;
+  evidence?: SourceEvidence;
 }
 
 /** 用户对责任判定的显式指定（设计文档 6.2 第 1 级） */
@@ -24,10 +27,13 @@ export interface ResponsibilityOverride {
   payment_party?: Party;
   /** 谁经济承担 */
   economic_bearer?: Party;
+  /** 合同费用约定的人工核对记录，不能代替实际付款证据。 */
+  evidence?: SourceEvidence;
 }
 
 /** 比较基准，决定"利润"怎么算（设计文档 11.3） */
 export type ComparisonAnchor =
+  | { kind: 'ACTUAL_QUOTES' }
   | { kind: 'FIXED_QUOTE' }
   | { kind: 'FIXED_MARKET_PRICE'; buyer_total: Numeric; currency: CurrencyCode }
   | { kind: 'FIXED_MARGIN_RATE'; margin_rate: Numeric };
@@ -49,4 +55,6 @@ export interface Scenario {
   /** 参与规则条件匹配的事实（交货地点、运输条款变形等） */
   facts?: ScenarioFacts;
   anchor?: ComparisonAnchor;
+  /** 显式保存的业务比较日期，不使用电脑当前日期推定报价有效性。 */
+  contract_review?: { evaluation_date?: DateStr; require_quote: boolean };
 }
