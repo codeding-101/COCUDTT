@@ -32,6 +32,8 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci
+      - name: Check dependency advisories
+        run: npm audit --audit-level=high
       - name: Run calculation and file regression tests
         run: npm test
       - name: Audit UI bindings and engine codes
