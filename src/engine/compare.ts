@@ -270,8 +270,7 @@ function countSellerItems(items: readonly EnrichedCostItem[]): number {
 /**
  * 11 个术语的横向对比（设计文档第 11 节）。
  *
- * 注意：进口税费总额在 11 个术语下是同一个数——完税价格以货物成交价、运费、保险费为基础，
- * 与贸易术语无关，术语改变的只是"由谁承担"。这是对比表里一个容易被忽略的恒定量。
+ * 计税事实相同时各术语税额相同；按术语启用不同运价时，税基与税额逐方案重新计算。
  */
 export function compare(input: CompareInput): Comparison {
   const ruleSet = input.ruleSet ?? INCOTERMS_2020_RULESET;
