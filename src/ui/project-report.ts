@@ -1,5 +1,5 @@
 import styles from './styles.css?inline';
-import { serializeProject, toScenario, toTrade, type ProjectFile } from '../data/project-file.js';
+import { serializeProject, toScenario, toScenarios, toTrade, type ProjectFile } from '../data/project-file.js';
 import { analyze } from '../engine/analyze.js';
 import { compare, scenarioWithDerivedInclusions } from '../engine/compare.js';
 import { escapeHtml } from './format.js';
@@ -12,16 +12,17 @@ export function createProjectReport(project: ProjectFile, generatedAt = new Date
   const input = { trade, taxProfile: project.tax_profile, fxBooks: project.fx_books,
     ...(project.export_date !== undefined ? { today: project.export_date } : {}) };
   const result = analyze({ ...input, scenario: scenarioWithDerivedInclusions(template, trade) });
-  const comparison = compare({ ...input, template, anchor: project.anchor });
+  const comparison = compare({ ...input, template, scenarios: toScenarios(project), anchor: project.anchor });
   const snapshot = serializeProject(project);
   const title = `${project.name || '未命名交易'} · 内部测算报告`;
   const rows = [
     ['商品', project.goods.name], ['数量与单位', `${project.goods.quantity} ${project.goods.unit}`],
     ['货物净价/货值', `${project.goods.trade_value.amount} ${project.goods.trade_value.currency}`],
-    ['合同报价', `${project.quote.amount} ${project.quote.currency} · ${project.incoterm}`],
+    ['本方案报价', `${template.quote.amount} ${template.quote.currency} · ${project.incoterm} ${template.quote.named_place ?? ''}`],
+    ['合同比较日期', project.evaluation_date ?? '未填写（实际报价及费用约定的有效期需核对）'],
     ['卖方采购成本', String(project.goods.seller_goods_cost.amount).trim() === '' ? '未知，利润无法评估' : `${project.goods.seller_goods_cost.amount} ${project.goods.seller_goods_cost.currency}`],
     ['核算币种', project.base_currency], ['进口申报日期', project.tax_profile.import.declarationDate ?? '未填写'],
-    ['比较基准', project.anchor.kind === 'FIXED_QUOTE' ? '固定报价金额' : project.anchor.kind === 'FIXED_MARKET_PRICE' ? `固定买方总支付 ${project.anchor.buyer_total} ${project.anchor.currency}` : `固定目标利润率 ${project.anchor.margin_rate}`],
+    ['比较基准', project.anchor.kind === 'ACTUAL_QUOTES' ? '各方案实际报价' : project.anchor.kind === 'FIXED_QUOTE' ? '固定报价金额' : project.anchor.kind === 'FIXED_MARKET_PRICE' ? `固定买方总支付 ${project.anchor.buyer_total} ${project.anchor.currency}` : `固定目标利润率 ${project.anchor.margin_rate}`],
   ];
   // 报告默认展开依据和待办，避免打印时遗漏未核对内容。
   const output = renderOutputColumn({ result, comparison, error: null }).replace(/<details([^>]*)>/g, '<details$1 open>');

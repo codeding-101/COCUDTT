@@ -28,6 +28,7 @@ import { computeImportTaxes, type ImportTaxResult } from './tax/import-tax.js';
 import { computeRebate, noExportRebate, type RebateResult } from './tax/rebate.js';
 import { isChinaImport, validateChinaImportContext } from './tax/china-import.js';
 import { assessDecision, type DecisionReadiness } from './decision-readiness.js';
+import { assessContract } from './contract-readiness.js';
 import { costsForTerm } from './scenario-costs.js';
 
 const SHIPMENT_BOUNDARY: TradeNode = 'CARRIER_HANDOVER';
@@ -161,6 +162,9 @@ export function analyze(input: AnalysisInput): AnalysisResult {
     throw new EngineError('INPUT_VALUE_MISSING', '货值包含运费或保险费，请先拆出货物净价、运费和保险费，再确认净价口径；不能将整价另加运保费计算');
   }
   requireNumericInput(scenario.quote.amount, '报价金额');
+  if (scenario.contract_review?.require_quote && d(scenario.quote.amount).lte(0)) {
+    throw new EngineError('INPUT_VALUE_MISSING', '实际合同报价金额必须大于零；未录入的报价不能用零代替');
+  }
 
   // 步骤 1：责任判定（同时校验术语与运输方式是否兼容）
   const initialDecisions = resolveResponsibility({ trade, scenario, ruleSet });
@@ -434,12 +438,12 @@ export function analyze(input: AnalysisInput): AnalysisResult {
   });
 
   return {
-    decision: assessDecision({
+    decision: assessContract(assessDecision({
       taxProfile, taxKey: trade.goods.tax_key, goodsPriceBasis: trade.goods.trade_value_basis,
       ...(trade.route !== undefined ? { route: trade.route } : {}), items, warnings,
       customsComponents: dutiableComponents, commercialFx: [...commercialFx, ...fxByCostId.values()],
       totals: [...(aggregated.seller.margin === null ? [] : [aggregated.seller.margin]), aggregated.buyer.landed_cost_with_tax, importTax.duty, importTax.vat, importTax.consumption_tax],
-    }),
+    }), input.trade, trade.items.map(item => item.cost_id), scenario, warnings),
     rule_set: { id: ruleSet.id, version: ruleSet.version },
     scenario_id: scenario.id,
     incoterm: scenario.incoterm,

@@ -108,7 +108,7 @@ describe('按方案启用费用与替代运价',()=>{
   });
   it('0.6文件保存适用术语与替代组；0.5旧文件未设置时仍适用全部术语',()=>{
     const p=project(); const restored=parseProject(serializeProject(p));
-    expect(restored.schema_version).toBe('0.6'); expect(restored.items).toEqual(p.items);
+    expect(restored.schema_version).toBe('0.7'); expect(restored.items).toEqual(p.items);
     const raw=JSON.parse(serializeProject(p));raw.schema_version='0.5';for(const item of raw.items){delete item.applicable_incoterms;delete item.alternative_group;}
     const old=parseProject(JSON.stringify(raw)); expect(costsForTerm(toTrade(old),'CIF').trade.items.length).toBe(3);
   });

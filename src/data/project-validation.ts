@@ -107,7 +107,7 @@ const hsTable = shape({
 });
 const anchor: Validator = (value, path) => {
   const object = record(value, path);
-  oneOf(['FIXED_QUOTE', 'FIXED_MARKET_PRICE', 'FIXED_MARGIN_RATE'])(object.kind, `${path}.kind`);
+  oneOf(['ACTUAL_QUOTES', 'FIXED_QUOTE', 'FIXED_MARKET_PRICE', 'FIXED_MARGIN_RATE'])(object.kind, `${path}.kind`);
   if (object.kind === 'FIXED_MARKET_PRICE') {
     numeric(object.buyer_total, `${path}.buyer_total`);
     string(object.currency, `${path}.currency`);
@@ -150,7 +150,22 @@ const project = shape({
     }),
     customsFx: shape({ bookType: oneOf(['CUSTOMS']), lockPeriod: oneOf(['MONTHLY']) }),
   }),
-  quote: shape({ amount: string, currency: string, fx_type: oneOf(FX_TYPES), fx_date: optional(string) }),
+  quote: shape({ amount: string, currency: string, fx_type: oneOf(FX_TYPES), fx_date: optional(string), named_place: optional(string) }),
+  evaluation_date: optional(string),
+  term_scenarios: optional((value, path) => {
+    const object = record(value, path);
+    for (const [term, entry] of Object.entries(object)) {
+      oneOf(INCOTERMS)(term, `${path}.${term}`);
+      shape({
+        quote: optional(shape({ amount: string, currency: string, fx_type: oneOf(FX_TYPES), fx_date: optional(string), named_place: optional(string) })),
+        quote_evidence: optional(evidence),
+        responsibility_overrides: optional(dictionary(shape({
+          responsibility: oneOf(['SELLER', 'BUYER']), reason: optional(string), evidence: optional(evidence),
+          payment_party: optional(oneOf(['SELLER', 'BUYER'])), economic_bearer: optional(oneOf(['SELLER', 'BUYER'])),
+        }))),
+      })(entry, `${path}.${term}`);
+    }
+  }),
   incoterm: oneOf(INCOTERMS), anchor,
   facts: optional(shape({
     delivery_place: optional(oneOf(['SELLER_PREMISES', 'OTHER'])),
@@ -166,7 +181,7 @@ export function validateProjectStructure(value: unknown): void {
   const ids = new Set<string>();
   (object.items as Record<string, unknown>[]).forEach((item, index) => {
     const id = item.cost_id as string;
-    if (id.trim() === '' || ids.has(id)) fail(`project.items[${index}].cost_id`, '不能为空或与其他费用重复');
+    if (id.trim() === '' || ['__proto__', 'constructor', 'prototype'].includes(id) || ids.has(id)) fail(`project.items[${index}].cost_id`, '不能为空、使用保留名称或与其他费用重复');
     ids.add(id);
     const terms = item.applicable_incoterms as string[] | undefined;
     if (terms !== undefined && new Set(terms).size !== terms.length) fail(`project.items[${index}].applicable_incoterms`, '术语不能重复');

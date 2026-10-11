@@ -31,6 +31,7 @@ import type { ShippingTerms } from '../domain/rule.js';
 import type { FxRow } from './fx-rows.js';
 import { dec, escapeHtml } from './format.js';
 import { renderSourceEditor } from './source-editor.js';
+import { renderContractPanel } from './contracts-input.js';
 
 const BASE_LABELS: Record<'GOODS_VALUE' | 'QUOTE_AMOUNT' | 'CUSTOMS_DUTIABLE_VALUE', string> = {
   GOODS_VALUE: '货值',
@@ -323,10 +324,10 @@ export function renderFormsRow(project: ProjectFile): string {
 
   const quoteBody = `
     <div class="field-grid">
-      <label class="field">报价金额<input type="text" inputmode="decimal" class="num" value="${escapeHtml(project.quote.amount)}" data-path="quote.amount" /></label>
+      ${project.anchor.kind === 'ACTUAL_QUOTES' ? '' : `<label class="field">报价金额<input type="text" inputmode="decimal" class="num" value="${escapeHtml(project.quote.amount)}" data-path="quote.amount" /></label>
       <label class="field">报价币种<input type="text" value="${escapeHtml(project.quote.currency)}" data-path="quote.currency" /></label>
       <label class="field">报价所用汇率类型<select data-path="quote.fx_type">${selectOptions(FX_TYPES, FX_TYPE_LABELS, project.quote.fx_type)}</select></label>
-      <label class="field">报价汇率日期<input type="text" value="${escapeHtml(project.quote.fx_date ?? '')}" data-path="quote.fx_date" placeholder="YYYY-MM-DD" /></label>
+      <label class="field">报价汇率日期<input type="text" value="${escapeHtml(project.quote.fx_date ?? '')}" data-path="quote.fx_date" placeholder="YYYY-MM-DD" /></label>`}
       <label class="field">贸易术语<select data-path="incoterm">
         ${INCOTERMS.map(
           (incoterm) =>
@@ -334,6 +335,7 @@ export function renderFormsRow(project: ProjectFile): string {
         ).join('')}
       </select></label>
       <label class="field">比较基准<select data-path="anchor.kind">
+        <option value="ACTUAL_QUOTES"${project.anchor.kind === 'ACTUAL_QUOTES' ? ' selected' : ''}>实际报价：各方案独立录入</option>
         <option value="FIXED_QUOTE"${project.anchor.kind === 'FIXED_QUOTE' ? ' selected' : ''}>A 固定报价金额</option>
         <option value="FIXED_MARKET_PRICE"${project.anchor.kind === 'FIXED_MARKET_PRICE' ? ' selected' : ''}>B 固定买方总支付</option>
         <option value="FIXED_MARGIN_RATE"${project.anchor.kind === 'FIXED_MARGIN_RATE' ? ' selected' : ''}>C 固定目标利润率</option>
@@ -373,7 +375,8 @@ export function renderFormsRow(project: ProjectFile): string {
   <div class="row-forms">
     ${panel('goods', '交易与商品', '', goodsBody)}
     ${panel('quote', '报价与方案', '', quoteBody)}
-  </div>`;
+  </div>
+  ${renderContractPanel(project)}`;
 }
 
 export function renderImportTaxPanel(project: ProjectFile): string {

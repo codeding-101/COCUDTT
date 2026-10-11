@@ -27,6 +27,8 @@ export interface CompareInput {
   trade: Trade;
   /** 方案模板：提供核算币种、报价币种、汇率选择与方案事实 */
   template: Scenario;
+  /** 每个术语的独立报价与合同费用约定；实际报价模式不允许缺失时回退。 */
+  scenarios?: Partial<Record<Incoterm, Scenario>>;
   /** 比较基准，默认固定报价金额 */
   anchor?: ComparisonAnchor;
   /** 参与比较的术语，默认取当前运输方式下全部可用的术语 */
@@ -103,6 +105,8 @@ export interface ConditionalSensitivity {
 
 function anchorLabel(anchor: ComparisonAnchor): string {
   switch (anchor.kind) {
+    case 'ACTUAL_QUOTES':
+      return '各方案实际报价';
     case 'FIXED_QUOTE':
       return '固定报价金额';
     case 'FIXED_MARKET_PRICE':
@@ -174,6 +178,7 @@ export function scenarioForTerm(
     incoterm,
     base_currency: baseCurrency,
     quote,
+    ...(template.contract_review ? { contract_review: { ...template.contract_review, require_quote: false } } : {}),
   };
   return {
     ...probe,
@@ -206,10 +211,28 @@ function solveQuote(
   targetBuyerTotal: Decimal | null,
   ruleSet: IncotermsRuleSet,
 ): SolveState {
+  const template = input.scenarios?.[incoterm] ?? input.template;
+  if (anchor.kind === 'ACTUAL_QUOTES') {
+    if (!input.scenarios?.[incoterm] || String(template.quote.amount).trim() === '') {
+      throw new EngineError('INPUT_VALUE_MISSING', `${incoterm} 未录入实际报价，本方案不参与计算或排名`);
+    }
+    if (template.incoterm !== incoterm || template.quote.incoterm !== incoterm) {
+      throw new EngineError('INPUT_VALUE_MISSING', `${incoterm} 的实际报价术语与方案不一致`);
+    }
+    if (template.base_currency !== input.template.base_currency) {
+      throw new EngineError('INPUT_VALUE_MISSING', `${incoterm} 的核算币种与比较表不一致`);
+    }
+    const result = analyze({ trade: input.trade,
+      scenario: scenarioWithDerivedInclusions({ ...template,
+        contract_review: { ...template.contract_review, require_quote: true } }, input.trade, ruleSet),
+      ruleSet, taxProfile: input.taxProfile, fxBooks: input.fxBooks,
+      ...(input.today !== undefined ? { today: input.today } : {}) });
+    return { quote: result.buyer.quote_amount, result, iterations: 1, converged: true };
+  }
   const runOnce = (quoteAmount: Decimal): AnalysisResult =>
     analyze({
       trade: input.trade,
-      scenario: scenarioForTerm(input.template, input.trade, incoterm, quoteAmount, ruleSet),
+      scenario: scenarioForTerm(template, input.trade, incoterm, quoteAmount, ruleSet),
       ruleSet,
       taxProfile: input.taxProfile,
       fxBooks: input.fxBooks,
@@ -296,7 +319,7 @@ export function compare(input: CompareInput): Comparison {
     return convertAmount(amount, fx);
   };
 
-  const initialQuote = convertToBase(d(input.template.quote.amount), quoteCurrency);
+  const initialQuote = anchor.kind === 'ACTUAL_QUOTES' ? d(0) : convertToBase(d(input.template.quote.amount), quoteCurrency);
 
   let targetBuyerTotal: Decimal | null = null;
   if (anchor.kind === 'FIXED_MARKET_PRICE') {
@@ -348,7 +371,7 @@ export function compare(input: CompareInput): Comparison {
       solved = solveQuote(input, incoterm, anchor, initialQuote, targetBuyerTotal, ruleSet);
     } catch (error) {
       // 某术语启用的费用未完成时，只阻止该列，不丢失其他可计算方案。
-      if (!isEngineError(error) || !input.trade.items.some(item => item.applicable_incoterms !== undefined || item.alternative_group?.trim())) throw error;
+      if (!isEngineError(error) || !(anchor.kind === 'ACTUAL_QUOTES' || input.scenarios !== undefined || input.trade.items.some(item => item.applicable_incoterms !== undefined || item.alternative_group?.trim()))) throw error;
       columns.push({ incoterm, available: true, feasible: false, decision_ready: false,
         decision_issues: [error instanceof Error ? error.message : String(error)],
         infeasible_reason: error instanceof Error ? error.message : String(error),
@@ -435,7 +458,9 @@ export function compare(input: CompareInput): Comparison {
     code: 'COMPARISON_ANCHOR',
     level: 'INFO',
     message: `本次对比采用「${anchorLabel(anchor)}」基准${
-      anchor.kind === 'FIXED_QUOTE'
+      anchor.kind === 'ACTUAL_QUOTES'
+        ? '：使用各方案独立录入的合同报价；缺失报价不计算，未核对或有效期不覆盖比较日期的报价仅供参考'
+        : anchor.kind === 'FIXED_QUOTE'
         ? '：各术语使用同一报价金额，用于观察成本承担如何变化'
         : anchor.kind === 'FIXED_MARKET_PRICE'
           ? `：买方总支付固定为 ${toDisplay(targetBuyerTotal ?? d(0))}，各术语反解报价；排名只包含通过当前数据与费用检查的方案`
