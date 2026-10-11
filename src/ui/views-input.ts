@@ -351,8 +351,8 @@ export function renderFormsRow(project: ProjectFile): string {
       }
       <label class="field">FCA 交货地点<select data-path="facts.delivery_place">
         <option value=""${project.facts?.delivery_place === undefined ? ' selected' : ''}>未指定</option>
-        <option value="SELLER_PREMISES"${project.facts?.delivery_place === 'SELLER_PREMISES' ? ' selected' : ''}>卖方场所</option>
-        <option value="OTHER"${project.facts?.delivery_place === 'OTHER' ? ' selected' : ''}>其他指定地点</option>
+        <option value="SELLER_PREMISES"${project.facts?.delivery_place === 'SELLER_PREMISES' ? ' selected' : ''}>卖方场所（装货完成）</option>
+        <option value="OTHER"${project.facts?.delivery_place === 'OTHER' ? ' selected' : ''}>其他指定地点（准备卸货）</option>
       </select></label>
       <label class="field">运输条款变形<select data-path="facts.shipping_terms">
         <option value=""${project.facts?.shipping_terms === undefined ? ' selected' : ''}>未指定</option>

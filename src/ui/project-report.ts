@@ -39,6 +39,7 @@ body { padding: 16px; } .report { margin: 0 auto; max-width: 1600px; }
 <header class="report-header"><h1>${escapeHtml(title)}</h1>
 <p>生成时间：${escapeHtml(generatedAt)} · ${result.decision.ready ? '满足当前排名检查条件' : '参考测算，仍有待核对事项'}</p>
 <p class="hint">报告保存生成时的输入和结果。人工记录不等于程序或主管机关认证；比较结论取决于录入事实及模型范围。</p>
+<aside class="responsibility-notice" aria-label="责任声明">本工具仅供学习与内部测算参考，不构成法律或专业贸易建议。实际合同请以 Incoterms® 官方文本及当地法规为准。</aside>
 <p class="report-help">离线打开即可复核；使用浏览器打印功能可保存PDF。需要查看完整输入时，展开文末输入快照。</p></header>
 <section class="panel"><div class="panel-body"><h2 class="panel-heading">生成时的交易输入</h2>
 <table class="grid stackable"><tbody>${rows.map(([label = '', value = '']) => `<tr><th>${escapeHtml(label)}</th><td data-label="输入">${escapeHtml(value)}</td></tr>`).join('')}</tbody></table></div></section>

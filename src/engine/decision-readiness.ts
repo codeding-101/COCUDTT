@@ -58,6 +58,7 @@ export function checkFxSources(resolutions: readonly FxResolution[], fallbackDat
 const incompleteWarnings = new Set<Warning['code']>([
   'DUTY_BASE_INCOMPLETE', 'CUSTOMS_FX_FALLBACK', 'HS_CODE_PARENT_MATCH', 'HS_CODE_NOT_FOUND',
   'HS_RATE_BASIS_FALLBACK', 'INSURANCE_REQUIRED_MISSING', 'INSURANCE_FALLBACK_APPLIED',
+  'FCA_DELIVERY_UNCONFIRMED',
 ]);
 
 export function assessDecision(input: {

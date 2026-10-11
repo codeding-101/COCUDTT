@@ -227,31 +227,31 @@ const FOB: IncotermRule[] = [
     incoterm: 'FOB',
     node: 'ORIGIN_TERMINAL',
     when: [{ kind: 'SHIPPING_TERMS', is: 'LINER' }],
-    resp: 'BUYER',
-    note: 'FOB 班轮条件下起运港港杂费（THC）通常已含在运费中，由买方负担',
+    resp: 'CONDITIONAL',
+    note: 'FOB班轮条件不能确定全部起运港港杂费的承担方；请拆分费用，核对合同和运费已含范围后逐项确认',
   }),
   r({
     id: 'FOB.CARRIER_HANDOVER.DEFAULT',
     incoterm: 'FOB',
     node: 'CARRIER_HANDOVER',
     resp: 'SELLER',
-    note: 'FOB 基本含义下卖方负责将货物装上船；若采用班轮条件或吊钩下交货，装船费转由买方负担',
+    note: '标准FOB下卖方负责将货物装上船；补充条款的费用与风险影响应分别核对合同',
   }),
   r({
     id: 'FOB.CARRIER_HANDOVER.LINER',
     incoterm: 'FOB',
     node: 'CARRIER_HANDOVER',
     when: [{ kind: 'SHIPPING_TERMS', is: 'LINER' }],
-    resp: 'BUYER',
-    note: 'FOB 班轮条件（Liner Terms）：卖方不负担装船费用，装船费已含在运费中',
+    resp: 'CONDITIONAL',
+    note: 'FOB班轮条件下装船费是否已含运费及其承担方需核对原合同；不能只凭条款名称确定，也不自动改变风险转移点',
   }),
   r({
     id: 'FOB.CARRIER_HANDOVER.UNDER_TACKLE',
     incoterm: 'FOB',
     node: 'CARRIER_HANDOVER',
     when: [{ kind: 'SHIPPING_TERMS', is: 'UNDER_TACKLE' }],
-    resp: 'BUYER',
-    note: 'FOB 吊钩下交货（Under Tackle）：卖方将货物交至船边吊钩所及之处，装船费由买方负担',
+    resp: 'CONDITIONAL',
+    note: 'FOB吊钩下条款需核对装船费用、交货及风险的具体约定；当前仅标为待确认，不凭名称认定由买方承担',
   }),
   r({
     id: 'FOB.CARRIER_HANDOVER.STOWED',
@@ -775,7 +775,7 @@ const NODE_FALLBACKS: NodeFallback[] = [
 /** Incoterms 2020 规则表（种子数据）。规则顺序不影响判定结果，优先级由 specificity 决定。 */
 export const INCOTERMS_2020_RULESET: IncotermsRuleSet = {
   id: 'incoterms2020',
-  version: '1.0',
+  version: '1.1',
   rules: [
     ...EXW,
     ...FCA,

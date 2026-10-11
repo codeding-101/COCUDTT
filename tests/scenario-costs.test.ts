@@ -51,7 +51,7 @@ describe('按方案启用费用与替代运价',()=>{
     expect(cif.seller.margin).toBeNull(); expect(JSON.stringify(p)).toBe(before);
   });
   it('已核对前提下买方独立排名；改变运价改变税额和成本，不能沿用固定税额解释',()=>{
-    const p=project(); const c=compare(input(p));
+    const p=project(); p.facts={delivery_place:'SELLER_PREMISES'}; const c=compare(input(p));
     expect(c.uses_scenario_costs).toBe(true);
     expect(c.columns.filter(x=>!x.feasible||!x.decision_ready).map(x=>({term:x.incoterm,issues:x.decision_issues}))).toEqual([]);
     expect(c.best_seller_margin).toBeNull(); expect(c.best_buyer_landed).not.toBeNull();

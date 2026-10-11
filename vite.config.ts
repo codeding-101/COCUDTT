@@ -1,6 +1,15 @@
 import { defineConfig } from 'vite';
+import { readFileSync } from 'node:fs';
 
 export default defineConfig({
+  // 独立离线介绍页在仓库中链接单文件工具，在静态站点中链接index入口。
+  plugins: [{
+    name: 'project-introduction',
+    generateBundle() {
+      const source = readFileSync(new URL('./project-introduction.html', import.meta.url), 'utf8');
+      this.emitFile({ type: 'asset', fileName: 'project-introduction.html', source: source.replace('href="trade-cost-engine.html"', 'href="index.html"') });
+    },
+  }],
   // 相对路径：构建产物既能放在子目录，也能直接双击打开
   base: './',
   build: {

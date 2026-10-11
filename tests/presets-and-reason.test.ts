@@ -148,7 +148,7 @@ describe('发生原因（过错责任）优先于术语的费用划分', () => {
     expect(decision.source).toBe('OCCURRENCE_REASON');
   });
 
-  it('承运人原因不改变归属，先按术语垫付，由引擎提示可索赔', () => {
+  it('承运人原因不改变费用测算，但不由原因标签自动判定赔偿责任', () => {
     const decision = decide('CARRIER_FAULT');
     expect(decision.responsibility).toBe('BUYER');
     expect(decision.source).toBe('INCOTERM_RULE');
@@ -174,5 +174,6 @@ describe('发生原因（过错责任）优先于术语的费用划分', () => {
       fxBooks: [],
     });
     expect(result.warnings.map((warning) => warning.code)).toContain('CARRIER_FAULT_CLAIMABLE');
+    expect(result.warnings.find(w => w.code === 'CARRIER_FAULT_CLAIMABLE')!.message).toContain('不判定承运人赔偿责任');
   });
 });

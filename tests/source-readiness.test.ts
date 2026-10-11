@@ -278,6 +278,47 @@ describe('来源核对与结果排名', () => {
     expect(checks[1]!.issues).toEqual([]);
   });
 
+  it('FCA交货地点待确认时保留测算、排除排名，确认分支后恢复并保存往返', () => {
+    const p = project();
+    p.incoterm = 'FCA';
+    const reference = run(p);
+    expect(reference.risk.needs_confirmation).toBe(true);
+    expect(reference.warnings.some(w => w.code === 'FCA_DELIVERY_UNCONFIRMED')).toBe(true);
+    expect(reference.decision.ready).toBe(false);
+    const compared = comparison(p);
+    expect(compared.columns.find(c => c.incoterm === 'FCA')!.feasible).toBe(true);
+    expect(compared.columns.find(c => c.incoterm === 'FCA')!.decision_ready).toBe(false);
+    expect(compared.best_buyer_landed).not.toBe('FCA');
+    const html = renderOutputColumn({ result: reference, comparison: compared, error: null });
+    expect(html).toContain('交货地点待确认');
+
+    p.facts = { delivery_place: 'SELLER_PREMISES' };
+    const confirmed = run(parseProject(serializeProject(p)));
+    expect(confirmed.rule_set).toEqual({ id: 'incoterms2020', version: '1.1' });
+    expect(confirmed.risk.transfer_node).toBe('SELLER_PREMISES');
+    expect(confirmed.risk.transfer_point).toContain('装货完成');
+    expect(confirmed.decision.ready).toBe(true);
+    expect(confirmed.buyer.landed_cost_with_tax.toString()).toBe(reference.buyer.landed_cost_with_tax.toString());
+    p.facts = { delivery_place: 'OTHER' };
+    const other = run(p);
+    expect(other.risk.transfer_point).toContain('准备卸货');
+    expect(other.decision.ready).toBe(true);
+  });
+
+  it('FOB班轮港杂费未确认时排除排名，引擎逐项覆盖后恢复', () => {
+    const p = project(); p.incoterm = 'FOB'; p.facts = { shipping_terms: 'LINER' };
+    p.items.push(makeCostItem({ cost_id: 'thc', cost_name: '待核对THC', trade_node: 'ORIGIN_TERMINAL', cost_category: 'ORIGIN_TERMINAL', amount: '150' }));
+    const reference = run(p);
+    expect(reference.items.find(i => i.item.cost_id === 'thc')!.responsibility).toBe('CONDITIONAL');
+    expect(reference.decision.ready).toBe(false);
+    const trade = toTrade(p);
+    const template = { ...toScenario(p), responsibility_overrides: { thc: { responsibility: 'BUYER' as const, reason: '合同明确本项含在买方运费中' } } };
+    const confirmed = analyze({ trade, scenario: scenarioWithDerivedInclusions(template, trade), taxProfile: p.tax_profile, fxBooks: p.fx_books });
+    expect(confirmed.items.find(i => i.item.cost_id === 'thc')!.responsibility_source).toBe('USER_OVERRIDE');
+    expect(confirmed.decision.ready).toBe(true);
+    expect(confirmed.risk.transfer_point).toContain('装上船');
+  });
+
   it('来源URL只允许http(s)链接；文本和恶意HTML都安全显示', () => {
     const p = project();
     p.tax_profile.import.rateEvidence = confirmed(taxEvidenceValues(p.tax_profile.import), { reference: 'javascript:alert(1)<img src=x>' });

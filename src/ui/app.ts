@@ -798,6 +798,16 @@ function render(): void {
       <span class="${saveState.className}" role="status" aria-live="polite">${escapeHtml(saveState.text)}</span>
     </header>
     <main class="layout">
+      <aside class="responsibility-notice" aria-label="责任声明">本工具仅供学习与内部测算参考，不构成法律或专业贸易建议。实际合同请以 Incoterms® 官方文本及当地法规为准。</aside>
+      <details class="panel" data-evidence-section="project-introduction">
+        <summary><span class="panel-title">项目说明 · 适用范围与使用方法</span></summary>
+        <div class="panel-body">
+          <p>面向外贸业务人员的本地成本测算工具，当前重点是中国一般贸易进口、单商品一票。录入货物净价与费用，记录税率、汇率及业务条件，再比较贸易术语下的买方支付和费用承担。</p>
+          <p>项目以标准 JSON 保存，带版本号；计算、项目文件与内部 HTML 报告均在本机处理。请先打开“中国进口示例”理解口径，再用“新建中国进口”录入自己的数据。</p>
+          <p>来源未核对、条件未确认和未知卖方成本会明确提示。现有模型及测试不能替代专业复核和真实单据验收；多商品、其他国家专用税制、资金成本及可下载 Excel/PDF 仍属后续范围。</p>
+          <p>工程采用严格 TypeScript、decimal.js、Vite 与 Vitest，分开维护领域类型、规则与计算、文件校验和界面。<a href="project-introduction.html">完整项目介绍</a>介绍设计取舍及验证证据；该独立页面与工具放在同一目录时可打开，本说明无需额外文件。</p>
+        </div>
+      </details>
       ${renderFormsRow(state.project)}
       ${renderImportTaxPanel(state.project)}
       ${renderFxPanel(state.fxRows)}

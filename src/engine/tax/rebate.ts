@@ -18,7 +18,7 @@ export interface RebateInput {
   pre_shipment_excluded_base: Decimal;
   taxKey?: string;
   export_date?: DateStr;
-  /** 当前日期，用于申报期限提示 */
+  /** 兼容已有调用；仅凭当前日期不判断退税申报或收汇是否逾期。 */
   today?: DateStr;
 }
 
@@ -56,10 +56,30 @@ export function noExportRebate(profile: RebateProfile): RebateResult {
   };
 }
 
-/** 出口退税申报期限：次年 4 月增值税纳税申报期截止，此处按 4 月 30 日近似 */
-function declarationDeadline(exportDate: DateStr): DateStr {
-  const year = Number(exportDate.slice(0, 4)) + 1;
-  return `${year}-04-30`;
+/**
+ * 期限核对提示，不是税务机关的逾期或征税认定。
+ * 财政部、税务总局公告2026年第11号九（一）4、十：2026年起新增36个月规则，
+ * 2025-12-31及以前出口业务按原政策过渡。申报期、出口类型、凭证和收汇状态均未建模，
+ * 因此不再用次年4月30日的近似日期推定逾期或视同内销。
+ * https://szs.mof.gov.cn/zhengcefabu/202601/t20260131_3983038.htm
+ */
+function declarationReview(exportDate?: DateStr): Warning {
+  const validDate = exportDate !== undefined && /^\d{4}-\d{2}-\d{2}$/.test(exportDate)
+    && !Number.isNaN(Date.parse(exportDate))
+    && new Date(exportDate).toISOString().slice(0, 10) === exportDate;
+  let rule: string;
+  if (!validDate) {
+    rule = '缺少有效出口日期，无法区分旧业务过渡与2026年起的规则';
+  } else if (exportDate !== undefined && compareDate(exportDate, '2026-01-01') < 0) {
+    rule = '录入日期在2025年12月31日及以前；财政部、税务总局公告2026年第11号规定此类出口业务仍按原政策执行，不适用新增36个月期限未申报视同向境内销售的规定';
+  } else {
+    rule = '2026年起的业务需按财政部、税务总局公告2026年第11号核对；普通报关出口货物涉及次月起至次年4月30日前的各增值税纳税申报期、收汇及36个月期限规则';
+  }
+  return {
+    code: 'REBATE_DEADLINE',
+    level: 'WARN',
+    message: `出口退（免）税申报与收汇期限需核对：${rule}。本工具未录入出口类型、实际申报、凭证及收汇状态，不判定是否逾期或应按境内销售征税；请向主管税务机关核实，测算金额不等于可取得的退税款`,
+  };
 }
 
 /**
@@ -162,16 +182,7 @@ export function computeRebate(input: RebateInput): RebateResult {
     });
   }
 
-  if (input.export_date !== undefined && input.today !== undefined) {
-    const deadline = declarationDeadline(input.export_date);
-    if (compareDate(input.today, deadline) > 0) {
-      warnings.push({
-        code: 'REBATE_DEADLINE',
-        level: 'WARN',
-        message: `出口退税申报期限（${deadline}）已过，逾期未申报可能视同内销征税`,
-      });
-    }
-  }
+  warnings.push(declarationReview(input.export_date));
 
   return {
     entity_type: profile.entityType,

@@ -1,5 +1,6 @@
 import { TRADE_NODES, type Incoterm, type RiskRelation, type TradeNode } from '../domain/enums.js';
 import type { CostItem } from '../domain/cost-item.js';
+import type { ScenarioFacts } from '../domain/rule.js';
 
 const NODE_ORDER: Record<TradeNode, number> = TRADE_NODES.reduce(
   (acc, node, index) => {
@@ -28,6 +29,8 @@ export interface RiskResult {
   transfer_node: TradeNode;
   separation: boolean;
   separation_note: string | null;
+  /** 概括节点不能替代交货事实；FCA未录地点时需先确认具体分支。 */
+  needs_confirmation: boolean;
 }
 
 const FREIGHT_SEPARATION_NOTE =
@@ -116,15 +119,47 @@ export const INCOTERMS_2020_RISK: RiskRule[] = [
   },
 ];
 
-export function resolveRisk(incoterm: Incoterm): RiskResult {
+export function resolveRisk(incoterm: Incoterm, facts?: ScenarioFacts): RiskResult {
   const rule = INCOTERMS_2020_RISK.find((candidate) => candidate.incoterm === incoterm);
   if (rule === undefined) throw new Error(`缺少术语的风险规则: ${incoterm}`);
+  if (incoterm === 'FCA') {
+    if (facts?.delivery_place === 'SELLER_PREMISES') {
+      return {
+        incoterm,
+        transfer_point: '在卖方场所将货物装上买方安排的运输工具，装货完成时',
+        transfer_node: 'SELLER_PREMISES',
+        separation: false,
+        separation_note: null,
+        needs_confirmation: false,
+      };
+    }
+    if (facts?.delivery_place === 'OTHER') {
+      return {
+        incoterm,
+        transfer_point: '在其他指定地点，货物仍在卖方运输工具上、准备卸货并交由买方指定的承运人或其他人处置时',
+        transfer_node: 'CARRIER_HANDOVER',
+        separation: false,
+        separation_note: null,
+        needs_confirmation: false,
+      };
+    }
+    return {
+      incoterm,
+      transfer_point: 'FCA交货地点未确认：卖方场所为装货完成时；其他指定地点为在卖方运输工具上准备卸货并交由买方指定人员处置时',
+      // 保留既有粗粒度节点供旧调用者使用，展示和排名必须同时检查确认标记。
+      transfer_node: 'CARRIER_HANDOVER',
+      separation: false,
+      separation_note: null,
+      needs_confirmation: true,
+    };
+  }
   return {
     incoterm: rule.incoterm,
     transfer_point: rule.transfer_point,
     transfer_node: rule.transfer_node,
     separation: rule.cost_risk_separated,
     separation_note: rule.separation_note,
+    needs_confirmation: false,
   };
 }
 
