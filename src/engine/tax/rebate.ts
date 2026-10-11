@@ -23,6 +23,8 @@ export interface RebateInput {
 }
 
 export interface RebateResult {
+  /** 中国进口场景不适用中国出口退税，区别于适用但金额为零。 */
+  applicable?: boolean;
   entity_type: RebateEntityType;
   /** 由成交价还原的离岸价 */
   fob_value: Decimal;
@@ -42,6 +44,16 @@ export interface RebateResult {
   /** 退税到账周期造成的资金占用成本 */
   lag_cost: Decimal;
   warnings: Warning[];
+}
+
+export function noExportRebate(profile: RebateProfile): RebateResult {
+  return {
+    applicable: false, entity_type: profile.entityType, fob_value: d(0), basis: d(0),
+    basis_rule: '中国进口场景不适用中国出口退税；境外卖方本国税务未建模',
+    rebate_rate: d(0), vat_rate: d(0), vat_rebate: d(0), consumption_tax_rebate: d(0),
+    rebate_total: d(0), theoretical_rebate: d(0), non_refundable_vat: d(0),
+    is_capped_by_credit: false, lag_cost: d(0), warnings: [],
+  };
 }
 
 /** 出口退税申报期限：次年 4 月增值税纳税申报期截止，此处按 4 月 30 日近似 */

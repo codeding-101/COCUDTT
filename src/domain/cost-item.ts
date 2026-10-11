@@ -15,6 +15,7 @@ import type {
   TradeNode,
 } from './enums.js';
 import type { Numeric } from './decimal.js';
+import type { SourceEvidence } from './source-evidence.js';
 
 /**
  * 计费基数引用（设计文档 4.3）。
@@ -87,6 +88,7 @@ export interface CostItem {
   // ---- 币种与汇率 ----
   currency: CurrencyCode;
   fx_rate?: Numeric;
+  fx_evidence?: SourceEvidence;
   fx_type: FxType;
   fx_date?: DateStr;
   base_currency: CurrencyCode;
@@ -96,6 +98,8 @@ export interface CostItem {
   // ---- 税务 ----
   tax_included: boolean;
   tax_rate_ref?: string;
+  /** 中国进口计税价格：显式加计未含于货值的费用，或排除不应加计的费用。 */
+  customs_value?: 'ADD' | 'EXCLUDE';
 
   // ---- 归属 ----
   responsibility: Responsibility;

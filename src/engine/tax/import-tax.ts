@@ -10,6 +10,7 @@ import {
 } from '../../domain/hs-rate.js';
 import type { Warning } from '../../domain/warning.js';
 import { EngineError } from '../errors.js';
+import { isChinaImport, taxNumber, toFen } from './china-import.js';
 
 export interface ImportTaxInput {
   profile: TaxProfile;
@@ -24,6 +25,7 @@ export interface ImportTaxInput {
 }
 
 export interface ImportTaxResult {
+  calculation_mode?: 'CN_GENERAL_TRADE';
   dutiable_value: Decimal;
   /** 关税合计（从价部分 + 从量部分） */
   duty: Decimal;
@@ -39,6 +41,7 @@ export interface ImportTaxResult {
   hs_code_matched: string | null;
   hs_match_level: HsMatchLevel | null;
   exemption_applied: boolean;
+  tax_exemptions?: { duty: boolean; consumption_tax: boolean; vat: boolean };
   warnings: Warning[];
 }
 
@@ -58,7 +61,8 @@ export interface ImportTaxResult {
  */
 export function computeImportTaxes(input: ImportTaxInput): ImportTaxResult {
   const warnings: Warning[] = [];
-  const dutiable = input.dutiableValue;
+  const china = isChinaImport(input.profile);
+  const dutiable = china ? toFen(taxNumber(input.dutiableValue, '进口计税价格')) : input.dutiableValue;
   const importRules = input.profile.import;
   const hsTable = importRules.hsTable;
   const match = findHsEntry(hsTable, input.taxKey);
@@ -73,6 +77,7 @@ export function computeImportTaxes(input: ImportTaxInput): ImportTaxResult {
       seen.add(code);
     }
     if (duplicates.size > 0) {
+      if (china) throw new EngineError('TAX_INPUT_INVALID', `中国进口税率表存在重复 HS 编码（${[...duplicates].join('、')}），请合并后计算`);
       warnings.push({
         code: 'HS_CODE_DUPLICATE',
         level: 'WARN',
@@ -82,10 +87,10 @@ export function computeImportTaxes(input: ImportTaxInput): ImportTaxResult {
   }
 
   let dutyType: DutyType = 'AD_VALOREM';
-  let adValoremRate = q(lookupRate(importRules.dutyRates, input.taxKey));
+  let adValoremRate = china ? taxNumber(lookupRate(importRules.dutyRates, input.taxKey), '关税税率') : q(lookupRate(importRules.dutyRates, input.taxKey));
   let specificAmount: Numeric | undefined;
   let specificUnit: string | undefined;
-  let vatRate = q(importRules.vatRate);
+  let vatRate = china ? taxNumber(importRules.vatRate, '进口增值税率', 1) : q(importRules.vatRate);
   let consumptionRate: Numeric | undefined = importRules.consumptionTax?.rate;
 
   if (match !== undefined) {
@@ -103,6 +108,9 @@ export function computeImportTaxes(input: ImportTaxInput): ImportTaxResult {
       adValoremRate = d(0);
     } else {
       const exactRate = dutyRateOf(entry, basis);
+      if (china && exactRate === undefined) {
+        throw new EngineError('TAX_INPUT_INVALID', `HS 编码 ${match.matched_code} 未维护所选关税口径 ${basis} 的税率，请补全；中国进口模式不自动改用其他口径`);
+      }
       const mfnRate = dutyRateOf(entry, 'MFN');
       const chosen = exactRate ?? mfnRate;
       if (chosen === undefined) {
@@ -112,7 +120,7 @@ export function computeImportTaxes(input: ImportTaxInput): ImportTaxResult {
           message: `HS 编码 ${match.matched_code} 未维护关税税率，已回退为商品大类的兜底税率计算`,
         });
       } else {
-        adValoremRate = q(chosen);
+        adValoremRate = china ? taxNumber(chosen, 'HS 关税税率') : q(chosen);
         if (exactRate === undefined) {
           warnings.push({
             code: 'HS_RATE_BASIS_FALLBACK',
@@ -123,14 +131,14 @@ export function computeImportTaxes(input: ImportTaxInput): ImportTaxResult {
       }
     }
 
-    if (entry.vat_rate !== undefined) vatRate = q(entry.vat_rate);
+    if (entry.vat_rate !== undefined) vatRate = china ? taxNumber(entry.vat_rate, 'HS 进口增值税率', 1) : q(entry.vat_rate);
     if (entry.consumption_tax_rate !== undefined) consumptionRate = entry.consumption_tax_rate;
 
     if (match.level === 'PARENT') {
       warnings.push({
         code: 'HS_CODE_PARENT_MATCH',
-        level: 'INFO',
-        message: `HS 编码 ${input.taxKey ?? ''} 未单独维护税率，已按上级编码 ${match.matched_code}（${entry.description}）的税率计算`,
+        level: china ? 'WARN' : 'INFO',
+        message: `HS 编码 ${input.taxKey ?? ''} 未单独维护税率，已按上级编码 ${match.matched_code}（${entry.description}）的税率${china ? '估算，请核对完整归类与实际税率' : '计算'}`,
       });
     }
   } else if (input.taxKey !== undefined && hsTable !== undefined && hsTable.entries.length > 0) {
@@ -141,7 +149,7 @@ export function computeImportTaxes(input: ImportTaxInput): ImportTaxResult {
     });
   }
 
-  const adValoremDuty = dutyType === 'SPECIFIC' ? d(0) : mul(dutiable, adValoremRate);
+  const adValoremDuty = dutyType === 'SPECIFIC' ? d(0) : china ? dutiable.times(adValoremRate) : mul(dutiable, adValoremRate);
 
   let specificDuty = d(0);
   if (dutyType === 'SPECIFIC' || dutyType === 'COMPOUND') {
@@ -162,6 +170,9 @@ export function computeImportTaxes(input: ImportTaxInput): ImportTaxResult {
         { hs_code: match?.matched_code ?? input.taxKey ?? '' },
       );
     }
+    if (china && (specificUnit === undefined || specificUnit.trim() === '' || input.unit === undefined || input.unit.trim() === '')) {
+      throw new EngineError('HS_SPECIFIC_UNIT_MISMATCH', '中国进口从量税须同时填写税率计量单位和商品计量单位，不能在单位未知时计算');
+    }
     if (specificUnit !== undefined && input.unit !== undefined && specificUnit !== input.unit) {
       throw new EngineError(
         'HS_SPECIFIC_UNIT_MISMATCH',
@@ -169,13 +180,15 @@ export function computeImportTaxes(input: ImportTaxInput): ImportTaxResult {
         { hs_code: match?.matched_code ?? input.taxKey ?? '', tariff_unit: specificUnit, goods_unit: input.unit },
       );
     }
-    specificDuty = mul(input.quantity as Numeric, specificAmount as Numeric);
+    specificDuty = china
+      ? taxNumber(input.quantity, '从量税计税数量').times(taxNumber(specificAmount, '从量税单位税额'))
+      : mul(input.quantity as Numeric, specificAmount as Numeric);
   }
 
-  let duty = add(adValoremDuty, specificDuty);
+  let duty = china ? toFen(adValoremDuty.plus(specificDuty)) : add(adValoremDuty, specificDuty);
   let exemptionApplied = false;
 
-  const threshold = importRules.dutyExemptionThreshold;
+  const threshold = china ? '50' : importRules.dutyExemptionThreshold;
   if (threshold !== undefined && cmp(duty, threshold) < 0 && !isZero(duty)) {
     warnings.push({
       code: 'DUTY_EXEMPTED',
@@ -188,8 +201,8 @@ export function computeImportTaxes(input: ImportTaxInput): ImportTaxResult {
 
   let consumptionTax = d(0);
   if (consumptionRate !== undefined && consumptionRate !== null) {
-    const rate = q(consumptionRate);
-    const divisor = sub(1, rate);
+    const rate = china ? taxNumber(consumptionRate, '进口消费税率', 1) : q(consumptionRate);
+    const divisor = china ? d(1).minus(rate) : sub(1, rate);
     if (isZero(divisor)) {
       warnings.push({
         code: 'DUTY_BASE_INCOMPLETE',
@@ -197,13 +210,25 @@ export function computeImportTaxes(input: ImportTaxInput): ImportTaxResult {
         message: '消费税率为 100%，无法计算组成计税价格',
       });
     } else if (!isZero(rate)) {
-      consumptionTax = mul(div(add(dutiable, duty), divisor), rate);
+      consumptionTax = china ? toFen(dutiable.plus(duty).dividedBy(divisor).times(rate)) : mul(div(add(dutiable, duty), divisor), rate);
     }
   }
 
-  const vat = mul(add(dutiable, add(duty, consumptionTax)), vatRate);
+  const exemptSmallTax = (amount: Decimal, label: string): Decimal => {
+    if (china && amount.greaterThan(0) && amount.lessThan(50)) {
+      warnings.push({ code: 'IMPORT_TAX_EXEMPTED', level: 'INFO', message: `本票${label}税额低于人民币 50 元，按单商品一票测算免征` });
+      return d(0);
+    }
+    return amount;
+  };
+  const consumptionExempt = china && consumptionTax.greaterThan(0) && consumptionTax.lessThan(50);
+  consumptionTax = exemptSmallTax(consumptionTax, '进口消费税');
+  const rawVat = china ? toFen(dutiable.plus(duty).plus(consumptionTax).times(vatRate)) : mul(add(dutiable, add(duty, consumptionTax)), vatRate);
+  const vatExempt = china && rawVat.greaterThan(0) && rawVat.lessThan(50);
+  const vat = exemptSmallTax(rawVat, '进口增值税');
 
   return {
+    ...(china ? { calculation_mode: 'CN_GENERAL_TRADE' as const } : {}),
     dutiable_value: dutiable,
     duty,
     specific_duty: specificDuty,
@@ -215,6 +240,7 @@ export function computeImportTaxes(input: ImportTaxInput): ImportTaxResult {
     hs_code_matched: match?.matched_code ?? null,
     hs_match_level: match?.level ?? null,
     exemption_applied: exemptionApplied,
+    ...(china ? { tax_exemptions: { duty: exemptionApplied, consumption_tax: consumptionExempt, vat: vatExempt } } : {}),
     warnings,
   };
 }

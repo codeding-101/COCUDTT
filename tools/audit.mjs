@@ -111,6 +111,7 @@ const projectPaths = new Set([
   'goods.seller_goods_cost.amount',
   'goods.seller_goods_cost.currency',
   'goods.tax_key',
+  'goods.trade_value_basis',
   'quote.amount',
   'quote.currency',
   'quote.fx_type',
@@ -124,6 +125,14 @@ const projectPaths = new Set([
   'facts.shipping_terms',
   'facts.clearance_agent',
   'tax_profile.import.hsTable.basis',
+  'tax_profile.import.calculationMode',
+  'tax_profile.import.declarationDate',
+  'tax_profile.import.dutyRates.fallback',
+  'tax_profile.import.vatRate',
+  'tax_profile.import.consumptionTax.rate',
+  'tax_profile.import.vatDeductibleForBuyer',
+  'route.export_country', 'route.import_country', 'route.origin_country', 'route.customs_regime',
+  'tax_profile.import.eligibility.agreement_name', 'tax_profile.import.eligibility.vat_taxpayer', 'tax_profile.import.eligibility.vat_use',
 ]);
 for (const path of matchAll(uiText, /data-path="([^"]+)"/g)) {
   if (!projectPaths.has(path)) problems.push(`[路径可疑] data-path="${path}" 不在已知的项目字段清单里，确认它真的存在`);

@@ -1,5 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+import { Script } from 'node:vm';
 
 /**
  * 把 vite build 的产物内联成单个 HTML 文件。
@@ -45,7 +46,8 @@ html = html.replace(/<script[^>]*src="([^"]+)"[^>]*><\/script>/g, (_tag, src) =>
 });
 
 if (scripts.length > 0) {
-  html = html.replace(/<\/body>/, `${scripts.join('\n')}\n</body>`);
+  // 使用回调返回字面文本，避免JS中的 $&、$`、$' 被当作替换指令。
+  html = html.replace(/<\/body>/, () => `${scripts.join('\n')}\n</body>`);
 }
 
 const remaining = html.match(/(?:src|href)="(\.\/assets\/[^"]+)"/g) ?? [];
@@ -66,6 +68,11 @@ if (/<script[^>]*type="module"/.test(html)) {
 const inlineImports = html.match(/^\s*(?:import|export)\s/m);
 if (inlineImports !== null) {
   throw new Error('内联脚本中仍存在模块语法（import/export），无法作为经典脚本执行');
+}
+
+// 对最终产物检查经典脚本语法，而非仅检查Vite的源产物。
+for (const match of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) {
+  new Script(match[1], { filename: 'trade-cost-engine.html' });
 }
 
 mkdirSync(dirname(outFile), { recursive: true });

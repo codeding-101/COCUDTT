@@ -29,6 +29,7 @@ import { DUTY_RATE_BASES, DUTY_RATE_BASIS_LABELS, DUTY_TYPES, DUTY_TYPE_LABELS }
 import type { ShippingTerms } from '../domain/rule.js';
 import type { FxRow } from './fx-rows.js';
 import { dec, escapeHtml } from './format.js';
+import { renderSourceEditor } from './source-editor.js';
 
 const BASE_LABELS: Record<'GOODS_VALUE' | 'QUOTE_AMOUNT' | 'CUSTOMS_DUTIABLE_VALUE', string> = {
   GOODS_VALUE: '货值',
@@ -252,6 +253,11 @@ function renderItemCard(item: CostItem, allItems: readonly CostItem[], enrichmen
             : ''
         }
       </select></label>
+      <label class="f"><span>中国进口计税</span><select ${itemAttr(item.cost_id, 'customs_value')}>
+          <option value=""${item.customs_value === undefined ? ' selected' : ''}>默认按运保类别</option>
+          <option value="ADD"${item.customs_value === 'ADD' ? ' selected' : ''}>另加计税（未含于货值）</option>
+          <option value="EXCLUDE"${item.customs_value === 'EXCLUDE' ? ' selected' : ''}>不另加计税</option>
+      </select></label>
       <span class="f flags">
         <label title="该费用已打进成交报价"><input type="checkbox" ${itemAttr(item.cost_id, 'included_in_quoted_price')} ${item.included_in_quoted_price ? 'checked' : ''} />含于报价</label>
         <label title="该项代表货物本身的价值"><input type="checkbox" ${itemAttr(item.cost_id, 'is_goods_value')} ${item.is_goods_value === true ? 'checked' : ''} />代表货值</label>
@@ -259,6 +265,7 @@ function renderItemCard(item: CostItem, allItems: readonly CostItem[], enrichmen
       </span>
     </div>
     ${renderTierEditor(item)}
+    ${item.fx_rate !== undefined ? renderSourceEditor(item.fx_evidence, 'cost', item.cost_id) : ''}
     ${
       enrichment !== undefined && enrichment.note !== ''
         ? `<div class="item-note">${enrichment.rule_id !== null ? `<code class="rule">${escapeHtml(enrichment.rule_id)}</code> ` : ''}${escapeHtml(enrichment.note)}</div>`
@@ -278,9 +285,14 @@ export function renderFormsRow(project: ProjectFile): string {
       <label class="field wide">商品名称<input type="text" value="${escapeHtml(project.goods.name)}" data-path="goods.name" /></label>
       <label class="field">数量<input type="text" inputmode="decimal" class="num" value="${escapeHtml(String(project.goods.quantity))}" data-path="goods.quantity" /></label>
       <label class="field">单位<input type="text" value="${escapeHtml(project.goods.unit)}" data-path="goods.unit" /></label>
-      <label class="field">成交货值<input type="text" inputmode="decimal" class="num" value="${escapeHtml(String(project.goods.trade_value.amount))}" data-path="goods.trade_value.amount" /></label>
+      <label class="field">${project.tax_profile.import.calculationMode === 'CN_GENERAL_TRADE' ? '货物净价（不含运保费）' : '成交货值'}<input type="text" inputmode="decimal" class="num" value="${escapeHtml(String(project.goods.trade_value.amount))}" data-path="goods.trade_value.amount" /></label>
       <label class="field">货值币种<input type="text" value="${escapeHtml(project.goods.trade_value.currency)}" data-path="goods.trade_value.currency" /></label>
-      <label class="field">卖方采购含税成本<input type="text" inputmode="decimal" class="num" value="${escapeHtml(String(project.goods.seller_goods_cost.amount))}" data-path="goods.seller_goods_cost.amount" /></label>
+      ${project.tax_profile.import.calculationMode === 'CN_GENERAL_TRADE' ? `<label class="field">货值录入口径<select data-path="goods.trade_value_basis">
+        <option value="UNCONFIRMED"${project.goods.trade_value_basis === undefined || project.goods.trade_value_basis === 'UNCONFIRMED' ? ' selected' : ''}>尚未确认</option>
+        <option value="NET"${project.goods.trade_value_basis === 'NET' ? ' selected' : ''}>已确认净价不含运保费</option>
+        <option value="INCLUDES_FREIGHT_INSURANCE"${project.goods.trade_value_basis === 'INCLUDES_FREIGHT_INSURANCE' ? ' selected' : ''}>整价含运保费（须先拆分）</option>
+      </select></label>` : ''}
+      <label class="field">${project.tax_profile.import.calculationMode === 'CN_GENERAL_TRADE' ? '卖方采购成本（未知可留空）' : '卖方采购含税成本'}<input type="text" inputmode="decimal" class="num" value="${escapeHtml(String(project.goods.seller_goods_cost.amount))}" data-path="goods.seller_goods_cost.amount" /></label>
       <label class="field">成本币种<input type="text" value="${escapeHtml(project.goods.seller_goods_cost.currency)}" data-path="goods.seller_goods_cost.currency" /></label>
       <label class="field">商品编码（税率表键）<input type="text" list="hs-code-options" value="${escapeHtml(project.goods.tax_key ?? '')}" data-path="goods.tax_key" /></label>
     </div>
@@ -337,10 +349,67 @@ export function renderFormsRow(project: ProjectFile): string {
     <p class="hint block">当前运输方式（${CARRIAGE_MODE_LABELS[project.carriage_mode]}）下可用术语：${available.join(' / ')}</p>`;
 
   return `
+  ${project.tax_profile.import.calculationMode === 'CN_GENERAL_TRADE' ? `<section class="panel"><div class="panel-body"><h3 class="panel-heading">中国进口录入提示</h3>
+    <p class="hint block">先填商品数量、货物净价及币种、合同报价和申报日期，再逐项录入运输、保险和其他费用，最后核对税率、汇率与适用条件。若发票总价已含运保费，先拆分净价与运保费。采购成本未知时留空，卖方利润显示无法评估，买方测算可继续；固定利润率反推报价需采购成本。</p>
+    <p class="hint block">费用清单只列你已确认的费用，不用填一行商品净价；没有费用金额时请保留未完成输入，实际确认为零时再填0。外币交易需另填商业汇率及覆盖申报日期的海关汇率。</p>
+  </div></section>` : ''}
   <div class="row-forms">
     ${panel('goods', '交易与商品', '', goodsBody)}
     ${panel('quote', '报价与方案', '', quoteBody)}
   </div>`;
+}
+
+export function renderImportTaxPanel(project: ProjectFile): string {
+  const rules = project.tax_profile.import;
+  const china = rules.calculationMode === 'CN_GENERAL_TRADE';
+  const body = `
+    <div class="field-grid">
+      <label class="field">测算口径<select data-path="tax_profile.import.calculationMode">
+        <option value="LEGACY"${china ? '' : ' selected'}>原有交易成本测算</option>
+        <option value="CN_GENERAL_TRADE"${china ? ' selected' : ''}>中国一般贸易进口（单商品一票）</option>
+      </select></label>
+      <label class="field">进口完成申报日期<input type="text" value="${escapeHtml(rules.declarationDate ?? '')}" data-path="tax_profile.import.declarationDate" placeholder="YYYY-MM-DD" /></label>
+      <label class="field">兜底关税率<input type="text" inputmode="decimal" value="${escapeHtml(String(rules.dutyRates.fallback))}" data-path="tax_profile.import.dutyRates.fallback" /></label>
+      <label class="field">兜底进口增值税率<input type="text" inputmode="decimal" value="${escapeHtml(String(rules.vatRate))}" data-path="tax_profile.import.vatRate" /></label>
+      <label class="field">从价消费税率（留空不计）<input type="text" inputmode="decimal" value="${escapeHtml(String(rules.consumptionTax?.rate ?? ''))}" data-path="tax_profile.import.consumptionTax.rate" /></label>
+      <label class="field">买方进口增值税可抵扣<input type="checkbox"${rules.vatDeductibleForBuyer ? ' checked' : ''} data-path="tax_profile.import.vatDeductibleForBuyer" /></label>
+    </div>
+    <p class="hint block">${china ? '以 CNY 计税；海关汇率须覆盖申报日期；中国出口退税不适用。关税、进口消费税及增值税按本票各税种低于 50 元判断小额免征。' : '旧项目保留原有口径；切换到中国进口模式后，请补全申报日期并核对税率。'}</p>
+    ${renderSourceEditor(rules.rateEvidence, 'tax')}
+    <p class="hint block">本记录覆盖兜底关税、VAT以及消费税适用性判断；HS表覆盖的字段使用对应HS条目的核对记录。</p>
+    ${china ? `<h3 class="panel-heading">贸易路线与适用条件</h3>
+    <div class="field-grid">
+      <label class="field">出口国或地区<input type="text" value="${escapeHtml(project.route?.export_country ?? '')}" data-path="route.export_country" placeholder="例如德国" /></label>
+      <label class="field">进口国或地区<input type="text" value="${escapeHtml(project.route?.import_country ?? '')}" data-path="route.import_country" placeholder="中国" /></label>
+      <label class="field">原产国或地区<input type="text" value="${escapeHtml(project.route?.origin_country ?? '')}" data-path="route.origin_country" placeholder="依原产地资料填写" /></label>
+      <label class="field">申报制度<select data-path="route.customs_regime">
+        <option value="UNCONFIRMED"${!project.route || project.route.customs_regime === 'UNCONFIRMED' ? ' selected' : ''}>尚未确认</option>
+        <option value="GENERAL_TRADE"${project.route?.customs_regime === 'GENERAL_TRADE' ? ' selected' : ''}>一般贸易进口</option>
+        <option value="OTHER"${project.route?.customs_regime === 'OTHER' ? ' selected' : ''}>其他制度（本模式未覆盖）</option>
+      </select></label>
+      <label class="field">所选关税口径<select data-path="tax_profile.import.hsTable.basis">${selectOptions(DUTY_RATE_BASES, DUTY_RATE_BASIS_LABELS, rules.hsTable?.basis ?? 'MFN')}</select></label>
+      <label class="field">协定名称（协定税率时填写）<input type="text" value="${escapeHtml(rules.eligibility?.agreement_name ?? '')}" data-path="tax_profile.import.eligibility.agreement_name" placeholder="例如RCEP，需另核对适用条件" /></label>
+    </div>
+    <p class="hint block">出口地与原产地分别录入，不根据出口地或HS编码推定待遇。请核对原产地资料、所选口径及其他税率适用规则；程序不自动选择优惠或较低税率。</p>
+    ${renderSourceEditor(rules.eligibility?.duty_evidence, 'duty-eligibility')}
+    <p class="hint block">本记录用于原产地与关税待遇适用条件，填写核验资料编号或链接；它与税率数值的来源记录分别核对。</p>
+    ${rules.vatDeductibleForBuyer ? `<h3 class="panel-heading">买方进口VAT抵扣前提</h3>
+    <div class="field-grid">
+      <label class="field">买方纳税人身份<select data-path="tax_profile.import.eligibility.vat_taxpayer">
+        <option value="UNCONFIRMED"${!rules.eligibility || rules.eligibility.vat_taxpayer === 'UNCONFIRMED' ? ' selected' : ''}>尚未确认</option>
+        <option value="GENERAL"${rules.eligibility?.vat_taxpayer === 'GENERAL' ? ' selected' : ''}>一般纳税人（人工核对）</option>
+        <option value="OTHER"${rules.eligibility?.vat_taxpayer === 'OTHER' ? ' selected' : ''}>其他身份</option>
+      </select></label>
+      <label class="field">进口货物用途<select data-path="tax_profile.import.eligibility.vat_use">
+        <option value="UNCONFIRMED"${!rules.eligibility || rules.eligibility.vat_use === 'UNCONFIRMED' ? ' selected' : ''}>尚未确认</option>
+        <option value="TAXABLE_BUSINESS"${rules.eligibility?.vat_use === 'TAXABLE_BUSINESS' ? ' selected' : ''}>可抵扣的应税经营（人工核对）</option>
+        <option value="OTHER"${rules.eligibility?.vat_use === 'OTHER' ? ' selected' : ''}>其他或混合用途</option>
+      </select></label>
+    </div>
+    ${renderSourceEditor(rules.eligibility?.vat_evidence, 'vat-eligibility')}
+    <p class="hint block">本模式仅测算全额抵扣假设。请另核对有效扣税凭证和适用条件；尚未取得凭证时只能记录预期测算，不能记作实际已抵扣。部分抵扣、混合用途及其他特殊条件尚未建模。</p>` : ''}` : ''}
+    <p class="hint block">税率由你维护，示例税率不是官方税率。HS 税率表命中值优先于兜底值；仅支持从价消费税，不适用于从量或复合消费税、跨境电商零售进口、特殊贸易或特殊估价。仅录入未包含运费和保险费的货物净价，避免重复计税；VAT 抵扣资格需自行核实。</p>`;
+  return panel('import-tax', '进口税务口径', china ? '中国一般贸易进口' : '请核对适用范围', body, china);
 }
 
 export function renderFxPanel(fxRows: readonly FxRow[]): string {
@@ -360,6 +429,7 @@ export function renderFxPanel(fxRows: readonly FxRow[]): string {
         </span>
         <label class="f"><span>汇率</span><input type="text" inputmode="decimal" class="num" size="9" value="${escapeHtml(row.rate)}" data-fx="${escapeHtml(row.row_id)}" data-fx-field="rate" /></label>
         <button class="ghost icon danger" data-action="remove-fx" data-fx="${escapeHtml(row.row_id)}" title="删除该行">✕</button>
+        ${renderSourceEditor(row.evidence, 'fx', row.row_id)}
       </div>`,
         )
         .join('')}
@@ -420,6 +490,7 @@ export function renderHsPanel(project: ProjectFile): string {
           <input type="text" size="4" value="${escapeHtml(entry.specific_unit ?? '')}" data-hs="${index}" data-hs-field="specific_unit" placeholder="单位" />
         </span>
         <button class="ghost icon danger" data-action="remove-hs" data-hs="${index}" title="删除该编码">✕</button>
+        ${renderSourceEditor(entry.evidence, 'hs', String(index))}
       </div>`,
     )
     .join('');

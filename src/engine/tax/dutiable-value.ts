@@ -1,5 +1,5 @@
 import type Decimal from 'decimal.js';
-import { add, mul, q, sum, toStorage, type Numeric } from '../../domain/decimal.js';
+import { add, d, mul, q, sum, toStorage, type Numeric } from '../../domain/decimal.js';
 import type { CostItem } from '../../domain/cost-item.js';
 import type { CurrencyCode, DateStr } from '../../domain/enums.js';
 import type { FxBook } from '../../domain/fx.js';
@@ -7,13 +7,15 @@ import type { Goods } from '../../domain/goods.js';
 import type { TaxProfile } from '../../domain/tax-profile.js';
 import type { Warning } from '../../domain/warning.js';
 import { isEngineError } from '../errors.js';
-import { convertAmount, resolveFxRate } from '../fx.js';
+import { convertAmount, resolveFxRate, type FxResolution } from '../fx.js';
+import { isChinaImport, isIsoDate, taxNumber, toFen, validateChinaImportContext } from './china-import.js';
 
 export interface DutiableComponent {
+  fx?: FxResolution;
   cost_id: string;
   label: string;
   amount: Decimal;
-  basis: 'GOODS' | 'FREIGHT' | 'INSURANCE' | 'INSURANCE_FALLBACK';
+  basis: 'GOODS' | 'FREIGHT' | 'INSURANCE' | 'INSURANCE_FALLBACK' | 'ADJUSTMENT';
 }
 
 export interface DutiableValueResult {
@@ -44,22 +46,34 @@ export interface DutiableValueInput {
  * 缺失海关汇率时不静默套用商业汇率，而是给出告警并在结果中标注口径不一致。
  */
 export function computeDutiableValue(input: DutiableValueInput): DutiableValueResult {
+  const china = isChinaImport(input.profile);
+  const fxDate = china ? validateChinaImportContext(input.profile, input.baseCurrency) : input.fxDate;
+  // 中国模式只使用明确覆盖申报日期的汇率簿，不拿过期簿或无有效期的簿推断。
+  const books = china ? input.books.filter((book) =>
+    book.type === 'CUSTOMS' && book.valid_from !== undefined && book.valid_to !== undefined &&
+    isIsoDate(book.valid_from) && isIsoDate(book.valid_to) &&
+    book.valid_from <= (fxDate ?? '') && (fxDate ?? '') <= book.valid_to,
+  ) : input.books;
   const warnings: Warning[] = [];
   const components: DutiableComponent[] = [];
+  const usedFx = new Map<string, FxResolution>();
 
   const customsConvert = (label: string, currency: CurrencyCode, gross: Numeric, fallback: Numeric, costId: string): Decimal => {
-    if (currency === input.baseCurrency) return q(gross);
+    if (china) taxNumber(gross, label);
+    if (currency === input.baseCurrency) return china ? toFen(d(gross)) : q(gross);
     try {
       const fx = resolveFxRate({
         from: currency,
         to: input.baseCurrency,
         fxType: 'CUSTOMS',
-        fxDate: input.fxDate,
-        books: input.books,
+        fxDate,
+        books,
       });
-      return convertAmount(gross, fx);
+      usedFx.set(costId, fx);
+      return china ? toFen(d(gross).times(fx.rate)) : convertAmount(gross, fx);
     } catch (error) {
       if (isEngineError(error) && error.code === 'FX_MISSING') {
+        if (china) throw error;
         warnings.push({
           code: 'CUSTOMS_FX_FALLBACK',
           level: 'WARN',
@@ -85,8 +99,9 @@ export function computeDutiableValue(input: DutiableValueInput): DutiableValueRe
   const deductible = (item: CostItem): boolean =>
     item.contained_in_cost_id === undefined && item.source !== 'DERIVED' && item.is_goods_value !== true;
 
-  const freightItems = input.items.filter((item) => item.cost_category === 'MAIN_CARRIAGE' && deductible(item));
-  const insuranceItems = input.items.filter((item) => item.cost_category === 'INSURANCE' && deductible(item));
+  const eligible = (item: CostItem): boolean => deductible(item) && !(china && item.customs_value === 'EXCLUDE');
+  const freightItems = input.items.filter((item) => item.cost_category === 'MAIN_CARRIAGE' && eligible(item));
+  const insuranceItems = input.items.filter((item) => item.cost_category === 'INSURANCE' && eligible(item));
 
   const freightTotal = sum(
     freightItems.map((item) => {
@@ -112,7 +127,9 @@ export function computeDutiableValue(input: DutiableValueInput): DutiableValueRe
 
   const fallbackRate = input.profile.import.insuranceFallbackRate;
   if (insuranceItems.length === 0 && fallbackRate !== undefined) {
-    const fallback = mul(add(goodsAmount, freightTotal), fallbackRate);
+    const fallback = china
+      ? toFen(add(goodsAmount, freightTotal).times(taxNumber(fallbackRate, '保险估算比率')))
+      : mul(add(goodsAmount, freightTotal), fallbackRate);
     insuranceTotal = fallback;
     components.push({
       cost_id: 'insurance-fallback',
@@ -135,5 +152,16 @@ export function computeDutiableValue(input: DutiableValueInput): DutiableValueRe
     });
   }
 
-  return { value: sum([goodsAmount, freightTotal, insuranceTotal]), components, warnings };
+  const adjustments = china ? sum(input.items
+    .filter((item) => item.customs_value === 'ADD' && eligible(item) && item.cost_category !== 'MAIN_CARRIAGE' && item.cost_category !== 'INSURANCE')
+    .map((item) => {
+      const amount = customsConvert(`计税调整「${item.cost_name}」`, item.currency, input.grossOf(item.cost_id), input.amountBase(item.cost_id), item.cost_id);
+      components.push({ cost_id: item.cost_id, label: item.cost_name, amount, basis: 'ADJUSTMENT' });
+      return amount;
+    })) : d(0);
+  return {
+    value: sum([goodsAmount, freightTotal, insuranceTotal, adjustments]),
+    components: components.map((component) => ({ ...component, ...(usedFx.has(component.cost_id) ? { fx: usedFx.get(component.cost_id) } : {}) })),
+    warnings,
+  };
 }

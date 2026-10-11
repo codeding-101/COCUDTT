@@ -60,7 +60,7 @@ header.app-bar {
 .brand { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; }
 .brand .sub { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 6px; }
 
-.file-actions { display: flex; gap: 6px; }
+.file-actions { display: flex; gap: 6px; flex-wrap: wrap; max-width: 100%; }
 .app-bar .spacer { flex: 1; min-width: 8px; }
 
 .kpis { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
@@ -87,7 +87,7 @@ header.app-bar {
     overflow-x: auto;
     padding-bottom: 2px;
   }
-  .save-state { order: 4; font-size: 11px; }
+  .save-state { order: 4; font-size: 11px; white-space: normal; overflow-wrap: anywhere; max-width: 100%; }
   main.layout { padding: 12px 12px 40px; }
 }
 
@@ -166,6 +166,12 @@ h2.panel-title, summary .panel-title { margin: 0; font-size: 13px; font-weight: 
 
 .hint { color: var(--muted); font-size: 12px; font-weight: 400; }
 .hint.block { display: block; margin-top: 6px; }
+.source-editor { flex: 1 1 100%; min-width: 0; }
+.source-editor .field-grid { margin-top: 8px; }
+.source-editor label.field { min-width: 0; }
+.source-editor input, .source-editor select { min-width: 0; max-width: 100%; }
+.decision-issues { white-space: normal; overflow-wrap: anywhere; max-width: 460px; text-align: left; }
+.source-table td { overflow-wrap: anywhere; }
 
 /* ---------------- 表单 ---------------- */
 
@@ -319,7 +325,9 @@ table.grid.compare { width: 100%; }
   }
   table.stackable td[colspan] { display: block; text-align: left; }
   table.stackable td[colspan]::before { content: none; }
-  table.stackable td small { display: inline; margin-left: 6px; }
+  table.stackable td small { display: inline; margin-left: 6px; white-space: normal; }
+  table.stackable td { flex-wrap: wrap; }
+  select[data-action="add-preset"] { max-width: 100%; }
 }
 
 /* ---------------- 标签 ---------------- */
@@ -436,8 +444,8 @@ details.evidence > summary {
   list-style: none;
 }
 details.evidence > summary::-webkit-details-marker { display: none; }
-details.evidence > summary::before { content: "�?"; }
-details.evidence[open] > summary::before { content: "�?"; }
+details.evidence > summary::before { content: "\25B8 "; }
+details.evidence[open] > summary::before { content: "\25BE "; }
 details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px; max-width: 460px; }
 
 /* ---------------- 费用项卡�?---------------- */

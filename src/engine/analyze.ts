@@ -25,7 +25,9 @@ import { resolveItemResponsibility, resolveResponsibility, type Confidence } fro
 import { resolveRisk, type RiskResult } from './risk.js';
 import { computeDutiableValue, type DutiableComponent } from './tax/dutiable-value.js';
 import { computeImportTaxes, type ImportTaxResult } from './tax/import-tax.js';
-import { computeRebate, type RebateResult } from './tax/rebate.js';
+import { computeRebate, noExportRebate, type RebateResult } from './tax/rebate.js';
+import { isChinaImport, validateChinaImportContext } from './tax/china-import.js';
+import { assessDecision, type DecisionReadiness } from './decision-readiness.js';
 
 const SHIPMENT_BOUNDARY: TradeNode = 'CARRIER_HANDOVER';
 
@@ -63,6 +65,7 @@ export interface EnrichedCostItem {
 }
 
 export interface AnalysisResult {
+  decision: DecisionReadiness;
   scenario_id: string;
   incoterm: Incoterm;
   base_currency: CurrencyCode;
@@ -143,9 +146,14 @@ export function analyze(input: AnalysisInput): AnalysisResult {
   const base = scenario.base_currency ?? trade.base_currency;
   const warnings: Warning[] = [];
 
+  if (isChinaImport(taxProfile)) validateChinaImportContext(taxProfile, base);
   requireNumericInput(trade.goods.quantity, '商品数量');
   requireNumericInput(trade.goods.trade_value.amount, '成交货值');
-  requireNumericInput(trade.goods.seller_goods_cost.amount, '卖方采购成本');
+  const sellerCostUnknown = isChinaImport(taxProfile) && String(trade.goods.seller_goods_cost.amount).trim() === '';
+  if (!sellerCostUnknown) requireNumericInput(trade.goods.seller_goods_cost.amount, '卖方采购成本');
+  if (isChinaImport(taxProfile) && trade.goods.trade_value_basis === 'INCLUDES_FREIGHT_INSURANCE') {
+    throw new EngineError('INPUT_VALUE_MISSING', '货值包含运费或保险费，请先拆出货物净价、运费和保险费，再确认净价口径；不能将整价另加运保费计算');
+  }
   requireNumericInput(scenario.quote.amount, '报价金额');
 
   // 步骤 1：责任判定（同时校验术语与运输方式是否兼容）
@@ -169,12 +177,17 @@ export function analyze(input: AnalysisInput): AnalysisResult {
     ...(scenario.quote.fx_rate !== undefined ? { explicitRate: scenario.quote.fx_rate } : {}),
   });
   const quoteAmountBase = convertAmount(scenario.quote.amount, quoteFx);
+  const commercialFx = [quoteFx];
 
-  const convertPriceLevel = (amount: Numeric, currency: CurrencyCode): Decimal =>
-    currency === base ? q(amount) : convertAmount(amount, resolveFxRate({ from: currency, ...priceLevelFxInput }));
+  const convertPriceLevel = (amount: Numeric, currency: CurrencyCode): Decimal => {
+    if (currency === base) return q(amount);
+    const fx = resolveFxRate({ from: currency, ...priceLevelFxInput });
+    commercialFx.push(fx);
+    return convertAmount(amount, fx);
+  };
 
   const goodsValueBase = convertPriceLevel(trade.goods.trade_value.amount, trade.goods.trade_value.currency);
-  const sellerGoodsCostBase = convertPriceLevel(
+  const sellerGoodsCostBase = sellerCostUnknown ? null : convertPriceLevel(
     trade.goods.seller_goods_cost.amount,
     trade.goods.seller_goods_cost.currency,
   );
@@ -192,6 +205,7 @@ export function analyze(input: AnalysisInput): AnalysisResult {
         fxType: item.fx_type,
         books: fxBooks,
         ...(explicitRate !== undefined ? { explicitRate } : {}),
+        ...(item.fx_evidence !== undefined ? { explicitEvidence: item.fx_evidence } : {}),
         ...(item.fx_date !== undefined ? { fxDate: item.fx_date } : {}),
         ...(designatedBookId !== undefined ? { designatedBookId } : {}),
       }),
@@ -269,9 +283,10 @@ export function analyze(input: AnalysisInput): AnalysisResult {
     if (!included && isPreShipment(item.trade_node)) preShipmentExcludedBase = add(preShipmentExcludedBase, amount);
   }
 
-  const rebate = computeRebate({
+  const rebate = isChinaImport(taxProfile) ? noExportRebate(taxProfile.export.rebate) : computeRebate({
     profile: taxProfile.export.rebate,
-    seller_goods_cost_base: sellerGoodsCostBase,
+    // 旧模式必填采购成本；中国模式已走noExportRebate，不会进入此分支。
+    seller_goods_cost_base: sellerGoodsCostBase!,
     quote_amount_base: quoteAmountBase,
     post_shipment_included_base: postShipmentIncludedBase,
     pre_shipment_excluded_base: preShipmentExcludedBase,
@@ -286,6 +301,7 @@ export function analyze(input: AnalysisInput): AnalysisResult {
     items: allItems,
     included_cost_ids: scenario.quote.included_cost_ids,
     quote_amount_base: quoteAmountBase,
+    ...(isChinaImport(taxProfile) ? { goods_value_base: goodsValueBase } : {}),
     amountBaseOf,
     responsibilityOf: (costId) => decisions.get(costId)?.responsibility ?? 'CONDITIONAL',
   });
@@ -364,7 +380,7 @@ export function analyze(input: AnalysisInput): AnalysisResult {
   }
 
   // 海关汇率按月锁定，出口日期不在任何一本海关汇率簿的有效期内时提示
-  if (trade.export_date !== undefined && fxBooks.some((book) => book.type === 'CUSTOMS')) {
+  if (!isChinaImport(taxProfile) && trade.export_date !== undefined && fxBooks.some((book) => book.type === 'CUSTOMS')) {
     const covered = fxBooks.some(
       (book) =>
         book.type === 'CUSTOMS' &&
@@ -405,6 +421,12 @@ export function analyze(input: AnalysisInput): AnalysisResult {
   });
 
   return {
+    decision: assessDecision({
+      taxProfile, taxKey: trade.goods.tax_key, goodsPriceBasis: trade.goods.trade_value_basis,
+      ...(trade.route !== undefined ? { route: trade.route } : {}), items, warnings,
+      customsComponents: dutiableComponents, commercialFx: [...commercialFx, ...fxByCostId.values()],
+      totals: [...(aggregated.seller.margin === null ? [] : [aggregated.seller.margin]), aggregated.buyer.landed_cost_with_tax, importTax.duty, importTax.vat, importTax.consumption_tax],
+    }),
     scenario_id: scenario.id,
     incoterm: scenario.incoterm,
     base_currency: base,

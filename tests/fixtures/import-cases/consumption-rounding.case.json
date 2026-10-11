@@ -1,0 +1,22 @@
+{
+  "case_id": "consumption-rounding",
+  "kind": "SYNTHETIC",
+  "project_file": "consumption-rounding.project.json",
+  "evidence_index": "所有金额、税率、汇率和原产地均为合成数据，仅验证算式",
+  "reviewer": "手工算式对照；尚无业务人员复核",
+  "reviewed_on": "2026-10-11",
+  "calculations": [
+    "1234.56*0.05=61.728 -> 61.73",
+    "(1234.56+61.73)/0.9*0.1 -> 144.03",
+    "(1234.56+61.73+144.03)*0.13=187.2416 -> 187.24",
+    "1234.56+61.73+144.03+187.24=1627.56"
+  ],
+  "expected": {
+    "dutiable_value": "1234.56",
+    "duty": "61.73",
+    "consumption_tax": "144.03",
+    "vat": "187.24",
+    "buyer_total": "1627.56",
+    "buyer_ex_deductible": "1627.56"
+  }
+}

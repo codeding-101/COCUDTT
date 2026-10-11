@@ -51,6 +51,7 @@ export function buildValueGraph(input: ValueGraphInput): ValueGraph {
   const grossCache = new Map<string, Decimal>();
   const baseCache = new Map<string, Decimal>();
   const visiting = new Set<string>();
+  const grossVisiting = new Set<string>();
   let dutiableCache: Decimal | null = null;
 
   function requireItem(costId: string): CostItem {
@@ -108,11 +109,19 @@ export function buildValueGraph(input: ValueGraphInput): ValueGraph {
     if (cached !== undefined) return cached;
 
     const item = requireItem(costId);
-    const gross = computeGrossAmount(item, {
-      resolveBase: (ref) => resolveBaseRef(ref),
-    });
-    grossCache.set(costId, gross);
-    return gross;
+    if (grossVisiting.has(costId)) {
+      throw new EngineError('GRAPH_CYCLE', `计税价格与费用之间出现环形引用，涉及费用项: ${costId}`, { cost_id: costId });
+    }
+    grossVisiting.add(costId);
+    try {
+      const gross = computeGrossAmount(item, {
+        resolveBase: (ref) => resolveBaseRef(ref),
+      });
+      grossCache.set(costId, gross);
+      return gross;
+    } finally {
+      grossVisiting.delete(costId);
+    }
   }
 
   function resolveBaseRef(ref: BaseRef): Decimal {

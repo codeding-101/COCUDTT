@@ -6,9 +6,11 @@ import type { ScenarioFacts } from '../domain/rule.js';
 import type { ComparisonAnchor, Scenario } from '../domain/scenario.js';
 import type { TaxProfile } from '../domain/tax-profile.js';
 import type { Trade } from '../domain/trade.js';
+import type { TradeRoute } from '../domain/import-context.js';
 import { EngineError } from '../engine/errors.js';
+import { validateProjectStructure } from './project-validation.js';
 
-export const SCHEMA_VERSION = '0.1';
+export const SCHEMA_VERSION = '0.5';
 
 export interface QuoteTemplate {
   amount: string;
@@ -28,6 +30,7 @@ export interface ProjectFile {
   base_currency: CurrencyCode;
   carriage_mode: CarriageMode;
   export_date?: DateStr;
+  route?: TradeRoute;
   goods: Goods;
   items: CostItem[];
   fx_books: FxBook[];
@@ -43,6 +46,7 @@ export function toTrade(project: ProjectFile): Trade {
   return {
     id: 'trade-1',
     name: project.name,
+    ...(project.route !== undefined ? { route: project.route } : {}),
     goods: project.goods,
     carriage_mode: project.carriage_mode,
     items: project.items,
@@ -71,7 +75,8 @@ export function toScenario(project: ProjectFile): Scenario {
 }
 
 export function serializeProject(project: ProjectFile): string {
-  return `${JSON.stringify(project, null, 2)}\n`;
+  // 新语义必须用新版本落盘，旧程序应明确拒绝，而非忽略中国模式继续错算。
+  return `${JSON.stringify({ ...project, schema_version: SCHEMA_VERSION }, null, 2)}\n`;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -97,24 +102,17 @@ export function parseProject(text: string): ProjectFile {
   if (typeof version !== 'string') {
     throw new EngineError('PROJECT_PARSE_FAILED', '项目文件缺少 schema_version，无法确认格式版本');
   }
-  if (version !== SCHEMA_VERSION) {
+  if (![SCHEMA_VERSION, '0.1', '0.2', '0.3', '0.4'].includes(version)) {
     throw new EngineError(
       'PROJECT_VERSION_UNSUPPORTED',
-      `项目文件版本为 ${version}，当前程序支持 ${SCHEMA_VERSION}，请先迁移`,
+      `项目文件版本为 ${version}，当前程序支持 0.1、0.2、0.3、0.4 及 ${SCHEMA_VERSION}，请先迁移`,
       { version, supported: SCHEMA_VERSION },
     );
   }
 
-  const required = ['name', 'base_currency', 'carriage_mode', 'goods', 'items', 'fx_books', 'tax_profile', 'quote', 'incoterm'];
-  for (const key of required) {
-    if (raw[key] === undefined) {
-      throw new EngineError('PROJECT_PARSE_FAILED', `项目文件缺少必需字段: ${key}`, { field: key });
-    }
-  }
-  if (!Array.isArray(raw.items)) {
-    throw new EngineError('PROJECT_PARSE_FAILED', '项目文件的 items 应为数组');
-  }
-
+  validateProjectStructure(raw);
+  // 旧项目只升级容器版本，不自动开启中国进口计算语义。
+  raw.schema_version = SCHEMA_VERSION;
   return raw as unknown as ProjectFile;
 }
 

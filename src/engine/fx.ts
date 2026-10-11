@@ -4,6 +4,7 @@ import { compareDate } from '../domain/date.js';
 import { FX_TYPE_LABELS, type CurrencyCode, type DateStr, type FxType } from '../domain/enums.js';
 import { rateKey, type FxBook } from '../domain/fx.js';
 import { EngineError } from './errors.js';
+import { evidenceKey, fxEvidenceValues, type SourceEvidence } from '../domain/source-evidence.js';
 
 export type FxSource =
   /** 原始币种与核算币种相同，无需换算 */
@@ -16,6 +17,8 @@ export type FxSource =
   | 'BOOK';
 
 export interface FxResolution {
+  evidence?: SourceEvidence;
+  evidence_key?: string;
   rate: Decimal;
   from: CurrencyCode;
   to: CurrencyCode;
@@ -33,6 +36,7 @@ export interface FxResolveInput {
   fxType: FxType;
   /** 费用项级显式汇率，优先级最高（设计文档 5.2 第 1 级） */
   explicitRate?: Numeric;
+  explicitEvidence?: SourceEvidence;
   fxDate?: DateStr;
   /** 项目中的全部汇率簿；只会使用 type 与 fxType 一致的簿，绝不跨类型替代（设计文档 5.3） */
   books: readonly FxBook[];
@@ -70,9 +74,9 @@ function lookupPair(book: FxBook, from: CurrencyCode, to: CurrencyCode): { rate:
 
   const direct = book.rates[rateKey(from, to)];
   if (!blank(direct)) {
-    const rate = q(direct ?? '0');
-    if (isZero(rate)) {
-      throw new EngineError('FX_RATE_INVALID', `汇率簿「${book.name}」中 ${rateKey(from, to)} 为 0`, {
+    const rate = parseRate(direct ?? '0', `汇率簿「${book.name}」中 ${rateKey(from, to)}`);
+    if (!rate.isFinite() || isZero(rate) || rate.isNegative()) {
+      throw new EngineError('FX_RATE_INVALID', `汇率簿「${book.name}」中 ${rateKey(from, to)} 须为有限正数`, {
         book_id: book.id,
         pair: rateKey(from, to),
       });
@@ -82,9 +86,9 @@ function lookupPair(book: FxBook, from: CurrencyCode, to: CurrencyCode): { rate:
 
   const reverse = book.rates[rateKey(to, from)];
   if (!blank(reverse)) {
-    const reversed = q(reverse ?? '0');
-    if (isZero(reversed)) {
-      throw new EngineError('FX_RATE_INVALID', `汇率簿「${book.name}」中 ${rateKey(to, from)} 为 0`, {
+    const reversed = parseRate(reverse ?? '0', `汇率簿「${book.name}」中 ${rateKey(to, from)}`);
+    if (!reversed.isFinite() || isZero(reversed) || reversed.isNegative()) {
+      throw new EngineError('FX_RATE_INVALID', `汇率簿「${book.name}」中 ${rateKey(to, from)} 须为有限正数`, {
         book_id: book.id,
         pair: rateKey(to, from),
       });
@@ -94,6 +98,11 @@ function lookupPair(book: FxBook, from: CurrencyCode, to: CurrencyCode): { rate:
   }
 
   return undefined;
+}
+
+function parseRate(value: Numeric, label: string): Decimal {
+  try { return q(value); }
+  catch { throw new EngineError('FX_RATE_INVALID', `${label} 须为有效的有限正数`); }
 }
 
 function fxMissing(message: string, detail: Record<string, unknown>): never {
@@ -122,8 +131,8 @@ export function resolveFxRate(input: FxResolveInput): FxResolution {
   }
 
   if (input.explicitRate !== undefined && input.explicitRate !== null) {
-    const rate = q(input.explicitRate);
-    if (isZero(rate) || rate.isNegative()) {
+    const rate = parseRate(input.explicitRate, `${from}/${to} 的显式汇率`);
+    if (!rate.isFinite() || isZero(rate) || rate.isNegative()) {
       throw new EngineError('FX_RATE_INVALID', `${from}/${to} 的显式汇率必须为正数，当前为 ${toStorage(rate)}`, {
         from,
         to,
@@ -139,6 +148,8 @@ export function resolveFxRate(input: FxResolveInput): FxResolution {
       book_id: null,
       source: 'ITEM',
       inverted: false,
+      ...(input.explicitEvidence !== undefined ? { evidence: input.explicitEvidence } : {}),
+      ...(input.explicitEvidence !== undefined ? { evidence_key: evidenceKey({ from, to, rate: input.explicitRate, type: fxType, date: input.fxDate }, input.explicitEvidence) } : {}),
     };
   }
 
@@ -183,6 +194,10 @@ export function resolveFxRate(input: FxResolveInput): FxResolution {
     });
   }
 
+  const evidenceFrom = pair.inverted ? to : from;
+  const evidenceTo = pair.inverted ? from : to;
+  const evidence = book.evidence?.[rateKey(evidenceFrom, evidenceTo)];
+
   return {
     rate: pair.rate,
     from,
@@ -192,6 +207,9 @@ export function resolveFxRate(input: FxResolveInput): FxResolution {
     book_id: book.id,
     source,
     inverted: pair.inverted,
+    ...(evidence !== undefined
+      ? { evidence, evidence_key: evidenceKey(fxEvidenceValues({ ...book, from: evidenceFrom, to: evidenceTo, rate: book.rates[rateKey(evidenceFrom, evidenceTo)] }), evidence) }
+      : {}),
   };
 }
 

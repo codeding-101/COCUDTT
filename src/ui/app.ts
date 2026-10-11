@@ -7,7 +7,10 @@ import {
   touchProject,
   type ProjectFile,
 } from '../data/project-file.js';
-import { sampleProjectFile } from '../data/sample-project.js';
+import { chinaImportSampleProjectFile, newChinaImportProjectFile, sampleProjectFile } from '../data/sample-project.js';
+import { validateDraftFxRows } from '../data/project-validation.js';
+import { emptyEvidence, evidenceKey, fxEvidenceValues, hsEvidenceValues, invalidateEvidence, taxEvidenceValues, type SourceEvidence } from '../domain/source-evidence.js';
+import { eligibilityValues, emptyEligibility, emptyRoute } from '../domain/import-context.js';
 import type { BaseRef, CostItem } from '../domain/cost-item.js';
 import type { DutyType, HsRateTable } from '../domain/hs-rate.js';
 import type {
@@ -25,7 +28,8 @@ import { compare, scenarioWithDerivedInclusions, type Comparison } from '../engi
 import { isEngineError } from '../engine/errors.js';
 import { booksToRows, rowsToBooks, type FxRow } from './fx-rows.js';
 import { escapeHtml } from './format.js';
-import { nextCostId, renderFormsRow, renderFxPanel, renderHsPanel, renderItemsPanel, type ItemEnrichment } from './views-input.js';
+import { nextCostId, renderFormsRow, renderFxPanel, renderHsPanel, renderImportTaxPanel, renderItemsPanel, type ItemEnrichment } from './views-input.js';
+import { createProjectReport } from './project-report.js';
 import { renderKpis, renderOutputColumn } from './views-output.js';
 
 const DRAFT_KEY = 'trade-cost-engine:draft-v1';
@@ -50,6 +54,7 @@ interface DraftPayload {
 
 /** 折叠的面板；跨渲染保留 */
 const collapsedSections = new Set<string>();
+const expandedEvidenceSections = new Set<string>();
 
 interface DraftLoad {
   payload: DraftPayload | null;
@@ -73,18 +78,20 @@ function loadDraft(): DraftLoad {
 
   try {
     const parsed = JSON.parse(raw) as DraftPayload;
+    validateDraftFxRows(parsed.fxRows);
     return { payload: { project: parseProject(JSON.stringify(parsed.project)), fxRows: parsed.fxRows }, failure: null };
   } catch (error) {
     const detail = isEngineError(error) ? `（${error.code}）` : '';
-    return { payload: null, failure: `上次的草稿无法读取${detail}，已改为载入示例数据；如果你之前没保存成项目文件，那份编辑内容已经丢失` };
+    return { payload: null, failure: `上次的草稿无法读取${detail}，已载入示例数据；原草稿暂未覆盖，请先备份浏览器本地存储。继续编辑或打开其他项目将更新草稿` };
   }
 }
 
-function saveDraft(project: ProjectFile, fxRows: readonly FxRow[]): void {
+function saveDraft(project: ProjectFile, fxRows: readonly FxRow[]): boolean {
   try {
     localStorage.setItem(DRAFT_KEY, JSON.stringify({ project, fxRows }));
+    return true;
   } catch {
-    // 浏览器存储不可用时静默跳过：项目文件才是权威数据源
+    return false;
   }
 }
 
@@ -92,6 +99,7 @@ function saveDraft(project: ProjectFile, fxRows: readonly FxRow[]): void {
 let restoredFromDraft = false;
 /** 草稿读取失败的说明，启动时展示 */
 let draftFailure: string | null = null;
+let draftStorageUnavailable = false;
 
 function initialState(): AppState {
   const draft = loadDraft();
@@ -119,7 +127,7 @@ function currentProject(): ProjectFile {
   return { ...state.project, fx_books: rowsToBooks(state.fxRows) };
 }
 
-function recompute(): void {
+function recompute(persistDraft = true): void {
   const project = currentProject();
   try {
     const trade = toTrade(project);
@@ -154,7 +162,7 @@ function recompute(): void {
     state.status = '输入不足以完成计算';
     state.statusLevel = 'error';
   }
-  saveDraft(state.project, state.fxRows);
+  if (persistDraft) draftStorageUnavailable = !saveDraft(state.project, state.fxRows);
 }
 
 /** 把计算结果回填到录入区：金额与归属，让用户边录边看到结果 */
@@ -177,6 +185,9 @@ function enrichmentMap(): Map<string, ItemEnrichment> {
 
 function focusKeyOf(element: Element): string | null {
   const dataset = (element as HTMLElement).dataset;
+  if (dataset.evidenceOwner !== undefined && dataset.evidenceField !== undefined) {
+    return `evidence:${dataset.evidenceOwner}:${dataset.evidenceId ?? ''}:${dataset.evidenceField}`;
+  }
   if (dataset.path !== undefined) return `path:${dataset.path}`;
   if (dataset.item !== undefined && dataset.itemField !== undefined) {
     return `item:${dataset.item}:${dataset.itemField}`;
@@ -189,7 +200,7 @@ function focusKeyOf(element: Element): string | null {
 
 function restoreFocus(key: string | null): void {
   if (key === null) return;
-  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx]')).find(
+  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner]')).find(
     (candidate) => focusKeyOf(candidate) === key,
   );
   element?.focus();
@@ -214,6 +225,31 @@ function setPath(path: string, raw: string): void {
 }
 
 function onProjectField(path: string, target: HTMLInputElement | HTMLSelectElement): void {
+  const rules = state.project.tax_profile.import;
+  if (path.startsWith('route.')) state.project.route ??= emptyRoute();
+  if (path.startsWith('tax_profile.import.eligibility.')) rules.eligibility ??= emptyEligibility();
+  if (path.startsWith('route.') || ['goods.tax_key', 'tax_profile.import.declarationDate', 'tax_profile.import.calculationMode'].includes(path)) {
+    invalidateEvidence(rules.eligibility?.duty_evidence);
+    invalidateEvidence(rules.eligibility?.vat_evidence);
+  }
+  if (['tax_profile.import.hsTable.basis', 'tax_profile.import.eligibility.agreement_name'].includes(path)) invalidateEvidence(rules.eligibility?.duty_evidence);
+  if (['tax_profile.import.vatDeductibleForBuyer', 'tax_profile.import.eligibility.vat_taxpayer', 'tax_profile.import.eligibility.vat_use'].includes(path)) invalidateEvidence(rules.eligibility?.vat_evidence);
+  if (['tax_profile.import.dutyRates.fallback', 'tax_profile.import.vatRate', 'tax_profile.import.consumptionTax.rate'].includes(path)) {
+    invalidateEvidence(state.project.tax_profile.import.rateEvidence);
+  }
+  if (path === 'tax_profile.import.hsTable.basis') {
+    ensureHsTable(state.project).entries.forEach((entry) => invalidateEvidence(entry.evidence));
+  }
+  if (path === 'tax_profile.import.consumptionTax.rate') {
+    state.project.tax_profile.import.consumptionTax = target.value.trim() === '' ? null : {
+      rate: target.value.trim(), basis: 'DUTIABLE_PLUS_DUTY',
+    };
+    return;
+  }
+  if (path === 'tax_profile.import.vatDeductibleForBuyer' && target instanceof HTMLInputElement) {
+    state.project.tax_profile.import.vatDeductibleForBuyer = target.checked;
+    return;
+  }
   if (path === 'anchor.kind') {
     const kind = target.value as ComparisonAnchor['kind'];
     const fallbackTotal = state.result?.buyer.landed_cost_with_tax.toFixed(2) ?? '900000.00';
@@ -232,6 +268,7 @@ function onItemField(costId: string, field: string, target: HTMLInputElement | H
   const item = state.project.items.find((candidate) => candidate.cost_id === costId);
   if (item === undefined) return;
   const value = target.value;
+  if (['currency', 'fx_type', 'fx_date'].includes(field)) invalidateEvidence(item.fx_evidence);
   const isCheckbox = target instanceof HTMLInputElement && target.type === 'checkbox';
   switch (field) {
     case 'cost_name':
@@ -242,6 +279,9 @@ function onItemField(costId: string, field: string, target: HTMLInputElement | H
       break;
     case 'cost_category':
       item.cost_category = value as CostCategory;
+      break;
+    case 'customs_value':
+      item.customs_value = value === '' ? undefined : value as CostItem['customs_value'];
       break;
     case 'pricing_method':
       item.pricing_method = value as PricingMethod;
@@ -348,6 +388,7 @@ function onHsField(index: number, field: string, target: HTMLInputElement | HTML
   if (entry === undefined) return;
   const value = target.value;
   const trimmed = value.trim();
+  invalidateEvidence(entry.evidence);
   switch (field) {
     case 'code':
       entry.code = trimmed;
@@ -382,9 +423,11 @@ function onHsField(index: number, field: string, target: HTMLInputElement | HTML
   }
 }
 
-function onFxField(rowId: string, field: string, target: HTMLInputElement | HTMLSelectElement): void {  const row = state.fxRows.find((candidate) => candidate.row_id === rowId);
+function onFxField(rowId: string, field: string, target: HTMLInputElement | HTMLSelectElement): void {
+  const row = state.fxRows.find((candidate) => candidate.row_id === rowId);
   if (row === undefined) return;
   const value = target.value;
+  invalidateEvidence(row.evidence);
   switch (field) {
     case 'type':
       row.type = value as FxType;
@@ -412,6 +455,49 @@ function onFxField(rowId: string, field: string, target: HTMLInputElement | HTML
   }
 }
 
+function onEvidenceField(owner: string, id: string, field: string, value: string): void {
+  let evidence: SourceEvidence;
+  let values: unknown;
+  if (owner === 'tax') {
+    evidence = state.project.tax_profile.import.rateEvidence ??= emptyEvidence();
+    values = taxEvidenceValues(state.project.tax_profile.import);
+  }
+  else if (owner === 'duty-eligibility' || owner === 'vat-eligibility') {
+    const rules = state.project.tax_profile.import;
+    const eligibility = rules.eligibility ??= emptyEligibility();
+    const kind = owner === 'duty-eligibility' ? 'duty' : 'vat';
+    evidence = kind === 'duty' ? eligibility.duty_evidence ??= emptyEvidence() : eligibility.vat_evidence ??= emptyEvidence();
+    values = eligibilityValues(kind, state.project.route, state.project.goods.tax_key, rules);
+  }
+  else if (owner === 'fx') {
+    const row = state.fxRows.find((candidate) => candidate.row_id === id);
+    if (row === undefined) return;
+    evidence = row.evidence ??= emptyEvidence();
+    values = fxEvidenceValues(row);
+  } else if (owner === 'hs') {
+    const entry = state.project.tax_profile.import.hsTable?.entries[Number(id)];
+    if (entry === undefined) return;
+    evidence = entry.evidence ??= emptyEvidence();
+    values = hsEvidenceValues(entry, state.project.tax_profile.import.hsTable?.basis);
+  } else if (owner === 'cost') {
+    const item = state.project.items.find((candidate) => candidate.cost_id === id);
+    if (item === undefined) return;
+    evidence = item.fx_evidence ??= emptyEvidence();
+    values = { from: item.currency, to: state.project.base_currency, rate: item.fx_rate, type: item.fx_type, date: item.fx_date };
+  } else return;
+  if (field !== 'status') invalidateEvidence(evidence);
+  switch (field) {
+    case 'reference': evidence.reference = value.trim(); break;
+    case 'valid_from': evidence.valid_from = value.trim(); break;
+    case 'valid_to': evidence.valid_to = value.trim(); break;
+    case 'checked_on': evidence.checked_on = value.trim(); break;
+    case 'status':
+      evidence.status = value === 'EXAMPLE' || value === 'USER_CONFIRMED' ? value : 'UNVERIFIED';
+      if (evidence.status === 'USER_CONFIRMED') evidence.values_key = evidenceKey(values, evidence);
+      break;
+  }
+}
+
 // ---------- 动作 ----------
 
 function addPresetItem(presetKey: string): void {
@@ -426,10 +512,10 @@ function addPresetItem(presetKey: string): void {
       currency,
       base_currency: state.project.base_currency,
       fx_type: currency === state.project.base_currency ? 'MARKET' : 'CONTRACT',
-      ...(preset.pricing_method === 'FIXED' || preset.pricing_method === 'ACTUAL' ? { amount: '0' } : {}),
-      ...(preset.pricing_method === 'QTY_X_UNIT' ? { quantity: '1', rate: '0' } : {}),
-      ...(preset.pricing_method === 'PER_DAY' ? { days: '1', rate: '0' } : {}),
-      ...(preset.pricing_method === 'PERCENT' ? { rate: '0' } : {}),
+      ...(preset.pricing_method === 'FIXED' || preset.pricing_method === 'ACTUAL' ? { amount: '' } : {}),
+      ...(preset.pricing_method === 'QTY_X_UNIT' ? { quantity: '', rate: '' } : {}),
+      ...(preset.pricing_method === 'PER_DAY' ? { days: '', rate: '' } : {}),
+      ...(preset.pricing_method === 'PERCENT' ? { rate: '' } : {}),
     }),
   );
   state.status = `已添加：${preset.name}`;
@@ -446,7 +532,7 @@ function addCustomItem(): void {
       currency: state.project.base_currency,
       base_currency: state.project.base_currency,
       pricing_method: 'ACTUAL',
-      amount: '0',
+      amount: '',
     }),
   );
   state.status = '已添加自定义费用：请填写名称、节点与类别';
@@ -511,7 +597,8 @@ function addHsEntry(): void {
   });
 }
 
-function downloadText(fileName: string, text: string): void {  const blob = new Blob([text], { type: 'application/json' });
+function downloadText(fileName: string, text: string, mime = 'application/json'): void {
+  const blob = new Blob([text], { type: mime });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
@@ -521,9 +608,9 @@ function downloadText(fileName: string, text: string): void {  const blob = new 
 }
 
 /** 去掉在 Windows 上非法的文件名字符，避免建议文件名被浏览器截断 */
-function safeFileName(name: string): string {
+function safeFileName(name: string, extension = 'json'): string {
   const cleaned = name.replace(/[\\/:*?"<>|]/g, '-').trim();
-  return `${cleaned === '' ? 'trade-cost' : cleaned}.json`;
+  return `${cleaned === '' ? 'trade-cost' : cleaned}.${extension}`;
 }
 
 interface SaveFilePickerWindow extends Window {
@@ -543,7 +630,7 @@ async function saveProject(): Promise<void> {
   const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
   if (picker !== undefined) {
     try {
-      const handle = await picker({
+      const handle = await picker.call(window, {
         suggestedName: suggested,
         types: [{ description: '项目文件', accept: { 'application/json': ['.json'] } }],
       });
@@ -557,11 +644,26 @@ async function saveProject(): Promise<void> {
       state.statusLevel = 'info';
       render();
       return;
-    } catch {
-      // 用户取消或浏览器拒绝，退回下载
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        state.status = '已取消保存，当前改动尚未写入项目文件';
+        state.statusLevel = 'warn';
+      } else {
+        state.status = `保存失败，当前改动尚未写入项目文件：${String(error)}`;
+        state.statusLevel = 'error';
+      }
+      render();
+      return;
     }
   }
-  downloadText(suggested, text);
+  try {
+    downloadText(suggested, text);
+  } catch (error) {
+    state.status = `下载项目文件失败：${String(error)}`;
+    state.statusLevel = 'error';
+    render();
+    return;
+  }
   state.savedAt = new Date().toLocaleTimeString();
   state.dirty = false;
   state.status = '当前浏览器不支持直接写盘，已改为下载项目文件';
@@ -569,29 +671,63 @@ async function saveProject(): Promise<void> {
   render();
 }
 
+async function exportReport(): Promise<void> {
+  try {
+    const project = currentProject();
+    const html = createProjectReport(project);
+    const name = safeFileName(`${project.name || 'trade-cost'}-内部测算报告`, 'html');
+    const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
+    if (picker !== undefined) {
+      const handle = await picker.call(window, { suggestedName: name, types: [{ description: '内部测算报告', accept: { 'text/html': ['.html'] } }] });
+      const writable = await handle.createWritable(); await writable.write(html); await writable.close();
+      state.status = `已导出报告 ${handle.name}；项目文件仍需单独保存${state.dirty ? '；有未保存改动' : ''}`;
+    } else {
+      downloadText(name, html, 'text/html');
+      state.status = `已发起报告下载，请确认文件已保存；项目文件仍需单独保存${state.dirty ? '；有未保存改动' : ''}`;
+    }
+    state.statusLevel = 'warn';
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      state.status = '已取消报告导出，项目保存状态未改变'; state.statusLevel = 'warn';
+    } else {
+      state.status = `报告导出失败：${isEngineError(error) ? error.message : String(error)}`; state.statusLevel = 'error';
+    }
+  }
+  // 报告导出不是项目保存，不更改dirty、fileName、savedAt或草稿。
+  render();
+}
+
+function showFileError(error: unknown): void {
+  state.status = isEngineError(error) ? `[${error.code}] ${error.message}` : `打开失败：${String(error)}`;
+  state.statusLevel = 'error';
+  render();
+}
+
 function openProjectFromText(text: string, fileName: string): void {
   try {
     const project = parseProject(text);
+    // 所有可能失败的准备步骤完成后，才替换当前编辑内容。
+    const fxRows = booksToRows(project.fx_books);
     state.project = project;
-    state.fxRows = booksToRows(project.fx_books);
+    state.fxRows = fxRows;
     state.fileName = fileName;
+    state.savedAt = null;
     state.dirty = false;
-    state.status = `已打开 ${fileName}`;
-    state.statusLevel = 'info';
   } catch (error) {
-    state.status = isEngineError(error) ? `[${error.code}] ${error.message}` : `打开失败：${String(error)}`;
-    state.statusLevel = 'error';
+    showFileError(error);
+    return;
   }
   recompute();
   render();
 }
 
-function newProject(): void {
-  state.project = sampleProjectFile();
+function newProject(mode: 'sample' | 'china-sample' | 'china-blank' = 'sample'): void {
+  state.project = mode === 'china-blank' ? newChinaImportProjectFile() : mode === 'china-sample' ? chinaImportSampleProjectFile() : sampleProjectFile();
   state.fxRows = booksToRows(state.project.fx_books);
   state.fileName = null;
+  state.savedAt = null;
   state.dirty = true;
-  state.status = '已载入示例数据';
+  state.status = mode === 'china-blank' ? '已新建空白中国进口交易，请按录入提示填写' : '已载入示例数据';
   state.statusLevel = 'info';
   recompute();
   render();
@@ -601,9 +737,13 @@ function newProject(): void {
 
 function saveStateText(): { text: string; className: string } {
   if (state.statusLevel === 'error') return { text: state.status, className: 'save-state error' };
+  if (state.statusLevel === 'warn') return { text: state.status, className: 'save-state dirty' };
   const target = state.fileName ?? '尚未保存为文件';
   const when = state.savedAt !== null ? ` · 上次保存 ${state.savedAt}` : '';
   const dirtyMark = state.dirty ? ' · 有未保存改动' : '';
+  if (draftStorageUnavailable) {
+    return { text: `${target}${dirtyMark} · 自动草稿保存失败，请保存项目文件`, className: 'save-state dirty' };
+  }
   return {
     text: `${target}${when}${dirtyMark}`,
     className: `save-state${state.dirty ? ' dirty' : ''}`,
@@ -621,16 +761,20 @@ function render(): void {
       <div class="brand">国际贸易成本与贸易术语分析<span class="sub">本地运行 · 数据不出本机</span></div>
       <div class="file-actions">
         <button data-action="new">载入示例</button>
+        <button data-action="new-china-import">中国进口示例</button>
+        <button data-action="new-china-blank">新建中国进口</button>
         <button data-action="open">打开项目</button>
         <button class="primary" data-action="save">保存项目</button>
+        <button data-action="export-report"${state.result === null || state.comparison === null ? ' disabled' : ''}>导出测算报告</button>
         <input type="file" id="file-input" accept=".json,application/json" style="display:none" />
       </div>
       <span class="spacer"></span>
       ${renderKpis({ result: state.result, comparison: state.comparison, error: state.error })}
-      <span class="${saveState.className}">${saveState.text}</span>
+      <span class="${saveState.className}" role="status" aria-live="polite">${escapeHtml(saveState.text)}</span>
     </header>
     <main class="layout">
       ${renderFormsRow(state.project)}
+      ${renderImportTaxPanel(state.project)}
       ${renderFxPanel(state.fxRows)}
       ${renderHsPanel(state.project)}
       ${renderItemsPanel(state.project, enrichmentMap())}
@@ -646,6 +790,9 @@ function render(): void {
   document.querySelectorAll<HTMLDetailsElement>('details.panel').forEach((element) => {
     const key = element.dataset.section;
     if (key !== undefined && collapsedSections.has(key)) element.open = false;
+  });
+  document.querySelectorAll<HTMLDetailsElement>('details.source-editor').forEach((element) => {
+    if (element.dataset.evidenceSection !== undefined && expandedEvidenceSections.has(element.dataset.evidenceSection)) element.open = true;
   });
   restoreFocus(focused);
 }
@@ -701,6 +848,12 @@ function bind(): void {
     (event) => {
       const target = event.target;
       if (!(target instanceof HTMLDetailsElement)) return;
+      const evidenceSection = target.dataset.evidenceSection;
+      if (evidenceSection !== undefined) {
+        if (target.open) expandedEvidenceSections.add(evidenceSection);
+        else expandedEvidenceSections.delete(evidenceSection);
+        return;
+      }
       const key = target.dataset.section;
       if (key === undefined) return;
       if (target.open) collapsedSections.delete(key);
@@ -715,11 +868,17 @@ function bind(): void {
     if (target instanceof HTMLInputElement && target.id === 'file-input') {
       const file = target.files?.[0];
       if (file === undefined) return;
-      void file.text().then((text) => openProjectFromText(text, file.name));
+      void file.text().then((text) => openProjectFromText(text, file.name)).catch(showFileError);
       return;
     }
 
     if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
+
+    if (target.dataset.evidenceOwner !== undefined && target.dataset.evidenceField !== undefined) {
+      onEvidenceField(target.dataset.evidenceOwner, target.dataset.evidenceId ?? '', target.dataset.evidenceField, target.value);
+      commit();
+      return;
+    }
 
     if (target.dataset.action === 'add-preset') {
       if (target.value !== '') addPresetItem(target.value);
@@ -798,11 +957,20 @@ function bind(): void {
       case 'save':
         void saveProject();
         break;
+      case 'export-report':
+        void exportReport();
+        break;
       case 'open':
         document.querySelector<HTMLInputElement>('#file-input')?.click();
         break;
       case 'new':
         newProject();
+        break;
+      case 'new-china-import':
+        newProject('china-sample');
+        break;
+      case 'new-china-blank':
+        newProject('china-blank');
         break;
       default:
         break;
@@ -812,7 +980,7 @@ function bind(): void {
 
 export function start(): void {
   bind();
-  recompute();
+  recompute(draftFailure === null);
   if (draftFailure !== null) {
     state.status = draftFailure;
     state.statusLevel = 'warn';

@@ -3,6 +3,39 @@ import { TRADE_NODE_LABELS } from '../domain/enums.js';
 import type { AnalysisResult, EnrichedCostItem } from '../engine/analyze.js';
 import type { Comparison, ComparisonColumn } from '../engine/compare.js';
 import { dec, escapeHtml, levelLabel, warningClass } from './format.js';
+import { SOURCE_STATUS_LABELS } from './source-editor.js';
+
+function sourceReference(reference: string): string {
+  try {
+    const url = new URL(reference);
+    if (url.protocol === 'https:' || url.protocol === 'http:') return `<a href="${escapeHtml(url.href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(reference)}</a>`;
+  } catch { /* 合同编号等文本来源原样展示 */ }
+  return escapeHtml(reference || '未填写');
+}
+
+function sellerProfit(value: AnalysisResult['seller']['margin']): string {
+  return value === null ? '无法评估' : dec(value);
+}
+
+function renderDecisionCheck(result: AnalysisResult): string {
+  const decision = result.decision;
+  return `<section class="panel"><div class="panel-body">
+    <h3 class="panel-heading">结果核对 · ${decision.ready ? '符合当前排名检查条件' : '参考测算，仍待核对'}</h3>
+    ${decision.context.map(line => `<p class="hint block">${escapeHtml(line)}</p>`).join('')}
+    <p class="hint block">${decision.ready ? '当前未发现本轮检查覆盖的数据来源或费用问题。' : `还有 ${decision.issues.length} 条未完成事项；当前方案不参与最优排名，金额保留供核对。`} 用户核对记录不等于程序或海关认证，未覆盖的业务条件仍需人工确认。</p>
+    ${decision.issues.length ? `<details class="evidence"><summary>查看待核对原因</summary><ul class="decision-issues">${decision.issues.map((issue) => `<li>${escapeHtml(issue)}</li>`).join('')}</ul></details>` : ''}
+    ${decision.sources.length ? `<details class="evidence"><summary>查看本次使用的 ${decision.sources.length} 项来源记录</summary>
+      <table class="grid stackable source-table"><thead><tr><th>数据</th><th>状态</th><th>来源</th><th>来源适用期</th><th>核对日期</th></tr></thead><tbody>
+      ${decision.sources.map((source) => `<tr>
+        <td data-label="数据">${escapeHtml(source.label)}<small>核算日期 ${escapeHtml(source.applicable_date)}</small></td>
+        <td data-label="状态">${source.evidence ? SOURCE_STATUS_LABELS[source.evidence.status] : '无记录'}${source.issues.length ? '<small>待核对</small>' : ''}</td>
+        <td data-label="来源">${sourceReference(source.evidence?.reference ?? '')}</td>
+        <td data-label="适用期">${escapeHtml(source.evidence?.valid_from || '未填')} ～ ${escapeHtml(source.evidence?.valid_to || '未填')}</td>
+        <td data-label="核对日期">${escapeHtml(source.evidence?.checked_on || '未填')}</td>
+      </tr>`).join('')}
+      </tbody></table></details>` : ''}
+  </div></section>`;
+}
 
 export interface OutputState {
   result: AnalysisResult | null;
@@ -49,9 +82,9 @@ function renderHero(result: AnalysisResult): string {
   <section class="panel">
     <div class="hero">
       <div class="cell primary">
-        <span>卖方利润（含出口退税）</span>
-        <strong>${dec(result.seller.margin)}</strong>
-        <small>不含退税 ${dec(result.seller.margin_ex_rebate)} · 报价 ${result.incoterm}</small>
+        <span>${result.rebate.applicable === false ? '卖方利润（未计境外税务）' : '卖方利润（含出口退税）'}</span>
+        <strong>${sellerProfit(result.seller.margin)}</strong>
+        <small>${result.seller.margin === null ? '卖方采购成本未知，买方测算可继续' : result.rebate.applicable === false ? '卖方成本需自行核实' : `不含退税 ${dec(result.seller.margin_ex_rebate)}`} · 报价 ${result.incoterm}</small>
       </div>
       <div class="cell">
         <span>买方总支付</span>
@@ -60,8 +93,8 @@ function renderHero(result: AnalysisResult): string {
       </div>
       <div class="cell">
         <span>出口退税</span>
-        <strong>${dec(result.seller.rebate_total)}</strong>
-        <small>占利润 ${result.seller.margin.isZero() ? '—' : `${dec(result.seller.rebate_total.dividedBy(result.seller.margin).times(100))}%`}</small>
+        <strong>${result.rebate.applicable === false ? '不适用' : dec(result.seller.rebate_total)}</strong>
+        <small>${result.rebate.applicable === false ? '中国进口场景' : `占利润 ${result.seller.margin === null || result.seller.margin.isZero() ? '—' : `${dec(result.seller.rebate_total.dividedBy(result.seller.margin).times(100))}%`}`}</small>
       </div>
       <div class="cell">
         <span>风险转移</span>
@@ -83,11 +116,11 @@ function renderBreakdown(result: AnalysisResult): string {
           <h3>卖方成本与利润</h3>
           <div class="row"><span>报价收入</span><strong>${dec(s.revenue)}</strong></div>
           <div class="row"><span>承担费用</span><strong>−${dec(s.cost_total)}</strong></div>
-          <div class="row"><span>采购含税成本</span><strong>−${dec(s.goods_cost)}</strong></div>
-          <div class="row"><span>出口退税</span><strong>+${dec(s.rebate_total)}</strong></div>
+          <div class="row"><span>采购含税成本</span><strong>${s.goods_cost === null ? '未知' : `−${dec(s.goods_cost)}`}</strong></div>
+          <div class="row"><span>中国出口退税</span><strong>${result.rebate.applicable === false ? '不适用' : `+${dec(s.rebate_total)}`}</strong></div>
           ${s.rebate_lag_cost.isZero() ? '' : `<div class="row"><span>退税资金占用</span><strong>−${dec(s.rebate_lag_cost)}</strong></div>`}
-          <div class="row total"><span>利润</span><strong>${dec(s.margin)}</strong></div>
-          <div class="row"><span>其中退税额</span><strong>${dec(s.rebate_total)}</strong></div>
+          <div class="row total"><span>利润</span><strong>${sellerProfit(s.margin)}</strong></div>
+          ${result.rebate.applicable === false ? `<p class="hint block">${escapeHtml(result.rebate.basis_rule)}</p>` : `<div class="row"><span>其中退税额</span><strong>${dec(s.rebate_total)}</strong></div>`}
         </div>
         <div class="card buyer">
           <h3>买方落地成本</h3>
@@ -101,7 +134,9 @@ function renderBreakdown(result: AnalysisResult): string {
         </div>
         <div class="card">
           <h3>计税与风险</h3>
-          <div class="row"><span>海关完税价格</span><strong>${dec(result.dutiable_value.value)}</strong></div>
+          <div class="row"><span>海关计税价格</span><strong>${dec(result.dutiable_value.value)}</strong></div>
+          ${result.import_tax.calculation_mode === 'CN_GENERAL_TRADE' ? '<p class="hint block">中国一般贸易进口 · CNY 计税 · 税款舍入至分</p>' : ''}
+          ${result.import_tax.calculation_mode === 'CN_GENERAL_TRADE' ? result.dutiable_value.components.map((component) => `<div class="row"><span>${escapeHtml(component.label)}</span><strong>${dec(component.amount)}</strong></div>`).join('') : ''}
           <div class="row"><span>关税税率</span><strong>${dec(result.import_tax.duty_rate, 4)}</strong></div>
           <div class="row"><span>增值税率</span><strong>${dec(result.import_tax.vat_rate, 4)}</strong></div>
           <div class="row"><span>风险转移点</span><strong style="font-weight:500">${escapeHtml(result.risk.transfer_point)}</strong></div>
@@ -216,12 +251,12 @@ function renderComparison(comparison: Comparison): string {
     const bestMargin = column.incoterm === bestSeller ? ' best' : '';
     const bestLanded = column.incoterm === bestBuyer ? ' best' : '';
     return `<tr>
-      <th class="term">${column.incoterm}</th>
+      <th class="term">${column.incoterm}<small>${column.decision_ready ? '可参与排名' : '参考测算'}</small></th>
       <td class="num" data-label="报价金额">${dec(column.quote_amount)}</td>
       <td class="num" data-label="承担费用">${dec(column.seller.cost_total)}</td>
       <td class="num${bestMargin}" data-label="卖方利润">
-        ${dec(column.seller.margin)}
-        <small>不含退税 ${dec(column.seller.margin_ex_rebate)}</small>
+        ${sellerProfit(column.seller.margin)}
+        <small>${column.seller.margin === null ? '采购成本未知，不参与利润排名' : `不含退税 ${dec(column.seller.margin_ex_rebate)}`}</small>
       </td>
       <td class="num${bestLanded}" data-label="买方总支付">
         ${dec(column.buyer.landed_cost_with_tax)}
@@ -237,6 +272,7 @@ function renderComparison(comparison: Comparison): string {
       <td class="num" data-label="承担范围与告警">
         ${column.seller_cost_items} 项
         <small>${column.seller_cost_nodes} 个节点 · ${column.conditional_count} 待确认 · ${column.warning_count} 告警</small>
+        ${column.decision_issues.length ? `<details class="evidence"><summary>待核对原因</summary><ul class="decision-issues">${column.decision_issues.map((issue) => `<li>${escapeHtml(issue)}</li>`).join('')}</ul></details>` : ''}
       </td>
     </tr>`;
   };
@@ -255,15 +291,16 @@ function renderComparison(comparison: Comparison): string {
         }</span>
         ${
           comparison.best_seller_margin !== null
-            ? `<span class="tag seller">卖方利润最优：${comparison.best_seller_margin}</span>`
+            ? `<span class="tag seller">可排名方案中卖方利润最高：${comparison.best_seller_margin}</span>`
             : ''
         }
         ${
           comparison.best_buyer_landed !== null
-            ? `<span class="tag buyer">买方总支付最低：${comparison.best_buyer_landed}</span>`
+            ? `<span class="tag buyer">可排名方案中买方总支付最低：${comparison.best_buyer_landed}</span>`
             : ''
         }
       </div>
+      ${comparison.best_seller_margin === null && comparison.best_buyer_landed === null ? '<p class="hint block">当前没有可参与排名的方案，请先核对来源、补全费用归属或解决错误。</p>' : ''}
       <table class="grid compare stackable">
         <thead>
           <tr>
@@ -282,8 +319,8 @@ function renderComparison(comparison: Comparison): string {
         </tbody>
       </table>
       <p class="hint block">
-        进口税费在 11 个术语下是同一个数——完税价格由货值、运费、保险费构成，与术语无关，改变的只是由谁承担。
-        高亮为该列的相对最优值。
+        本次比较固定交易费用、计税价格和税率。在这些假设内，各术语进口税费相同，承担方不同；真实价格或费用变化时应重新核算。
+        高亮仅比较可参与排名的方案。来源仍待核对、税基不完整或存在未计入成本的费用时，保留参考金额并排除排名。
       </p>
     </div>
   </section>`;
@@ -308,6 +345,7 @@ export function renderOutputColumn(state: OutputState): string {
     return '<section class="panel"><div class="panel-body"><p class="empty">暂无可显示的结果</p></div></section>';
   }
   return `
+  ${renderDecisionCheck(state.result)}
   ${renderHero(state.result)}
   ${renderBreakdown(state.result)}
   ${renderWarnings(state.result)}
@@ -326,11 +364,14 @@ export function renderKpis(state: OutputState): string {
   const result = state.result;
   const errors = result.warnings.filter((warning) => warning.level === 'ERROR').length;
   const warns = result.warnings.filter((warning) => warning.level === 'WARN').length;
-  const alerts = errors + warns;
+  const alerts = new Set([
+    ...result.warnings.filter((warning) => warning.level === 'ERROR' || warning.level === 'WARN').map((warning) => warning.message),
+    ...result.decision.issues,
+  ]).size;
   return `
   <div class="kpis">
-    <div class="kpi"><span>方案</span><strong>${result.incoterm}</strong></div>
-    <div class="kpi profit"><span>卖方利润</span><strong>${dec(result.seller.margin)}</strong></div>
+    <div class="kpi"><span>${result.decision.ready ? '方案' : '参考方案'}</span><strong>${result.incoterm}</strong></div>
+    <div class="kpi profit"><span>卖方利润</span><strong>${sellerProfit(result.seller.margin)}</strong></div>
     <div class="kpi"><span>买方总支付</span><strong>${dec(result.buyer.landed_cost_with_tax)}</strong></div>
     <div class="kpi${alerts > 0 ? ' alert' : ' dim'}"><span>提示</span><strong>${alerts}</strong></div>
   </div>`;

@@ -202,7 +202,7 @@ describe('压力测试 · 极端数值', () => {
     const result = analyze({ ...BASE_INPUT, trade, scenario: scenarioWith('0') });
     expect(toStorage(result.seller.cost_total)).toBe('0.000000');
     // 默认 fixture 的采购成本 800、征退税率同为 13% → 0 − 800 + 800/1.13×0.13
-    expect(toStorage(result.seller.margin)).toBe('-707.964602');
+    expect(toStorage(result.seller.margin!)).toBe('-707.964602');
   });
 
   it('负金额（折扣）按原样参与计算', () => {
@@ -385,7 +385,7 @@ describe('压力测试 · 不变量', () => {
     const trade = buildTrade(60);
     const first = analyze({ ...BASE_INPUT, trade, scenario: VIRTUAL_SCENARIO });
     const second = analyze({ ...BASE_INPUT, trade, scenario: VIRTUAL_SCENARIO });
-    expect(toStorage(second.seller.margin)).toBe(toStorage(first.seller.margin));
+    expect(toStorage(second.seller.margin!)).toBe(toStorage(first.seller.margin!));
     expect(toStorage(second.buyer.landed_cost_with_tax)).toBe(toStorage(first.buyer.landed_cost_with_tax));
     expect(second.warnings.length).toBe(first.warnings.length);
   });
@@ -414,7 +414,7 @@ describe('压力测试 · 不变量', () => {
       analyze({ ...BASE_INPUT, trade, scenario: VIRTUAL_SCENARIO });
     }
     const last = analyze({ ...BASE_INPUT, trade, scenario: VIRTUAL_SCENARIO });
-    expect(toStorage(last.seller.margin)).toBe(toStorage(first.seller.margin));
+    expect(toStorage(last.seller.margin!)).toBe(toStorage(first.seller.margin!));
   });
 });
 

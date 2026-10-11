@@ -61,19 +61,19 @@ describe('11 术语横向对比', () => {
       const cif = columnFor(result, 'CIF');
       expect(toStorage(cif.seller.cost_total)).toBe('58100.000000');
       expect(toStorage(cif.buyer.additional_cost_total)).toBe('143001.486000');
-      expect(toStorage(cif.seller.margin)).toBe('151327.433628');
+      expect(toStorage(cif.seller.margin!)).toBe('151327.433628');
     });
 
     it('DDP：税费也转到卖方，买方额外成本为 0', () => {
       const ddp = columnFor(result, 'DDP');
       expect(toStorage(ddp.seller.cost_total)).toBe('201101.486000');
       expect(toStorage(ddp.buyer.additional_cost_total)).toBe('0.000000');
-      expect(toStorage(ddp.seller.margin)).toBe('8325.947628');
+      expect(toStorage(ddp.seller.margin!)).toBe('8325.947628');
       expect(ddp.seller_cost_nodes).toBeGreaterThan(columnFor(result, 'CIF').seller_cost_nodes);
     });
 
     it('同一报价下卖方义务越重利润越低', () => {
-      const margin = (incoterm: string) => columnFor(result, incoterm).seller.margin;
+      const margin = (incoterm: string) => columnFor(result, incoterm).seller.margin!;
       // 本用例只有货值、运费、保险费三项，装船前费用为 0，
       // 因此 EXW / FCA / FAS / FOB 承担的费用相同，利润也相同
       expect(toStorage(margin('EXW'))).toBe(toStorage(margin('FOB')));
@@ -117,7 +117,7 @@ describe('11 术语横向对比', () => {
       // 买方总支付固定、每笔费用的金额不因由谁承担而变时，
       // 卖方净得 = 买方总支付 − 全部费用 − 采购成本，与术语无关。
       // 术语在此基准下改变的是报价金额、承担范围与风险，而不是总利润。
-      const margins = new Set(result.columns.map((column) => toStorage(column.seller.margin)));
+      const margins = new Set(result.columns.map((column) => toStorage(column.seller.margin!)));
       expect(margins.size).toBe(1);
       const quotes = new Set(result.columns.map((column) => toStorage(column.quote_amount)));
       expect(quotes.size).toBeGreaterThan(2);
@@ -164,7 +164,7 @@ describe('11 术语横向对比', () => {
 
     it('各术语的毛利率都被拉到目标值', () => {
       for (const column of result.columns) {
-        const rate = column.seller.margin_ex_rebate.dividedBy(column.seller.revenue).toDecimalPlaces(4);
+        const rate = column.seller.margin_ex_rebate!.dividedBy(column.seller.revenue).toDecimalPlaces(4);
         expect(rate.toFixed(4)).toBe('0.2000');
       }
     });
