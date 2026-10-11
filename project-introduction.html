@@ -129,13 +129,13 @@
         <article class="card"><h3>采用的工程工具</h3><p><strong>TypeScript：</strong>启用 strict 和 noUncheckedIndexedAccess，让未知或缺失输入在类型与运行校验中被识别。<strong>decimal.js：</strong>十进制金额运算，税款按明确规则舍入。<strong>Vite：</strong>开发和构建。<strong>Vitest：</strong>计算、文件安全与业务边界回归。</p></article>
         <article class="card"><h3>明确的设计取舍</h3><p>本地运行避免将交易输入交给服务器；来源内容仍由使用者查验。规则和计算不依赖界面，文件结构校验与业务可用性判断分开。金额缺失不静默变成零，无法比较的方案保留原因。单文件分发简化使用，模块化源码保留可维护性。</p></article>
       </div>
-      <p class="small" style="margin-top:20px"><a href="https://github.com/codeding-101/COCUDTT/blob/codex/scenario-transport-costs/docs/design.md">查看设计文档</a> · <a href="https://github.com/codeding-101/COCUDTT/blob/codex/scenario-transport-costs/README.md">查看源码分支 README</a>（外部链接需联网）</p>
+      <p class="small" style="margin-top:20px"><a href="https://github.com/codeding-101/COCUDTT/blob/codex/professional-review-and-introduction/docs/design.md">查看设计文档</a> · <a href="https://github.com/codeding-101/COCUDTT/blob/codex/professional-review-and-introduction/README.md">查看源码分支 README</a>（外部链接需联网）</p>
     </section>
     <section id="evidence" aria-labelledby="evidence-title">
       <p class="eyebrow">可核查的证据</p><h2 id="evidence-title">记录对应提交，测试对应覆盖范围</h2>
       <div class="grid two">
         <article class="card"><h3>上一运价提交的 CI</h3><p><a href="https://github.com/codeding-101/COCUDTT/actions/runs/38125155331">Windows / Linux 工作流记录</a>：两套环境各通过 466 项测试，依赖审计为 0 个漏洞，类型检查、静态审查及单文件构建通过。</p><p class="small">该记录对应 PR #3 的上一运价提交（25a7e927…），属于历史工程证据，不能代表本轮介绍页验收、未来提交或公开网站状态。</p></article>
-        <article class="card"><h3>业务与浏览器检查</h3><p><a href="https://github.com/codeding-101/COCUDTT/pull/3">PR #3：方案专属运输费用</a>包含变更及适用范围。<a href="https://github.com/codeding-101/COCUDTT/blob/codex/scenario-transport-costs/docs/scenario-costs-validation.md">运价验收记录</a>列明合成案例、文件往返、Edge 操作、报告与窄屏检查。</p><p class="small">自动化回归与浏览器检查不等于真实业务验收；真实手机文件操作和实际打印分页仍需检查。开发候选暂缓合并，公开网站未包含这些新增能力。</p></article>
+        <article class="card"><h3>业务与浏览器检查</h3><p><a href="https://github.com/codeding-101/COCUDTT/pull/3">PR #3：方案专属运输费用</a>包含变更及适用范围。<a href="https://github.com/codeding-101/COCUDTT/blob/codex/professional-review-and-introduction/docs/scenario-costs-validation.md">运价验收记录</a>列明合成案例、文件往返、Edge 操作、报告与窄屏检查。</p><p class="small">自动化回归与浏览器检查不等于真实业务验收；真实手机文件操作和实际打印分页仍需检查。开发候选暂缓合并，公开网站未包含这些新增能力。</p></article>
       </div>
     </section>
     <section aria-labelledby="roadmap-title">
