@@ -47,4 +47,6 @@ node tools/check-import-cases.mjs /absolute/path/to/private-cases
 - 浏览器文件保存使用文件API替身收集文本，项目打开使用真实文件输入事件；未验证实际磁盘写入、下载完成、真正打印分页、真实手机硬件或其他浏览器。
 - Windows/Linux CI配置已准备。首次GitHub写入返回403，重连后已成功创建代码blob，写入权限恢复。远程CI验收状态以PR检查及工作流运行记录为准；本地通过不代表远程通过。线上Pages尚未更新。
 
+重连后的草稿PR、首轮远程通过及后续构建依赖补丁记录见 [GitHub CI验收](ci-validation.md)。
+
 浏览器流程复现方式见[来源验收记录](source-readiness-validation.md)。下一阶段优先验证远程CI，再实现方案专属运价；真实案例验收等待脱敏资料，用户试用效果须据实记录。

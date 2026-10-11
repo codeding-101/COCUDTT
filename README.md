@@ -17,6 +17,8 @@
 本轮现状分析、执行结果及下一阶段安排见 [来源与排名验收计划](docs/source-readiness-validation.md)。
 现已补充贸易路线、原产地及关税待遇、进口VAT抵扣前提的独立人工核对；缺失或变更后未经重新确认的条件使方案退出排名。见 [业务前提验收](docs/import-context-validation.md) 和 [后续展望与交付路线](docs/project-outlook.md)。
 
+草稿PR及Windows/Linux工程检查、构建依赖补丁记录见 [GitHub CI验收](docs/ci-validation.md)。CI包含`npm audit --audit-level=high`依赖审查，与`npm run audit`界面静态审查分别执行；最新结果以PR当前提交的检查为准。
+
 ---
 
 ## 怎么打开
