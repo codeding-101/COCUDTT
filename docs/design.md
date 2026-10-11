@@ -510,7 +510,7 @@ type OccurrenceReason =
 |---|---|---|
 | `SELLER_FAULT` | 参与，**优先于术语** | 卖方 |
 | `BUYER_FAULT` | 参与，**优先于术语** | 买方 |
-| `CARRIER_FAULT` / `FORCE_MAJEURE` | 不参与 | 先按术语由承担方垫付，引擎提示"可向承运人索赔"，不替用户决定 |
+| `CARRIER_FAULT` / `FORCE_MAJEURE` | 不参与 | 按现有费用规则测算；追偿须另核合同、事实及证据，不由标签判定承运人赔偿责任 |
 | `CUSTOMS_INSPECTION` / `REGULATORY_REQUIREMENT` | 不参与 | 归属取决于发生在哪一侧的清关，由节点规则处理 |
 
 **过错责任优先于术语的费用划分**是这一层的核心规则，符合实务：卖方单证出错导致目的港产生的费用，即便术语是 FOB 也归卖方。
@@ -663,7 +663,7 @@ specificity = 条件数 × 100 + (有 cost_category ? 10 : 0) + (有 trade_node 
 
 **四条实现上的硬性要求：**
 
-1. **同一个词在不同节点含义不同。** 装货变形（`STOWED` / `TRIMMED` / `STOWED_TRIMMED`）作用于起运港，卸货变形（`LINER` / `EX_SHIP_HOLD`）作用于目的港，必须以节点为准判断。FOB 装船费的完整分支：`LINER` → BUYER、`UNDER_TACKLE` → BUYER、`STOWED` / `TRIMMED` / `STOWED_TRIMMED` → SELLER、无条件 → SELLER。**注意方向：FOB 班轮条件下装船费已含在运费中，由买方负担，不是卖方。**
+1. **同一个词不足以确定整节点费用。** 变形须核对节点、合同原文、费用范围及是否同时改变交货/风险。第七轮将FOB的`LINER`起运港/装船和`UNDER_TACKLE`装船分支改为CONDITIONAL，不再凭名称判买方承担；`STOWED` / `TRIMMED` / `STOWED_TRIMMED`保留有限卖方含费解释，标准FOB按卖方装船。引擎显式覆盖可记录已核对的逐项约定，合同覆盖UI及独立风险约定仍待接入。
 
 2. **事实缺失时条件不成立。** 用户没填交货地点或运输条款变形时，带条件的规则不会命中，会落到下一条更粗的规则上。禁止因为"用户没填"就默认某个分支。
 
@@ -720,9 +720,9 @@ resolveResponsibility(item, scenario, ruleSet):
 | 术语 | 风险转移点 | 出口清关 | 主运费 | 保险 | 进口清关/关税 | 装卸要点 | 运输方式 |
 |---|---|---|---|---|---|---|---|
 | EXW | 卖方场所、未装货、置于买方处置 | 买方 | 买方 | 买方 | 买方 | 装货由买方 | 任何 |
-| FCA | 交给买方指定承运人 | 卖方 | 买方 | 买方 | 买方 | 卖方场所交货→装货归卖方；其他地点→卸货归买方 | 任何 |
+| FCA | 卖方场所装货完成；其他地点准备卸货并交由指定人员处置；地点缺失待确认 | 卖方 | 买方 | 买方 | 买方 | 卖方场所装货归卖方；其他地点卸货另核交货条件 | 任何 |
 | FAS | 装运港船边 | 卖方 | 买方 | 买方 | 买方 | 船边交付 | 仅海运/内河 |
-| FOB | 装上船 | 卖方 | 买方 | 买方 | 买方 | 装船费依运输条款变形：班轮/吊钩下归买方，理舱/平舱归卖方 | 仅海运/内河 |
+| FOB | 标准为装上船；合同偏离须另核 | 卖方 | 买方 | 买方 | 买方 | 标准装船归卖方；班轮/吊钩下相关费用待确认，理舱/平舱为有限卖方含费解释 | 仅海运/内河 |
 | CFR | 装上船 | 卖方 | 卖方 | 买方 | 买方 | — | 仅海运/内河 |
 | CIF | 装上船 | 卖方 | 卖方 | 卖方（强制，最低 ICC(C)，保额 ≥ 合同价 110%） | 买方 | — | 仅海运/内河 |
 | CPT | 交给承运人 | 卖方 | 卖方 | 买方 | 买方 | 风险与费用分离 | 任何 |
@@ -797,7 +797,7 @@ interface RiskResult {
 - `CFR` / `CIF` / `CPT` / `CIP` 四个术语 `separation = true`：风险早已转移给买方，但主运费（CIF / CIP 另含保险）仍由卖方承担至目的地。
   - CFR / CIF：风险在**装运港装船时**转移，费用承担延伸到目的港
   - CPT / CIP：风险在**货物交给承运人时**转移，费用承担延伸到指定目的地
-- 其余七个术语（EXW / FCA / FAS / FOB / DAP / DPU / DDP）风险与费用在同一节点同步转移。
+- 其余术语按各自交货条件判断风险；不能概括所有费用都在同一时点同步转移，仍需核对装卸、清关和合同事实。FCA风险函数接收地点事实，缺失时明确待确认。
 - 每笔 `CostItem.risk_relation` 由引擎按 `trade_node` 与 `risk_transfer_node` 的相对顺序填充 `BEFORE_TRANSFER` / `AFTER_TRANSFER`，**交付点及其之前算转移前**（如 FOB 的装船作业仍在卖方风险期内），用于结果表的辅助列。
 - 引擎提供 `separatedCostIds()`：列出"风险已转移给买方、但费用仍由卖方承担"的费用项。这四个术语最容易被误读的地方就是这一列。
 
@@ -1032,7 +1032,7 @@ interface RebateProfile {
 |---|---|
 | 退税率为 0 | 该商品不予退税，退税项为 0，提示用户 |
 | 征退税率差 > 0 | 差额部分进成本，已在 9.5.3 体现 |
-| 申报逾期 | 出口退税须在次年 4 月增值税纳税申报期截止前申报，逾期视同内销征税。结果中给出申报期限提醒 |
+| 申报与收汇条件 | 第七轮撤除近似次年4月30日的逾期推定；按2025及以前过渡/2026起政策提示核对实际申报、凭证与收汇，程序不判定法律逾期或应征税。依据见professional-rules-review.md |
 | 单证不齐 | 无有效增值税专用发票或报关单则无法退税，退税项按 0 计算并提示 |
 | 生产企业留抵不足 | 免抵退税额受期末留抵税额限制，实际退税额可能小于理论值；v1 允许用户手工给定留抵税额，未给定则按理论值计算并明确标注为"上限值" |
 
@@ -1419,11 +1419,11 @@ B: 求解 quote(i) 使 BuyerTotal(i) = 目标买方总支付
 | `REBATE_RATE_ZERO` | 该商品退税率为 0，不予退税 | INFO |
 | `REBATE_FOB_NEGATIVE` | 还原的离岸价为负，已按 0 处理 | WARN |
 | `REBATE_CAPPED_BY_CREDIT` | 生产企业退税额受期末留抵税额限制 | WARN |
-| `REBATE_DEADLINE` | 出口退税申报期限（次年 4 月申报期截止）临近或已过 | WARN |
+| `REBATE_DEADLINE` | 出口退税申报、凭证及收汇条件须核对；不凭近似日期判逾期 | WARN |
 | `REBATE_DRIVES_MARGIN` | 退税占利润比例过高，或含退税后仍亏损 | WARN |
 | `REBATE_LAG_COST` | 按退税到账周期计提了资金占用成本 | INFO |
 | `INSURANCE_REQUIRED_MISSING` | CIF / CIP 下卖方有投保义务，但费用清单中没有保险费项 | WARN |
-| `CARRIER_FAULT_CLAIMABLE` | 存在因承运人原因或不可抗力产生的费用，先按术语垫付并可向承运人索赔 | INFO |
+| `CARRIER_FAULT_CLAIMABLE` | 承运人原因或不可抗力费用需另核追偿/分担，不判定赔偿责任 | INFO |
 | `COMPARISON_ANCHOR` | 对比开始前说明本次采用的比较基准 | INFO |
 
 **设计过但被替换或未实现的编码**：`INSURANCE_RATE_UNDER_MIN`（保额无法在不知道费率时校验，已替换为可校验的 `INSURANCE_REQUIRED_MISSING`）、`REBATE_BASIS_INCOMPLETE` 与 `REBATE_FOB_INCONSISTENT`（离岸价还原改为按报价内含清单推导后，这两类不一致由 `QUOTE_NOT_RECONCILED` 覆盖）。
@@ -1431,7 +1431,7 @@ B: 求解 quote(i) 使 BuyerTotal(i) = 目标买方总支付
 | `REBATE_BASIS_INCOMPLETE` | 生产企业退税需 FOB 基数，但成交价中的运费/保险费未录入，无法还原 | ERROR |
 | `REBATE_FOB_INCONSISTENT` | 按术语还原的 FOB 价与报价内含费用结构无法勾稽 | WARN |
 | `REBATE_CAPPED_BY_CREDIT` | 生产企业退税额受期末留抵税额限制，实际退税低于理论值 | WARN |
-| `REBATE_DEADLINE` | 出口退税申报期限（次年 4 月增值税申报期截止）临近或已过 | WARN |
+| `REBATE_DEADLINE` | 出口退税申报、凭证及收汇条件须核对；区分旧业务过渡与2026起政策 | WARN |
 | `REBATE_DRIVES_MARGIN` | 退税占利润比例过高，或含退税后仍然亏损 | WARN |
 | `REBATE_FOB_NEGATIVE` | 还原的离岸价为负，已按 0 处理 | WARN |
 | `CUSTOMS_FX_FALLBACK` | 缺海关适用汇率，完税价格退回商业口径，与海关口径可能不一致 | WARN |
@@ -1448,7 +1448,7 @@ B: 求解 quote(i) 使 BuyerTotal(i) = 目标买方总支付
 | `REBATE_LAG_COST` | 按退税到账周期计提了资金占用成本 | INFO |
 | `COMPARISON_ANCHOR` | 对比开始前说明本次采用的比较基准 | INFO |
 | `INSURANCE_REQUIRED_MISSING` | CIF / CIP 下卖方有投保义务，但费用清单中没有保险费项 | WARN |
-| `CARRIER_FAULT_CLAIMABLE` | 存在因承运人原因或不可抗力产生的费用，先按术语垫付并可向承运人索赔 | INFO |
+| `CARRIER_FAULT_CLAIMABLE` | 承运人原因或不可抗力费用需另核追偿/分担，不判定赔偿责任 | INFO |
 
 ---
 

@@ -77,7 +77,7 @@ function rowClass(responsibility: Responsibility): string {
 
 /** 结论区：先给答案，再给过程 */
 function renderHero(result: AnalysisResult): string {
-  const separation = result.risk.separation ? '<small>风险与费用分离</small>' : '<small>风险与费用同步转移</small>';
+  const separation = result.risk.needs_confirmation ? '<small>请核对交货条件</small>' : result.risk.separation ? '<small>风险与费用分离</small>' : '<small>风险按交货条件转移</small>';
   return `
   <section class="panel">
     <div class="hero">
@@ -98,7 +98,7 @@ function renderHero(result: AnalysisResult): string {
       </div>
       <div class="cell">
         <span>风险转移</span>
-        <strong style="font-size:14px;font-weight:600">${escapeHtml(TRADE_NODE_LABELS[result.risk.transfer_node])}</strong>
+        <strong style="font-size:14px;font-weight:600">${result.risk.needs_confirmation ? '交货地点待确认' : escapeHtml(TRADE_NODE_LABELS[result.risk.transfer_node])}</strong>
         ${separation}
       </div>
     </div>
@@ -134,6 +134,7 @@ function renderBreakdown(result: AnalysisResult): string {
         </div>
         <div class="card">
           <h3>计税与风险</h3>
+          <p class="hint block">费用规则：${escapeHtml(result.rule_set.id)} · 实现版本 ${escapeHtml(result.rule_set.version)}（需结合合同核对）</p>
           <div class="row"><span>海关计税价格</span><strong>${dec(result.dutiable_value.value)}</strong></div>
           ${result.import_tax.calculation_mode === 'CN_GENERAL_TRADE' ? '<p class="hint block">中国一般贸易进口 · CNY 计税 · 税款舍入至分</p>' : ''}
           ${result.import_tax.calculation_mode === 'CN_GENERAL_TRADE' ? result.dutiable_value.components.map((component) => `<div class="row"><span>${escapeHtml(component.label)}</span><strong>${dec(component.amount)}</strong></div>`).join('') : ''}

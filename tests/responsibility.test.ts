@@ -142,7 +142,7 @@ describe('Incoterms 责任判定', () => {
       expect(otherPlace.rule_id).toBe('FCA.CARRIER_HANDOVER.OTHER_PLACE');
     });
 
-    it('FOB：装船费随运输条款变形变化，事实缺失时按基本含义归卖方', () => {
+    it('FOB：含义不充分的费用变形待确认，标准术语和明确卖方含费分支保留', () => {
       const base = decide({ incoterm: 'FOB', node: 'CARRIER_HANDOVER', cost_name: '装船费' });
       expect(base.responsibility).toBe('SELLER');
       expect(base.rule_id).toBe('FOB.CARRIER_HANDOVER.DEFAULT');
@@ -152,7 +152,8 @@ describe('Incoterms 责任判定', () => {
         node: 'CARRIER_HANDOVER',
         facts: { shipping_terms: 'LINER' },
       });
-      expect(liner.responsibility).toBe('BUYER');
+      expect(liner.responsibility).toBe('CONDITIONAL');
+      expect(liner.needs_confirmation).toBe(true);
       expect(liner.rule_id).toBe('FOB.CARRIER_HANDOVER.LINER');
 
       const underTackle = decide({
@@ -160,7 +161,7 @@ describe('Incoterms 责任判定', () => {
         node: 'CARRIER_HANDOVER',
         facts: { shipping_terms: 'UNDER_TACKLE' },
       });
-      expect(underTackle.responsibility).toBe('BUYER');
+      expect(underTackle.responsibility).toBe('CONDITIONAL');
 
       const stowed = decide({
         incoterm: 'FOB',
@@ -171,7 +172,7 @@ describe('Incoterms 责任判定', () => {
       expect(stowed.rule_id).toBe('FOB.CARRIER_HANDOVER.STOWED');
     });
 
-    it('FOB：班轮条件下的起运港港杂费归买方，港杂费与装船费都能被覆盖', () => {
+    it('FOB：班轮条件不足以将全部港杂费转给买方，要求逐项核对', () => {
       const terminalDefault = decide({ incoterm: 'FOB', node: 'ORIGIN_TERMINAL' });
       expect(terminalDefault.responsibility).toBe('SELLER');
 
@@ -180,11 +181,27 @@ describe('Incoterms 责任判定', () => {
         node: 'ORIGIN_TERMINAL',
         facts: { shipping_terms: 'LINER' },
       });
-      expect(terminalLiner.responsibility).toBe('BUYER');
+      expect(terminalLiner.responsibility).toBe('CONDITIONAL');
+      expect(terminalLiner.needs_confirmation).toBe(true);
+      expect(terminalLiner.note).toContain('拆分');
       expect(terminalLiner.rule_id).toBe('FOB.ORIGIN_TERMINAL.LINER');
     });
 
+    it('FOB变形经核对后的逐项覆盖优先，覆盖费用不改变标准风险', () => {
+      const confirmed = decide({
+        incoterm: 'FOB', node: 'ORIGIN_TERMINAL', facts: { shipping_terms: 'LINER' },
+        overrides: { 'item-1': { responsibility: 'BUYER', reason: '合同A第3条明确此项THC含在买方运费中' } },
+      });
+      expect(confirmed.responsibility).toBe('BUYER');
+      expect(confirmed.source).toBe('USER_OVERRIDE');
+      expect(confirmed.note).toContain('合同A第3条');
+      expect(confirmed.needs_confirmation).toBe(false);
+      const other = decide({ incoterm: 'FOB', node: 'ORIGIN_TERMINAL', facts: { shipping_terms: 'LINER' }, cost_id: 'other' });
+      expect(other.needs_confirmation).toBe(true);
+    });
+
     it('CIF 与 CFR 只差保险一项', () => {
+      // 此处比较标准费用规则；保单保障与合同例外仍需独立核对。
       expect(decide({ incoterm: 'CIF', node: 'MAIN_CARRIAGE', category: 'INSURANCE' }).responsibility).toBe('SELLER');
       expect(decide({ incoterm: 'CFR', node: 'MAIN_CARRIAGE', category: 'INSURANCE' }).responsibility).toBe('BUYER');
       expect(decide({ incoterm: 'CIF', node: 'MAIN_CARRIAGE' }).responsibility).toBe('SELLER');

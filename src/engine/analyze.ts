@@ -67,6 +67,7 @@ export interface EnrichedCostItem {
 
 export interface AnalysisResult {
   decision: DecisionReadiness;
+  rule_set: Pick<IncotermsRuleSet, 'id' | 'version'>;
   scenario_id: string;
   incoterm: Incoterm;
   base_currency: CurrencyCode;
@@ -341,7 +342,14 @@ export function analyze(input: AnalysisInput): AnalysisResult {
   warnings.push(...aggregated.warnings);
 
   // 步骤 10：风险转移
-  const risk = resolveRisk(scenario.incoterm);
+  const risk = resolveRisk(scenario.incoterm, scenario.facts);
+  if (risk.needs_confirmation) {
+    warnings.push({
+      code: 'FCA_DELIVERY_UNCONFIRMED',
+      level: 'WARN',
+      message: 'FCA交货地点未确认，请选择卖方场所或其他指定地点并核对交货条件；该方案仅供参考，暂不参与排名',
+    });
+  }
 
   // 步骤 11：其余业务告警
   for (const decision of decisions.values()) {
@@ -366,11 +374,11 @@ export function analyze(input: AnalysisInput): AnalysisResult {
   if ((scenario.incoterm === 'CIF' || scenario.incoterm === 'CIP') && !hasInsuranceItem(trade)) {    warnings.push({
       code: 'INSURANCE_REQUIRED_MISSING',
       level: 'WARN',
-      message: `${scenario.incoterm} 下卖方负有投保义务（保额不低于合同价 110%），但费用清单中没有保险费项，卖方成本与利润会被高估`,
+      message: `${scenario.incoterm}默认要求卖方投保（${scenario.incoterm === 'CIF' ? 'Institute Cargo Clauses (C)' : 'Institute Cargo Clauses (A)'}或等效条款，保额至少合同价110%），当前未单列保险费，成本与利润可能不完整；请核对是否已含在其他费用及合同约定。录入保费不代表保单保障已核实`,
     });
   }
 
-  // 承运人原因与不可抗力产生的费用先按术语归属垫付，再向承运人索赔
+  // 先按现有费用规则测算；是否有追偿权必须另核合同、事实与证据。
   const claimable = trade.items.filter(
     (item) => item.occurrence_reason === 'CARRIER_FAULT' || item.occurrence_reason === 'FORCE_MAJEURE',
   );
@@ -380,7 +388,7 @@ export function analyze(input: AnalysisInput): AnalysisResult {
       level: 'INFO',
       message: `以下费用因承运人原因或不可抗力产生（${claimable
         .map((item) => item.cost_name)
-        .join('、')}）：先按术语归属由承担方垫付，可向承运人索赔或另行协商`,
+        .join('、')}）：当前按费用规则测算承担方；追偿或分担须另核运输合同、原因和证据，本工具不判定承运人赔偿责任`,
     });
   }
 
@@ -432,6 +440,7 @@ export function analyze(input: AnalysisInput): AnalysisResult {
       customsComponents: dutiableComponents, commercialFx: [...commercialFx, ...fxByCostId.values()],
       totals: [...(aggregated.seller.margin === null ? [] : [aggregated.seller.margin]), aggregated.buyer.landed_cost_with_tax, importTax.duty, importTax.vat, importTax.consumption_tax],
     }),
+    rule_set: { id: ruleSet.id, version: ruleSet.version },
     scenario_id: scenario.id,
     incoterm: scenario.incoterm,
     base_currency: base,

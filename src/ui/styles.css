@@ -114,6 +114,21 @@ main.layout {
 
 main.layout > *, .row-forms > * { min-width: 0; }
 
+.responsibility-notice {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 1.6;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 .app-footer {
   display: flex;
   flex-wrap: wrap;

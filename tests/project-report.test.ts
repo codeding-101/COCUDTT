@@ -12,6 +12,7 @@ describe('内部测算报告', () => {
     expect(html).toContain('内置虚构税率');
     expect(html).toContain('德国（演示）');
     expect(html).toContain('完整项目输入快照');
+    expect(html).toContain('incoterms2020 · 实现版本 1.1');
     expect(html).toContain('2026-10-11T08:00:00Z');
     expect(html).toMatch(/<details[^>]* open>/);
     expect(html).not.toMatch(/<script|<link|<iframe|<form|data-action=/i);
