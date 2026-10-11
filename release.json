@@ -1,0 +1,13 @@
+{
+  "format": "cocudtt-release-1",
+  "generated_on": "2026-10-11",
+  "source_repository": "codeding-101/COCUDTT",
+  "source_commit": "585a00ed1c19b3ea2cf47cc3da086f30cea852d9",
+  "source_pr": "https://github.com/codeding-101/COCUDTT/pull/1",
+  "ci_run": "https://github.com/codeding-101/COCUDTT/actions/runs/38123045429",
+  "project_schema_version": "0.5",
+  "offline_sha256": "14ea298d0ba678aae6e3a986be1d0dbfb02c8c08f200803a11c70ab04c06ad24",
+  "artifact_blob": "ce76e72a4c6702d0e849e7189e5f078b3d53f4cd",
+  "scope": "单商品一票中国一般贸易进口；实际来源与资格需人工核对",
+  "real_transaction_acceptance": false
+}
