@@ -1,104 +1,123 @@
-# 国际贸易成本与贸易术语方案分析系统
+# COCUDTT · 国际贸易成本与贸易术语方案分析
 
-输入一笔出口交易和各项费用，系统按 Incoterms 2020 判断每笔费用由谁承担，
-算出买卖双方的成本与利润，并横向比较 11 种贸易术语。
+面向外贸业务人员的本地测算工具：录入交易、合同报价与费用，查看费用承担依据、买方落地成本及可评估的卖方利润，比较不同 Incoterms® 2020 方案。项目由国际经济与贸易学习中的报价测算问题出发，近期重点是**中国一般贸易进口、单商品一票**。
 
-**不联网、不登录、不上传。所有数据留在你自己电脑上。**
+**不登录、不上传交易数据。计算、项目文件与报告均在浏览器本机处理。**
 
-![界面](docs/screenshots/desktop.png)
+> 本工具仅供学习与内部测算参考，不构成法律或专业贸易建议。实际合同请以 Incoterms® 官方文本及当地法规为准。
 
----
+## 版本与入口
 
-## 怎么打开
+更新于 **2026-10-13**。本 README 介绍当前开发进展；功能代码仍在开发候选分支，尚未合并到 `main` 或发布到公开网站。下载时请确认所选分支。
 
-**方式一（最省事）**：直接点开 <https://codeding-101.github.io/COCUDTT/>
-
-任何设备都行，包括手机——不用下载、不用注册、不用装任何东西。代价是数据存在浏览器本地，换设备要用项目文件迁移（见下）。
-
-**方式二（日常使用推荐）**：下载本仓库根目录的 `trade-cost-engine.html`，双击打开。离线可用。
-
-**方式三**：点仓库页面右上角 `Code` → `Download ZIP`，解压后双击那个文件。
-
-想发给别人，直接把这一个文件发过去就行——样式和脚本都打包在里面了。
-
-> **数据不会自动跟着设备走。** 草稿和项目文件都存在各自设备自己的浏览器里，
-> 所以在电脑上录的交易，手机上打开链接是看不到的。
-> 跨设备传递用「保存项目」导出的 `.json` 文件：发到自己的微信或邮箱，
-> 在另一台设备上点「打开项目」选它即可。这是「数据不出本机」的必然代价。
-
-## 三步上手
-
-1. **录商品与费用**：上方填商品、货值、你的采购成本；「费用项」里逐条录实际发生的费用
-   （也有现成的常用费用可选，如报关费、订舱费、港杂费、滞箱费）。
-2. **填汇率、选术语**：汇率分合同/市场/海关三类，各自独立；「报价与方案」里选贸易术语和比较基准。
-3. **看结果**：右侧给出卖方利润、买方落地成本、每笔费用归谁的依据，以及 11 种术语的对比。
-
-改任何一个数字，顶部的关键数字会立刻更新。
-
-## 数据存在哪
-
-| | |
+| 入口 | 内容与状态 |
 |---|---|
-| **项目文件** | 点「保存项目」存成 `.json` 文件，点「打开项目」读回来。这是你的正式存档，可归档、可发邮件 |
-| **草稿** | 每次改动自动存在浏览器本地，误关页面不会丢 |
-| **注意** | 没有服务器，所以数据不会自动同步到另一台电脑，只能通过项目文件传递 |
+| [在线演示](https://codeding-101.github.io/COCUDTT/) | 当前已发布版本，尚未包含下方全部新增能力 |
+| [`main` 分支](https://github.com/codeding-101/COCUDTT/tree/main) | 历史源码；本次只更新 README |
+| [最新开发候选](https://github.com/codeding-101/COCUDTT/tree/codex/ui-error-recovery) | 当前功能源码、单文件工具、文档与测试 |
+| [本轮草稿 PR #17](https://github.com/codeding-101/COCUDTT/pull/17) | 错误恢复与输入修正提示，接续资金占用 PR #16 |
+| [项目说明页源码](https://github.com/codeding-101/COCUDTT/blob/codex/ui-error-recovery/project-introduction.html) | 产品工作流、设计取舍与能力边界，可与工具一起离线打开 |
 
-## 几条容易误解的口径
+日常试用可从[候选分支下载源码 ZIP](https://github.com/codeding-101/COCUDTT/archive/refs/heads/codex/ui-error-recovery.zip)，解压后双击根目录的 `trade-cost-engine.html`。运行离线工具无需安装 Node.js；开发与构建时才需要。
 
-- **进口关税和增值税与贸易术语无关。** 完税价格由货值、运费、保险费构成，这三项是交易事实。
-  11 种术语下税费总额是同一个数，变的只是由谁来付。
-- **跨术语比"报价金额"没有意义。** CIF 报 108,300 和 FOB 报 100,500 谁更好？答案取决于看买方总支付还是卖方利润，所以对比表同时给这两列。
-- **"固定报价"和"固定买方总支付"回答的是不同问题。** 前者是"价格不变，我多承担环节会亏多少"；后者是"买方只肯出这个总价，我该报多少、承担到哪一环"。后者下各术语的利润往往趋于一致——这是正常的。
-- **出口退税是利润的加项**，不是备注。结果里同时给"不含退税的利润"，一眼看出这单有多少是靠退税撑着的。
-- **保险费在 CIF/CIP 下是卖方义务**，保额不低于合同价 110%；漏录会高估利润，系统会提示。
+## 解决什么问题
 
-## 已知边界
+外贸报价测算常把费用承担、货损风险、付款安排和海关计税混在一起，也容易漏掉未知费用、失效汇率或不同方案的运价差异。本项目把这些问题分别记录，给出可追溯的计算过程和待核对事项。
 
-- **未做**：按完税价格高低二选一的"选择型复合税"（遇到请手工录入税额）。
-- **建模上做不到**：同一环节由不同方操作时成本不同（如自营运费低于买方自办）——一个费用项只有一个金额，要评估这种差异得把双方价格录成两条。
-- 不支持：多用户协作、审批流、历史版本对比。
+- 比较同一笔交易的不同术语、实际合同报价与运输费用。
+- 查看逐笔费用由谁承担、命中什么规则、为何计入或排除。
+- 核对中国进口计税输入、海关汇率有效期及支持范围内的税费计算。
+- 将内部成本资料与客户报价说明分开导出。
+- 在独立副本上做假设分析，保留原交易和原确认记录。
 
-### 容量
+**稳优先的原则：**未知不补零，付款不推定风险转移，运费终点不代替交货点，软件检查通过不等于专业或真实业务认证。
 
-一笔交易的费用项建议控制在 **100 条以内**。实测（浏览器、本机）：
+## 开发候选已实现的能力
 
-| 费用项数 | 打开页面 | 改一个数字后重算 |
-|---|---|---|
-| 50 | 0.5 秒 | 0.07 秒 |
-| 150 | 0.3 秒 | 0.45 秒 |
-| 300 | 1.4 秒 | 1.7 秒 |
+| 能力 | 当前支持范围 |
+|---|---|
+| 术语与方案比较 | 11 种术语、六种计价方式、逐术语实际报价及原有模拟基准 |
+| 费用与运输 | 适用术语、互斥运价组、合同承担约定；运输分段、交货点与运费终点分别记录 |
+| 保险与集装箱提醒 | CIF/CIP 保障资料、保额及范围核对；THC、demurrage、detention、查验等费用预设和提醒 |
+| 中国进口 | 独立申报日期、人民币计税、海关汇率适用期、支持范围内的税基和税款舍入；资格及来源待核对 |
+| 解释与可视化 | 费用推理链、真实替值公式、去重依据、运输风险流程及费用/税基图 |
+| 假设分析 | 运费、商业/海关汇率及未决费用承担，显示相对基准变化 |
+| 客户交付 | 公开字段预览，HTML、原生 Excel、可检索 PDF 报价草稿及固定中英文条款摘要 |
+| 内部存档 | HTML/Excel 成本、方案、公式、来源及输入快照；付款和资金假设单独保存 |
+| 付款与资金假设 | TT/L/C/OA 原币分期对账、银行费关联；明确本金、日期、利率及计息基准的单笔单利假设 |
+| 文件与恢复 | 标准 JSON、离线 Schema、四种模板；常见输入错误修正提示及启动/渲染/操作异常恢复界面 |
 
-超出这个量级不会算错，只是改完一个数字要等半秒左右。计算本身很快（300 笔费用算完 11 种术语只要 34 毫秒），慢的是把几百张录入卡片重绘一遍。
+资金假设区分融资利息与机会成本，结果独立于经营利润和合同/银行费用收付。付款主方式不证明已付款、单证相符或保证收款。
 
-## 出问题了
+## 使用流程
 
-- **双击打开是没样式的裸页面**：浏览器拦掉了页面里的脚本。换 Chrome 或 Edge 打开；仍然不行就把浏览器控制台（F12）的报错发出来。
-- **界面提示"无法计算"**：按提示补全输入即可，引擎不会在缺数据时猜一个结果。
-  最常见的原因是缺少对应类型的汇率簿。
-- **数字对不上**：对比表上的"进口税费"应与术语无关；如果各术语税费不同，说明数据录错了。
-- **开发时改完代码页面变成裸页面**：重启开发服务器（`npm run dev`）。
+1. 用“中国进口示例”了解录入口径，再用“新建中国进口”填写自己的交易。
+2. 录入货物净价、费用、各术语报价、商业与海关汇率、申报日期，核对税率来源和业务条件。
+3. 查看参考结果、费用依据、公式与待办；满足当前软件检查条件的方案才进入确定排名。
+4. 修改假设时查看变化；先检查公开预览，再生成客户文件。内部文件包含成本及来源，请按内部资料管理。
+5. 用“保存项目”保存项目 JSON；付款计划另存 JSON。自动草稿不能代替文件备份。
 
-## 给开发者
+项目格式为 **0.8**，支持读取 0.1–0.7 旧容器。内部付款计划为 **1.1**，旧 1.0 保持原格式，用户显式启用资金字段后才升级；客户公开字段和临时假设不随项目 JSON 自动保存。跨设备需自行传递文件，没有云同步。
 
-```bash
-npm install
-npm run dev        # 开发模式
-npm test           # 275 个单测
-npm run audit      # 静态审查：未处理的界面字段、声明了却无人产生的编码
-npm run typecheck  # 类型检查
-npm run build:single   # 生成 trade-cost-engine.html
-npm run build      # 生成 dist/ 静态站点
+异常恢复界面隐藏旧结果，可下载内部恢复备份并保留输入重试。恢复备份包含原始项目、汇率行和本页参数，用于人工复原，不能作为项目 JSON 直接打开。脚本无法加载、浏览器崩溃或内存丢失不在该恢复机制的保障范围。
+
+## 技术栈与设计
+
+原生 **TypeScript + Vite**，不为展示工程化而额外引入界面框架。TypeScript 开启严格检查；金额采用 **decimal.js**，项目输入另有运行时验证。**Vitest** 覆盖业务计算与真实界面事件，GitHub Actions 在 Windows/Linux 检查回归、依赖及构建一致性。
+
+| 模块 | 职责 |
+|---|---|
+| [`src/domain`](https://github.com/codeding-101/COCUDTT/tree/codex/ui-error-recovery/src/domain) | 贸易、费用、规则、来源、付款与资金假设类型 |
+| [`src/engine`](https://github.com/codeding-101/COCUDTT/tree/codex/ui-error-recovery/src/engine) | 依赖、责任解析、计价、税费及方案比较 |
+| [`src/data`](https://github.com/codeding-101/COCUDTT/tree/codex/ui-error-recovery/src/data) | 文件校验、兼容格式、模板、客户投影与工作簿快照 |
+| [`src/ui`](https://github.com/codeding-101/COCUDTT/tree/codex/ui-error-recovery/src/ui) | 输入事件、结果展示、导出及错误恢复 |
+
+```mermaid
+flowchart LR
+  A[交易与人工依据] --> B[结构与业务校验]
+  B --> C[费用责任与计价]
+  C --> D[税费与方案比较]
+  D --> E[解释、待办与可视化]
+  E --> F[内部报告]
+  A --> G[公开字段白名单]
+  G --> H[客户报价草稿]
 ```
 
-设计与决策记录见 `docs/design.md`（含每个决策的理由、修正过的问题、以及为什么这么选）。
-一份完整的样例输出见 `docs/sample-output.txt`。
+单文件构建将脚本、样式和所需字体内联，支持 `file://` 离线运行。Excel 使用离线原生 `.xlsx` 快照；PDF 使用 pdf-lib 与本地字体。客户文件逐字段重建，不复制内部项目对象。计算规则与展示分层，资金假设不改写费用/税务算法。
+
+## 验证证据与限制
+
+第二十轮本地 **42 个测试文件、983 项测试**通过，其中新增 21 项输入修正及恢复测试。浏览器验收包括 Edge 离线操作、实际文件下载、异常注入、草稿/客户边界及 1440/768/390/320 模拟宽度；远程结果以[本轮 PR 检查](https://github.com/codeding-101/COCUDTT/pull/17/checks)的实际提交为准。
+
+可复查的记录：[基础概念核验](https://github.com/codeding-101/COCUDTT/blob/codex/ui-error-recovery/docs/foundations-validation.md)、[中国进口验收](https://github.com/codeding-101/COCUDTT/blob/codex/ui-error-recovery/docs/china-import-validation.md)、[客户与内部隔离](https://github.com/codeding-101/COCUDTT/blob/codex/ui-error-recovery/docs/customer-quotes-validation.md)、[资金占用与 Excel](https://github.com/codeding-101/COCUDTT/blob/codex/ui-error-recovery/docs/funding-validation.md)、[错误恢复验收](https://github.com/codeding-101/COCUDTT/blob/codex/ui-error-recovery/docs/recovery-validation.md)。
+
+已有自动化和合成对照不能证明全部国家税制、贸易例外或银行实务已经适配。税率、归类、原产地待遇及抵扣资格仍需核对，示例不代表真实报关。真实交易对照资料尚未取得；真实手机和人工专业复核按当前安排暂缓。PDF 字体覆盖有限，无法表示的字符会停止生成并提示使用其他格式。
+
+## 本地开发
+
+以下命令面向开发候选，建议使用 CI 同款 **Node.js 24**：
+
+```bash
+git clone --branch codex/ui-error-recovery https://github.com/codeding-101/COCUDTT.git cocudtt
+cd cocudtt
+npm ci
+npm run dev
+npm test
+npm run typecheck
+npm run audit
+npm audit --audit-level=high
+npm run build:single
+npm run build:catalog
+```
+
+`npm run audit` 检查界面字段/动作和引擎编码的连接；`npm audit` 检查依赖漏洞。CI 还会重建并比较已提交的单文件 HTML、Schema 和模板，防止交付文件与源码漂移。浏览器脚本位于 [`tools`](https://github.com/codeding-101/COCUDTT/tree/codex/ui-error-recovery/tools)，需要单独准备浏览器调试环境。
+
+## 后续方向
+
+先完善错误恢复的人工复原流程和输入定位，再独立设计变动本金、保证金、代付清偿与净额到账。跨运输段费用关联、箱量/免费期账单及双语 PDF/Excel 排版继续按验收结果推进。真实资料取得后补业务对照及专业、设备验收，不用功能数量替代这些证据。
+
+详见[开发计划](https://github.com/codeding-101/COCUDTT/blob/codex/ui-error-recovery/docs/product-development-plan.md)、[项目展望](https://github.com/codeding-101/COCUDTT/blob/codex/ui-error-recovery/docs/project-outlook.md)和[设计文档](https://github.com/codeding-101/COCUDTT/blob/codex/ui-error-recovery/docs/design.md)。
 
 ## 许可证
 
-[Apache License 2.0](LICENSE) —— 可自由使用、修改、分发，需保留版权声明与许可声明。
-
-```
-Copyright 2026 DING HAO
-```
-
----
+[Apache-2.0](https://github.com/codeding-101/COCUDTT/blob/main/LICENSE)。离线中文字体另附[OFL 许可与来源](https://github.com/codeding-101/COCUDTT/tree/codex/ui-error-recovery/src/assets/fonts)，分发时请保留。
