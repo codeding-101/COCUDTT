@@ -3,12 +3,14 @@ import { add, cmp, d, isNegative, minOf, mul, q, sub, type Numeric } from '../do
 import type { BaseRef, CostItem, Tier } from '../domain/cost-item.js';
 import { PRICING_METHOD_LABELS, type CurrencyCode } from '../domain/enums.js';
 import { EngineError } from './errors.js';
+import type { CalculationStep } from './calculation.js';
 
 /**
  * 计费上下文。计费基数的解析由依赖图层提供（设计文档 4.3、第 10 节步骤 3–5），
  * 使计费模块保持纯函数、可单测。
  */
 export interface PricingContext {
+  record?(step: CalculationStep): void;
   /** 解析 calculation_base 引用的金额（已换算到核算币种或原币，由调用方约定） */
   resolveBase(ref: BaseRef): Numeric;
   /** 由 timing 推导天数，供 PER_DAY 使用 */
@@ -92,22 +94,28 @@ export function normalizeAll(items: readonly CostItem[], ctx: PricingContext): P
 }
 
 export function computeGrossAmount(item: CostItem, ctx: PricingContext): Decimal {
+  const priced = (formula: string, substitution: string, value: Decimal): Decimal => {
+    ctx.record?.({ id: 'gross', label: '原币计费金额', formula, substitution, value,
+      note: `币种 ${item.currency}；计费中间结果四舍五入到6位小数。` });
+    return value;
+  };
   switch (item.pricing_method) {
     case 'FIXED':
     case 'ACTUAL':
-      return q(requireNumeric(item.amount, 'amount', item));
+      return priced('录入金额', String(item.amount), q(requireNumeric(item.amount, 'amount', item)));
 
     case 'QTY_X_UNIT': {
       const quantity = requireNumeric(item.quantity, 'quantity', item);
       const rate = requireNumeric(item.rate, 'rate', item);
-      return mul(quantity, rate);
+      return priced('数量 × 单价', `${quantity} × ${rate}`, mul(quantity, rate));
     }
 
     case 'PERCENT': {
       const rate = requireNumeric(item.rate, 'rate', item);
       const baseRef = item.calculation_base;
       if (baseRef === undefined) missing(item, 'calculation_base');
-      return mul(ctx.resolveBase(baseRef), rate);
+      const base = ctx.resolveBase(baseRef);
+      return priced('解析基数 × 比率', `${base} × ${rate}`, mul(base, rate));
     }
 
     case 'PER_DAY': {
@@ -124,7 +132,7 @@ export function computeGrossAmount(item: CostItem, ctx: PricingContext): Decimal
           { cost_id: item.cost_id },
         );
       }
-      return mul(days, rate);
+      return priced('计费天数 × 日费率', `${days} × ${rate}`, mul(days, rate));
     }
 
     case 'TIERED':
@@ -265,19 +273,27 @@ export function computeTieredAmount(item: CostItem, ctx: PricingContext): Decima
   if ((item.tier_mode ?? 'MARGINAL') === 'MARGINAL') {
     let total = d(0);
     let lower = d(0);
+    const terms: string[] = [];
     for (let i = 0; i <= index; i += 1) {
       const tier = tiers[i];
       if (tier === undefined) break;
       const upper = tier.up_to === null ? quantity : minOf([tier.up_to, quantity]);
       const within = sub(upper, lower);
-      if (!isNegative(within)) total = add(total, mul(within, tier.rate));
+      if (!isNegative(within)) {
+        const part = mul(within, tier.rate);
+        terms.push(`${within} × ${tier.rate} [${part}]`);
+        total = add(total, part);
+      }
       if (tier.up_to === null) break;
       lower = d(tier.up_to);
     }
+    ctx.record?.({ id: 'gross', label: '累进阶梯原币金额', formula: '各档计费量 × 各档费率之和', substitution: terms.join(' + '), value: total,
+      note: `计费量=${quantity}；${item.tier_basis === 'DAYS' ? '天数' : '数量'}；币种 ${item.currency}；每档乘积及求和保留6位小数。` });
     return total;
   }
 
   let total = mul(quantity, containing.rate);
+  const candidates = [`${quantity} × ${containing.rate} [${total}]`];
   if (item.tier_charge_lower === true) {
     let lower = d(0);
     for (let i = 0; i < tiers.length; i += 1) {
@@ -286,10 +302,13 @@ export function computeTieredAmount(item: CostItem, ctx: PricingContext): Decima
       if (i > index) {
         // lower 即该档的最小计费量（上一档的上界）
         const candidate = mul(lower, tier.rate);
+        candidates.push(`${lower} × ${tier.rate} [${candidate}]`);
         if (candidate.lessThan(total)) total = candidate;
       }
       lower = tier.up_to === null ? quantity : d(tier.up_to);
     }
   }
+  ctx.record?.({ id: 'gross', label: '分档阶梯原币金额', formula: item.tier_charge_lower ? 'min(所在档全量计费，各高档最小计费量计费)' : '计费量 × 所在档费率',
+    substitution: candidates.join('；'), value: total, note: `币种 ${item.currency}；每个候选金额保留6位小数。` });
   return total;
 }

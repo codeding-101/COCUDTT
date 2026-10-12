@@ -5,6 +5,7 @@ import type { DateStr, RebateEntityType } from '../../domain/enums.js';
 import type { RebateProfile } from '../../domain/rebate.js';
 import { lookupRate } from '../../domain/rate-table.js';
 import type { Warning } from '../../domain/warning.js';
+import type { CalculationStep } from '../calculation.js';
 
 export interface RebateInput {
   profile: RebateProfile;
@@ -23,6 +24,7 @@ export interface RebateInput {
 }
 
 export interface RebateResult {
+  calculations?: CalculationStep[];
   /** 中国进口场景不适用中国出口退税，区别于适用但金额为零。 */
   applicable?: boolean;
   entity_type: RebateEntityType;
@@ -48,6 +50,7 @@ export interface RebateResult {
 
 export function noExportRebate(profile: RebateProfile): RebateResult {
   return {
+    calculations: [{ id: 'not-applicable', label: '中国出口退税', formula: '中国进口场景不适用', substitution: '境外卖方本国税务未建模', value: null }],
     applicable: false, entity_type: profile.entityType, fob_value: d(0), basis: d(0),
     basis_rule: '中国进口场景不适用中国出口退税；境外卖方本国税务未建模',
     rebate_rate: d(0), vat_rate: d(0), vat_rebate: d(0), consumption_tax_rebate: d(0),
@@ -117,6 +120,7 @@ export function restoreFobValue(input: RebateInput): { fob: Decimal; warnings: W
  */
 export function computeRebate(input: RebateInput): RebateResult {
   const warnings: Warning[] = [];
+  const calculations: CalculationStep[] = [];
   const profile = input.profile;
 
   const vatRate = q(lookupRate(profile.vatRates, input.taxKey));
@@ -124,6 +128,9 @@ export function computeRebate(input: RebateInput): RebateResult {
 
   const { fob, warnings: fobWarnings } = restoreFobValue(input);
   warnings.push(...fobWarnings);
+  calculations.push({ id: 'fob', label: '模型离岸价还原', formula: 'max(0, 报价 − 报价已含装船后费用 + 报价未含装船前费用)',
+    substitution: `max(0, ${input.quote_amount_base} − ${input.post_shipment_included_base} + ${input.pre_shipment_excluded_base})`, value: fob,
+    note: '按现有粗粒度贸易节点还原；非海运/多式联运及实际申报离岸价须人工复核，不从运输分段自动推导。' });
 
   const isTrading = profile.entityType === 'TRADING';
 
@@ -161,6 +168,16 @@ export function computeRebate(input: RebateInput): RebateResult {
     consumptionRebateRate === undefined ? d(0) : mul(basis, consumptionRebateRate);
 
   const rebateTotal = add(vatRebate, consumptionTaxRebate);
+  calculations.push({ id: 'basis', label: '退税计税依据', formula: isTrading ? '采购含税成本 ÷ (1 + 征税率)' : '模型还原离岸价',
+    substitution: isTrading ? `${input.seller_goods_cost_base} ÷ (1 + ${vatRate})` : `${fob}`, value: basis, note: basisRule });
+  calculations.push({ id: 'theoretical-vat', label: '理论增值税退税', formula: '退税计税依据 × 退税率', substitution: `${basis} × ${rebateRate}`, value: vatRebateTheoretical });
+  calculations.push({ id: 'vat-rebate', label: '模型增值税退税', formula: !isTrading && credit !== undefined ? 'min(理论增值税退税, 期末留抵税额)' : '理论增值税退税（本模型未另设上限）',
+    substitution: !isTrading && credit !== undefined ? `min(${vatRebateTheoretical}, ${credit})` : `${vatRebateTheoretical}`, value: vatRebate,
+    note: '简化测算，未覆盖全部免抵退抵减、凭证和申报条件，不等于可取得的退税款。' });
+  calculations.push({ id: 'consumption-rebate', label: '模型消费税退税', formula: '计税依据 × 录入消费税退税率', substitution: consumptionRebateRate === undefined ? '未配置，按0计' : `${basis} × ${consumptionRebateRate}`, value: consumptionTaxRebate });
+  calculations.push({ id: 'rebate-total', label: '退税合计', formula: '模型增值税退税 + 模型消费税退税', substitution: `${vatRebate} + ${consumptionTaxRebate}`, value: rebateTotal });
+  calculations.push({ id: 'non-refundable', label: '征退税率差测算', formula: '依据 × max(0, 征税率 − 退税率)', substitution: `${basis} × max(0, ${vatRate} − ${rebateRate})`, value: nonRefundable,
+    note: '现有采购成本为含税成本；该差额只作提示，不再单独扣一次利润，避免重复计成本。' });
 
   if (isZero(rebateRate)) {
     warnings.push({
@@ -183,8 +200,12 @@ export function computeRebate(input: RebateInput): RebateResult {
   }
 
   warnings.push(declarationReview(input.export_date));
+  calculations.push({ id: 'lag-cost', label: '退税资金占用', formula: lagDays !== undefined && fundingRate !== undefined && lagDays > 0 ? '退税合计 × 年资金率 × 天数 ÷ 365' : '未启用退税资金占用测算',
+    substitution: lagDays !== undefined && fundingRate !== undefined && lagDays > 0 ? `${rebateTotal} × ${fundingRate} × ${lagDays} ÷ 365` : '按0计', value: lagCost,
+    note: '退税与资金占用中间计算保留6位小数。' });
 
   return {
+    calculations,
     entity_type: profile.entityType,
     fob_value: fob,
     basis,

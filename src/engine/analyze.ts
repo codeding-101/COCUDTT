@@ -21,7 +21,8 @@ import { compareDate } from '../domain/date.js';
 import { buildValueGraph, type ValueGraph } from './graph.js';
 import { applyInclusion, buildInclusionPredicate, type ExclusionReason, type InclusionConflict } from './inclusion.js';
 import { INCOTERMS_2020_RULESET } from './responsibility/rules-incoterms2020.js';
-import { resolveItemResponsibility, resolveResponsibility, type Confidence } from './responsibility/resolver.js';
+import { resolveItemResponsibility, resolveResponsibility, type Confidence, type ResponsibilityTraceStep } from './responsibility/resolver.js';
+import type { CalculationGroup, CalculationStep } from './calculation.js';
 import { resolveRisk, type RiskResult } from './risk.js';
 import { computeDutiableValue, type DutiableComponent } from './tax/dutiable-value.js';
 import { computeImportTaxes, type ImportTaxResult } from './tax/import-tax.js';
@@ -50,6 +51,10 @@ export interface AnalysisInput {
 }
 
 export interface EnrichedCostItem {
+  responsibility_trace: ResponsibilityTraceStep[];
+  calculations: CalculationStep[];
+  included_in_quote: boolean;
+  inclusion_basis: 'DECLARED_LIST' | 'ITEM_FLAG';
   item: CostItem;
   /** 原币金额 */
   gross_amount: Decimal;
@@ -68,6 +73,8 @@ export interface EnrichedCostItem {
 }
 
 export interface AnalysisResult {
+  explanation_version: '1.0';
+  calculations: CalculationGroup[];
   decision: DecisionReadiness;
   logistics: LogisticsReview;
   rule_set: Pick<IncotermsRuleSet, 'id' | 'version'>;
@@ -190,10 +197,12 @@ export function analyze(input: AnalysisInput): AnalysisResult {
   });
   const quoteAmountBase = convertAmount(scenario.quote.amount, quoteFx);
   const commercialFx = [quoteFx];
+  const priceLevelFx = new Map<string, FxResolution>();
 
   const convertPriceLevel = (amount: Numeric, currency: CurrencyCode): Decimal => {
     if (currency === base) return q(amount);
     const fx = resolveFxRate({ from: currency, ...priceLevelFxInput });
+    priceLevelFx.set(currency, fx);
     commercialFx.push(fx);
     return convertAmount(amount, fx);
   };
@@ -423,6 +432,12 @@ export function analyze(input: AnalysisInput): AnalysisResult {
     const fx = fxByCostId.get(item.cost_id) ?? null;
     const responsibility = decision?.responsibility ?? 'CONDITIONAL';
     return {
+      responsibility_trace: decision?.trace ?? [],
+      included_in_quote: isIncludedInQuote(item),
+      inclusion_basis: scenario.quote.included_cost_ids.length ? 'DECLARED_LIST' : 'ITEM_FLAG',
+      calculations: taxAmounts.has(item.cost_id)
+        ? (importTax.calculations ?? []).filter(step => step.id === (item.cost_id === DEFAULT_DERIVED_TAX_IDS.duty ? 'duty' : item.cost_id === DEFAULT_DERIVED_TAX_IDS.vat ? 'vat' : 'consumption'))
+        : graph.calculations(item.cost_id),
       item,
       gross_amount: taxAmounts.has(item.cost_id) ? baseAmount : graph.grossOriginal(item.cost_id),
       base_amount: baseAmount,
@@ -446,6 +461,29 @@ export function analyze(input: AnalysisInput): AnalysisResult {
       totals: [...(aggregated.seller.margin === null ? [] : [aggregated.seller.margin]), aggregated.buyer.landed_cost_with_tax, importTax.duty, importTax.vat, importTax.consumption_tax],
     }), input.trade, trade.items.map(item => item.cost_id), scenario, warnings), input.trade, scenario, trade.items.map(item => item.cost_id), risk);
   return {
+    explanation_version: '1.0',
+    calculations: [
+      { id: 'customs', label: '完税价格与海关换算', steps: [
+        ...dutiableComponents.flatMap(component => component.calculation ? [component.calculation] : []),
+        { id: 'dutiable-total', label: '完税价格合计', formula: '本次实际入选计税组成之和', substitution: dutiableComponents.map(c => c.amount.toString()).join(' + ') || '0', value: dutiableValue,
+          note: '计税口径独立于商业费用承担和报价内含；不是全部费用之和。保额不是保费，不加入税基。' },
+      ] },
+      { id: 'import-tax', label: '进口税额', steps: importTax.calculations ?? [] },
+      { id: 'rebate', label: '出口退税与资金占用', steps: rebate.calculations ?? [] },
+      { id: 'totals', label: '利润与买方支付', steps: [
+        { id: 'quote', label: '核算报价', formula: '原币报价 × 商业解析汇率', substitution: `${scenario.quote.amount} × ${quoteFx.rate}`, value: quoteAmountBase,
+          note: `${scenario.quote.currency}→${base}，来源 ${quoteFx.source}；簿 ${quoteFx.book_id ?? '无'}；结果保留6位小数。` },
+        { id: 'goods-cost', label: '核算采购成本', formula: sellerCostUnknown ? '采购成本未知，不以0替代' : '采购金额 × 商业解析汇率', substitution: sellerCostUnknown ? '未填写' : `${trade.goods.seller_goods_cost.amount} × ${priceLevelFx.get(trade.goods.seller_goods_cost.currency)?.rate ?? '1'}`, value: sellerGoodsCostBase,
+          note: `${trade.goods.seller_goods_cost.currency}→${base}；来源 ${priceLevelFx.get(trade.goods.seller_goods_cost.currency)?.source ?? '同币种'}；结果保留6位小数。` },
+        ...(['SELLER', 'BUYER'] as const).map(side => ({ id: side === 'SELLER' ? 'seller-fees' : 'buyer-fees', label: side === 'SELLER' ? '卖方承担费用' : '买方报价外费用', formula: '只加总逐项汇总标记为计入的费用',
+          substitution: items.filter(i => side === 'SELLER' ? i.counts_to_seller : i.counts_to_buyer).map(i => `${i.item.cost_id}: ${i.base_amount}`).join(' + ') || '0', value: side === 'SELLER' ? aggregated.seller.cost_total : aggregated.buyer.additional_cost_total })),
+        { id: 'profit-before-rebate', label: '不含退税利润', formula: '核算报价 − 卖方承担费用 − 核算采购成本', substitution: `${quoteAmountBase} − ${aggregated.seller.cost_total} − ${sellerGoodsCostBase ?? '未知'}`, value: aggregated.seller.margin_ex_rebate },
+        { id: 'profit', label: '模型利润', formula: '不含退税利润 + 退税 − 退税资金占用', substitution: `${aggregated.seller.margin_ex_rebate ?? '未知'} + ${rebate.rebate_total} − ${rebate.lag_cost}`, value: aggregated.seller.margin },
+        { id: 'buyer-total', label: '买方总支付', formula: '核算报价 + 买方报价外费用', substitution: `${quoteAmountBase} + ${aggregated.buyer.additional_cost_total}`, value: aggregated.buyer.landed_cost_with_tax },
+        { id: 'buyer-net', label: '不含可抵扣税落地成本', formula: '买方总支付 − 买方承担且可抵扣的进口增值税', substitution: `${aggregated.buyer.landed_cost_with_tax} − ${aggregated.buyer.deductible_vat}`, value: aggregated.buyer.landed_cost_ex_deductible,
+          note: 'DDP卖方承担的进口增值税不作为买方抵扣额；可抵扣标记仍须用户核实资格。' },
+      ] },
+    ],
     decision: reviewed.decision,
     logistics: reviewed.logistics,
     rule_set: { id: ruleSet.id, version: ruleSet.version },

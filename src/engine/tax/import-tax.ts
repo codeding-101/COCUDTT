@@ -11,6 +11,7 @@ import {
 import type { Warning } from '../../domain/warning.js';
 import { EngineError } from '../errors.js';
 import { isChinaImport, taxNumber, toFen } from './china-import.js';
+import type { CalculationStep } from '../calculation.js';
 
 export interface ImportTaxInput {
   profile: TaxProfile;
@@ -25,6 +26,7 @@ export interface ImportTaxInput {
 }
 
 export interface ImportTaxResult {
+  calculations?: CalculationStep[];
   calculation_mode?: 'CN_GENERAL_TRADE';
   dutiable_value: Decimal;
   /** 关税合计（从价部分 + 从量部分） */
@@ -61,6 +63,7 @@ export interface ImportTaxResult {
  */
 export function computeImportTaxes(input: ImportTaxInput): ImportTaxResult {
   const warnings: Warning[] = [];
+  const calculations: CalculationStep[] = [];
   const china = isChinaImport(input.profile);
   const dutiable = china ? toFen(taxNumber(input.dutiableValue, '进口计税价格')) : input.dutiableValue;
   const importRules = input.profile.import;
@@ -186,6 +189,9 @@ export function computeImportTaxes(input: ImportTaxInput): ImportTaxResult {
   }
 
   let duty = china ? toFen(adValoremDuty.plus(specificDuty)) : add(adValoremDuty, specificDuty);
+  calculations.push({ id: 'duty-raw', label: '免征判断前关税', formula: dutyType === 'SPECIFIC' ? '数量 × 单位税额' : dutyType === 'COMPOUND' ? '完税价格 × 从价税率 + 数量 × 单位税额' : '完税价格 × 关税税率',
+    substitution: dutyType === 'SPECIFIC' ? `${input.quantity} × ${specificAmount}` : dutyType === 'COMPOUND' ? `${dutiable} × ${adValoremRate} + ${input.quantity} × ${specificAmount}` : `${dutiable} × ${adValoremRate}`,
+    value: duty, note: `${match ? `HS命中 ${match.matched_code}（${match.level === 'EXACT' ? '精确' : '上级回退'}），税率口径 ${hsTable?.basis ?? 'MFN'}。` : `未命中HS条目，使用配置兜底税率；归类 ${input.taxKey ?? '未填写'}。`}${dutyType !== 'AD_VALOREM' ? `计税数量 ${input.quantity} ${input.unit ?? '单位未填'}；单位税额 ${specificAmount}/${specificUnit ?? '单位未填'}（核算币种）。` : ''}${china ? '中国模式按关税总额四舍五入至分；从量部分未先舍入至分。' : '通用模式中间计算保留6位小数。'}` });
   let exemptionApplied = false;
 
   const threshold = china ? '50' : importRules.dutyExemptionThreshold;
@@ -200,8 +206,10 @@ export function computeImportTaxes(input: ImportTaxInput): ImportTaxResult {
   }
 
   let consumptionTax = d(0);
+  let resolvedConsumptionRate = d(0);
   if (consumptionRate !== undefined && consumptionRate !== null) {
     const rate = china ? taxNumber(consumptionRate, '进口消费税率', 1) : q(consumptionRate);
+    resolvedConsumptionRate = rate;
     const divisor = china ? d(1).minus(rate) : sub(1, rate);
     if (isZero(divisor)) {
       warnings.push({
@@ -213,6 +221,12 @@ export function computeImportTaxes(input: ImportTaxInput): ImportTaxResult {
       consumptionTax = china ? toFen(dutiable.plus(duty).dividedBy(divisor).times(rate)) : mul(div(add(dutiable, duty), divisor), rate);
     }
   }
+
+  calculations.push({ id: 'duty', label: '最终关税', formula: '免征判断前关税 → 门槛判断', substitution: `适用门槛=${threshold ?? '未配置'}；${exemptionApplied ? '小额免征' : '未触发小额免征'}`, value: duty });
+  calculations.push({ id: 'consumption-raw', label: '免征判断前消费税', formula: resolvedConsumptionRate.eq(1) ? '消费税率为1，无法计算' : consumptionRate === undefined ? '未配置应税消费税' : '(完税价格 + 最终关税) ÷ (1 − 消费税率) × 消费税率',
+    substitution: consumptionRate === undefined ? '不计消费税' : `(${dutiable} + ${duty}) ÷ (1 − ${resolvedConsumptionRate}) × ${resolvedConsumptionRate}`,
+    value: resolvedConsumptionRate.eq(1) ? null : consumptionTax,
+    note: china ? '中国模式按该税总额四舍五入至分；适用税种与税率由录入税率表决定。' : '通用模式每步保留6位小数；100%税率沿用阻断提示。' });
 
   const exemptSmallTax = (amount: Decimal, label: string): Decimal => {
     if (china && amount.greaterThan(0) && amount.lessThan(50)) {
@@ -226,8 +240,13 @@ export function computeImportTaxes(input: ImportTaxInput): ImportTaxResult {
   const rawVat = china ? toFen(dutiable.plus(duty).plus(consumptionTax).times(vatRate)) : mul(add(dutiable, add(duty, consumptionTax)), vatRate);
   const vatExempt = china && rawVat.greaterThan(0) && rawVat.lessThan(50);
   const vat = exemptSmallTax(rawVat, '进口增值税');
+  calculations.push({ id: 'consumption', label: '最终消费税', formula: '消费税 → 小额免征判断', substitution: china ? (consumptionExempt ? '小额免征' : '未触发小额免征') : '通用模式不应用中国小额门槛', value: consumptionTax });
+  calculations.push({ id: 'vat-raw', label: '免征判断前增值税', formula: '(完税价格 + 最终关税 + 最终消费税) × 增值税率', substitution: `(${dutiable} + ${duty} + ${consumptionTax}) × ${vatRate}`, value: rawVat,
+    note: china ? '中国模式按增值税总额四舍五入至分。' : '通用模式中间计算保留6位小数。' });
+  calculations.push({ id: 'vat', label: '最终增值税', formula: '增值税 → 小额免征判断', substitution: china ? (vatExempt ? '小额免征' : '未触发小额免征') : '通用模式不应用中国小额门槛', value: vat });
 
   return {
+    calculations,
     ...(china ? { calculation_mode: 'CN_GENERAL_TRADE' as const } : {}),
     dutiable_value: dutiable,
     duty,

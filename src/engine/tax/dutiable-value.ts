@@ -9,8 +9,10 @@ import type { Warning } from '../../domain/warning.js';
 import { isEngineError } from '../errors.js';
 import { convertAmount, resolveFxRate, type FxResolution } from '../fx.js';
 import { isChinaImport, isIsoDate, taxNumber, toFen, validateChinaImportContext } from './china-import.js';
+import type { CalculationStep } from '../calculation.js';
 
 export interface DutiableComponent {
+  calculation?: CalculationStep;
   fx?: FxResolution;
   cost_id: string;
   label: string;
@@ -57,10 +59,15 @@ export function computeDutiableValue(input: DutiableValueInput): DutiableValueRe
   const warnings: Warning[] = [];
   const components: DutiableComponent[] = [];
   const usedFx = new Map<string, FxResolution>();
+  const calculations = new Map<string, CalculationStep>();
 
   const customsConvert = (label: string, currency: CurrencyCode, gross: Numeric, fallback: Numeric, costId: string): Decimal => {
     if (china) taxNumber(gross, label);
-    if (currency === input.baseCurrency) return china ? toFen(d(gross)) : q(gross);
+    if (currency === input.baseCurrency) {
+      const value = china ? toFen(d(gross)) : q(gross);
+      calculations.set(costId, { id: costId, label, formula: '本币金额', substitution: `${gross} ${currency}`, value });
+      return value;
+    }
     try {
       const fx = resolveFxRate({
         from: currency,
@@ -70,7 +77,10 @@ export function computeDutiableValue(input: DutiableValueInput): DutiableValueRe
         books,
       });
       usedFx.set(costId, fx);
-      return china ? toFen(d(gross).times(fx.rate)) : convertAmount(gross, fx);
+      const value = china ? toFen(d(gross).times(fx.rate)) : convertAmount(gross, fx);
+      calculations.set(costId, { id: costId, label, formula: '原币金额 × 海关解析汇率', substitution: `${gross} × ${fx.rate}`, value,
+        note: `${fx.from}→${fx.to}，来源 ${fx.source}；汇率簿 ${fx.book_id ?? '无'}；适用日 ${fxDate ?? '未录入'}。` });
+      return value;
     } catch (error) {
       if (isEngineError(error) && error.code === 'FX_MISSING') {
         if (china) throw error;
@@ -80,7 +90,10 @@ export function computeDutiableValue(input: DutiableValueInput): DutiableValueRe
           message: `${label} 缺少海关适用汇率（${currency}→${input.baseCurrency}），完税价格暂按该费用自身汇率折算，结果可能与海关口径不一致`,
           cost_id: costId,
         });
-        return q(fallback);
+        const value = q(fallback);
+        calculations.set(costId, { id: costId, label, formula: '缺海关汇率，沿用商业核算金额（通用模式回退）', substitution: `${fallback}`, value,
+          note: '不是海关汇率换算；结果可能与海关口径不一致，详见告警。中国模式不允许此回退。' });
+        return value;
       }
       throw error;
     }
@@ -132,6 +145,8 @@ export function computeDutiableValue(input: DutiableValueInput): DutiableValueRe
       : mul(add(goodsAmount, freightTotal), fallbackRate);
     insuranceTotal = fallback;
     components.push({
+      calculation: { id: 'insurance-fallback', label: '保险费估算', formula: '(计税货值 + 计税运费) × 录入估算比率', substitution: `(${goodsAmount} + ${freightTotal}) × ${fallbackRate}`, value: fallback,
+        note: '此项仅为税基中的估算保费，不新增商业保费或保额。' },
       cost_id: 'insurance-fallback',
       label: '保险费（按货价加运费比例计提）',
       amount: fallback,
@@ -161,7 +176,9 @@ export function computeDutiableValue(input: DutiableValueInput): DutiableValueRe
     })) : d(0);
   return {
     value: sum([goodsAmount, freightTotal, insuranceTotal, adjustments]),
-    components: components.map((component) => ({ ...component, ...(usedFx.has(component.cost_id) ? { fx: usedFx.get(component.cost_id) } : {}) })),
+    components: components.map((component) => ({ ...component,
+      ...(calculations.has(component.cost_id) ? { calculation: { ...calculations.get(component.cost_id)!, note: `${calculations.get(component.cost_id)?.note ?? ''}${china ? '中国模式各组成金额四舍五入至分。' : '通用模式保留6位小数。'}` } } : {}),
+      ...(usedFx.has(component.cost_id) ? { fx: usedFx.get(component.cost_id) } : {}) })),
     warnings,
   };
 }

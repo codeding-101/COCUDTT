@@ -5,6 +5,7 @@ import type { CurrencyCode } from '../domain/enums.js';
 import { EngineError } from './errors.js';
 import { convertAmount, type FxResolution } from './fx.js';
 import { computeGrossAmount } from './pricing.js';
+import type { CalculationStep } from './calculation.js';
 
 /**
  * 完税价格解析器。由税务模块实现，通过回调拿到费用项金额，
@@ -30,6 +31,7 @@ export interface ValueGraphInput {
 }
 
 export interface ValueGraph {
+  calculations(costId: string): CalculationStep[];
   /** 核算币种金额 */
   amountBase(costId: string): Decimal;
   /** 原币金额 */
@@ -49,6 +51,7 @@ export interface ValueGraph {
 export function buildValueGraph(input: ValueGraphInput): ValueGraph {
   const itemsById = new Map(input.items.map((item) => [item.cost_id, item]));
   const grossCache = new Map<string, Decimal>();
+  const calculations = new Map<string, CalculationStep[]>();
   const baseCache = new Map<string, Decimal>();
   const visiting = new Set<string>();
   const grossVisiting = new Set<string>();
@@ -98,6 +101,12 @@ export function buildValueGraph(input: ValueGraphInput): ValueGraph {
       }
 
       baseCache.set(costId, value);
+      const fx = input.fxByCostId.get(costId);
+      const steps = calculations.get(costId) ?? [];
+      steps.push({ id: 'conversion', label: '核算金额', formula: item.pricing_method === 'PERCENT' ? '百分比基数已按核算币种，直接计入' : '原币金额 × 解析汇率',
+        substitution: item.pricing_method === 'PERCENT' ? `${gross}` : `${gross} × ${fx?.rate}`,
+        value, note: `核算币种 ${input.baseCurrency}；${fx ? `${fx.from}→${fx.to}，来源 ${fx.source}，汇率簿 ${fx.book_id ?? '无'}；` : ''}换算结果保留6位小数。` });
+      calculations.set(costId, steps);
       return value;
     } finally {
       visiting.delete(costId);
@@ -116,6 +125,7 @@ export function buildValueGraph(input: ValueGraphInput): ValueGraph {
     try {
       const gross = computeGrossAmount(item, {
         resolveBase: (ref) => resolveBaseRef(ref),
+        record: step => calculations.set(costId, [...(calculations.get(costId) ?? []), step]),
       });
       grossCache.set(costId, gross);
       return gross;
@@ -153,5 +163,6 @@ export function buildValueGraph(input: ValueGraphInput): ValueGraph {
     return new Map(baseCache);
   }
 
-  return { amountBase, grossOriginal, dutiableValue, allAmounts };
+  return { amountBase, grossOriginal, dutiableValue, allAmounts,
+    calculations: costId => { amountBase(costId); return [...(calculations.get(costId) ?? [])]; } };
 }
