@@ -71,11 +71,37 @@ describe('打开、保存项目的失败处理', () => {
   function action(name: string, index?: number) {
     const button = new ElementStub(); button.dataset.action = name;if(index!==undefined)button.dataset.settlementIndex=String(index); listeners.get('click')!({ target: button });
   }
-  function settlement(field:string,value:string,row?:'payment'|'fee',index=0,checked=false){
+  function settlement(field:string,value:string,row?:'payment'|'fee'|'funding',index=0,checked=false){
     const input=new InputStub();input.id='';input.dataset.settlementField=field;input.value=value;input.checked=checked;
     if(row){input.dataset.settlementRow=row;input.dataset.settlementIndex=String(index);}listeners.get('change')!({target:input});
   }
   function openSettlement(text:()=>Promise<string>){const input=new InputStub();input.id='settlement-file-input';input.files=[{name:'payment.json',text}];listeners.get('change')!({target:input});}
+  function fundingInputs() {
+    for (const [key,value] of Object.entries({status:'PROVIDED',kind:'OPPORTUNITY',party:'SELLER',principal:'12000',currency:'USD',start_date:'2026-09-01',end_date:'2026-10-01',annual_rate:'6',day_basis:'ACT_360',reference:'PRIVATE_FUNDING_UI_981'})) settlement(key,value,'funding');
+  }
+  it('资金假设事件独立于项目/客户检查，缺项退出，原文保存而非填造',async()=>{
+    await start();await customerProject();customer('reviewed','',true);const before=storage.get(key);action('settlement-create');fundingInputs();
+    expect(html).toContain('data-funding-result');expect(html).toContain('60 USD');expect(storage.get(key)).toBe(before);expect(html).toContain('data-customer-field="reviewed" checked');
+    settlement('annual_rate','','funding');expect(html).not.toContain('data-funding-result');expect(html).toContain('年利率');
+    let saved='';vi.stubGlobal('window',{showSaveFilePicker:async()=>({name:'plan.json',createWritable:async()=>({write:async(s:string)=>{saved=s},close:async()=>{}})})});action('settlement-save');await vi.waitFor(()=>expect(saved).not.toBe(''));
+    expect(JSON.parse(saved).funding.annual_rate).toBe('');expect(JSON.parse(saved).version).toBe('1.1');expect(storage.get(key)).toBe(before);
+  });
+  it('旧1.0打开不产生资金参数，显式升级保留付款和扩展，状态切换不删除假设',async()=>{
+    await start();await customerProject();const {newSettlementPlan}=await import('../src/domain/settlement');const {settlementBinding}=await import('../src/data/settlement-context');const plan=newSettlementPlan(settlementBinding(JSON.parse(storage.get(key)!).project));
+    plan.version='1.0';delete plan.funding;plan.notes='LEGACY_KEEP_873';Object.assign(plan,{extra:'LEGACY_EXTENSION_774'});openSettlement(async()=>JSON.stringify(plan));await vi.waitFor(()=>expect(html).toContain('LEGACY_KEEP_873'));
+    expect(html).toContain('升级为1.1');expect(html).not.toContain('data-settlement-row="funding"');action('settlement-enable-funding');expect(html).toContain('data-settlement-row="funding"');fundingInputs();settlement('status','NOT_MODELED','funding');expect(html).toContain('不表示成本为零');expect(html).toContain('PRIVATE_FUNDING_UI_981');
+    let saved='';vi.stubGlobal('window',{showSaveFilePicker:async()=>({name:'plan.json',createWritable:async()=>({write:async(s:string)=>{saved=s},close:async()=>{}})})});action('settlement-save');await vi.waitFor(()=>expect(saved).not.toBe(''));expect(JSON.parse(saved)).toMatchObject({version:'1.1',notes:'LEGACY_KEEP_873',extra:'LEGACY_EXTENSION_774'});
+  });
+  it('资金假设编辑撤销慢文件读取，报价变更撤销资金结果，重新绑定不删除本金',async()=>{
+    await start();await customerProject();action('settlement-create');fundingInputs();let finish!:(s:string)=>void;openSettlement(()=>new Promise(r=>{finish=r}));settlement('principal','24000','funding');finish('{}');await Promise.resolve();await Promise.resolve();expect(html).not.toContain('不是受支持');expect(html).toContain('120 USD');
+    change('term_scenarios.FOB.quote.amount','12345');expect(html).not.toContain('data-funding-result');expect(html).toContain('重新绑定');action('settlement-rebind');expect(html).toContain('120 USD');
+  });
+  it('内部Excel付款和资金快照在选文件前冻结；客户Excel仍不读取内部计划',async()=>{
+    await start();await customerProject();action('settlement-create');fundingInputs();settlement('notes','PRIVATE_PLAN_EXCEL_813');const before=storage.get(key);let finish!:(h:unknown)=>void,blob:Blob|null=null;
+    vi.stubGlobal('window',{showSaveFilePicker:()=>new Promise(r=>{finish=r})});action('export-internal-xlsx');settlement('reference','LATER_FUNDING_946','funding');settlement('principal','24000','funding');finish({name:'internal.xlsx',createWritable:async()=>({write:async(b:Blob)=>{blob=b},close:async()=>{}})});await vi.waitFor(()=>expect(blob).not.toBeNull());
+    const {unzipSync,strFromU8}=await import('fflate');const text=Object.values(unzipSync(new Uint8Array(await blob!.arrayBuffer()))).map(data=>strFromU8(data)).join('\n');expect(text).toContain('PRIVATE_FUNDING_UI_981');expect(text).toContain('PRIVATE_PLAN_EXCEL_813');expect(text).not.toContain('LATER_FUNDING_946');expect(text).toContain('12000 × 6');
+    blob=null;customer('reviewed','',true);vi.stubGlobal('window',{showSaveFilePicker:async()=>({name:'client.xlsx',createWritable:async()=>({write:async(b:Blob)=>{blob=b},close:async()=>{}})})});action('export-customer-xlsx');await vi.waitFor(()=>expect(blob).not.toBeNull());const client=Object.values(unzipSync(new Uint8Array(await blob!.arrayBuffer()))).map(data=>strFromU8(data)).join('\n');expect(client).not.toContain('PRIVATE_PLAN_EXCEL_813');expect(client).not.toContain('LATER_FUNDING_946');expect(client).not.toContain('资金占用假设');expect(storage.get(key)).toBe(before);
+  });
   it('付款输入不修改项目/草稿或客户检查，报价编辑撤销绑定而非沿用旧合计',async()=>{
     await start();await customerProject();customer('reviewed','',true);const before=storage.get(key);action('settlement-create');settlement('method','TT');settlement('bank_status','NO_FEES');settlement('value','100','payment');settlement('basis','PERCENT','payment');settlement('date','2026-09-15','payment');settlement('trigger','内部合同预付款','payment');
     expect(html).toContain('data-settlement-result');expect(storage.get(key)).toBe(before);expect(html).toContain('data-customer-field="reviewed" checked');

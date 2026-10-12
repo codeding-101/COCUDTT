@@ -1586,3 +1586,8 @@ Sensitivity模块接收领域CompareInput，精确字符串复制后重跑比较
 ## 第十四轮：本地 Excel 快照（2026-10-12）
 
 第十四轮已交付[客户与内部Excel快照](excel-validation.md)：客户版沿用公开白名单，内部版保存费用明细、方案对比、公式与来源，并可单独存档假设。原生.xlsx离线生成，文本不执行公式，超出数值精度以文本保留，未知/不适用/未启用明确区分。新增41项、完整758项；九套Edge流程及Microsoft Excel 16.0只读打开验收，真实无头浏览器下载通过。格式仍0.8、费用规则1.2；不合并发布。下一步实际PDF和双语摘要，LibreOffice、真实手机及专业/业务验收独立保留。
+
+
+## 第十九轮：独立资金假设与付款Excel（2026-10-13）
+
+FundingAssumption领域对象只描述单笔恒定本金单利，engine/funding使用独立Decimal实例及UTC日期差。资金计算复用报价绑定结构核验，独立于付款业务完整性；不回写Analyze/Compare，也不新增银行事件。NOT_MODELED与未知/零区分。付款计划新格式1.1明确定义funding；1.0不静默升级或激活重名扩展。UI字段事件独立于项目/草稿和客户检查，编辑撤销慢导入。data/settlement-workbook追加两张内部表，原表及客户生成器保持，错误与原JSON一并存档；导出字节在选择文件前生成。详情见[本轮验收](funding-validation.md)。

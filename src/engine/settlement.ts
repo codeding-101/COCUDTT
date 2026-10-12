@@ -51,9 +51,12 @@ export interface SettlementResult {
   events: SettlementEvent[];
   totals: SettlementTotals[];
 }
-export function calculateSettlement(plan: SettlementPlan, current: SettlementBinding, analysis: AnalysisResult | null, overrides: Record<string, ResponsibilityOverride> = {}): SettlementResult {
+export function validateSettlementBinding(plan: SettlementPlan, current: SettlementBinding): void {
   validateSettlementPlan(plan);
   for (const key of Object.keys(current) as (keyof SettlementBinding)[]) if (plan.binding[key] !== current[key]) return fail('绑定报价或交易范围已变更，请核对原付款安排后重新绑定当前报价');
+}
+export function calculateSettlement(plan: SettlementPlan, current: SettlementBinding, analysis: AnalysisResult | null, overrides: Record<string, ResponsibilityOverride> = {}): SettlementResult {
+  validateSettlementBinding(plan, current);
   if (!['TT','LC','OA'].includes(plan.method)) return fail('请选择TT、L/C或OA；方式只作记录，不表示收款保证');
   const principal = numeric(current.amount, '合同报价'), principalCurrency = currency(current.currency);
   if (!plan.payments.length) return fail('至少录入一笔合同价款付款');

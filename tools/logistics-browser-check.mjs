@@ -6,7 +6,7 @@ import { createServer } from 'vite';
 
 const root = process.env.BROWSER_CHECK_OUTPUT ?? join(tmpdir(), 'cocudtt-logistics');
 await mkdir(root, { recursive: true });
-const fixtureServer = await createServer({ configFile: false, server: { middlewareMode: true }, appType: 'custom' });
+const fixtureServer = await createServer({ configFile: false, optimizeDeps:{noDiscovery:true,include:[]}, server: { middlewareMode: true }, appType: 'custom' });
 let fixture;
 try { const module = await fixtureServer.ssrLoadModule('/tests/fixtures/logistics-project.ts'); fixture = module.logisticsProject('CIP'); }
 finally { await fixtureServer.close(); }

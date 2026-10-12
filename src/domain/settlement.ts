@@ -1,3 +1,4 @@
+import { newFundingAssumption, type FundingAssumption } from './funding.js';
 /** Internal payment worksheet, separate from the project 0.8 container. */
 export const SETTLEMENT_METHODS = ['UNCONFIRMED', 'TT', 'LC', 'OA'] as const;
 export type SettlementMethod = (typeof SETTLEMENT_METHODS)[number];
@@ -32,7 +33,7 @@ export interface BankFeeEntry {
   not_in_project: boolean;
 }
 export interface SettlementPlan {
-  version: '1.0';
+  version: '1.0' | '1.1';
   kind: 'INTERNAL_SETTLEMENT_PLAN';
   binding: SettlementBinding;
   method: SettlementMethod;
@@ -40,12 +41,14 @@ export interface SettlementPlan {
   payments: PaymentEntry[];
   bank_fees: BankFeeEntry[];
   notes: string;
+  /** Required in 1.1; absent in legacy 1.0, which must never activate this field. */
+  funding?: FundingAssumption;
 }
 export const newPaymentEntry = (id: string): PaymentEntry => ({ id, basis: 'AMOUNT', value: '', date: '', trigger: '' });
 export const newBankFeeEntry = (id: string): BankFeeEntry => ({
   id, source: 'EXISTING', cost_id: '', amount: '', currency: '', bearer: 'UNCONFIRMED', payer: 'UNCONFIRMED', date: '', reference: '', not_in_project: false,
 });
 export function newSettlementPlan(binding: SettlementBinding): SettlementPlan {
-  return { version: '1.0', kind: 'INTERNAL_SETTLEMENT_PLAN', binding: { ...binding }, method: 'UNCONFIRMED',
-    bank_status: 'UNCONFIRMED', payments: [newPaymentEntry('payment-1')], bank_fees: [], notes: '' };
+  return { version: '1.1', kind: 'INTERNAL_SETTLEMENT_PLAN', binding: { ...binding }, method: 'UNCONFIRMED',
+    bank_status: 'UNCONFIRMED', payments: [newPaymentEntry('payment-1')], bank_fees: [], notes: '', funding: newFundingAssumption() };
 }
