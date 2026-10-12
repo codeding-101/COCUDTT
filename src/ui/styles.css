@@ -604,3 +604,4 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
 .customer-fields textarea { width: 100%; min-width: 0; box-sizing: border-box; font: inherit; border: 1px solid #cfd6e2; border-radius: 7px; padding: 8px; resize: vertical; }
 .customer-preview { border: 1px solid #d8dee8; border-radius: 8px; padding: 12px; background: white; }
 .customer-review { display: block; margin: 16px 0; }
+.font-license { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }

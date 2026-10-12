@@ -315,6 +315,25 @@ describe('打开、保存项目的失败处理', () => {
     expect(html).toContain('当前没有可参与排名的方案');
   });
 
+  it('PDF写入有效二进制，文件名只用公开编号，不改草稿/保存状态',async()=>{
+    await start();await customerProject();customer('reference','PUBLIC-PDF');customer('reviewed','',true);const before=storage.get(key);let blob:Blob|null=null,name='';
+    vi.stubGlobal('window',{showSaveFilePicker:async(options:{suggestedName:string})=>{name=options.suggestedName;return{name:'public.pdf',createWritable:async()=>({write:async(data:Blob)=>{blob=data;},close:async()=>{}})}}});action('export-customer-pdf');await vi.waitFor(()=>expect(blob).not.toBeNull(),{timeout:4000});const {PDFDocument}=await import('pdf-lib');const doc=await PDFDocument.load(await blob!.arrayBuffer());expect(name).toBe('PUBLIC-PDF-客户报价草稿.pdf');expect(doc.getTitle()).toBe('PUBLIC-PDF · 报价草稿');expect(storage.get(key)).toBe(before);expect(html).toContain('项目文件仍需单独保存');
+  });
+  it('PDF未检查阻断，选择文件期间修改项目仍保留选择前快照',async()=>{
+    await start();await customerProject();const picker=vi.fn();vi.stubGlobal('window',{showSaveFilePicker:picker});action('export-customer-pdf');await vi.waitFor(()=>expect(html).toContain('请先检查客户预览'));expect(picker).not.toHaveBeenCalled();
+    customer('reference','BEFORE-EDIT');customer('reviewed','',true);let resolvePicker!:(handle:unknown)=>void,blob:Blob|null=null;vi.stubGlobal('window',{showSaveFilePicker:()=>new Promise(resolve=>{resolvePicker=resolve;})});action('export-customer-pdf');expect(html).toContain('正在生成 PDF');customer('reference','AFTER-EDIT');change('term_scenarios.FOB.quote.amount','12345');
+    resolvePicker({name:'public.pdf',createWritable:async()=>({write:async(data:Blob)=>{blob=data;},close:async()=>{}})});await vi.waitFor(()=>expect(blob).not.toBeNull(),{timeout:4000});const {PDFDocument}=await import('pdf-lib');expect((await PDFDocument.load(await blob!.arrayBuffer())).getTitle()).toBe('BEFORE-EDIT · 报价草稿');expect(JSON.parse(storage.get(key)!).project.term_scenarios.FOB.quote.amount).toBe('12345');
+  });
+  it('PDF取消、缺字和写入失败不降级下载、不覆盖项目，并恢复按钮',async()=>{
+    await start();await customerProject();customer('reviewed','',true);const before=storage.get(key);vi.stubGlobal('window',{showSaveFilePicker:async()=>{throw new DOMException('cancel','AbortError')}});action('export-customer-pdf');await vi.waitFor(()=>expect(html).toContain('已取消客户报价 PDF'));
+    customer('remarks','😀');customer('reviewed','',true);const writable=vi.fn();vi.stubGlobal('window',{showSaveFilePicker:async()=>({name:'public.pdf',createWritable:writable})});action('export-customer-pdf');await vi.waitFor(()=>expect(html).toContain('不支持字符'),{timeout:4000});expect(writable).not.toHaveBeenCalled();customer('remarks','合成条款');customer('reviewed','',true);
+    vi.stubGlobal('window',{showSaveFilePicker:async()=>({name:'public.pdf',createWritable:async()=>({write:async()=>{throw new Error('disk-full')},close:async()=>{}})})});action('export-customer-pdf');await vi.waitFor(()=>expect(html).toContain('disk-full'),{timeout:4000});expect(storage.get(key)).toBe(before);expect(html).not.toContain('正在生成 PDF');expect(createElement).not.toHaveBeenCalled();
+  });
+  it('PDF重复点击不并行生成；正常下载回退保持草稿',async()=>{
+    await start();await customerProject();customer('reviewed','',true);const before=storage.get(key);let resolvePicker!:(handle:unknown)=>void;const picker=vi.fn(()=>new Promise(resolve=>{resolvePicker=resolve}));vi.stubGlobal('window',{showSaveFilePicker:picker});action('export-customer-pdf');action('export-customer-pdf');expect(picker).toHaveBeenCalledOnce();resolvePicker({name:'public.pdf',createWritable:async()=>({write:async()=>{},close:async()=>{}})});await vi.waitFor(()=>expect(html).toContain('已导出客户报价 PDF'),{timeout:4000});
+    vi.stubGlobal('window',{});const click=vi.fn();createElement.mockReturnValue({click});vi.spyOn(URL,'createObjectURL').mockReturnValue('blob:pdf');vi.spyOn(URL,'revokeObjectURL').mockImplementation(()=>{});action('export-customer-pdf');await vi.waitFor(()=>expect(html).toContain('已发起客户报价 PDF'),{timeout:4000});expect(click).toHaveBeenCalledOnce();expect(storage.get(key)).toBe(before);
+  });
+
   it('旧项目缺少路线和资格对象时，首次编辑建立完整可保存结构', async () => {
     await start();
     change('tax_profile.import.calculationMode', 'CN_GENERAL_TRADE');
