@@ -238,6 +238,32 @@ describe('打开、保存项目的失败处理', () => {
     expect(createElement).not.toHaveBeenCalled();
   });
 
+  async function customerProject() {
+    const {actualQuotesProject}=await import('./fixtures/actual-quotes');
+    const p=actualQuotesProject();p.incoterm='FOB';p.name='PRIVATE_CUSTOMER_FILENAME_997';
+    open(async()=>serializeProject(p));await vi.waitFor(()=>expect(html).toContain('10,000.00'));
+  }
+  function customer(field:string,value:string,checked=false) {
+    const input=new InputStub();input.id='';input.dataset.customerField=field;input.value=value;input.checked=checked;listeners.get('change')!({target:input});
+  }
+  it('客户公开字段编辑和导出不改项目/草稿，文件不含内部项目名',async()=>{
+    await start();await customerProject();const before=storage.get(key);customer('reference','PUBLIC-Q-001');customer('payment_terms','公开付款安排');customer('reviewed','',true);
+    let saved='',suggested='';vi.stubGlobal('window',{showSaveFilePicker:async(options:{suggestedName:string})=>{suggested=options.suggestedName;return{name:'public.html',createWritable:async()=>({write:async(text:string)=>{saved=text;},close:async()=>{}})}}});
+    action('export-customer-quote');await vi.waitFor(()=>expect(saved).toContain('PUBLIC-Q-001'));
+    expect(saved).toContain('公开付款安排');expect(saved).not.toContain('PRIVATE_CUSTOMER_FILENAME_997');expect(suggested).not.toContain('PRIVATE_CUSTOMER_FILENAME_997');expect(storage.get(key)).toBe(before);expect(html).toContain('项目文件仍需单独保存');
+  });
+  it('编辑公开或项目字段撤销客户预览检查，未检查不调用文件写盘',async()=>{
+    await start();await customerProject();const picker=vi.fn();vi.stubGlobal('window',{showSaveFilePicker:picker});
+    customer('reviewed','',true);customer('reference','NEW-Q');action('export-customer-quote');await vi.waitFor(()=>expect(html).toContain('请先检查客户预览'));expect(picker).not.toHaveBeenCalled();
+    customer('reviewed','',true);change('goods.name','变更商品');action('export-customer-quote');await vi.waitFor(()=>expect(html).toContain('请先检查客户预览'));expect(picker).not.toHaveBeenCalled();
+  });
+  it('客户取消/写盘失败不覆盖项目，不降级下载，新项目清空公开参数',async()=>{
+    await start();await customerProject();customer('reference','TEMP-PUBLIC-Q');customer('reviewed','',true);const before=storage.get(key),cancel=new Error('cancel');cancel.name='AbortError';
+    vi.stubGlobal('window',{showSaveFilePicker:async()=>{throw cancel;}});action('export-customer-quote');await vi.waitFor(()=>expect(html).toContain('已取消客户报价导出'));
+    vi.stubGlobal('window',{showSaveFilePicker:async()=>({name:'q.html',createWritable:async()=>({write:async()=>{throw new Error('disk-full');},close:async()=>{}})})});action('export-customer-quote');await vi.waitFor(()=>expect(html).toContain('客户报价导出失败'));
+    expect(storage.get(key)).toBe(before);expect(createElement).not.toHaveBeenCalled();action('new-china-blank');expect(html).not.toContain('TEMP-PUBLIC-Q');
+  });
+
   it('原产地修改撤销待遇核对，重新核对后恢复排名', async () => {
     await start(); chinaImport(); confirmSources();
     change('route.origin_country', '法国');

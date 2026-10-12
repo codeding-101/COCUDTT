@@ -599,3 +599,8 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
 .hypothesis-table { table-layout: fixed; width: 100%; }
 .hypothesis-table td, .hypothesis-table th { overflow-wrap: anywhere; }
 .hypothesis-table small { display: block; font-size: 11px; font-weight: normal; white-space: normal; }
+.customer-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 12px; margin: 12px 0; }
+.customer-fields label { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.customer-fields textarea { width: 100%; min-width: 0; box-sizing: border-box; font: inherit; border: 1px solid #cfd6e2; border-radius: 7px; padding: 8px; resize: vertical; }
+.customer-preview { border: 1px solid #d8dee8; border-radius: 8px; padding: 12px; background: white; }
+.customer-review { display: block; margin: 16px 0; }

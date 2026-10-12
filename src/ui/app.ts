@@ -39,6 +39,8 @@ import { createProjectReport } from './project-report.js';
 import { renderKpis, renderOutputColumn } from './views-output.js';
 import { newSensitivityControls, projectSensitivity, renderSensitivityPanel, sensitivityOptions } from './sensitivity.js';
 import type { SensitivityResult } from '../engine/sensitivity.js';
+import { emptyCustomerQuoteFields, CUSTOMER_QUOTE_FIELDS, type CustomerQuote } from '../domain/customer-quote.js';
+import { createCustomerQuoteDocument, customerQuoteFileName, projectCustomerQuote, renderCustomerQuotePanel } from './customer-quote.js';
 
 const DRAFT_KEY = 'trade-cost-engine:draft-v1';
 
@@ -133,6 +135,17 @@ let state: AppState = initialState();
 let sensitivityControls = newSensitivityControls();
 let sensitivityAnalysis: SensitivityResult | null = null;
 let sensitivityError: string | null = null;
+let customerFields = emptyCustomerQuoteFields();
+let customerReviewed = false;
+let customerPreview: CustomerQuote | null = null;
+let customerError: string | null = null;
+
+function recomputeCustomerPreview(): void {
+  customerPreview = null;
+  customerError = null;
+  try { customerPreview = projectCustomerQuote(currentProject(), customerFields); }
+  catch (error) { customerError = error instanceof Error ? error.message : '公开报价数据未完成，请核对'; }
+}
 
 function recomputeSensitivity(): void {
   sensitivityAnalysis = null;
@@ -192,6 +205,7 @@ function recompute(persistDraft = true): void {
   }
   if (persistDraft) draftStorageUnavailable = !saveDraft(state.project, state.fxRows);
   recomputeSensitivity();
+  recomputeCustomerPreview();
 }
 
 /** 把计算结果回填到录入区：金额与归属，让用户边录边看到结果 */
@@ -215,6 +229,7 @@ function enrichmentMap(): Map<string, ItemEnrichment> {
 function focusKeyOf(element: Element): string | null {
   const dataset = (element as HTMLElement).dataset;
   if (dataset.sensitivityField !== undefined) return `sensitivity:${dataset.sensitivityField}`;
+  if (dataset.customerField !== undefined) return `customer:${dataset.customerField}`;
   if (dataset.evidenceOwner !== undefined && dataset.evidenceField !== undefined) {
     return `evidence:${dataset.evidenceOwner}:${dataset.evidenceId ?? ''}:${dataset.evidenceField}`;
   }
@@ -232,7 +247,7 @@ function focusKeyOf(element: Element): string | null {
 
 function restoreFocus(key: string | null): void {
   if (key === null) return;
-  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner],[data-contract-cost],[data-logistics-kind],[data-sensitivity-field]')).find(
+  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner],[data-contract-cost],[data-logistics-kind],[data-sensitivity-field],[data-customer-field]')).find(
     (candidate) => focusKeyOf(candidate) === key,
   );
   element?.focus();
@@ -827,6 +842,29 @@ async function exportReport(): Promise<void> {
   render();
 }
 
+async function exportCustomerQuote(): Promise<void> {
+  try {
+    if (!customerReviewed) throw new Error('请先检查客户预览中的公开内容');
+    const quote = projectCustomerQuote(currentProject(), customerFields);
+    const html = createCustomerQuoteDocument(quote);
+    const name = customerQuoteFileName(quote);
+    const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
+    if (picker !== undefined) {
+      const handle = await picker.call(window, { suggestedName: name, types: [{ description: '客户报价说明草稿', accept: { 'text/html': ['.html'] } }] });
+      const writable = await handle.createWritable(); await writable.write(html); await writable.close();
+      state.status = `已导出客户报价草稿 ${handle.name}；项目文件仍需单独保存${state.dirty ? '；有未保存改动' : ''}`;
+    } else {
+      downloadText(name, html, 'text/html');
+      state.status = '已发起客户报价草稿下载，请确认文件已保存；项目保存状态未改变';
+    }
+    state.statusLevel = 'warn';
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') { state.status = '已取消客户报价导出，项目保存状态未改变'; state.statusLevel = 'warn'; }
+    else { state.status = `客户报价导出失败：${error instanceof Error ? error.message : '文件未写入'}`; state.statusLevel = 'error'; }
+  }
+  render();
+}
+
 function showFileError(error: unknown): void {
   state.status = isEngineError(error) ? `[${error.code}] ${error.message}` : `打开失败：${String(error)}`;
   state.statusLevel = 'error';
@@ -840,6 +878,8 @@ function openProjectFromText(text: string, fileName: string): void {
     const fxRows = booksToRows(project.fx_books);
     state.project = project;
     sensitivityControls = newSensitivityControls();
+    customerFields = emptyCustomerQuoteFields();
+    customerReviewed = false;
     state.fxRows = fxRows;
     state.fileName = fileName;
     state.savedAt = null;
@@ -854,6 +894,8 @@ function openProjectFromText(text: string, fileName: string): void {
 
 function newProject(mode: 'sample' | 'china-sample' | 'china-blank' = 'sample'): void {
   sensitivityControls = newSensitivityControls();
+  customerFields = emptyCustomerQuoteFields();
+  customerReviewed = false;
   state.project = mode === 'china-blank' ? newChinaImportProjectFile() : mode === 'china-sample' ? chinaImportSampleProjectFile() : sampleProjectFile();
   state.fxRows = booksToRows(state.project.fx_books);
   state.fileName = null;
@@ -897,7 +939,8 @@ function render(): void {
         <button data-action="new-china-blank">新建中国进口</button>
         <button data-action="open">打开项目</button>
         <button class="primary" data-action="save">保存项目</button>
-        <button data-action="export-report"${state.result === null || state.comparison === null ? ' disabled' : ''}>导出测算报告</button>
+        <button data-action="export-report"${state.result === null || state.comparison === null ? ' disabled' : ''}>导出内部测算报告</button>
+        <button data-action="preview-customer-quote">客户报价预览</button>
         <input type="file" id="file-input" accept=".json,application/json" style="display:none" />
       </div>
       <span class="spacer"></span>
@@ -923,6 +966,7 @@ function render(): void {
       ${renderItemsPanel(state.project, enrichmentMap())}
       ${renderOutputColumn({ result: state.result, comparison: state.comparison, error: state.error })}
       ${renderSensitivityPanel(currentProject(), state.result, sensitivityControls, sensitivityAnalysis, sensitivityError)}
+      ${renderCustomerQuotePanel(currentProject(), customerFields, customerReviewed, customerPreview, customerError)}
       <footer class="app-footer">
         <span>费用 ${state.project.items.length} 项 · 11 术语对比 · 核算币种 ${escapeHtml(state.project.base_currency)}</span>
         <span>数据保存在本机，不上传任何服务器</span>
@@ -942,6 +986,7 @@ function render(): void {
 }
 
 function commit(): void {
+  customerReviewed = false;
   state.dirty = true;
   recompute();
   render();
@@ -1016,6 +1061,21 @@ function bind(): void {
       return;
     }
 
+    if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement)) return;
+
+    if (target.dataset.customerField !== undefined) {
+      const field = target.dataset.customerField;
+      if (field === 'reviewed') customerReviewed = target instanceof HTMLInputElement && target.checked && customerPreview !== null;
+      else if (CUSTOMER_QUOTE_FIELDS.some(key => key === field)) {
+        customerFields[field as keyof typeof customerFields] = target.value;
+        customerReviewed = false;
+        recomputeCustomerPreview();
+      }
+      render();
+      return;
+    }
+
+    // 客户公开文字使用textarea；其余既有录入仍只接受input/select。
     if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
 
     if (target.dataset.sensitivityField !== undefined) {
@@ -1074,6 +1134,11 @@ function bind(): void {
     const action = target.dataset.action;
     if (action === undefined) return;
     switch (action) {
+      case 'preview-customer-quote':
+        expandedEvidenceSections.add('customer-quote'); render();
+        document.querySelector('[data-evidence-section="customer-quote"]')?.scrollIntoView({ block: 'start' });
+        break;
+      case 'export-customer-quote': void exportCustomerQuote(); break;
       case 'add-transport-segment': addTransportSegment(); commit(); break;
       case 'remove-transport-segment': {
         const record = state.project.term_scenarios?.[state.project.incoterm]; const plan = record?.transport;
