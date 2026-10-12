@@ -564,5 +564,31 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
   border-radius: var(--radius-sm);
 }
 
+.cost-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.cost-chart { margin: 0; min-width: 0; padding: 12px; border: 1px solid var(--border); border-radius: 8px; }
+.cost-chart figcaption { font-weight: 600; margin-bottom: 8px; }
+.chart-rows { padding: 0; margin: 12px 0; list-style: none; }
+.chart-rows li { margin-bottom: 12px; }
+.chart-label { display: flex; gap: 8px; justify-content: space-between; align-items: baseline; }
+.chart-label span { min-width: 0; overflow-wrap: anywhere; }
+.chart-label strong { flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.chart-track { height: 8px; background: var(--surface-2); border-radius: 4px; margin-top: 5px; overflow: hidden; }
+.chart-bar { display: block; height: 100%; background: #64748b; }
+.chart-bar.seller { background: #2563eb; }
+.chart-bar.buyer { background: #0d9488; }
+.chart-bar.tax { background: #b45309; }
+.chart-bar.negative { background-image: repeating-linear-gradient(135deg, transparent, transparent 3px, #ffffff80 3px, #ffffff80 5px); }
+.chart-total { border-top: 1px solid var(--border); padding-top: 8px; overflow-wrap: anywhere; }
+.calculation-steps, .reasoning-steps { padding-left: 22px; overflow-wrap: anywhere; }
+.calculation-steps li, .reasoning-steps li { margin: 10px 0; }
+.calculation-steps p, .reasoning p { margin: 5px 0; overflow-wrap: anywhere; }
+.formula { font-family: ui-monospace, monospace; font-variant-numeric: tabular-nums; white-space: normal; }
+.calculation-group { border-top: 1px solid var(--border); padding: 9px 0; }
+.reasoning { min-width: 0; max-width: 520px; font-size: 12px; }
+@media (max-width: 720px) {
+  .cost-charts { grid-template-columns: minmax(0, 1fr); }
+  .chart-label { flex-wrap: wrap; }
+  .chart-label strong { flex-shrink: 1; overflow-wrap: anywhere; max-width: 100%; }
+}
 .empty { color: var(--muted); padding: 10px 0; margin: 0; }
 .panel-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }

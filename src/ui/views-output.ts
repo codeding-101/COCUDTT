@@ -6,6 +6,7 @@ import { dec, escapeHtml, levelLabel, warningClass } from './format.js';
 import { SOURCE_STATUS_LABELS } from './source-editor.js';
 import { DELIVERY_EVENT_LABELS } from '../domain/logistics.js';
 import { CARRIAGE_MODE_LABELS } from '../domain/enums.js';
+import { renderExplanations, renderItemReasoning, renderCostCharts } from './result-explanation.js';
 
 function renderLogistics(result: AnalysisResult): string {
   const { transport, insurance, container_reminders } = result.logistics;
@@ -228,9 +229,9 @@ function renderItemDetail(result: AnalysisResult): string {
                     : '<span class="tag muted">未计入</span>'
             }</td>
             <td data-label="归属依据">
-              <details class="evidence">
+              <details class="evidence" data-evidence-section="reasoning-${escapeHtml(enriched.item.cost_id)}">
                 <summary>${enriched.rule_id !== null ? `<code class="rule">${escapeHtml(enriched.rule_id)}</code>` : '查看依据'}</summary>
-                <div class="note">${escapeHtml(enriched.note)}</div>
+                ${renderItemReasoning(result, enriched, exclusionLabel(enriched.exclusion) || (enriched.counts_to_seller ? '计入卖方费用' : enriched.counts_to_buyer ? '计入买方报价外费用' : '未计入汇总'))}
                 ${
                   enriched.fx !== null
                     ? `<div class="note">汇率：${escapeHtml(
@@ -370,6 +371,8 @@ export function renderOutputColumn(state: OutputState): string {
   ${renderLogistics(state.result)}
   ${renderHero(state.result)}
   ${renderBreakdown(state.result)}
+  ${renderCostCharts(state.result)}
+  ${renderExplanations(state.result)}
   ${renderWarnings(state.result)}
   <div class="result-tables">
     ${renderItemDetail(state.result)}
