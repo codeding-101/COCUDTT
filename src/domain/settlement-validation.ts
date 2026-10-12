@@ -13,7 +13,16 @@ function choice(row: Record<string, unknown>, key: string, values: readonly stri
 }
 export function validateSettlementPlan(value: unknown): asserts value is SettlementPlan {
   const plan = object(value, '文件');
-  if (plan.version !== '1.0' || plan.kind !== 'INTERNAL_SETTLEMENT_PLAN') fail('不是受支持的内部付款计划1.0，不能作为项目JSON使用');
+  if (!['1.0','1.1'].includes(plan.version as string) || plan.kind !== 'INTERNAL_SETTLEMENT_PLAN') fail('不是受支持的内部付款计划1.0/1.1，不能作为项目JSON使用');
+  if (plan.version === '1.0' && Object.hasOwn(plan, 'funding')) fail('1.0扩展字段funding与新语义冲突，须人工核对，不能静默升级');
+  if (plan.version === '1.1') {
+    const funding = object(plan.funding, '资金占用假设');
+    texts(funding, ['principal','currency','start_date','end_date','annual_rate','reference'], '资金占用假设');
+    choice(funding, 'status', ['UNCONFIRMED','NOT_MODELED','PROVIDED']);
+    choice(funding, 'kind', ['UNCONFIRMED','FINANCING','OPPORTUNITY']);
+    choice(funding, 'party', ['UNCONFIRMED','BUYER','SELLER']);
+    choice(funding, 'day_basis', ['UNCONFIRMED','ACT_365F','ACT_360']);
+  }
   texts(plan, ['notes'], '文件');
   texts(object(plan.binding, '报价绑定'), ['project_name','goods_name','quantity','unit','incoterm','named_place','amount','currency'], '报价绑定');
   choice(plan, 'method', SETTLEMENT_METHODS);

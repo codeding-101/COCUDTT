@@ -4,6 +4,7 @@ import type { SettlementPlan } from '../domain/settlement.js';
 import { calculateSettlement, type SettlementResult } from '../engine/settlement.js';
 import type { AnalysisResult } from '../engine/analyze.js';
 import { escapeHtml } from './format.js';
+import { renderFundingFields, renderFundingResult } from './funding.js';
 
 export function renderSettlementResult(result: SettlementResult): string {
   return `<div data-settlement-result><p>合同价 ${escapeHtml(result.principal)} · 付款合计 ${escapeHtml(result.allocated)} · 对账差额 ${escapeHtml(result.difference)}（合同原币）</p>
@@ -15,13 +16,16 @@ export function renderSettlementSnapshot(project: ProjectFile, plan: SettlementP
   let result: string;
   try { result = renderSettlementResult(calculateSettlement(plan, settlementBinding(project), analysis, project.term_scenarios?.[project.incoterm]?.responsibility_overrides)); }
   catch (error) { result = `<p class="banner error">${escapeHtml(error instanceof Error ? error.message : String(error))}</p>`; }
-  return `<section class="panel"><div class="panel-body"><h2>内部付款计划快照（1.0）</h2>${result}<p>仅计划与算术核对，不证明信用证单证相符、保证收款或条件已满足；不改变贸易术语风险转移。</p><pre>${escapeHtml(JSON.stringify(plan, null, 2))}</pre></div></section>`;
+  let funding: string;
+  try { funding = renderFundingResult(plan, settlementBinding(project)); }
+  catch (error) { funding = `<p class="banner error">${escapeHtml(error instanceof Error ? error.message : String(error))}</p>`; }
+  return `<section class="panel"><div class="panel-body"><h2>内部付款计划快照（${plan.version}）</h2>${result}<h3>资金占用假设</h3>${funding}<p>仅计划与算术核对，不证明信用证单证相符、保证收款或条件已满足；不改变贸易术语风险转移。资金成本不改变收付净额、经营利润或落地成本。</p><pre>${escapeHtml(JSON.stringify(plan, null, 2))}</pre></div></section>`;
 }
 export function renderSettlementPanel(project: ProjectFile, plan: SettlementPlan | null, analysis: AnalysisResult | null, busy: boolean): string {
   const disabled = busy ? ' disabled' : '';
   const input = (kind: 'payment'|'fee', index: number, key: string, label: string, value: string) => `<label>${label}<input type="text" data-settlement-row="${kind}" data-settlement-index="${index}" data-settlement-field="${key}" value="${escapeHtml(value)}"></label>`;
   const options = (values: [string,string][], value: string) => values.map(([key,label]) => `<option value="${key}"${key === value ? ' selected' : ''}>${label}</option>`).join('');
-  let html = `<p>绑定当前术语实际报价，逐笔输入约定付款日。付款安排不决定货损风险、所有权或信用风险；L/C付款条件及单证相符需另核，TT不等于已预付，OA不自动生成30/60/90天账期。</p><p class="hint">内部付款计划独立保存为JSON 1.0，本页修改不写入项目0.8或自动草稿，刷新或打开项目后重置。请单独保存；客户文件不自动包含这份内部计划。银行费先在费用清单录入并确认承担方，或明确确认属于未录入的新费用；不按名称自动识别账单重复。</p>`;
+  let html = `<p>绑定当前术语实际报价，逐笔输入约定付款日。付款安排不决定货损风险、所有权或信用风险；L/C付款条件及单证相符需另核，TT不等于已预付，OA不自动生成30/60/90天账期。</p><p class="hint">内部付款计划独立保存为JSON 1.1（兼容读取1.0），本页修改不写入项目0.8或自动草稿，刷新或打开项目后重置。请单独保存；客户文件不自动包含这份内部计划。银行费先在费用清单录入并确认承担方，或明确确认属于未录入的新费用；不按名称自动识别账单重复。</p>`;
   if (!plan) html += `<button data-action="settlement-create"${disabled}>绑定当前报价并新建付款计划</button>`;
   else {
     html += `<p>绑定：${escapeHtml(plan.binding.incoterm)} ${escapeHtml(plan.binding.named_place)} · ${escapeHtml(plan.binding.amount)} ${escapeHtml(plan.binding.currency)}</p>
@@ -38,8 +42,11 @@ export function renderSettlementPanel(project: ProjectFile, plan: SettlementPlan
       <label>内部付款备注<input data-settlement-field="notes" value="${escapeHtml(plan.notes)}"></label>`;
     try { html += renderSettlementResult(calculateSettlement(plan, settlementBinding(project), analysis, project.term_scenarios?.[project.incoterm]?.responsibility_overrides)); }
     catch (error) { html += `<p class="banner error" role="alert">${escapeHtml(error instanceof Error ? error.message : String(error))}</p>`; }
+    html += renderFundingFields(plan);
+    try { html += renderFundingResult(plan, settlementBinding(project)); }
+    catch (error) { html += `<p class="banner error">${escapeHtml(error instanceof Error ? error.message : String(error))}</p>`; }
     html += `<button data-action="settlement-save"${disabled}>保存内部付款计划 JSON（可保存未完成输入）</button>`;
   }
-  html += `<button data-action="settlement-open"${disabled}>打开内部付款计划 JSON</button><input id="settlement-file-input" type="file" accept=".json,application/json" hidden><p class="hint">内部HTML报告记录本页付款快照，内部Excel暂不包含该计划。${busy ? '正在保存付款计划，等待期间编辑不改变本次文件。' : '只作确定性计划，不含融资利息、保证金冻结、净额抵扣、银行扣费后到账推算或实际结算汇率；下一轮按明确假设扩展。'}</p>`;
+  html += `<button data-action="settlement-open"${disabled}>打开内部付款计划 JSON</button><input id="settlement-file-input" type="file" accept=".json,application/json" hidden><p class="hint">内部HTML和内部Excel记录本页付款及资金占用假设快照。${busy ? '正在保存付款计划，等待期间编辑不改变本次文件。' : '不建模保证金冻结、净额抵扣、银行扣费后到账推算或实际结算汇率。'}</p>`;
   return `<details class="panel settlement-panel" data-evidence-section="settlement"><summary><span class="panel-title">付款时间表与银行费用 · 内部计划</span></summary><div class="panel-body">${html}</div></details>`;
 }

@@ -17,6 +17,7 @@ import { settlementBinding } from '../data/settlement-context.js';
 import { parseSettlementPlan, serializeSettlementPlan } from '../data/settlement-file.js';
 import { newSettlementPlan, newPaymentEntry, newBankFeeEntry, type SettlementPlan } from '../domain/settlement.js';
 import { renderSettlementPanel } from './settlement.js';
+import { newFundingAssumption } from '../domain/funding.js';
 import { emptyEvidence, evidenceKey, fxEvidenceValues, hsEvidenceValues, invalidateEvidence, taxEvidenceValues, type SourceEvidence } from '../domain/source-evidence.js';
 import { eligibilityValues, emptyEligibility, emptyRoute } from '../domain/import-context.js';
 import type { BaseRef, CostItem } from '../domain/cost-item.js';
@@ -176,6 +177,13 @@ function onSettlementField(target: HTMLInputElement | HTMLSelectElement): void {
     } else if (row && (field === 'bearer' || field === 'payer') && ['UNCONFIRMED','BUYER','SELLER'].includes(target.value)) row[field] = target.value as typeof row.bearer;
     else if (row && field === 'not_in_project') row.not_in_project = target instanceof HTMLInputElement && target.checked;
     else if (row && (field === 'cost_id' || field === 'amount' || field === 'currency' || field === 'date' || field === 'reference')) row[field] = target.value;
+  } else if (kind === 'funding' && settlementPlan.version === '1.1' && settlementPlan.funding) {
+    const row = settlementPlan.funding;
+    if (field === 'status' && ['UNCONFIRMED','NOT_MODELED','PROVIDED'].includes(target.value)) row.status = target.value as typeof row.status;
+    else if (field === 'kind' && ['UNCONFIRMED','FINANCING','OPPORTUNITY'].includes(target.value)) row.kind = target.value as typeof row.kind;
+    else if (field === 'party' && ['UNCONFIRMED','BUYER','SELLER'].includes(target.value)) row.party = target.value as typeof row.party;
+    else if (field === 'day_basis' && ['UNCONFIRMED','ACT_365F','ACT_360'].includes(target.value)) row.day_basis = target.value as typeof row.day_basis;
+    else if (field === 'principal' || field === 'currency' || field === 'start_date' || field === 'end_date' || field === 'annual_rate' || field === 'reference') row[field] = target.value;
   } else if (field === 'method' && ['UNCONFIRMED','TT','LC','OA'].includes(target.value)) settlementPlan.method = target.value as typeof settlementPlan.method;
   else if (field === 'bank_status' && ['UNCONFIRMED','NO_FEES','LISTED'].includes(target.value)) settlementPlan.bank_status = target.value as typeof settlementPlan.bank_status;
   else if (field === 'notes') settlementPlan.notes = target.value;
@@ -931,7 +939,7 @@ async function exportWorkbook(customer: boolean): Promise<void> {
     if (customer && !customerReviewed) throw new Error('请先检查客户预览中的公开内容');
     const project = currentProject();
     const quote = customer ? projectCustomerQuote(project, customerFields) : null;
-    const bytes = quote ? createCustomerWorkbook(quote) : createInternalWorkbook(project, undefined, sensitivityControls.enabled ? sensitivityControls : undefined);
+    const bytes = quote ? createCustomerWorkbook(quote) : createInternalWorkbook(project, undefined, sensitivityControls.enabled ? sensitivityControls : undefined, settlementPlan ?? undefined);
     const name = quote ? customerQuoteFileName(quote).replace(/\.html$/, '.xlsx') : safeFileName(`${project.name || 'trade-cost'}-内部成本`, 'xlsx');
     const blob = new Blob([bytes], { type: XLSX_MIME });
     const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
@@ -1308,6 +1316,12 @@ function bind(): void {
     const action = target.dataset.action;
     if (action === undefined) return;
     switch (action) {
+      case 'settlement-enable-funding':
+        if (settlementPlan?.version === '1.0') {
+          settlementPlan.version = '1.1'; settlementPlan.funding = newFundingAssumption();
+          settlementEpoch++; render();
+        }
+        break;
       case 'settlement-create':
       case 'settlement-rebind':
         try {

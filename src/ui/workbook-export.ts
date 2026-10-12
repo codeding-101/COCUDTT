@@ -3,11 +3,13 @@ import { decimalCell as n, serializeWorkbook, textCell as t, type WorkbookSnapsh
 import type { CustomerQuote } from '../domain/customer-quote.js';
 import type { ProjectFile } from '../data/project-file.js';
 import { projectSensitivity, type SensitivityControls } from './sensitivity.js';
+import type { SettlementPlan } from '../domain/settlement.js';
+import { settlementWorkbookSheets } from '../data/settlement-workbook.js';
 
 export function createCustomerWorkbook(quote:CustomerQuote,generatedAt=new Date().toISOString()):Uint8Array<ArrayBuffer> {
   return serializeWorkbook(customerWorkbook(quote,generatedAt));
 }
-export function internalWorkbookSnapshot(project:ProjectFile,generatedAt=new Date().toISOString(),hypothesis?:SensitivityControls):WorkbookSnapshot {
+export function internalWorkbookSnapshot(project:ProjectFile,generatedAt=new Date().toISOString(),hypothesis?:SensitivityControls,plan?:SettlementPlan):WorkbookSnapshot {
   const workbook=internalWorkbook(project,generatedAt);
   if(hypothesis?.enabled){
     const note=(label:string,value:string)=>[t(label),t(value),t(''),t(''),t(''),t(''),t(''),t('')];
@@ -24,8 +26,9 @@ export function internalWorkbookSnapshot(project:ProjectFile,generatedAt=new Dat
     }catch(error){rows.push(note('假设未完成',error instanceof Error?error.message:String(error)));}
     workbook.sheets.push({name:'假设分析',headers:['情景','指标/参数','结果','相对基准变化','相对基准变化(%)','单位','状态','待办'],widths:[26,50,22,22,22,36,30,80],rows,freezeColumns:2});
   }
+  if (plan) workbook.sheets.push(...settlementWorkbookSheets(project,plan));
   return workbook;
 }
-export function createInternalWorkbook(project:ProjectFile,generatedAt=new Date().toISOString(),hypothesis?:SensitivityControls):Uint8Array<ArrayBuffer> {
-  return serializeWorkbook(internalWorkbookSnapshot(project,generatedAt,hypothesis));
+export function createInternalWorkbook(project:ProjectFile,generatedAt=new Date().toISOString(),hypothesis?:SensitivityControls,plan?:SettlementPlan):Uint8Array<ArrayBuffer> {
+  return serializeWorkbook(internalWorkbookSnapshot(project,generatedAt,hypothesis,plan));
 }

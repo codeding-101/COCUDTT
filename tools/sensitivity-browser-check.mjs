@@ -6,7 +6,7 @@ import { createServer } from 'vite';
 
 const root = process.env.BROWSER_CHECK_OUTPUT ?? join(tmpdir(), 'cocudtt-sensitivity');
 await mkdir(root, { recursive: true });
-const server = await createServer({ configFile: false, server: { middlewareMode: true }, appType: 'custom' });
+const server = await createServer({ configFile: false, optimizeDeps:{noDiscovery:true,include:[]}, server: { middlewareMode: true }, appType: 'custom' });
 let fixture, foreign, pendingProject;
 try {
   const { actualQuotesProject, syntheticEvidence } = await server.ssrLoadModule('/tests/fixtures/actual-quotes.ts');
