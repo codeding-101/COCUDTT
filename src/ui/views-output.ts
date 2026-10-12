@@ -1,3 +1,4 @@
+import { INPUT_SECTION_LABELS, type InputSection } from './input-location.js';
 import type { Responsibility } from '../domain/enums.js';
 import { TRADE_NODE_LABELS } from '../domain/enums.js';
 import type { AnalysisResult, EnrichedCostItem } from '../engine/analyze.js';
@@ -60,6 +61,7 @@ export interface OutputState {
   result: AnalysisResult | null;
   comparison: Comparison | null;
   error: string | null;
+  inputLocations?: readonly InputSection[];
 }
 
 function responsibilityTag(responsibility: Responsibility): string {
@@ -361,6 +363,7 @@ export function renderOutputColumn(state: OutputState): string {
           </div>
         </div>
         <p class="hint block">引擎不会在缺数据时猜一个结果。请按提示补全输入——常见原因是缺少对应类型的汇率簿，或费用项缺少计费参数。</p>
+        ${state.inputLocations?.length ? `<p class="hint">核对关联输入（入口指向面板，不自动修改字段）：</p><div class="panel-actions">${state.inputLocations.map(key => `<button data-action="locate-input" data-input-section="${key}">查看${INPUT_SECTION_LABELS[key]}</button>`).join('')}</div>` : ''}
       </div>
     </section>${state.comparison !== null ? renderComparison(state.comparison) : ''}`;
   }

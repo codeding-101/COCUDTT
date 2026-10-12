@@ -56,6 +56,9 @@ import fontLicense from '../assets/fonts/LICENSE-OFL.txt?raw';
 import fontProvenance from '../assets/fonts/provenance.json?raw';
 import { inputFailure } from './ui-failure.js';
 import { showRecoveryView, clearRecoveryView, type FailureStage } from './recovery.js';
+import { inspectRecoveryText, RECOVERY_REVIEW_MAX_BYTES, type RecoveryReview } from '../data/recovery-review.js';
+import { renderRecoveryReviewPanel } from './recovery-review.js';
+import { inputSections, focusInputSection, type InputSection } from './input-location.js';
 
 const DRAFT_KEY = 'trade-cost-engine:draft-v1';
 
@@ -164,10 +167,16 @@ let customerPdfBusy = false;
 let settlementPlan: SettlementPlan | null = null;
 let settlementBusy = false;
 let settlementEpoch = 0;
+let inputLocations: InputSection[] = [];
+let recoveryReview: RecoveryReview | null = null;
+let recoveryReviewError: string | null = null;
+let recoveryReviewBusy = false;
+let recoveryReviewEpoch = 0;
 
 function showFatalFailure(stage: FailureStage): void {
   recoveryStage = stage;
   settlementEpoch++;
+  recoveryReviewEpoch++; recoveryReviewBusy = false; inputLocations = [];
   if (stateInitialized) { state.result = null; state.comparison = null; }
   customerReviewed = false; customerPreview = null; sensitivityAnalysis = null;
   showRecoveryView(stage,{retry:retryInterface,backup:backupRecovery});
@@ -275,6 +284,7 @@ function currentProject(): ProjectFile {
 }
 
 function recompute(persistDraft = true): void {
+  inputLocations = [];
   const project = currentProject();
   try {
     const trade = toTrade(project);
@@ -308,6 +318,7 @@ function recompute(persistDraft = true): void {
     state.comparison = null;
     if (!isEngineError(error)) throw error;
     const failure = inputFailure(error);
+    inputLocations = inputSections(error);
     state.error = `${failure.message}\n${failure.hint}`;
     if (isEngineError(error) && (project.anchor.kind === 'ACTUAL_QUOTES' || project.term_scenarios !== undefined || project.items.some(item => item.applicable_incoterms !== undefined || item.alternative_group?.trim()))) {
       try {
@@ -1178,12 +1189,13 @@ function renderApp(): void {
         </div>
       </details>
       ${renderProjectTemplatePanel(projectResourceBusy)}
+      ${renderRecoveryReviewPanel(recoveryReview,recoveryReviewBusy,recoveryReviewError)}
       ${renderFormsRow(state.project)}
       ${renderImportTaxPanel(state.project)}
       ${renderFxPanel(state.fxRows)}
       ${renderHsPanel(state.project)}
       ${renderItemsPanel(state.project, enrichmentMap())}
-      ${renderOutputColumn({ result: state.result, comparison: state.comparison, error: state.error })}
+      ${renderOutputColumn({ result: state.result, comparison: state.comparison, error: state.error, inputLocations })}
       ${renderSensitivityPanel(currentProject(), state.result, sensitivityControls, sensitivityAnalysis, sensitivityError)}
       ${renderSettlementPanel(currentProject(), settlementPlan, state.result, settlementBusy)}
       ${renderCustomerQuotePanel(currentProject(), customerFields, customerReviewed, customerPreview, customerError, customerPdfBusy,customerSummaryBusy)}
@@ -1279,6 +1291,28 @@ function bind(): void {
 
   listen('change', (event) => {
     const target = event.target;
+
+    if (target instanceof HTMLInputElement && target.id === 'recovery-review-input') {
+      const file = target.files?.[0];
+      if (!file) return;
+      const epoch = ++recoveryReviewEpoch;
+      recoveryReview = null; recoveryReviewError = null; recoveryReviewBusy = true;
+      expandedEvidenceSections.add('recovery-review'); render();
+      const read = async (): Promise<void> => {
+        let review: RecoveryReview | null = null, error: string | null = null;
+        try {
+          if (file.size > RECOVERY_REVIEW_MAX_BYTES) throw Error('恢复文件超过5 MiB检查上限；请保留原文件，分开人工核对');
+          const text = await file.text();
+          if (epoch !== recoveryReviewEpoch) return;
+          // Inspector errors are controlled messages; file API errors may contain private paths.
+          try { review = inspectRecoveryText(text); } catch (failure) { error = failure instanceof Error ? failure.message : '恢复文件无法检查，请保留原文'; }
+        } catch { error = file.size > RECOVERY_REVIEW_MAX_BYTES ? '恢复文件超过5 MiB检查上限；请保留原文件，分开人工核对' : '恢复文件读取失败；请保留原文件并核对读取权限'; }
+        if (epoch !== recoveryReviewEpoch || recoveryStage) return;
+        runUi('INTERACTION',()=>{ recoveryReview = review; recoveryReviewError = error; recoveryReviewBusy = false; render(); });
+      };
+      void read();
+      return;
+    }
 
     if (target instanceof HTMLInputElement && target.id === 'settlement-file-input') {
       const file = target.files?.[0];
@@ -1379,6 +1413,18 @@ function bind(): void {
     const action = target.dataset.action;
     if (action === undefined) return;
     switch (action) {
+      case 'inspect-recovery':
+        document.querySelector<HTMLInputElement>('#recovery-review-input')?.click();
+        break;
+      case 'clear-recovery-review':
+        recoveryReviewEpoch++; recoveryReview = null; recoveryReviewError = null; recoveryReviewBusy = false; render();
+        break;
+      case 'locate-input': {
+        const section = target.dataset.inputSection;
+        const valid = inputLocations.find(key => key === section);
+        if (valid && focusInputSection(valid)) collapsedSections.delete(valid);
+        break;
+      }
       case 'settlement-enable-funding':
         if (settlementPlan?.version === '1.0') {
           settlementPlan.version = '1.1'; settlementPlan.funding = newFundingAssumption();
