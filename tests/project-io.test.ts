@@ -246,6 +246,18 @@ describe('打开、保存项目的失败处理', () => {
   function customer(field:string,value:string,checked=false) {
     const input=new InputStub();input.id='';input.dataset.customerField=field;input.value=value;input.checked=checked;listeners.get('change')!({target:input});
   }
+  it('中英文摘要必须检查后导出，编辑公开或项目字段撤销检查',async()=>{
+    await start();await customerProject();const picker=vi.fn();vi.stubGlobal('window',{showSaveFilePicker:picker});action('export-bilingual-summary');await vi.waitFor(()=>expect(html).toContain('请先检查客户预览'));expect(picker).not.toHaveBeenCalled();customer('reviewed','',true);customer('remarks','变更原文');action('export-bilingual-summary');expect(picker).not.toHaveBeenCalled();customer('reviewed','',true);change('goods.name','变更商品');action('export-bilingual-summary');expect(picker).not.toHaveBeenCalled();
+  });
+  it('摘要固定公开快照，重复点击不重复写入，等待期间编辑不会改变已生成文件',async()=>{
+    await start();await customerProject();customer('reference','PUBLIC-SUM');customer('reviewed','',true);let resolvePicker!:(h:unknown)=>void,saved='',name='';const picker=vi.fn((o:{suggestedName:string})=>{name=o.suggestedName;return new Promise(r=>{resolvePicker=r;});});vi.stubGlobal('window',{showSaveFilePicker:picker});action('export-bilingual-summary');action('export-bilingual-summary');expect(picker).toHaveBeenCalledOnce();expect(html).toContain('正在导出摘要');customer('reference','LATER');resolvePicker({name:'summary.html',createWritable:async()=>({write:async(s:string)=>{saved=s;},close:async()=>{}})});await vi.waitFor(()=>expect(saved).toContain('PUBLIC-SUM'));expect(saved).toContain('Risk transfer');expect(saved).not.toContain('LATER');expect(saved).not.toContain('PRIVATE_CUSTOMER_FILENAME_997');expect(name).toBe('PUBLIC-SUM-中英文条款摘要草稿.html');expect(html).not.toContain('正在导出摘要');
+  });
+  it('摘要取消和写盘失败恢复按钮并保留草稿，不额外下载',async()=>{
+    await start();await customerProject();customer('reviewed','',true);const before=storage.get(key);vi.stubGlobal('window',{showSaveFilePicker:async()=>{throw new DOMException('cancel','AbortError');}});action('export-bilingual-summary');await vi.waitFor(()=>expect(html).toContain('已取消中英文条款摘要'));vi.stubGlobal('window',{showSaveFilePicker:async()=>({name:'sum.html',createWritable:async()=>({write:async()=>{throw Error('disk-full');},close:async()=>{}})})});action('export-bilingual-summary');await vi.waitFor(()=>expect(html).toContain('中英文条款摘要导出失败'));expect(storage.get(key)).toBe(before);expect(html).not.toContain('正在导出摘要');expect(createElement).not.toHaveBeenCalled();
+  });
+  it('摘要下载回退保留项目和来源确认状态',async()=>{
+    await start();await customerProject();customer('reviewed','',true);const before=storage.get(key),click=vi.fn();createElement.mockReturnValue({click});vi.spyOn(URL,'createObjectURL').mockReturnValue('blob:summary');vi.spyOn(URL,'revokeObjectURL').mockImplementation(()=>{});action('export-bilingual-summary');await vi.waitFor(()=>expect(html).toContain('已发起中英文条款摘要'));expect(click).toHaveBeenCalledOnce();expect(storage.get(key)).toBe(before);
+  });
   it('客户公开字段编辑和导出不改项目/草稿，文件不含内部项目名',async()=>{
     await start();await customerProject();const before=storage.get(key);customer('reference','PUBLIC-Q-001');customer('payment_terms','公开付款安排');customer('reviewed','',true);
     let saved='',suggested='';vi.stubGlobal('window',{showSaveFilePicker:async(options:{suggestedName:string})=>{suggested=options.suggestedName;return{name:'public.html',createWritable:async()=>({write:async(text:string)=>{saved=text;},close:async()=>{}})}}});

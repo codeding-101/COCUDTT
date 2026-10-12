@@ -41,6 +41,7 @@ import { newSensitivityControls, projectSensitivity, renderSensitivityPanel, sen
 import type { SensitivityResult } from '../engine/sensitivity.js';
 import { emptyCustomerQuoteFields, CUSTOMER_QUOTE_FIELDS, type CustomerQuote } from '../domain/customer-quote.js';
 import { createCustomerQuoteDocument, customerQuoteFileName, projectCustomerQuote, renderCustomerQuotePanel } from './customer-quote.js';
+import { createBilingualSummaryDocument } from './bilingual-summary.js';
 import { createCustomerWorkbook, createInternalWorkbook } from './workbook-export.js';
 import { XLSX_MIME } from '../data/xlsx-file.js';
 import fontLicense from '../assets/fonts/LICENSE-OFL.txt?raw';
@@ -141,6 +142,7 @@ let sensitivityAnalysis: SensitivityResult | null = null;
 let sensitivityError: string | null = null;
 let customerFields = emptyCustomerQuoteFields();
 let customerReviewed = false;
+let customerSummaryBusy = false;
 let customerPreview: CustomerQuote | null = null;
 let customerError: string | null = null;
 let customerPdfBusy = false;
@@ -908,26 +910,29 @@ async function exportCustomerPdf(): Promise<void> {
   } finally { customerPdfBusy = false; render(); }
 }
 
-async function exportCustomerQuote(): Promise<void> {
+async function exportCustomerQuote(bilingual=false): Promise<void> {
+  if(bilingual&&customerSummaryBusy)return;
+  const label=bilingual?'中英文条款摘要':'客户报价';
   try {
     if (!customerReviewed) throw new Error('请先检查客户预览中的公开内容');
     const quote = projectCustomerQuote(currentProject(), customerFields);
-    const html = createCustomerQuoteDocument(quote);
-    const name = customerQuoteFileName(quote);
+    const html = bilingual?createBilingualSummaryDocument(quote):createCustomerQuoteDocument(quote);
+    const name = bilingual?customerQuoteFileName(quote).replace('-客户报价草稿.html','-中英文条款摘要草稿.html').replace(/[\u0000-\u001F]/g,'-'):customerQuoteFileName(quote);
+    if(bilingual){customerSummaryBusy=true;render();}
     const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
     if (picker !== undefined) {
-      const handle = await picker.call(window, { suggestedName: name, types: [{ description: '客户报价说明草稿', accept: { 'text/html': ['.html'] } }] });
+      const handle = await picker.call(window, { suggestedName: name, types: [{ description: bilingual?'中英文条款摘要草稿':'客户报价说明草稿', accept: { 'text/html': ['.html'] } }] });
       const writable = await handle.createWritable(); await writable.write(html); await writable.close();
-      state.status = `已导出客户报价草稿 ${handle.name}；项目文件仍需单独保存${state.dirty ? '；有未保存改动' : ''}`;
+      state.status = `已导出${label}草稿 ${handle.name}；项目文件仍需单独保存${state.dirty ? '；有未保存改动' : ''}`;
     } else {
       downloadText(name, html, 'text/html');
-      state.status = '已发起客户报价草稿下载，请确认文件已保存；项目保存状态未改变';
+      state.status = `已发起${label}草稿下载，请确认文件已保存；项目保存状态未改变`;
     }
     state.statusLevel = 'warn';
   } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') { state.status = '已取消客户报价导出，项目保存状态未改变'; state.statusLevel = 'warn'; }
-    else { state.status = `客户报价导出失败：${error instanceof Error ? error.message : '文件未写入'}`; state.statusLevel = 'error'; }
-  }
+    if (error instanceof Error && error.name === 'AbortError') { state.status = `已取消${label}导出，项目保存状态未改变`; state.statusLevel = 'warn'; }
+    else { state.status = `${label}导出失败：${error instanceof Error ? error.message : '文件未写入'}`; state.statusLevel = 'error'; }
+  }finally{if(bilingual)customerSummaryBusy=false;}
   render();
 }
 
@@ -1034,7 +1039,7 @@ function render(): void {
       ${renderItemsPanel(state.project, enrichmentMap())}
       ${renderOutputColumn({ result: state.result, comparison: state.comparison, error: state.error })}
       ${renderSensitivityPanel(currentProject(), state.result, sensitivityControls, sensitivityAnalysis, sensitivityError)}
-      ${renderCustomerQuotePanel(currentProject(), customerFields, customerReviewed, customerPreview, customerError, customerPdfBusy)}
+      ${renderCustomerQuotePanel(currentProject(), customerFields, customerReviewed, customerPreview, customerError, customerPdfBusy,customerSummaryBusy)}
       <footer class="app-footer">
         <span>费用 ${state.project.items.length} 项 · 11 术语对比 · 核算币种 ${escapeHtml(state.project.base_currency)}</span>
         <span>数据保存在本机，不上传任何服务器</span>
@@ -1207,6 +1212,7 @@ function bind(): void {
         document.querySelector('[data-evidence-section="customer-quote"]')?.scrollIntoView({ block: 'start' });
         break;
       case 'export-customer-quote': void exportCustomerQuote(); break;
+      case 'export-bilingual-summary': void exportCustomerQuote(true); break;
       case 'export-customer-xlsx': void exportWorkbook(true); break;
       case 'export-customer-pdf': void exportCustomerPdf(); break;
       case 'export-internal-xlsx': void exportWorkbook(false); break;
