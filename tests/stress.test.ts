@@ -451,8 +451,8 @@ describe('压力测试 · 渲染规模', () => {
     const count = 80;
     const html = renderItemsPanel(projectWith(count), new Map());
     const options = (html.match(/<option/g) ?? []).length;
-    // 原有静态选项加5个适用范围选项；仍不生成费用项之间的全量候选列表。
-    expect(options).toBeLessThan(count * 55);
+    // 适用范围及7个集装箱收费标记仍为每项固定选项，不生成费用间的全量候选。
+    expect(options).toBeLessThan(count * 60);
     // 若退回 O(n²)，这里会是 80×79 + 静态项 ≈ 9,500
     expect(options).toBeLessThan(5000);
   });

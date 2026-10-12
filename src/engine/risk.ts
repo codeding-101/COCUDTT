@@ -42,7 +42,7 @@ const CARRIAGE_SEPARATION_NOTE =
 export const INCOTERMS_2020_RISK: RiskRule[] = [
   {
     incoterm: 'EXW',
-    transfer_point: '卖方在其场所将货物置于买方处置之下、尚未装货时',
+    transfer_point: '卖方在指定交货地点将货物置于买方处置之下、尚未装货时',
     transfer_node: 'SELLER_PREMISES',
     cost_risk_separated: false,
     separation_note: null,

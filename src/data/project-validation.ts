@@ -3,6 +3,7 @@ import {
   PRICING_METHODS, RESPONSIBILITIES, RESPONSIBILITY_SOURCES, TIER_BASES, TIER_MODES, TRADE_NODES,
 } from '../domain/enums.js';
 import { DUTY_RATE_BASES, DUTY_TYPES } from '../domain/hs-rate.js';
+import { CONTAINER_CHARGES, DELIVERY_EVENTS, INSURANCE_COVERS } from '../domain/logistics.js';
 import { EngineError } from '../engine/errors.js';
 
 type Validator = (value: unknown, path: string) => void;
@@ -66,6 +67,8 @@ const baseRef: Validator = (value, path) => {
   if (object.kind === 'COST_ITEMS') array(string)(object.ids, `${path}.ids`);
 };
 const costItem = shape({
+  container_charge: optional(oneOf(CONTAINER_CHARGES)),
+  container_charge_scope: optional(string),
   cost_id: string, cost_name: string, cost_category: oneOf(COST_CATEGORIES), trade_node: oneOf(TRADE_NODES),
   applicable_incoterms: optional(array(oneOf(INCOTERMS))),
   alternative_group: optional(string),
@@ -157,6 +160,15 @@ const project = shape({
     for (const [term, entry] of Object.entries(object)) {
       oneOf(INCOTERMS)(term, `${path}.${term}`);
       shape({
+        transport: optional(shape({
+          segments: array(shape({ segment_id: string, mode: oneOf(CARRIAGE_MODES.filter(mode => mode !== 'MULTIMODAL')), from: string, to: string, carrier: string, contract_reference: string })),
+          delivery_segment_id: string, delivery_location: string, delivery_at: oneOf(['ORIGIN', 'DESTINATION']),
+          delivery_event: oneOf(DELIVERY_EVENTS), handover_basis: oneOf(['FIRST_CARRIER', 'AGREED_POINT']), agreement_note: string, paid_to: string, evidence: optional(evidence),
+        })),
+        insurance: optional(shape({ cover: oneOf(INSURANCE_COVERS), clause_version: string, sum_insured: shape({ amount: string, currency: string }),
+          insured_from: string, insured_to: string, scope_confirmed: boolean, direct_claim_confirmed: boolean,
+          insurer: string, policy_reference: string, deductible: string, exclusions: string, agreed_cover_note: string, evidence: optional(evidence),
+        })),
         quote: optional(shape({ amount: string, currency: string, fx_type: oneOf(FX_TYPES), fx_date: optional(string), named_place: optional(string) })),
         quote_evidence: optional(evidence),
         responsibility_overrides: optional(dictionary(shape({

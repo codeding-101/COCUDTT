@@ -17,6 +17,7 @@ import type {
 } from './enums.js';
 import type { Numeric } from './decimal.js';
 import type { SourceEvidence } from './source-evidence.js';
+import type { ContainerCharge } from './logistics.js';
 
 /**
  * 计费基数引用（设计文档 4.3）。
@@ -54,6 +55,9 @@ export interface CostItem {
   // ---- 标识 ----
   cost_id: string;
   cost_name: string;
+  /** 集装箱清单提示按显式类型识别，不按自由名称猜收费口径。 */
+  container_charge?: ContainerCharge;
+  container_charge_scope?: string;
   /** 未设置适用所有术语；空数组表示不启用。用于按方案选择实际发生的费用。 */
   applicable_incoterms?: Incoterm[];
   /** 同组费用是替代报价，同一方案最多启用一项；空值表示独立费用。 */

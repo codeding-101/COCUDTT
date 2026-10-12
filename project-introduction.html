@@ -111,8 +111,8 @@
     <section id="capabilities" aria-labelledby="capabilities-title">
       <p class="eyebrow">交付状态</p><h2 id="capabilities-title">现有能力和后续工作分别列明</h2>
       <div class="grid two">
-        <article class="card"><span class="status">现有能力</span><h3>成本比较与本地交接</h3><ul><li>11 种 Incoterms® 2020 术语的费用和风险模型，六种计价方式。</li><li>术语适用费用、互斥运输报价和逐方案税额重算。</li><li>逐术语独立合同报价、指定地点、有效期核对与费用承担约定；保留原三种模拟基准。</li><li>中国一般贸易进口的人民币计税、申报日与海关汇率有效期校验，以及支持范围内的税款舍入。</li><li>独立来源记录、核对状态、业务前提检查和排名排除原因。</li><li>带版本号的标准 JSON、旧格式读取与坏文件保护；本机草稿和独立内部 HTML 报告。</li></ul></article>
-        <article class="card"><span class="status pending">后续交付与验收</span><h3>更贴近真实报价与审计</h3><ul><li>运费和汇率假设分析、更多合同及运输事实。</li><li>风险时间轴、费用承担与税基图；逐笔推理链和公式展开。</li><li>本地 Excel、实际 PDF 文件和中英文条款摘要；客户版与内部版字段隔离。</li><li>运输段、集装箱费用提醒、保险配置及结算资金成本。</li><li>专业规则复核、真实脱敏单据、多浏览器与真实手机验收，以及系统错误边界完善。</li></ul></article>
+        <article class="card"><span class="status">现有能力</span><h3>成本比较与本地交接</h3><ul><li>11 种 Incoterms® 2020 术语的费用和风险模型，六种计价方式。</li><li>术语适用费用、互斥运输报价和逐方案税额重算。</li><li>逐术语独立合同报价、指定地点、有效期核对与费用承担约定；保留原三种模拟基准。</li><li>运输分段、唯一交货点与运费终点展示；独立保单保障资料和集装箱费用核对提醒。</li><li>中国一般贸易进口的人民币计税、申报日与海关汇率有效期校验，以及支持范围内的税款舍入。</li><li>独立来源记录、核对状态、业务前提检查和排名排除原因。</li><li>带版本号的标准 JSON、旧格式读取与坏文件保护；本机草稿和独立内部 HTML 报告。</li></ul></article>
+        <article class="card"><span class="status pending">后续交付与验收</span><h3>更贴近真实报价与审计</h3><ul><li>运费和汇率假设分析、更多合同及运输事实。</li><li>完善风险时间轴、费用承担与税基图；逐笔推理链和公式展开。</li><li>本地 Excel、实际 PDF 文件和中英文条款摘要；客户版与内部版字段隔离。</li><li>运输费用与分段关联、箱量/免费期账单、附加保险及结算资金成本。</li><li>专业规则复核、真实脱敏单据、多浏览器与真实手机验收，以及系统错误边界完善。</li></ul></article>
       </div>
       <div class="boundary"><h3>使用前明确范围</h3><p>当前中国进口主流程针对单商品一票。其他国家的通用税率输入不等于已核验当地税制；多商品同票、复杂消费税和贸易救济税等需独立建模。原产地规则、待遇资格、可抵扣条件和保险合同仍需人工核对。</p><p>示例和自动化测试使用合成数据。尚未完成真实交易单据对照，不能据此宣称业务准确率或全面符合最新法规。</p></div>
     </section>
@@ -129,13 +129,13 @@
         <article class="card"><h3>采用的工程工具</h3><p><strong>TypeScript：</strong>启用 strict 和 noUncheckedIndexedAccess，让未知或缺失输入在类型与运行校验中被识别。<strong>decimal.js：</strong>十进制金额运算，税款按明确规则舍入。<strong>Vite：</strong>开发和构建。<strong>Vitest：</strong>计算、文件安全与业务边界回归。</p></article>
         <article class="card"><h3>明确的设计取舍</h3><p>本地运行避免将交易输入交给服务器；来源内容仍由使用者查验。规则和计算不依赖界面，文件结构校验与业务可用性判断分开。金额缺失不静默变成零，无法比较的方案保留原因。单文件分发简化使用，模块化源码保留可维护性。</p></article>
       </div>
-      <p class="small" style="margin-top:20px"><a href="https://github.com/codeding-101/COCUDTT/blob/codex/professional-review-and-introduction/docs/design.md">查看设计文档</a> · <a href="https://github.com/codeding-101/COCUDTT/blob/codex/professional-review-and-introduction/README.md">查看源码分支 README</a>（外部链接需联网）</p>
+      <p class="small" style="margin-top:20px"><a href="https://github.com/codeding-101/COCUDTT/blob/codex/logistics-insurance-checks/docs/design.md">查看设计文档</a> · <a href="https://github.com/codeding-101/COCUDTT/blob/codex/logistics-insurance-checks/README.md">查看源码分支 README</a>（外部链接需联网）</p>
     </section>
     <section id="evidence" aria-labelledby="evidence-title">
       <p class="eyebrow">可核查的证据</p><h2 id="evidence-title">记录对应提交，测试对应覆盖范围</h2>
       <div class="grid two">
         <article class="card"><h3>上一运价提交的 CI</h3><p><a href="https://github.com/codeding-101/COCUDTT/actions/runs/38125155331">Windows / Linux 工作流记录</a>：两套环境各通过 466 项测试，依赖审计为 0 个漏洞，类型检查、静态审查及单文件构建通过。</p><p class="small">该记录对应 PR #3 的上一运价提交（25a7e927…），属于历史工程证据，不能代表本轮介绍页验收、未来提交或公开网站状态。</p></article>
-        <article class="card"><h3>业务与浏览器检查</h3><p><a href="https://github.com/codeding-101/COCUDTT/pull/3">PR #3：方案专属运输费用</a>包含变更及适用范围。<a href="https://github.com/codeding-101/COCUDTT/blob/codex/professional-review-and-introduction/docs/scenario-costs-validation.md">运价验收记录</a>列明合成案例、文件往返、Edge 操作、报告与窄屏检查。</p><p class="small">自动化回归与浏览器检查不等于真实业务验收；真实手机文件操作和实际打印分页仍需检查。开发候选暂缓合并，公开网站未包含这些新增能力。</p></article>
+        <article class="card"><h3>业务与浏览器检查</h3><p><a href="https://github.com/codeding-101/COCUDTT/pull/3">PR #3：方案专属运输费用</a>包含变更及适用范围。<a href="https://github.com/codeding-101/COCUDTT/blob/codex/logistics-insurance-checks/docs/scenario-costs-validation.md">运价验收记录</a>列明合成案例、文件往返、Edge 操作、报告与窄屏检查。</p><p>第九轮本地 549 项回归及四套 Edge 流程通过，见<a href="https://github.com/codeding-101/COCUDTT/blob/codex/logistics-insurance-checks/docs/logistics-validation.md">运输与保险验收记录</a>。实际方案资料缺失时保留参考结果并退出确定排名；文件格式 0.8、费用规则 1.1 与物流资料核对 1.0 分别记录。</p><p class="small">自动化回归与浏览器检查不等于真实业务验收；真实手机文件操作和实际打印分页仍需检查。开发候选暂缓合并，公开网站未包含这些新增能力。</p></article>
       </div>
     </section>
     <section aria-labelledby="roadmap-title">

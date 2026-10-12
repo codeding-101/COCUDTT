@@ -70,6 +70,13 @@ const handledContractFields = matchAll(appTs, /field === '([a-z_]+)'/g);
 for (const field of contractFields) {
   if (!handledContractFields.has(field)) problems.push(`[合同字段未处理] ${field} 没有对应处理分支`);
 }
+const logisticsFields = new Set([
+  ...matchAll(uiText, /data-logistics-field="([a-z_.]+)"/g),
+  ...matchAll(uiText, /textField\('(?:transport|insurance)',\s*'([a-z_.]+)'/g),
+]);
+const logisticsHandler = appTs.slice(appTs.indexOf('function onLogisticsField('), appTs.indexOf('function addTransportSegment('));
+const handledLogisticsFields = matchAll(logisticsHandler, /'([a-z_.]+)'/g);
+for (const field of logisticsFields) if (!handledLogisticsFields.has(field)) problems.push(`[物流字段未处理] ${field} 没有对应处理分支`);
 for (const action of renderedActions) {
   if (!handledActions.has(action)) {
     problems.push(`[动作未处理] 界面渲染了 data-action="${action}"，但 app.ts 中没有对应分支`);
@@ -129,6 +136,7 @@ const projectPaths = new Set([
   'anchor.currency',
   'anchor.margin_rate',
   'facts.delivery_place',
+  'facts.loading_mode',
   'facts.shipping_terms',
   'facts.clearance_agent',
   'tax_profile.import.hsTable.basis',
