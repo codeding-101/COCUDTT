@@ -4,6 +4,7 @@ import type { ProjectFile } from '../data/project-file.js';
 import { projectCustomerQuote } from '../data/customer-quote.js';
 import { escapeHtml } from './format.js';
 import { isIsoDate } from '../engine/tax/china-import.js';
+import { renderBilingualSummary, bilingualSummaryStyles } from './bilingual-summary.js';
 
 const FIELD_LABELS:Record<keyof CustomerQuoteFields,string>={issuer:'报价提供方（公开名称）',recipient:'客户/接收方（公开名称）',reference:'公开报价编号',goods_description:'公开商品说明（留空沿用商品名称）',delivery_terms:'具体交付时间与安排',payment_terms:'付款方式、时间与币种',included_scope:'报价包含的费用范围',excluded_scope:'报价不包含的费用范围',insurance_terms:'实际保险安排或另约',tax_terms:'税费口径与适用条件',remarks:'其他公开备注'};
 export const customerQuoteFileName=(quote:CustomerQuote):string=>`${(quote.reference||'客户报价说明').replace(/[\\/:*?"<>|]/g,'-').slice(0,80)}-客户报价草稿.html`;
@@ -35,17 +36,22 @@ const styles=`.customer-quote{color:#162338;font:14px/1.65 system-ui,"Microsoft 
 export function createCustomerQuoteDocument(quote:CustomerQuote,generatedAt=new Date().toISOString()):string {
   return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(quote.reference||'客户报价说明')} · 报价草稿</title><style>${styles}body{margin:0;padding:20px;background:white}</style></head><body><main>${renderCustomerQuoteBody(quote,generatedAt)}<p class="customer-quote">生成时间（ISO时间戳）：${escapeHtml(generatedAt)}</p></main></body></html>`;
 }
-export function renderCustomerQuotePanel(project:ProjectFile,fields:CustomerQuoteFields,reviewed:boolean,quote:CustomerQuote|null,error:string|null,pdfBusy=false):string {
+export function renderCustomerQuotePanel(project:ProjectFile,fields:CustomerQuoteFields,reviewed:boolean,quote:CustomerQuote|null,error:string|null,pdfBusy=false,summaryBusy=false):string {
+  let summary:string|null=null,summaryError:string|null=null;
+  if(quote)try{summary=renderBilingualSummary(quote);}catch{summaryError='中英文模板与公开提示不一致，请核对后再导出摘要';}
   return `<details class="panel" data-evidence-section="customer-quote"><summary><span class="panel-title">客户报价预览 · 公开字段</span></summary><div class="panel-body">
     <p>导出对象是客户报价说明草稿。报价取当前术语实际合同原币总额；下方明确填写的文字将进入客户文件，请只填写允许对外发送的内容。参数仅保留在本页，新建/打开项目重置。</p>
     <p class="hint">内部测算报告包含采购成本、利润、来源及完整输入，供内部复核。客户说明从公开字段重新生成，不能替代正式合同或税务确认。</p>
     <div class="customer-fields">${CUSTOMER_QUOTE_FIELDS.map(key=>`<label>${FIELD_LABELS[key]}<textarea rows="${['issuer','recipient','reference'].includes(key)?1:3}" maxlength="4000" data-customer-field="${key}"${key==='goods_description'?` placeholder="${escapeHtml(project.goods.name)}"`:''}>${escapeHtml(fields[key])}</textarea></label>`).join('')}</div>
     ${error?`<p class="banner error" role="alert">客户预览尚未生成：${escapeHtml(error)}</p>`:''}
     ${quote?`<div class="customer-preview" aria-label="客户将看到的内容"><style>${styles}</style>${renderCustomerQuoteBody(quote)}</div>`:'<p class="hint">请先录入当前术语的实际报价、指定地点、商品数量及单位。</p>'}
+    ${summary?`<details data-customer-bilingual><summary>检查中英文条款摘要</summary><style>${bilingualSummaryStyles()}</style>${summary}</details>`:summaryError?`<p class="banner error" role="alert">${summaryError}</p>`:''}
     <label class="customer-review"><input type="checkbox" data-customer-field="reviewed"${reviewed?' checked':''}${!quote?' disabled':''}>已检查上方公开内容，作为待双方确认的草稿导出</label>
     <button data-action="export-customer-quote"${!quote||!reviewed?' disabled':''}>导出客户报价说明（HTML）</button>
     <button data-action="export-customer-xlsx"${!quote||!reviewed?' disabled':''}>导出客户报价 Excel 草稿</button>
     <button data-action="export-customer-pdf"${!quote||!reviewed||pdfBusy?' disabled':''}>${pdfBusy?'正在生成 PDF…':'导出客户报价 PDF 草稿'}</button>
+    <button data-action="export-bilingual-summary"${!summary||!reviewed||summaryBusy?' disabled':''}>${summaryBusy?'正在导出摘要…':'导出中英文条款摘要（HTML）'}</button>
+    <p class="hint">摘要使用固定中英文提示；公开自由文本保留原文，未经自动翻译。检查原文、英文提示与待确认事项后再导出。</p>
     <p class="hint">PDF在本机生成，长条款自动分页。字体不支持的字符会提示并停止；可保留原文使用HTML或Excel。</p>
     <p class="hint">编辑公开字段或项目后须重新检查。导出不保存项目、不改变来源确认，也不包含假设分析结果。</p></div></details>`;
 }
