@@ -7,7 +7,7 @@ const root = process.env.BROWSER_CHECK_OUTPUT ?? join(tmpdir(), 'cocudtt-browser
 await mkdir(root, { recursive: true });
 const port = process.env.BROWSER_CHECK_PORT ?? '9317';
 const targets = await (await fetch(`http://127.0.0.1:${port}/json`)).json();
-const ws = new WebSocket(targets.find((target) => target.type === 'page').webSocketDebuggerUrl);
+const ws = new WebSocket(targets.find((target) => target.type === 'page' && !target.url.startsWith('edge://')).webSocketDebuggerUrl);
 await new Promise((resolve, reject) => { ws.onopen = resolve; ws.onerror = reject; });
 let id = 0;
 const pending = new Map();

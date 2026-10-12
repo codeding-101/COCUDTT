@@ -41,6 +41,8 @@ import { newSensitivityControls, projectSensitivity, renderSensitivityPanel, sen
 import type { SensitivityResult } from '../engine/sensitivity.js';
 import { emptyCustomerQuoteFields, CUSTOMER_QUOTE_FIELDS, type CustomerQuote } from '../domain/customer-quote.js';
 import { createCustomerQuoteDocument, customerQuoteFileName, projectCustomerQuote, renderCustomerQuotePanel } from './customer-quote.js';
+import { createCustomerWorkbook, createInternalWorkbook } from './workbook-export.js';
+import { XLSX_MIME } from '../data/xlsx-file.js';
 
 const DRAFT_KEY = 'trade-cost-engine:draft-v1';
 
@@ -764,7 +766,7 @@ interface SaveFilePickerWindow extends Window {
     types?: { description: string; accept: Record<string, string[]> }[];
   }) => Promise<{
     name: string;
-    createWritable: () => Promise<{ write: (data: string) => Promise<void>; close: () => Promise<void> }>;
+    createWritable: () => Promise<{ write: (data: string | Blob) => Promise<void>; close: () => Promise<void> }>;
   }>;
 }
 
@@ -839,6 +841,37 @@ async function exportReport(): Promise<void> {
     }
   }
   // 报告导出不是项目保存，不更改dirty、fileName、savedAt或草稿。
+  render();
+}
+
+async function exportWorkbook(customer: boolean): Promise<void> {
+  const label = customer ? '客户报价 Excel 草稿' : '内部成本 Excel';
+  try {
+    if (customer && !customerReviewed) throw new Error('请先检查客户预览中的公开内容');
+    const project = currentProject();
+    const quote = customer ? projectCustomerQuote(project, customerFields) : null;
+    const bytes = quote ? createCustomerWorkbook(quote) : createInternalWorkbook(project, undefined, sensitivityControls.enabled ? sensitivityControls : undefined);
+    const name = quote ? customerQuoteFileName(quote).replace(/\.html$/, '.xlsx') : safeFileName(`${project.name || 'trade-cost'}-内部成本`, 'xlsx');
+    const blob = new Blob([bytes], { type: XLSX_MIME });
+    const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
+    if (picker !== undefined) {
+      const handle = await picker.call(window, { suggestedName: name, types: [{ description: label, accept: { [XLSX_MIME]: ['.xlsx'] } }] });
+      const writable = await handle.createWritable(); await writable.write(blob); await writable.close();
+      state.status = `已导出${label} ${handle.name}；项目文件仍需单独保存${state.dirty ? '；有未保存改动' : ''}`;
+    } else {
+      const url = URL.createObjectURL(blob);
+      try { const anchor = document.createElement('a'); anchor.href = url; anchor.download = name; anchor.click(); }
+      finally { setTimeout(() => URL.revokeObjectURL(url), 1000); }
+      state.status = `已发起${label}下载，请确认文件已保存；项目保存状态未改变`;
+    }
+    state.statusLevel = 'warn';
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      state.status = `已取消${label}导出，项目保存状态未改变`; state.statusLevel = 'warn';
+    } else {
+      state.status = `${label}导出失败：${isEngineError(error) ? error.message : String(error)}`; state.statusLevel = 'error';
+    }
+  }
   render();
 }
 
@@ -940,6 +973,7 @@ function render(): void {
         <button data-action="open">打开项目</button>
         <button class="primary" data-action="save">保存项目</button>
         <button data-action="export-report"${state.result === null || state.comparison === null ? ' disabled' : ''}>导出内部测算报告</button>
+        <button data-action="export-internal-xlsx"${state.comparison === null ? ' disabled' : ''}>导出内部成本 Excel</button>
         <button data-action="preview-customer-quote">客户报价预览</button>
         <input type="file" id="file-input" accept=".json,application/json" style="display:none" />
       </div>
@@ -1139,6 +1173,8 @@ function bind(): void {
         document.querySelector('[data-evidence-section="customer-quote"]')?.scrollIntoView({ block: 'start' });
         break;
       case 'export-customer-quote': void exportCustomerQuote(); break;
+      case 'export-customer-xlsx': void exportWorkbook(true); break;
+      case 'export-internal-xlsx': void exportWorkbook(false); break;
       case 'add-transport-segment': addTransportSegment(); commit(); break;
       case 'remove-transport-segment': {
         const record = state.project.term_scenarios?.[state.project.incoterm]; const plan = record?.transport;

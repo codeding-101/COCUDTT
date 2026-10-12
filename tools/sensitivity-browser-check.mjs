@@ -20,7 +20,7 @@ try {
   for(const book of foreign.fx_books)book.evidence={'USD/CNY':syntheticEvidence(fxEvidenceValues({...book,from:'USD',to:'CNY',rate:book.rates['USD/CNY']}))};
 } finally { await server.close(); }
 const targets = await (await fetch(`http://127.0.0.1:${process.env.BROWSER_CHECK_PORT ?? '9358'}/json`)).json();
-const ws = new WebSocket(targets.find(t => t.type === 'page').webSocketDebuggerUrl);
+const ws = new WebSocket(targets.find(t => t.type === 'page' && !t.url.startsWith('edge://')).webSocketDebuggerUrl);
 await new Promise((resolve, reject) => { ws.onopen = resolve; ws.onerror = reject; });
 let id = 0; const pending = new Map(), exceptions = [];
 ws.onmessage = event => {

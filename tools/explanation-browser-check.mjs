@@ -15,7 +15,7 @@ try {
 const rounding = JSON.parse(await readFile(resolve('tests/fixtures/import-cases/consumption-rounding.project.json'), 'utf8'));
 const dualFx = JSON.parse(await readFile(resolve('tests/fixtures/import-cases/cif-dual-fx.project.json'), 'utf8'));
 const targets = await (await fetch(`http://127.0.0.1:${process.env.BROWSER_CHECK_PORT ?? '9356'}/json`)).json();
-const ws = new WebSocket(targets.find(t => t.type === 'page').webSocketDebuggerUrl);
+const ws = new WebSocket(targets.find(t => t.type === 'page' && !t.url.startsWith('edge://')).webSocketDebuggerUrl);
 await new Promise((resolve, reject) => { ws.onopen = resolve; ws.onerror = reject; });
 let id = 0; const pending = new Map(), exceptions = [];
 ws.onmessage = event => {

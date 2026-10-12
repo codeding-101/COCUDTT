@@ -46,7 +46,7 @@ describe('打开、保存项目的失败处理', () => {
     });
     vi.stubGlobal('window', {});
   });
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
   async function start() {
     const app = await import('../src/ui/app');
@@ -272,6 +272,33 @@ describe('打开、保存项目的失败处理', () => {
     evidence('duty-eligibility', '', 'status', 'USER_CONFIRMED');
     expect(html).toContain('符合当前排名检查条件');
     expect(html).toContain('原产国/地区：法国');
+  });
+
+  it('客户Excel写入原生二进制文件，不改草稿，内部数据不进入任何部件',async()=>{
+    await start();await customerProject();customer('reference','PUBLIC-EXCEL');customer('reviewed','',true);const before=storage.get(key);let blob:Blob|null=null,suggested='';
+    vi.stubGlobal('window',{showSaveFilePicker:async(options:{suggestedName:string})=>{suggested=options.suggestedName;return{name:'public.xlsx',createWritable:async()=>({write:async(data:Blob)=>{blob=data;},close:async()=>{}})}}});
+    action('export-customer-xlsx');await vi.waitFor(()=>expect(blob).not.toBeNull());const {unzipSync,strFromU8}=await import('fflate');const all=Object.values(unzipSync(new Uint8Array(await blob!.arrayBuffer()))).map(bytes=>strFromU8(bytes)).join('');
+    expect(suggested).toBe('PUBLIC-EXCEL-客户报价草稿.xlsx');expect(all).toContain('PUBLIC-EXCEL');expect(all).not.toContain('PRIVATE_CUSTOMER_FILENAME_997');expect(all).not.toContain('seller_goods_cost');expect(storage.get(key)).toBe(before);expect(html).toContain('已导出客户报价 Excel 草稿');
+  });
+  it('客户Excel未检查/修改后阻止写盘，取消与失败不触发降级下载',async()=>{
+    await start();await customerProject();const picker=vi.fn();vi.stubGlobal('window',{showSaveFilePicker:picker});action('export-customer-xlsx');await vi.waitFor(()=>expect(html).toContain('请先检查客户预览'));expect(picker).not.toHaveBeenCalled();
+    customer('reviewed','',true);customer('reference','MODIFIED');action('export-customer-xlsx');await vi.waitFor(()=>expect(html).toContain('请先检查客户预览'));expect(picker).not.toHaveBeenCalled();
+    customer('reviewed','',true);const before=storage.get(key);vi.stubGlobal('window',{showSaveFilePicker:async()=>{throw new DOMException('cancel','AbortError');}});action('export-customer-xlsx');await vi.waitFor(()=>expect(html).toContain('已取消客户报价 Excel 草稿'));
+    vi.stubGlobal('window',{showSaveFilePicker:async()=>({name:'public.xlsx',createWritable:async()=>({write:async()=>{throw new Error('disk-full');},close:async()=>{}})})});action('export-customer-xlsx');await vi.waitFor(()=>expect(html).toContain('Excel 草稿导出失败'));expect(storage.get(key)).toBe(before);expect(createElement).not.toHaveBeenCalled();
+  });
+  it('文件选择期间修改项目不改变已生成的Excel快照',async()=>{
+    await start();await customerProject();customer('reviewed','',true);let resolvePicker!:(handle:unknown)=>void;let blob:Blob|null=null;
+    vi.stubGlobal('window',{showSaveFilePicker:()=>new Promise(resolve=>{resolvePicker=resolve;})});action('export-customer-xlsx');change('term_scenarios.FOB.quote.amount','12345');
+    resolvePicker({name:'public.xlsx',createWritable:async()=>({write:async(data:Blob)=>{blob=data;},close:async()=>{}})});await vi.waitFor(()=>expect(blob).not.toBeNull());const {unzipSync,strFromU8}=await import('fflate');const text=strFromU8(unzipSync(new Uint8Array(await blob!.arrayBuffer()))['xl/worksheets/sheet1.xml']!);expect(text).toContain('<v>10000</v>');expect(text).not.toContain('<v>12345</v>');expect(JSON.parse(storage.get(key)!).project.term_scenarios.FOB.quote.amount).toBe('12345');
+  });
+  it('内部Excel保留内部项目和完整输入，导出不代表项目已保存',async()=>{
+    await start();await customerProject();const before=storage.get(key);let blob:Blob|null=null;
+    vi.stubGlobal('window',{showSaveFilePicker:async()=>({name:'internal.xlsx',createWritable:async()=>({write:async(data:Blob)=>{blob=data;},close:async()=>{}})})});action('export-internal-xlsx');await vi.waitFor(()=>expect(blob).not.toBeNull());const {unzipSync,strFromU8}=await import('fflate');const all=Object.values(unzipSync(new Uint8Array(await blob!.arrayBuffer()))).map(bytes=>strFromU8(bytes)).join('');expect(all).toContain('PRIVATE_CUSTOMER_FILENAME_997');expect(all).toContain('seller_goods_cost');expect(html).toContain('项目文件仍需单独保存');expect(storage.get(key)).toBe(before);
+  });
+  it('Excel下载回退保持草稿和未保存状态，不能把导出当项目保存',async()=>{
+    await start();await customerProject();customer('reviewed','',true);const before=storage.get(key),click=vi.fn(),revoke=vi.fn();let blob:Blob|null=null;
+    createElement.mockReturnValue({click});vi.spyOn(URL,'createObjectURL').mockImplementation(data=>{if(!(data instanceof Blob))throw new Error('Expected Blob');blob=data;return 'blob:test';});vi.spyOn(URL,'revokeObjectURL').mockImplementation(revoke);
+    action('export-customer-xlsx');await vi.waitFor(()=>expect(html).toContain('已发起客户报价 Excel 草稿下载'));expect(click).toHaveBeenCalledOnce();expect(blob).toBeInstanceOf(Blob);expect(storage.get(key)).toBe(before);expect(html).toContain('项目保存状态未改变');await vi.waitFor(()=>expect(revoke).toHaveBeenCalledWith('blob:test'),{timeout:1500});vi.restoreAllMocks();
   });
 
   it('抵扣开关不能替代身份、用途及凭证核对，修改用途撤销确认', async () => {
