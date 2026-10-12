@@ -54,6 +54,8 @@ import { createCustomerWorkbook, createInternalWorkbook } from './workbook-expor
 import { XLSX_MIME } from '../data/xlsx-file.js';
 import fontLicense from '../assets/fonts/LICENSE-OFL.txt?raw';
 import fontProvenance from '../assets/fonts/provenance.json?raw';
+import { inputFailure } from './ui-failure.js';
+import { showRecoveryView, clearRecoveryView, type FailureStage } from './recovery.js';
 
 const DRAFT_KEY = 'trade-cost-engine:draft-v1';
 
@@ -144,7 +146,11 @@ function initialState(): AppState {
   };
 }
 
-let state: AppState = initialState();
+let state: AppState;
+let stateInitialized = false;
+let recoveryStage: FailureStage | null = null;
+let boundRoot: HTMLDivElement | null = null;
+const boundEvents = new Set<string>();
 let sensitivityControls = newSensitivityControls();
 let sensitivityAnalysis: SensitivityResult | null = null;
 let sensitivityError: string | null = null;
@@ -158,6 +164,44 @@ let customerPdfBusy = false;
 let settlementPlan: SettlementPlan | null = null;
 let settlementBusy = false;
 let settlementEpoch = 0;
+
+function showFatalFailure(stage: FailureStage): void {
+  recoveryStage = stage;
+  settlementEpoch++;
+  if (stateInitialized) { state.result = null; state.comparison = null; }
+  customerReviewed = false; customerPreview = null; sensitivityAnalysis = null;
+  showRecoveryView(stage,{retry:retryInterface,backup:backupRecovery});
+}
+function runUi(stage: FailureStage, operation: () => void): void {
+  try { operation(); } catch { showFatalFailure(stage); }
+}
+function retryInterface(): void {
+  const initializing = !stateInitialized;
+  const startupWarning = stateInitialized && state.status === draftFailure ? draftFailure : null;
+  recoveryStage = null;
+  runUi('STARTUP',()=>{
+    if (!stateInitialized) { state = initialState(); stateInitialized = true; }
+    bind(); recompute(false);
+    if ((initializing && draftFailure) || startupWarning) { state.status = startupWarning ?? draftFailure!; state.statusLevel = 'warn'; }
+    render();
+  });
+}
+function backupRecovery(): void {
+  if (!recoveryStage) return;
+  let draft: string | null = null;
+  try { draft = localStorage.getItem(DRAFT_KEY); } catch { /* Memory backup remains available. */ }
+  try {
+    // Raw inputs, including uncommitted FX rows, without running any calculation/validator.
+    const text = JSON.stringify({kind:'INTERNAL_RECOVERY_SNAPSHOT',version:'1.0',stage:recoveryStage,
+      project:stateInitialized ? state.project : null,fx_rows:stateInitialized ? state.fxRows : null,
+      settlement_plan:settlementPlan,sensitivity:sensitivityControls,customer_fields:customerFields,
+      browser_draft_text:draft},null,2) + '\n';
+    downloadText('internal-recovery-snapshot.json',text);
+    showRecoveryView(recoveryStage,{retry:retryInterface,backup:backupRecovery},'已发起内部恢复备份下载，请确认文件已保存；原项目与草稿未改写');
+  } catch {
+    showRecoveryView(recoveryStage,{retry:retryInterface,backup:backupRecovery},'恢复备份下载失败，当前内存输入仍保留；请不要刷新，检查浏览器下载权限后重试');
+  }
+}
 
 function onSettlementField(target: HTMLInputElement | HTMLSelectElement): void {
   if (!settlementPlan) return;
@@ -262,7 +306,9 @@ function recompute(persistDraft = true): void {
   } catch (error) {
     state.result = null;
     state.comparison = null;
-    state.error = isEngineError(error) ? `[${error.code}] ${error.message}` : `[未知错误] ${String(error)}`;
+    if (!isEngineError(error)) throw error;
+    const failure = inputFailure(error);
+    state.error = `${failure.message}\n${failure.hint}`;
     if (isEngineError(error) && (project.anchor.kind === 'ACTUAL_QUOTES' || project.term_scenarios !== undefined || project.items.some(item => item.applicable_incoterms !== undefined || item.alternative_group?.trim()))) {
       try {
         state.comparison = compare({ trade: toTrade(project), template: toScenario(project), anchor: project.anchor,
@@ -271,7 +317,7 @@ function recompute(persistDraft = true): void {
           ...(project.export_date !== undefined ? { today: project.export_date } : {}) });
       } catch { /* 公共输入不完整时仍显示错误，不沿用旧结果。 */ }
     }
-    state.status = '输入不足以完成计算';
+    state.status = `输入不足以完成计算：${failure.hint}`;
     state.statusLevel = 'error';
   }
   if (persistDraft) draftStorageUnavailable = !saveDraft(state.project, state.fxRows);
@@ -840,9 +886,15 @@ interface SaveFilePickerWindow extends Window {
 }
 
 async function saveProject(): Promise<void> {
-  const project = touchProject(currentProject());
-  const text = serializeProject(project);
-  const suggested = safeFileName(project.name);
+  let text: string, suggested: string;
+  try {
+    const project = touchProject(currentProject());
+    text = serializeProject(project); suggested = safeFileName(project.name);
+  } catch (error) {
+    const failure = inputFailure(error);
+    state.status = `保存失败，当前改动尚未写入项目文件：${failure.message}；${failure.hint}`;
+    state.statusLevel = 'error'; render(); return;
+  }
   const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
   if (picker !== undefined) {
     try {
@@ -1021,7 +1073,8 @@ async function exportCustomerQuote(bilingual=false): Promise<void> {
 }
 
 function showFileError(error: unknown): void {
-  state.status = isEngineError(error) ? `[${error.code}] ${error.message}` : `打开失败：${String(error)}`;
+  const failure = inputFailure(error);
+  state.status = isEngineError(error) ? `${failure.message}；${failure.hint}` : `打开失败：${error instanceof Error ? error.message : '文件无法读取，请核对文件内容与读取权限'}`;
   state.statusLevel = 'error';
   render();
 }
@@ -1084,6 +1137,10 @@ function saveStateText(): { text: string; className: string } {
 }
 
 function render(): void {
+  if (recoveryStage) return;
+  runUi('RENDER',()=>{ renderApp(); clearRecoveryView(); });
+}
+function renderApp(): void {
   const app = document.querySelector<HTMLDivElement>('#app');
   if (app === null) return;
   const focused = focusKeyOf(document.activeElement ?? document.body);
@@ -1115,7 +1172,7 @@ function render(): void {
           <p>面向外贸业务人员的本地成本测算工具，当前重点是中国一般贸易进口、单商品一票。录入货物净价与费用，记录税率、汇率及业务条件，再比较贸易术语下的买方支付和费用承担。</p>
           <p>项目以标准 JSON 保存，带版本号；计算、项目文件与内部 HTML 报告均在本机处理。请先打开“中国进口示例”理解口径，再用“新建中国进口”录入自己的数据。</p>
           <p>结果中的费用依据可展开查看归属规则、候选条件与汇总去重；计算过程保留真实操作数、税款舍入和免征前后值。四张费用与税基图使用本次测算，内部报告同步保留解释。</p>
-          <p>来源未核对、条件未确认和未知卖方成本会明确提示。客户HTML、Excel、PDF与中英文摘要、内部报告及项目模板均在本机生成。内部付款计划独立保存、按原币逐笔对账，银行费用不重复写回成本。多商品、其他国家专用税制和资金成本仍属后续范围；专业与真实单据验收暂缓。</p>
+          <p>来源未核对、条件未确认和未知卖方成本会明确提示。客户HTML、Excel、PDF与中英文摘要、内部报告及项目模板均在本机生成。内部付款计划独立保存、按原币逐笔对账，银行费用不重复写回成本；资金占用按明确本金、日期、利率和年基数独立测算。多商品、其他国家专用税制和复杂资金安排仍属后续范围；专业与真实单据验收暂缓。</p>
           <p>工程采用严格 TypeScript、decimal.js、Vite 与 Vitest，分开维护领域类型、规则与计算、文件校验和界面。<a href="project-introduction.html">完整项目介绍</a>介绍设计取舍及验证证据；该独立页面与工具放在同一目录时可打开，本说明无需额外文件。</p>
           <details><summary>PDF 字体许可与来源</summary><pre class="font-license">${escapeHtml(fontProvenance)}\n${escapeHtml(fontLicense)}</pre></details>
         </div>
@@ -1185,8 +1242,14 @@ function populateContainedIn(select: HTMLSelectElement, costId: string): void {
 function bind(): void {
   const app = document.querySelector<HTMLDivElement>('#app');
   if (app === null) return;
+  if (boundRoot !== app) { boundRoot = app; boundEvents.clear(); }
+  const listen = (type: string, listener: (event: Event) => void, capture = false): void => {
+    if (boundEvents.has(type)) return;
+    app.addEventListener(type,event=>{ if (!recoveryStage) runUi('INTERACTION',()=>listener(event)); },capture);
+    boundEvents.add(type);
+  };
 
-  app.addEventListener('focusin', (event) => {
+  listen('focusin', (event) => {
     const target = event.target;
     if (!(target instanceof HTMLSelectElement)) return;
     if (target.dataset.lazyOptions !== 'contained-in') return;
@@ -1195,7 +1258,7 @@ function bind(): void {
   });
 
   // details 的 toggle 不冒泡，用捕获阶段监听
-  app.addEventListener(
+  listen(
     'toggle',
     (event) => {
       const target = event.target;
@@ -1214,7 +1277,7 @@ function bind(): void {
     true,
   );
 
-  app.addEventListener('change', (event) => {
+  listen('change', (event) => {
     const target = event.target;
 
     if (target instanceof HTMLInputElement && target.id === 'settlement-file-input') {
@@ -1235,7 +1298,7 @@ function bind(): void {
     if (target instanceof HTMLInputElement && target.id === 'file-input') {
       const file = target.files?.[0];
       if (file === undefined) return;
-      void file.text().then((text) => openProjectFromText(text, file.name)).catch(showFileError);
+      void file.text().then((text) => { if (!recoveryStage) runUi('INTERACTION',()=>openProjectFromText(text,file.name)); }).catch(showFileError);
       return;
     }
 
@@ -1310,7 +1373,7 @@ function bind(): void {
     commit();
   });
 
-  app.addEventListener('click', (event) => {
+  listen('click', (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
     const action = target.dataset.action;
@@ -1476,6 +1539,10 @@ function bind(): void {
 }
 
 export function start(): void {
+  runUi('STARTUP',startApplication);
+}
+function startApplication(): void {
+  if (!stateInitialized) { state = initialState(); stateInitialized = true; }
   bind();
   recompute(draftFailure === null);
   if (draftFailure !== null) {

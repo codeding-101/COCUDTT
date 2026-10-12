@@ -20,6 +20,15 @@ describe('打开、保存项目的失败处理', () => {
   let listeners: Map<string, (event: { target: ElementStub }) => void>;
   let storage: Map<string, string>;
   let createElement: ReturnType<typeof vi.fn>;
+  let appRoot: { innerHTML: string; hidden: boolean; addEventListener: (name: string, handler: (event: { target: ElementStub }) => void) => void; insertAdjacentElement: (position: string, panel: RecoveryPanelStub) => void };
+  let recoveryPanel: RecoveryPanelStub | null;
+  class RecoveryPanelStub {
+    id=''; className=''; innerHTML='';
+    callbacks=new Map<string,()=>void>();
+    setAttribute() {}
+    querySelector(id:string) {return {addEventListener: (_type:string,callback:()=>void)=>this.callbacks.set(id,callback)}}
+    remove() {recoveryPanel=null}
+  }
   const key = 'trade-cost-engine:draft-v1';
 
   beforeEach(() => {
@@ -28,16 +37,20 @@ describe('打开、保存项目的失败处理', () => {
     listeners = new Map();
     storage = new Map();
     createElement = vi.fn();
+    recoveryPanel=null;
     const app = {
+      hidden:false,
       get innerHTML() { return html; },
       set innerHTML(value: string) { html = value; },
       addEventListener: (name: string, handler: (event: { target: ElementStub }) => void) => listeners.set(name, handler),
+      insertAdjacentElement: (_position:string,panel:RecoveryPanelStub) => {recoveryPanel=panel},
     };
+    appRoot=app;
     vi.stubGlobal('HTMLElement', ElementStub);
     vi.stubGlobal('HTMLInputElement', InputStub);
     vi.stubGlobal('HTMLSelectElement', class extends ElementStub {});
     vi.stubGlobal('document', {
-      querySelector: (selector: string) => selector === '#app' ? app : null,
+      querySelector: (selector: string) => selector === '#app' ? app : selector === '#app-recovery' ? recoveryPanel : null,
       querySelectorAll: () => [], activeElement: null, body: new ElementStub(), createElement,
     });
     vi.stubGlobal('localStorage', {
@@ -76,6 +89,43 @@ describe('打开、保存项目的失败处理', () => {
     if(row){input.dataset.settlementRow=row;input.dataset.settlementIndex=String(index);}listeners.get('change')!({target:input});
   }
   function openSettlement(text:()=>Promise<string>){const input=new InputStub();input.id='settlement-file-input';input.files=[{name:'payment.json',text}];listeners.get('change')!({target:input});}
+  function recoveryElements(download?:()=>void) {
+    createElement.mockImplementation((tag:string)=>tag==='section'?new RecoveryPanelStub():{click:download??(()=>{}),href:'',download:''});
+    vi.spyOn(URL,'createObjectURL').mockReturnValue('blob:recovery');vi.spyOn(URL,'revokeObjectURL').mockImplementation(()=>{});
+  }
+  it('渲染异常隐藏旧结果，恢复备份包含当前资金/付款/汇率和客户输入，重试不写草稿',async()=>{
+    await start();await customerProject();action('settlement-create');fundingInputs();customer('remarks','PRIVATE_CUSTOMER_RECOVERY_748');
+    const original=storage.get(key);let blob:Blob|null=null;recoveryElements();vi.spyOn(URL,'createObjectURL').mockImplementation(data=>{blob=data as Blob;return 'blob:recovery'});
+    const views=await import('../src/ui/views-input');const fault=vi.spyOn(views,'renderFormsRow').mockImplementation(()=>{throw Error('PRIVATE_EXCEPTION_884<script>')});
+    settlement('notes','KEEP_PLAN_RECOVERY_911');expect(appRoot.hidden).toBe(true);expect(recoveryPanel!.innerHTML).toContain('界面暂时无法显示');expect(recoveryPanel!.innerHTML).not.toContain('PRIVATE_EXCEPTION_884');
+    recoveryPanel!.callbacks.get('#recovery-backup')!();const backup=JSON.parse(await blob!.text());expect(backup).toMatchObject({kind:'INTERNAL_RECOVERY_SNAPSHOT',stage:'RENDER',settlement_plan:{notes:'KEEP_PLAN_RECOVERY_911',funding:{principal:'12000'}},customer_fields:{remarks:'PRIVATE_CUSTOMER_RECOVERY_748'}});expect(backup.fx_rows).toBeInstanceOf(Array);expect(storage.get(key)).toBe(original);
+    fault.mockRestore();recoveryPanel!.callbacks.get('#recovery-retry')!();expect(appRoot.hidden).toBe(false);expect(recoveryPanel).toBeNull();expect(html).toContain('KEEP_PLAN_RECOVERY_911');expect(html).toContain('60 USD');expect(storage.get(key)).toBe(original);
+  });
+  it('计算意外异常不能被伪装为输入错误，不保存失败计算或显示旧结果',async()=>{
+    recoveryElements();const project=sampleProjectFile(),raw=JSON.stringify({project,fxRows:booksToRows(project.fx_books)});storage.set(key,raw);
+    const engine=await import('../src/engine/analyze');const fault=vi.spyOn(engine,'analyze').mockImplementationOnce(()=>{throw Error('PRIVATE_ENGINE_RUNTIME_836')});
+    await start();expect(appRoot.hidden).toBe(true);expect(storage.get(key)).toBe(raw);expect(recoveryPanel!.innerHTML).not.toContain('PRIVATE_ENGINE_RUNTIME_836');fault.mockRestore();recoveryPanel!.callbacks.get('#recovery-retry')!();expect(appRoot.hidden).toBe(false);expect(storage.get(key)).toBe(raw);
+  });
+  it('启动准备失败仍可备份原始坏草稿，重试保留原文和恢复失败提示',async()=>{
+    recoveryElements();const raw='broken PRIVATE_DRAFT_START_716';storage.set(key,raw);let blob:Blob|null=null;vi.spyOn(URL,'createObjectURL').mockImplementation(data=>{blob=data as Blob;return 'blob:recovery'});
+    const samples=await import('../src/data/sample-project');vi.spyOn(samples,'sampleProjectFile').mockImplementationOnce(()=>{throw Error('PRIVATE_START_EXCEPTION_671')});
+    await start();expect(appRoot.hidden).toBe(true);expect(recoveryPanel!.innerHTML).toContain('启动');recoveryPanel!.callbacks.get('#recovery-backup')!();const backup=JSON.parse(await blob!.text());expect(backup.project).toBeNull();expect(backup.browser_draft_text).toBe(raw);
+    recoveryPanel!.callbacks.get('#recovery-retry')!();expect(appRoot.hidden).toBe(false);expect(html).toContain('上次的草稿无法读取');expect(storage.get(key)).toBe(raw);
+  });
+  it('事件异常进入恢复面板，失败期间停止旧界面操作，备份下载失败不清除输入',async()=>{
+    await start();const before=storage.get(key);recoveryElements(()=>{throw Error('blocked download')});
+    const presets=await import('../src/data/cost-presets');vi.spyOn(presets,'customCostItem').mockImplementationOnce(()=>{throw Error('runtime fault')});action('add-custom');expect(recoveryPanel!.innerHTML).toContain('操作处理');expect(appRoot.hidden).toBe(true);
+    action('new-china-blank');expect(storage.get(key)).toBe(before);recoveryPanel!.callbacks.get('#recovery-backup')!();expect(recoveryPanel!.innerHTML).toContain('恢复备份下载失败');expect(storage.get(key)).toBe(before);recoveryPanel!.callbacks.get('#recovery-retry')!();expect(appRoot.hidden).toBe(false);
+  });
+  it('重复重试不重复绑定事件，未完成输入仍可改正，存储禁用不阻断内存备份',async()=>{
+    await start();recoveryElements();const views=await import('../src/ui/views-input');const fault=vi.spyOn(views,'renderFormsRow').mockImplementation(()=>{throw Error('view fault')});change('goods.quantity','');
+    const handlers=new Map(listeners);recoveryPanel!.callbacks.get('#recovery-retry')!();expect(recoveryPanel).not.toBeNull();fault.mockRestore();recoveryPanel!.callbacks.get('#recovery-retry')!();expect(listeners).toEqual(handlers);expect(html).toContain('留空不等于零');
+    vi.spyOn(views,'renderFormsRow').mockImplementation(()=>{throw Error('view fault')});change('goods.quantity','100');vi.stubGlobal('localStorage',{getItem:()=>{throw Error('denied')},setItem:()=>{throw Error('denied')}});let blob:Blob|null=null;vi.spyOn(URL,'createObjectURL').mockImplementation(data=>{blob=data as Blob;return 'blob:recovery'});recoveryPanel!.callbacks.get('#recovery-backup')!();expect(JSON.parse(await blob!.text()).project.goods.quantity).toBe('100');expect(JSON.parse(await blob!.text()).browser_draft_text).toBeNull();
+  });
+  it('项目保存准备失败被捕获，不调用文件选择器或触发额外下载',async()=>{
+    await start();const before=storage.get(key),picker=vi.fn();vi.stubGlobal('window',{showSaveFilePicker:picker});const file=await import('../src/data/project-file');vi.spyOn(file,'serializeProject').mockImplementationOnce(()=>{throw Error('prepare failed')});
+    save();await vi.waitFor(()=>expect(html).toContain('保存失败'));expect(picker).not.toHaveBeenCalled();expect(createElement).not.toHaveBeenCalled();expect(storage.get(key)).toBe(before);expect(appRoot.hidden).toBe(false);
+  });
   function fundingInputs() {
     for (const [key,value] of Object.entries({status:'PROVIDED',kind:'OPPORTUNITY',party:'SELLER',principal:'12000',currency:'USD',start_date:'2026-09-01',end_date:'2026-10-01',annual_rate:'6',day_basis:'ACT_360',reference:'PRIVATE_FUNDING_UI_981'})) settlement(key,value,'funding');
   }
@@ -466,7 +516,7 @@ describe('打开、保存项目的失败处理', () => {
     await start();
     const draft = storage.get(key);
     open(async () => { throw new Error('无法读取文件'); });
-    await vi.waitFor(() => expect(html).toContain('打开失败：Error: 无法读取文件'));
+    await vi.waitFor(() => expect(html).toContain('打开失败：无法读取文件'));
     expect(storage.get(key)).toBe(draft);
   });
 

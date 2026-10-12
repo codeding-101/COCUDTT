@@ -1,0 +1,40 @@
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {join,resolve} from 'node:path';
+import {tmpdir} from 'node:os';
+import {pathToFileURL} from 'node:url';
+import {createServer} from 'vite';
+const out=process.env.BROWSER_CHECK_OUTPUT??join(tmpdir(),'cocudtt-recovery');await mkdir(out,{recursive:true});
+const server=await createServer({configFile:false,optimizeDeps:{noDiscovery:true,include:[]},server:{middlewareMode:true},appType:'custom'});
+let project;
+try{const {actualQuotesProject}=await server.ssrLoadModule('/tests/fixtures/actual-quotes.ts');project=actualQuotesProject();project.incoterm='FOB'}finally{await server.close()}
+const targets=await(await fetch(`http://127.0.0.1:${process.env.BROWSER_CHECK_PORT??'9366'}/json`)).json();
+const ws=new WebSocket(targets.find(t=>t.type==='page'&&!t.url.startsWith('edge://')).webSocketDebuggerUrl);await new Promise((r,j)=>{ws.onopen=r;ws.onerror=j});
+let next=0;const pending=new Map(),exceptions=[],requests=[];ws.onmessage=e=>{const r=JSON.parse(e.data);if(r.method==='Runtime.exceptionThrown')exceptions.push(r.params.exceptionDetails);if(r.method==='Network.requestWillBeSent')requests.push(r.params.request.url);const p=pending.get(r.id);if(p){pending.delete(r.id);r.error?p.reject(Error(JSON.stringify(r.error))):p.resolve(r.result)}};
+const call=(method,params={})=>new Promise((r,j)=>{const id=++next;pending.set(id,{resolve:r,reject:j});ws.send(JSON.stringify({id,method,params}))});
+async function evaluate(expression){const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value}
+async function until(expression){for(let i=0;i<80;i++){if(await evaluate(expression))return;await new Promise(r=>setTimeout(r,100))}throw Error(expression)}
+const injection=`(()=>{const descriptor=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');window.injectFailure=false;Object.defineProperty(Element.prototype,'innerHTML',{...descriptor,set(value){if(this.id==='app'&&window.injectFailure){window.injectFailure=false;throw Error('PRIVATE_SYNTHETIC_EXCEPTION_831')}return descriptor.set.call(this,value)}});})()`;
+try {
+ await call('Runtime.enable');await call('Page.enable');await call('Network.enable');await call('Page.navigate',{url:pathToFileURL(resolve('trade-cost-engine.html')).href});await until("!!document.querySelector('#file-input')");
+ await evaluate(`(()=>{const e=document.querySelector('#file-input'),d=new DataTransfer();d.items.add(new File([${JSON.stringify(JSON.stringify(project))}],'synthetic.json',{type:'application/json'}));e.files=d.files;e.dispatchEvent(new Event('change',{bubbles:true}));})()`);await new Promise(r=>setTimeout(r,200));
+ await call('Network.emulateNetworkConditions',{offline:true,latency:0,downloadThroughput:0,uploadThroughput:0});
+ await evaluate(`(()=>{document.querySelector('[data-action=settlement-create]').click();const e=document.querySelector('[data-settlement-field=notes]');e.value='PRIVATE_PLAN_RECOVERY_BROWSER_912';e.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+ const before=await evaluate("localStorage.getItem('trade-cost-engine:draft-v1')"),checks={};await evaluate(injection);
+ await evaluate("(()=>{window.injectFailure=true;const e=document.querySelector('[data-settlement-field=notes]');e.value='KEEP_RECOVERY_INPUT_821';e.dispatchEvent(new Event('change',{bubbles:true}));})()");
+ checks.hidesOldResults=await evaluate("document.querySelector('#app').hidden&&getComputedStyle(document.querySelector('#app')).display==='none'&&!!document.querySelector('#app-recovery')");
+ checks.noPrivateException=await evaluate("!document.querySelector('#app-recovery').textContent.includes('PRIVATE_SYNTHETIC_EXCEPTION_831')");
+ checks.preservesDraft=before===await evaluate("localStorage.getItem('trade-cost-engine:draft-v1')");
+ const directory=join(out,'downloads',String(Date.now()));await mkdir(directory,{recursive:true});await call('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:resolve(directory)});await evaluate("document.querySelector('#recovery-backup').click()");
+ let backup;for(let i=0;i<60;i++){try{backup=JSON.parse(await readFile(join(directory,'internal-recovery-snapshot.json'),'utf8'));break}catch{await new Promise(r=>setTimeout(r,100))}}
+ checks.realInternalBackup=backup?.kind==='INTERNAL_RECOVERY_SNAPSHOT'&&backup.settlement_plan.notes==='KEEP_RECOVERY_INPUT_821'&&Array.isArray(backup.fx_rows)&&backup.browser_draft_text===before;
+ const layouts=[];for(const width of [1440,768,390,320]){await call('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:width<600});layouts.push(await evaluate('({viewport:document.documentElement.clientWidth,content:document.documentElement.scrollWidth})'));await writeFile(join(out,'recovery-'+width+'.png'),Buffer.from((await call('Page.captureScreenshot',{format:'png'})).data,'base64'))}
+ await evaluate("document.querySelector('#recovery-retry').click()");checks.retryKeepsInputs=await evaluate("!document.querySelector('#app').hidden&&!document.querySelector('#app-recovery')&&document.querySelector('[data-settlement-field=notes]').value==='KEEP_RECOVERY_INPUT_821'");checks.retryDoesNotWriteDraft=before===await evaluate("localStorage.getItem('trade-cost-engine:draft-v1')");
+ await evaluate("(()=>{const e=document.querySelector('[data-path=\"goods.quantity\"]');e.value='';e.dispatchEvent(new Event('change',{bubbles:true}));})()");checks.expectedInputFailureNotFatal=await evaluate("!document.querySelector('#app-recovery')&&document.body.textContent.includes('留空不等于零')");
+ await evaluate("(()=>{const e=document.querySelector('[data-path=\"goods.quantity\"]');e.value='1000';e.dispatchEvent(new Event('change',{bubbles:true}));})()");
+ // Disposable copy injects before the real classic-script entry, without production debug hooks.
+ const faultFile=join(out,'fault-injected.html'),source=await readFile(resolve('trade-cost-engine.html'),'utf8');
+ await writeFile(faultFile,source.replace('<script>',()=>'<script>'+injection+';window.injectFailure=true;'));
+ await call('Page.navigate',{url:pathToFileURL(resolve(faultFile)).href});await until("!!document.querySelector('#app-recovery')");checks.startupRenderFailureRecovered=await evaluate("document.querySelector('#app').hidden&&!!document.querySelector('#recovery-retry')");await evaluate("document.querySelector('#recovery-retry').click()");checks.startupRetry=await evaluate("!document.querySelector('#app-recovery')&&!document.querySelector('#app').hidden&&!!document.querySelector('#file-input')");
+ checks.noNetworkResources=requests.every(u=>/^(file:|blob:|data:)/.test(u));
+ const result={checks,layouts,exceptions,offlineVerified:true,realHeadlessBackupDownloadVerified:true,actualMobileVerified:false,faultsInjectedThroughDomSetter:true};await writeFile(join(out,'recovery-browser-report.json'),JSON.stringify(result,null,2));if(Object.values(checks).some(v=>v!==true)||layouts.some(l=>l.content>l.viewport)||exceptions.length)throw Error(JSON.stringify(result));console.log(JSON.stringify(result,null,2));
+}finally{await call('Network.emulateNetworkConditions',{offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1});ws.close()}
