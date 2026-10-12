@@ -65,7 +65,7 @@ data=buffer.getvalue()
 target=Path(__file__).resolve().parents[1]/'src'/'assets'/'fonts'
 target.mkdir(parents=True,exist_ok=True)
 compressed=zlib.compress(data,9)
-(target/'quote-sans.base64.txt').write_text(base64.b64encode(compressed).decode('ascii')+'\n',encoding='utf8')
+(target/'quote-sans.base64.txt').write_text(base64.b64encode(compressed).decode('ascii')+'\n',encoding='utf8',newline='\n')
 record={'font':'COCUDTT Quote Sans SC','version':'1.0','license':'OFL-1.1','format':'TrueType','outline_conversion':'CFF to quadratic, max error 1 font unit','upstream':'https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf','upstream_sha256':upstream_sha,'font_sha256':hashlib.sha256(data).hexdigest(),'compression':'zlib','bytes':len(data),'compressed_bytes':len(compressed),'characters':len(font.getBestCmap()),'coverage':'GB2312 plus supported Latin, punctuation and fullwidth glyphs; unsupported characters must block PDF export','fontTools':'4.65.0','copyright':copyrights}
-(target/'provenance.json').write_text(json.dumps(record,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+(target/'provenance.json').write_text(json.dumps(record,ensure_ascii=False,indent=2)+'\n',encoding='utf8',newline='\n')
 print(json.dumps(record,ensure_ascii=True))
