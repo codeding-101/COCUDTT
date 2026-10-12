@@ -592,3 +592,10 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
 }
 .empty { color: var(--muted); padding: 10px 0; margin: 0; }
 .panel-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+/* 假设参数独立于项目录入；窄屏沿用金额表的标签呈现。 */
+.hypothesis-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; margin: 12px 0; }
+.hypothesis-controls label { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.hypothesis-controls input, .hypothesis-controls select { width: 100%; min-width: 0; }
+.hypothesis-table { table-layout: fixed; width: 100%; }
+.hypothesis-table td, .hypothesis-table th { overflow-wrap: anywhere; }
+.hypothesis-table small { display: block; font-size: 11px; font-weight: normal; white-space: normal; }

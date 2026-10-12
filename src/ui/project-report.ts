@@ -4,9 +4,10 @@ import { analyze } from '../engine/analyze.js';
 import { compare, scenarioWithDerivedInclusions } from '../engine/compare.js';
 import { escapeHtml } from './format.js';
 import { renderOutputColumn } from './views-output.js';
+import { projectSensitivity, renderSensitivityResult, type SensitivityControls } from './sensitivity.js';
 
 /** 每次重新计算并生成独立HTML字符串，不保留可被后续编辑改变的引用。 */
-export function createProjectReport(project: ProjectFile, generatedAt = new Date().toISOString()): string {
+export function createProjectReport(project: ProjectFile, generatedAt = new Date().toISOString(), hypothesis?: SensitivityControls): string {
   const trade = toTrade(project);
   const template = toScenario(project);
   const input = { trade, taxProfile: project.tax_profile, fxBooks: project.fx_books,
@@ -26,6 +27,12 @@ export function createProjectReport(project: ProjectFile, generatedAt = new Date
   ];
   // 报告默认展开依据和待办，避免打印时遗漏未核对内容。
   const output = renderOutputColumn({ result, comparison, error: null }).replace(/<details([^>]*)>/g, '<details$1 open>');
+  let hypothesisHtml = '';
+  if (hypothesis?.enabled) {
+    try { const analysis = projectSensitivity(project, hypothesis);
+      hypothesisHtml = `<section class="panel"><div class="panel-body"><h2>生成时的假设分析（参考）</h2>${renderSensitivityResult(analysis)}<details open><summary>假设参数快照（不写回项目）</summary><pre>${escapeHtml(JSON.stringify(analysis.request, null, 2))}</pre></details></div></section>`;
+    } catch (error) { hypothesisHtml = `<section class="panel"><div class="panel-body"><h2>假设分析未完成</h2><p>${escapeHtml(error instanceof Error ? error.message : String(error))}</p><pre>${escapeHtml(JSON.stringify(hypothesis, null, 2))}</pre></div></section>`; }
+  }
   return `<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${escapeHtml(title)}</title><style>${styles}</style><style>
@@ -45,6 +52,7 @@ body { padding: 16px; } .report { margin: 0 auto; max-width: 1600px; }
 <section class="panel"><div class="panel-body"><h2 class="panel-heading">生成时的交易输入</h2>
 <table class="grid stackable"><tbody>${rows.map(([label = '', value = '']) => `<tr><th>${escapeHtml(label)}</th><td data-label="输入">${escapeHtml(value)}</td></tr>`).join('')}</tbody></table></div></section>
 ${output}
+${hypothesisHtml}
 <section class="panel"><div class="panel-body"><details class="snapshot"><summary>完整项目输入快照（可另存为项目JSON）</summary><pre>${escapeHtml(snapshot)}</pre></details></div></section>
 </main></body></html>`;
 }

@@ -37,6 +37,8 @@ import { escapeHtml } from './format.js';
 import { nextCostId, renderFormsRow, renderFxPanel, renderHsPanel, renderImportTaxPanel, renderItemsPanel, type ItemEnrichment } from './views-input.js';
 import { createProjectReport } from './project-report.js';
 import { renderKpis, renderOutputColumn } from './views-output.js';
+import { newSensitivityControls, projectSensitivity, renderSensitivityPanel, sensitivityOptions } from './sensitivity.js';
+import type { SensitivityResult } from '../engine/sensitivity.js';
 
 const DRAFT_KEY = 'trade-cost-engine:draft-v1';
 
@@ -128,6 +130,17 @@ function initialState(): AppState {
 }
 
 let state: AppState = initialState();
+let sensitivityControls = newSensitivityControls();
+let sensitivityAnalysis: SensitivityResult | null = null;
+let sensitivityError: string | null = null;
+
+function recomputeSensitivity(): void {
+  sensitivityAnalysis = null;
+  sensitivityError = null;
+  if (!sensitivityControls.enabled) return;
+  try { sensitivityAnalysis = projectSensitivity(currentProject(), sensitivityControls); }
+  catch (error) { sensitivityError = error instanceof Error ? error.message : String(error); }
+}
 
 function currentProject(): ProjectFile {
   return { ...state.project, fx_books: rowsToBooks(state.fxRows) };
@@ -178,6 +191,7 @@ function recompute(persistDraft = true): void {
     state.statusLevel = 'error';
   }
   if (persistDraft) draftStorageUnavailable = !saveDraft(state.project, state.fxRows);
+  recomputeSensitivity();
 }
 
 /** 把计算结果回填到录入区：金额与归属，让用户边录边看到结果 */
@@ -200,6 +214,7 @@ function enrichmentMap(): Map<string, ItemEnrichment> {
 
 function focusKeyOf(element: Element): string | null {
   const dataset = (element as HTMLElement).dataset;
+  if (dataset.sensitivityField !== undefined) return `sensitivity:${dataset.sensitivityField}`;
   if (dataset.evidenceOwner !== undefined && dataset.evidenceField !== undefined) {
     return `evidence:${dataset.evidenceOwner}:${dataset.evidenceId ?? ''}:${dataset.evidenceField}`;
   }
@@ -217,7 +232,7 @@ function focusKeyOf(element: Element): string | null {
 
 function restoreFocus(key: string | null): void {
   if (key === null) return;
-  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner],[data-contract-cost],[data-logistics-kind]')).find(
+  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner],[data-contract-cost],[data-logistics-kind],[data-sensitivity-field]')).find(
     (candidate) => focusKeyOf(candidate) === key,
   );
   element?.focus();
@@ -789,7 +804,7 @@ async function saveProject(): Promise<void> {
 async function exportReport(): Promise<void> {
   try {
     const project = currentProject();
-    const html = createProjectReport(project);
+    const html = createProjectReport(project, undefined, sensitivityControls.enabled ? sensitivityControls : undefined);
     const name = safeFileName(`${project.name || 'trade-cost'}-内部测算报告`, 'html');
     const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
     if (picker !== undefined) {
@@ -824,6 +839,7 @@ function openProjectFromText(text: string, fileName: string): void {
     // 所有可能失败的准备步骤完成后，才替换当前编辑内容。
     const fxRows = booksToRows(project.fx_books);
     state.project = project;
+    sensitivityControls = newSensitivityControls();
     state.fxRows = fxRows;
     state.fileName = fileName;
     state.savedAt = null;
@@ -837,6 +853,7 @@ function openProjectFromText(text: string, fileName: string): void {
 }
 
 function newProject(mode: 'sample' | 'china-sample' | 'china-blank' = 'sample'): void {
+  sensitivityControls = newSensitivityControls();
   state.project = mode === 'china-blank' ? newChinaImportProjectFile() : mode === 'china-sample' ? chinaImportSampleProjectFile() : sampleProjectFile();
   state.fxRows = booksToRows(state.project.fx_books);
   state.fileName = null;
@@ -905,6 +922,7 @@ function render(): void {
       ${renderHsPanel(state.project)}
       ${renderItemsPanel(state.project, enrichmentMap())}
       ${renderOutputColumn({ result: state.result, comparison: state.comparison, error: state.error })}
+      ${renderSensitivityPanel(currentProject(), state.result, sensitivityControls, sensitivityAnalysis, sensitivityError)}
       <footer class="app-footer">
         <span>费用 ${state.project.items.length} 项 · 11 术语对比 · 核算币种 ${escapeHtml(state.project.base_currency)}</span>
         <span>数据保存在本机，不上传任何服务器</span>
@@ -999,6 +1017,18 @@ function bind(): void {
     }
 
     if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
+
+    if (target.dataset.sensitivityField !== undefined) {
+      const field = target.dataset.sensitivityField;
+      if (field === 'enabled') sensitivityControls.enabled = target instanceof HTMLInputElement && target.checked;
+      else if (field === 'kind' && ['FREIGHT', 'FX', 'RESPONSIBILITY'].includes(target.value)) {
+        sensitivityControls.kind = target.value as typeof sensitivityControls.kind;
+        sensitivityControls.target = sensitivityOptions(currentProject(), state.result, sensitivityControls.kind)[0]?.value ?? '';
+      } else if (field === 'target' || field === 'from' || field === 'to' || field === 'step') sensitivityControls[field] = target.value;
+      recomputeSensitivity();
+      render();
+      return;
+    }
 
     if (target.dataset.evidenceOwner !== undefined && target.dataset.evidenceField !== undefined) {
       onEvidenceField(target.dataset.evidenceOwner, target.dataset.evidenceId ?? '', target.dataset.evidenceField, target.value);

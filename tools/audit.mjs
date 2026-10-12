@@ -65,6 +65,11 @@ const handledActions = new Set([
   ...matchAll(appTs, /dataset\.action === '([a-z-]+)'/g),
 ]);
 const renderedActions = matchAll(uiText, /data-action="([a-z-]+)"/g);
+const sensitivityFields = new Set([...matchAll(uiText, /data-sensitivity-field="([a-z_]+)"/g), 'from', 'to', 'step']);
+const sensitivityHandler = appTs.slice(appTs.indexOf('if (target.dataset.sensitivityField !== undefined)'), appTs.indexOf("if (target.dataset.evidenceOwner !== undefined", appTs.indexOf('if (target.dataset.sensitivityField !== undefined)')));
+for (const field of sensitivityFields) {
+  if (!sensitivityHandler.includes(`field === '${field}'`)) problems.push(`[假设字段未处理] ${field} 没有对应处理分支`);
+}
 const contractFields = matchAll(uiText, /data-contract-field="([a-z_]+)"/g);
 const handledContractFields = matchAll(appTs, /field === '([a-z_]+)'/g);
 for (const field of contractFields) {
