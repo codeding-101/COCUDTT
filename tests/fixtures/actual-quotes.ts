@@ -52,5 +52,8 @@ export function actualQuotesProject(): ProjectFile {
     scope_confirmed: true, direct_claim_confirmed: true, insurer: '合成保险人', policy_reference: '合成保单001',
     deductible: '无免赔（合成）', exclusions: '按合成条款列明，非真实保险建议' };
   confirmInsurance(p, 'CIF');
+  // FOB并不强制买方投保；此合成案例另有明确买方自愿投保/付费约定。
+  p.term_scenarios!.FOB!.responsibility_overrides = { insurance: { responsibility: 'BUYER', reason: '合成合同：买方自愿投保并承担这笔保费，非FOB法定投保义务' } };
+  confirmOverride(p, 'FOB', 'insurance');
   return p;
 }

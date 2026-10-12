@@ -181,6 +181,13 @@ try {
     field('buyer-freight','applicable_term','',false,'CIF');
     const recovered=document.body.innerText.includes('12,695.55');
     setPath('incoterm','FOB');
+    // 独立合成合同确认买方自愿投保，不能继续依赖FOB默认保费归属。
+    setPath('evaluation_date','2026-09-10');
+    const insuranceAgreement=(field,value)=>{const e=[...document.querySelectorAll('[data-contract-field]')].find(e=>e.dataset.contractCost==='insurance'&&e.dataset.contractField===field);e.value=value;e.dispatchEvent(new Event('change',{bubbles:true}));};
+    insuranceAgreement('responsibility','BUYER');insuranceAgreement('reason','合成合同明确买方自愿保险费用');
+    for(const [field,value] of [['reference','合成合同，非业务凭证'],['valid_from','2026-09-01'],['valid_to','2026-09-30'],['checked_on','2026-10-12'],['status','USER_CONFIRMED']]){
+      const e=[...document.querySelectorAll('[data-evidence-owner="contract-cost"]')].find(e=>e.dataset.evidenceId===JSON.stringify(['FOB','insurance'])&&e.dataset.evidenceField===field);e.value=value;e.dispatchEvent(new Event('change',{bubbles:true}));
+    }
     const fob=document.body.innerText.includes('13,870.15')&&document.body.innerText.includes('11,100.00');
     field('buyer-freight','amount','');
     const partialResultKept=document.body.innerText.includes('无法计算')&&document.body.innerText.includes('12,695.55')&&document.body.innerText.includes('11 术语横向对比');

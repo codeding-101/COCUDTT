@@ -43,6 +43,12 @@ function allNodes(incoterm: Incoterm, resp: Responsibility, note: string): Incot
   }));
 }
 
+/** 无相对投保义务不等于某一方必付所有自愿保险；须逐笔记录合同或实际承担。 */
+function voluntaryInsurance(incoterm: Incoterm): IncotermRule {
+  return r({ id: `${incoterm}.INSURANCE`, incoterm, category: 'INSURANCE', resp: 'CONDITIONAL',
+    note: `${incoterm}不要求任何一方向另一方订立保险合同；不能据此推定保费承担或强制购买保险。已录入保费请按实际投保/合同约定逐项确认，风险承担不自动决定全部保费归属。` });
+}
+
 const EXW: IncotermRule[] = [
   r({
     id: 'EXW.SELLER_PREMISES.GOODS',
@@ -50,14 +56,14 @@ const EXW: IncotermRule[] = [
     node: 'SELLER_PREMISES',
     category: 'GOODS_AND_PACKING',
     resp: 'SELLER',
-    note: '卖方在其场所备货、包装完毕，并将货物置于买方处置之下（Incoterms 2020 A2）',
+    note: '卖方在指定交货地点将货物置于买方处置之下并完成必要包装；指定地点不必为卖方自有场所（Incoterms 2020 A2/A8）',
   }),
   r({
     id: 'EXW.SELLER_PREMISES.LOADING',
     incoterm: 'EXW',
     node: 'SELLER_PREMISES',
     resp: 'BUYER',
-    note: 'EXW 下货物在卖方场所未装货即完成交付，装车及此后一切作业由买方负担；若合同约定卖方负责装车，请使用责任覆盖——这是 EXW 最常见的偏离',
+    note: 'EXW在指定交货地点未装货即完成交货；收货车辆装货通常由买方承担，合同另有约定需逐项记录，装货费用覆盖不自动改变风险。指定地点不必为卖方自有场所',
   }),
   r({
     id: 'EXW.EXPORT_CLEARANCE',
@@ -66,14 +72,8 @@ const EXW: IncotermRule[] = [
     resp: 'BUYER',
     note: 'EXW 下出口清关手续由买方办理（A7/B7），这是实务中最易出错的一点；若由卖方代办，请使用责任覆盖',
   }),
-  r({
-    id: 'EXW.INSURANCE',
-    incoterm: 'EXW',
-    category: 'INSURANCE',
-    resp: 'BUYER',
-    note: 'EXW 下卖方无投保义务',
-  }),
-  ...allNodes('EXW', 'BUYER', 'EXW：卖方在卖方场所完成交付后，全部费用由买方负担'),
+  voluntaryInsurance('EXW'),
+  ...allNodes('EXW', 'BUYER', 'EXW：指定地点交货后费用原则上由买方承担；包装、合同例外及明确发生原因另核'),
 ];
 
 const FCA: IncotermRule[] = [
@@ -97,15 +97,39 @@ const FCA: IncotermRule[] = [
     id: 'FCA.SELLER_PREMISES.DEFAULT',
     incoterm: 'FCA',
     node: 'SELLER_PREMISES',
-    resp: 'SELLER',
-    note: '卖方在场所内完成备货与装车，货物装上买方指定承运人的运输工具',
+    resp: 'CONDITIONAL',
+    note: '除已明确的货物/包装外，该地点作业须先核对FCA交货地点，不能在地点缺失时认定装车义务',
+  }),
+  r({
+    id: 'FCA.SELLER_PREMISES.OTHER_PLACE', incoterm: 'FCA', node: 'SELLER_PREMISES',
+    when: [{ kind: 'DELIVERY_PLACE', is: 'OTHER' }], resp: 'SELLER',
+    note: 'FCA其他指定地点交货时，卖方承担运抵该交货点前必要作业；交货点卸货另核',
   }),
   r({
     id: 'FCA.INLAND_TRANSPORT',
     incoterm: 'FCA',
     node: 'INLAND_TRANSPORT',
+    when: [{ kind: 'DELIVERY_PLACE', is: 'OTHER' }],
     resp: 'SELLER',
-    note: '卖方负责将货物运至指定交货地点（交货地点为卖方场所时由买方承运）',
+    note: 'FCA其他指定地点交货：此项为运抵该交货点前的内陆运输，由卖方承担；交货点之后的费用须另行记录',
+  }),
+  r({
+    id: 'FCA.INLAND_TRANSPORT.SELLER_PLACE', incoterm: 'FCA', node: 'INLAND_TRANSPORT',
+    when: [{ kind: 'DELIVERY_PLACE', is: 'SELLER_PREMISES' }], resp: 'BUYER',
+    note: 'FCA卖方场所交货：装上买方安排车辆后已交货，后续出口国内陆运输由买方承担；卖方代办不自动改变经济承担',
+  }),
+  r({
+    id: 'FCA.INLAND_TRANSPORT.DEFAULT', incoterm: 'FCA', node: 'INLAND_TRANSPORT', resp: 'CONDITIONAL',
+    note: 'FCA内陆运费归属取决于指定交货地点；地点未录入，不默认归卖方',
+  }),
+  r({
+    id: 'FCA.ORIGIN_TERMINAL.SELLER_PLACE', incoterm: 'FCA', node: 'ORIGIN_TERMINAL',
+    when: [{ kind: 'DELIVERY_PLACE', is: 'SELLER_PREMISES' }], resp: 'BUYER',
+    note: 'FCA卖方场所装货交货后，起运港/机场正常作业由买方承担；合同/发生原因例外另核',
+  }),
+  r({
+    id: 'FCA.ORIGIN_TERMINAL.DEFAULT', incoterm: 'FCA', node: 'ORIGIN_TERMINAL', resp: 'CONDITIONAL',
+    note: 'FCA其他或未确认交货点的港杂费须区分交货点前后与具体作业，不能把整项THC仅凭节点全归一方',
   }),
   r({
     id: 'FCA.EXPORT_CLEARANCE',
@@ -137,13 +161,7 @@ const FCA: IncotermRule[] = [
     resp: 'CONDITIONAL',
     note: 'FCA 下交货地点的装货或卸货责任取决于指定交货地点是卖方场所还是其他地点：卖方场所交货时装货归卖方，其他地点交货时卸货归买方。请补充方案事实中的交货地点后重新计算',
   }),
-  r({
-    id: 'FCA.INSURANCE',
-    incoterm: 'FCA',
-    category: 'INSURANCE',
-    resp: 'BUYER',
-    note: 'FCA 下卖方无投保义务',
-  }),
+  voluntaryInsurance('FCA'),
   ...allNodes('FCA', 'BUYER', 'FCA：货物交给买方指定承运人之后，费用由买方负担'),
 ];
 
@@ -183,13 +201,7 @@ const FAS: IncotermRule[] = [
     resp: 'BUYER',
     note: 'FAS 下卖方在船边完成交货，装船及之后的费用（含装船费）由买方负担',
   }),
-  r({
-    id: 'FAS.INSURANCE',
-    incoterm: 'FAS',
-    category: 'INSURANCE',
-    resp: 'BUYER',
-    note: 'FAS 下卖方无投保义务',
-  }),
+  voluntaryInsurance('FAS'),
   ...allNodes('FAS', 'BUYER', 'FAS：卖方在装运港船边完成交货，之后的费用由买方负担（仅适用海运及内河运输）'),
 ];
 
@@ -285,13 +297,7 @@ const FOB: IncotermRule[] = [
     resp: 'SELLER',
     note: '散货 FOB：卖方负责装船',
   }),
-  r({
-    id: 'FOB.INSURANCE',
-    incoterm: 'FOB',
-    category: 'INSURANCE',
-    resp: 'BUYER',
-    note: 'FOB 下卖方无投保义务',
-  }),
+  voluntaryInsurance('FOB'),
   ...allNodes('FOB', 'BUYER', 'FOB：货物装上船之后，费用由买方负担（仅适用海运及内河运输）'),
 ];
 
@@ -344,24 +350,24 @@ function cfrLike(incoterm: 'CFR' | 'CIF'): IncotermRule[] {
       id: `${incoterm}.DESTINATION_TERMINAL`,
       incoterm,
       node: 'DESTINATION_TERMINAL',
-      resp: 'BUYER',
-      note: `${incoterm} 下卖方无卸货义务，目的港卸货费默认由买方负担`,
+      resp: 'CONDITIONAL',
+      note: `${incoterm}无目的港卸货作业义务，但卸货/港杂费承担取决于运输合同及具体费用范围；运输合同已由卖方负担的部分不能另向买方收取，未确认时不默认归买方`,
     }),
     r({
       id: `${incoterm}.DESTINATION_TERMINAL.LINER`,
       incoterm,
       node: 'DESTINATION_TERMINAL',
       when: [{ kind: 'SHIPPING_TERMS', is: 'LINER' }],
-      resp: 'SELLER',
-      note: `${incoterm} 班轮条件（Liner Terms）：卸货费已含在运费中，由卖方负担`,
+      resp: 'CONDITIONAL',
+      note: `${incoterm}班轮条件名称不能证明整项港杂费已含运费；请核对运输合同、具体范围及父项包含，逐项确认承担方`,
     }),
     r({
       id: `${incoterm}.DESTINATION_TERMINAL.EX_SHIP_HOLD`,
       incoterm,
       node: 'DESTINATION_TERMINAL',
       when: [{ kind: 'SHIPPING_TERMS', is: 'EX_SHIP_HOLD' }],
-      resp: 'BUYER',
-      note: `${incoterm} 舱底交货（Ex Ship's Hold）：卖方将货物运至目的港舱底，买方负担卸货费`,
+      resp: 'CONDITIONAL',
+      note: `${incoterm}舱底条款须核对实际费用约定，不凭名称分配整项港杂费；C类标准风险仍在装运港装船时转移，不变成目的港交货`,
     }),
     r({
       id: `${incoterm}.DESTINATION_TRANSPORT`,
@@ -388,21 +394,15 @@ function cfrLike(incoterm: 'CFR' | 'CIF'): IncotermRule[] {
       id: `${incoterm}.FINAL_DELIVERY`,
       incoterm,
       node: 'FINAL_DELIVERY',
-      resp: 'BUYER',
-      note: '最终交付与卸货由买方负责',
+      resp: 'CONDITIONAL',
+      note: '最终卸货费用需核对是否由卖方运输合同负担、是否已含或另有买卖合同约定；费用承担不改变装运港交货风险',
     }),
     ...allNodes(incoterm, 'BUYER', `${incoterm}：目的港之后的费用由买方负担（仅适用海运及内河运输）`),
   ];
 }
 
 const CFR: IncotermRule[] = [
-  r({
-    id: 'CFR.INSURANCE',
-    incoterm: 'CFR',
-    category: 'INSURANCE',
-    resp: 'BUYER',
-    note: 'CFR 下卖方无投保义务，保险由买方自行安排',
-  }),
+  voluntaryInsurance('CFR'),
   ...cfrLike('CFR'),
 ];
 
@@ -419,7 +419,7 @@ const CIF: IncotermRule[] = [
 
 /** CPT 与 CIP 的费用划分相同，仅保险不同 */
 function cptLike(incoterm: 'CPT' | 'CIP'): IncotermRule[] {
-  const deliveryNote = `${incoterm} 下卖方须承运至指定目的地，目的地之前的费用由卖方承担`;
+  const deliveryNote = `${incoterm}交货在承运人接管处，运费支付至指定目的地；该港杂费须核对是否在运输合同范围内及交货/支付终点位置，不能因风险或地点名称直接判定`;
   return [
     r({
       id: `${incoterm}.SELLER_PREMISES`,
@@ -467,22 +467,22 @@ function cptLike(incoterm: 'CPT' | 'CIP'): IncotermRule[] {
       id: `${incoterm}.DESTINATION_TERMINAL`,
       incoterm,
       node: 'DESTINATION_TERMINAL',
-      resp: 'SELLER',
+      resp: 'CONDITIONAL',
       note: deliveryNote,
     }),
     r({
       id: `${incoterm}.DESTINATION_TRANSPORT`,
       incoterm,
       node: 'DESTINATION_TRANSPORT',
-      resp: 'SELLER',
-      note: `${incoterm} 下卖方须承运至指定目的地；若指定目的地为目的港，此段实际由买方发生，请使用责任覆盖`,
+      resp: 'CONDITIONAL',
+      note: `${incoterm}须核对本段是在指定运费终点之前还是之后，以及运输合同含费范围；指定目的地为港口时，之后的短驳不能默认由卖方承担`,
     }),
     r({
       id: `${incoterm}.FINAL_DELIVERY`,
       incoterm,
       node: 'FINAL_DELIVERY',
-      resp: 'BUYER',
-      note: `${incoterm} 下卖方无卸货义务，卸货费用除合同另有约定外由买方负担`,
+      resp: 'CONDITIONAL',
+      note: `${incoterm}不要求卖方执行最终卸货；已发生卸货费用须另核运输合同是否由卖方负担及买卖合同约定，不自动归买方`,
     }),
     r({
       id: `${incoterm}.IMPORT_CLEARANCE`,
@@ -498,18 +498,12 @@ function cptLike(incoterm: 'CPT' | 'CIP'): IncotermRule[] {
       resp: 'BUYER',
       note: `${incoterm} 下进口关税及税费由买方承担`,
     }),
-    ...allNodes(incoterm, 'BUYER', `${incoterm}：指定目的地交货之后的费用由买方负担`),
+    ...allNodes(incoterm, 'BUYER', `${incoterm}交货在承运人接管处；指定目的地为运费终点，其他费用按合同另核`),
   ];
 }
 
 const CPT: IncotermRule[] = [
-  r({
-    id: 'CPT.INSURANCE',
-    incoterm: 'CPT',
-    category: 'INSURANCE',
-    resp: 'BUYER',
-    note: 'CPT 下卖方无投保义务，保险由买方自行安排',
-  }),
+  voluntaryInsurance('CPT'),
   ...cptLike('CPT'),
 ];
 
@@ -558,8 +552,8 @@ function deliveredLike(incoterm: 'DAP' | 'DPU'): IncotermRule[] {
             id: 'DAP.FINAL_DELIVERY',
             incoterm,
             node,
-            resp: 'BUYER',
-            note: 'DAP 下卖方在目的地将货物置于买方处置之下、尚未卸货，卸货费用由买方负担',
+            resp: 'CONDITIONAL',
+            note: 'DAP在到达运输工具上准备卸货时交货，卖方无卸货作业义务；卸货费用若由其运输合同负担，不得另向买方收取（除非另有约定），需逐项核对',
           });
     }
     return r({
@@ -573,20 +567,8 @@ function deliveredLike(incoterm: 'DAP' | 'DPU'): IncotermRule[] {
 }
 
 const DAP_DPU_EXTRA: IncotermRule[] = [
-  r({
-    id: 'DAP.INSURANCE',
-    incoterm: 'DAP',
-    category: 'INSURANCE',
-    resp: 'SELLER',
-    note: 'DAP 下卖方无强制投保义务，但风险至目的地才转移，保险费通常由卖方负担',
-  }),
-  r({
-    id: 'DPU.INSURANCE',
-    incoterm: 'DPU',
-    category: 'INSURANCE',
-    resp: 'SELLER',
-    note: 'DPU 下卖方无强制投保义务，但风险至目的地卸货完成才转移，保险费通常由卖方负担',
-  }),
+  voluntaryInsurance('DAP'),
+  voluntaryInsurance('DPU'),
 ];
 
 /** 把交货类术语的保险规则放在最前，其余节点规则紧随其后 */
@@ -614,16 +596,10 @@ const DDP: IncotermRule[] = [
     id: 'DDP.FINAL_DELIVERY',
     incoterm: 'DDP',
     node: 'FINAL_DELIVERY',
-    resp: 'BUYER',
-    note: 'DDP 下卖方在目的地将货物置于买方处置之下、尚未卸货，卸货费用由买方负担',
+    resp: 'CONDITIONAL',
+    note: 'DDP在到达运输工具上准备卸货时交货，卖方无卸货作业义务；卸货费用须核对是否已由卖方运输合同负担及买卖合同另约，不自动归买方',
   }),
-  r({
-    id: 'DDP.INSURANCE',
-    incoterm: 'DDP',
-    category: 'INSURANCE',
-    resp: 'SELLER',
-    note: 'DDP 下卖方无强制投保义务，但风险至目的地才转移，保险费通常由卖方负担',
-  }),
+  voluntaryInsurance('DDP'),
   ...allNodes('DDP', 'SELLER', 'DDP：卖方承担至指定目的地的全部费用'),
 ];
 
@@ -631,8 +607,8 @@ const DDP: IncotermRule[] = [
  * 发生原因规则（过错责任）。只列确有倾向的情形：因某一方自身原因产生的费用由该方承担，
  * 不因贸易术语而改变——即便术语是 FOB，因卖方单证错误导致的目的港滞箱费仍归卖方。
  *
- * 承运人原因与不可抗力**故意不列**：这类费用应先按术语归属（谁承担该段谁先垫），
- * 再由垫付方向承运人索赔或另行协商，引擎用告警提示可索赔，而不是替用户决定。
+ * 承运人原因与不可抗力不预设过错承担：先核对术语及合同的费用责任，
+ * 垫付安排与追偿须另查运输合同和适用法律，不能保证可索赔或自动转移费用。
  * 海关查验与法定检验检疫同样不列：归属取决于查验发生在哪一侧的清关，由节点规则处理。
  */
 const REASON_RULES: ReasonRule[] = [
@@ -659,8 +635,8 @@ const SPECIAL_FACTS: CostResponsibilityRule[] = [
     id: 'SF.EXPORT_CLEARANCE.SELLER_ACTS_FOR_BUYER',
     trade_node: 'EXPORT_CLEARANCE',
     conditions: [{ kind: 'CLEARANCE_AGENT', is: 'SELLER_ACTS_FOR_BUYER' }],
-    responsibility: 'SELLER',
-    note: '方案事实表明卖方代买方办理出口清关，该费用与手续由卖方承担（EXW 下最常见的实务安排）',
+    responsibility: 'CONDITIONAL',
+    note: '卖方代买方办理出口清关仅说明办理人，不能推出费用承担；术语规则缺失时须另核合同约定',
   },
   {
     id: 'SF.ORIGIN_TERMINAL.FCL',
@@ -772,10 +748,10 @@ const NODE_FALLBACKS: NodeFallback[] = [
   },
 ];
 
-/** Incoterms 2020 规则表（种子数据）。规则顺序不影响判定结果，优先级由 specificity 决定。 */
+/** Incoterms 2020 费用实现；按具体度优先，同分保留声明顺序。 */
 export const INCOTERMS_2020_RULESET: IncotermsRuleSet = {
   id: 'incoterms2020',
-  version: '1.1',
+  version: '1.2',
   rules: [
     ...EXW,
     ...FCA,

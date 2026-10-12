@@ -258,7 +258,10 @@ export function resolveItemResponsibility(item: CostItem, params: ResolveParams)
 
   step('OCCURRENCE_REASON', false, item.occurrence_reason === undefined ? '发生原因未录入；不推定为正常作业，未启用原因覆盖层。' : `录入发生原因=${item.occurrence_reason}；未命中非正常原因覆盖规则。`);
 
-  const candidates: IncotermRule[] = ruleSet.rules.filter((rule) => rule.incoterm === scenario.incoterm);
+  const termRules: IncotermRule[] = ruleSet.rules.filter((rule) => rule.incoterm === scenario.incoterm);
+  // 保险专属规则不能被“该节点的装卸/运输条款”覆盖；人工/合同/原因层仍先执行。
+  const insuranceRules = termRules.filter(rule => rule.cost_category === 'INSURANCE');
+  const candidates = item.cost_category === 'INSURANCE' && insuranceRules.length ? insuranceRules : termRules;
   const candidateTrace: RuleCandidateTrace[] = [];
   const matched = pickBest(candidates, item, ctx, candidateTrace);
   if (matched !== null) {

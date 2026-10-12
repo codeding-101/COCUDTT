@@ -10,6 +10,15 @@ import { checkFxSources, checkSource } from '../src/engine/decision-readiness';
 import { booksToRows, rowsToBooks } from '../src/ui/fx-rows';
 import { renderOutputColumn } from '../src/ui/views-output';
 import { makeCostItem } from './helpers/factory';
+import { confirmOverride } from './fixtures/actual-quotes';
+import type { ProjectFile } from '../src/data/project-file';
+
+function agreeVoluntaryInsurance(p: ProjectFile, term: 'FCA' | 'FOB') {
+  p.evaluation_date = '2026-09-10'; p.term_scenarios ??= {};
+  p.term_scenarios[term] ??= {};
+  p.term_scenarios[term]!.responsibility_overrides = { insurance: { responsibility: 'BUYER', reason: '合成合同明确买方自愿投保付费' } };
+  confirmOverride(p, term, 'insurance');
+}
 import { CIF_108300_SCENARIO, CIF_108300_TRADE, CONTRACT_FX_BOOK, CUSTOMS_FX_BOOK, TEST_TAX_PROFILE } from './fixtures/cif-108300';
 
 function confirmed(values: unknown, overrides: Partial<SourceEvidence> = {}): SourceEvidence {
@@ -281,6 +290,7 @@ describe('来源核对与结果排名', () => {
   it('FCA交货地点待确认时保留测算、排除排名，确认分支后恢复并保存往返', () => {
     const p = project();
     p.incoterm = 'FCA';
+    agreeVoluntaryInsurance(p, 'FCA');
     const reference = run(p);
     expect(reference.risk.needs_confirmation).toBe(true);
     expect(reference.warnings.some(w => w.code === 'FCA_DELIVERY_UNCONFIRMED')).toBe(true);
@@ -293,13 +303,15 @@ describe('来源核对与结果排名', () => {
     expect(html).toContain('交货地点待确认');
 
     p.facts = { delivery_place: 'SELLER_PREMISES' };
+    confirmOverride(p, 'FCA', 'insurance');
     const confirmed = run(parseProject(serializeProject(p)));
-    expect(confirmed.rule_set).toEqual({ id: 'incoterms2020', version: '1.1' });
+    expect(confirmed.rule_set).toEqual({ id: 'incoterms2020', version: '1.2' });
     expect(confirmed.risk.transfer_node).toBe('SELLER_PREMISES');
     expect(confirmed.risk.transfer_point).toContain('装货完成');
     expect(confirmed.decision.ready).toBe(true);
     expect(confirmed.buyer.landed_cost_with_tax.toString()).toBe(reference.buyer.landed_cost_with_tax.toString());
     p.facts = { delivery_place: 'OTHER' };
+    confirmOverride(p, 'FCA', 'insurance');
     const other = run(p);
     expect(other.risk.transfer_point).toContain('准备卸货');
     expect(other.decision.ready).toBe(true);
@@ -307,12 +319,15 @@ describe('来源核对与结果排名', () => {
 
   it('FOB班轮港杂费未确认时排除排名，引擎逐项覆盖后恢复', () => {
     const p = project(); p.incoterm = 'FOB'; p.facts = { shipping_terms: 'LINER' };
+    agreeVoluntaryInsurance(p, 'FOB');
     p.items.push(makeCostItem({ cost_id: 'thc', cost_name: '待核对THC', trade_node: 'ORIGIN_TERMINAL', cost_category: 'ORIGIN_TERMINAL', amount: '150' }));
     const reference = run(p);
     expect(reference.items.find(i => i.item.cost_id === 'thc')!.responsibility).toBe('CONDITIONAL');
     expect(reference.decision.ready).toBe(false);
     const trade = toTrade(p);
-    const template = { ...toScenario(p), responsibility_overrides: { thc: { responsibility: 'BUYER' as const, reason: '合同明确本项含在买方运费中' } } };
+    p.term_scenarios!.FOB!.responsibility_overrides!.thc = { responsibility: 'BUYER', reason: '合成合同明确本项含在买方运费中' };
+    confirmOverride(p, 'FOB', 'thc');
+    const template = toScenario(p);
     const confirmed = analyze({ trade, scenario: scenarioWithDerivedInclusions(template, trade), taxProfile: p.tax_profile, fxBooks: p.fx_books });
     expect(confirmed.items.find(i => i.item.cost_id === 'thc')!.responsibility_source).toBe('USER_OVERRIDE');
     expect(confirmed.decision.ready).toBe(true);

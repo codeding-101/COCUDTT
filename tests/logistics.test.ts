@@ -3,7 +3,7 @@ import { parseProject, serializeProject, toScenario, toScenarios, toTrade, type 
 import { analyze } from '../src/engine/analyze';
 import { compare, scenarioWithDerivedInclusions } from '../src/engine/compare';
 import { logisticsProject, confirmTransport } from './fixtures/logistics-project';
-import { actualQuotesProject, confirmInsurance, confirmQuote } from './fixtures/actual-quotes';
+import { actualQuotesProject, confirmInsurance, confirmQuote, confirmOverride } from './fixtures/actual-quotes';
 import { makeCostItem } from './helpers/factory';
 import { createProjectReport } from '../src/ui/project-report';
 import { renderOutputColumn } from '../src/ui/views-output';
@@ -69,6 +69,7 @@ describe('运输交货、保单保障与集装箱漏项核对', () => {
   it('DPU卸货完成与DAP准备卸货不同，末段前的接管不等于目的地交货', () => {
     const p = logisticsProject('CPT'); const record = p.term_scenarios!.CPT!; p.term_scenarios!.DPU = record;
     p.incoterm = 'DPU'; p.items[0]!.applicable_incoterms!.push('DPU'); record.quote!.amount = '10700';
+    record.responsibility_overrides!.insurance!.responsibility = 'SELLER'; confirmOverride(p, 'DPU', 'insurance');
     record.transport!.delivery_segment_id = 'road-destination'; record.transport!.delivery_at = 'DESTINATION'; record.transport!.delivery_location = '上海仓库'; record.transport!.delivery_event = 'UNLOADED';
     confirmQuote(p, 'DPU'); confirmTransport(p); expect(run(p).decision.ready).toBe(true);
     record.transport!.delivery_segment_id = 'sea'; record.transport!.delivery_location = '上海港'; confirmTransport(p);
