@@ -178,6 +178,7 @@ export function scenarioForTerm(
     incoterm,
     base_currency: baseCurrency,
     quote,
+    logistics_quote: template.logistics_quote ?? template.quote,
     ...(template.contract_review ? { contract_review: { ...template.contract_review, require_quote: false } } : {}),
   };
   return {

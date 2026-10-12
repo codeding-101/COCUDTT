@@ -51,7 +51,7 @@ try {
     let saved=''; window.showSaveFilePicker=async()=>({name:'fca.json',createWritable:async()=>({write:async text=>{saved=text;},close:async()=>{}})});
     document.querySelector('[data-action="save"]').click(); await new Promise(r=>setTimeout(r,150));
     const file=JSON.parse(saved); window.__savedFca=saved;
-    const persistence=file.schema_version==='0.7' && file.facts.delivery_place==='SELLER_PREMISES';
+    const persistence=file.schema_version==='0.8' && file.facts.delivery_place==='SELLER_PREMISES';
     set('facts.delivery_place','OTHER');
     const other=document.body.innerText.includes('货物仍在卖方运输工具上、准备卸货') && !document.body.innerText.includes('FCA交货地点未确认');
     let report='';window.showSaveFilePicker=async()=>({name:'fca-report.html',createWritable:async()=>({write:async text=>{report=text;},close:async()=>{}})});

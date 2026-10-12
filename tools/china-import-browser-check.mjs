@@ -110,7 +110,7 @@ try {
     document.querySelector('[data-action="save"]').click();
     await new Promise(resolve => setTimeout(resolve, 150));
     const file = JSON.parse(saved);
-    const persisted = file.schema_version === '0.7' && file.tax_profile.import.rateEvidence.status === 'USER_CONFIRMED' && file.tax_profile.import.eligibility.duty_evidence.values_key && file.route.origin_country && file.fx_books.every(book => book.evidence['USD/CNY'].values_key);
+    const persisted = file.schema_version === '0.8' && file.tax_profile.import.rateEvidence.status === 'USER_CONFIRMED' && file.tax_profile.import.eligibility.duty_evidence.values_key && file.route.origin_country && file.fx_books.every(book => book.evidence['USD/CNY'].values_key);
     const transfer = new DataTransfer(); transfer.items.add(new File([saved], 'browser-verified.json', { type: 'application/json' }));
     const input = document.querySelector('#file-input'); input.files = transfer.files; input.dispatchEvent(new Event('change', { bubbles: true }));
     await new Promise(resolve => setTimeout(resolve, 150));
@@ -188,7 +188,7 @@ try {
     let saved='';window.showSaveFilePicker=async()=>({name:'scenario-costs.json',createWritable:async()=>({write:async t=>{saved=t;},close:async()=>{}})});
     document.querySelector('[data-action="save"]').click();await new Promise(r=>setTimeout(r,120));
     const snapshot=JSON.parse(saved);await open(snapshot);
-    const persisted=snapshot.schema_version==='0.7'&&snapshot.items[1].applicable_incoterms.join(',')==='EXW,FCA,FAS,FOB'&&snapshot.items[1].alternative_group==='国际主运输'&&document.body.innerText.includes('12,695.55');
+    const persisted=snapshot.schema_version==='0.8'&&snapshot.items[1].applicable_incoterms.join(',')==='EXW,FCA,FAS,FOB'&&snapshot.items[1].alternative_group==='国际主运输'&&document.body.innerText.includes('12,695.55');
     let report='';window.showSaveFilePicker=async()=>({name:'scenario-cost-report.html',createWritable:async()=>({write:async t=>{report=t;},close:async()=>{}})});
     document.querySelector('[data-action="export-report"]').click();await new Promise(r=>setTimeout(r,120));window.__verifiedScenarioReport=report;
     const reportExported=report.includes('12,695.55')&&report.includes('本方案未启用 1 项费用')&&report.includes('运价差异会影响进口税费')&&!report.includes('<script');

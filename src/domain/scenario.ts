@@ -2,6 +2,7 @@ import type { CurrencyCode, DateStr, FxType, Incoterm, Party, Responsibility } f
 import type { Numeric } from './decimal.js';
 import type { ScenarioFacts } from './rule.js';
 import type { SourceEvidence } from './source-evidence.js';
+import type { InsurancePlan, TransportPlan } from './logistics.js';
 
 /** 成交报价（设计文档 8.1） */
 export interface Quote {
@@ -57,4 +58,8 @@ export interface Scenario {
   anchor?: ComparisonAnchor;
   /** 显式保存的业务比较日期，不使用电脑当前日期推定报价有效性。 */
   contract_review?: { evaluation_date?: DateStr; require_quote: boolean };
+  transport?: TransportPlan;
+  insurance?: InsurancePlan;
+  /** 保单核对使用原合同报价，模拟反推金额不自动改写已承保价格。 */
+  logistics_quote?: Quote;
 }

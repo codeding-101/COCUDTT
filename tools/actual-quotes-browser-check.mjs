@@ -52,6 +52,10 @@ try {
     const missing=!!row('CIF')&&row('CIF').innerText.includes('未录入实际报价')&&!document.querySelector('[data-path="quote.amount"]');
     confirm('tax','');confirm('duty-eligibility','');
     set('term_scenarios.CIF.quote.amount','10700');set('term_scenarios.CIF.quote.named_place','上海港（合成）');confirm('quote','CIF');
+    document.querySelector('[data-action="create-insurance-plan"]').click();
+    const setInsurancePolicy=(field,value)=>{const e=[...document.querySelectorAll('[data-logistics-kind="insurance"]')].find(e=>e.dataset.logisticsField===field);if(e.type==='checkbox')e.checked=value;else e.value=value;e.dispatchEvent(new Event('change',{bubbles:true}));};
+    for(const [field,value] of [['cover','ICC_C'],['clause_version','ICC 1/1/2009（合成）'],['sum_insured.amount','11770'],['insured_from','汉堡港（合成）'],['insured_to','上海港（合成）'],['insurer','合成保险人'],['policy_reference','合成保单'],['deductible','无免赔（合成）'],['exclusions','合成除外条款'],['scope_confirmed',true],['direct_claim_confirmed',true]])setInsurancePolicy(field,value);
+    confirm('insurance','CIF');
     const cifReady=row('CIF').innerText.includes('可参与排名')&&row('CIF').innerText.includes('12,695.55');
     set('incoterm','FOB');const cifSurvives=row('CIF').innerText.includes('12,695.55')&&row('FOB').innerText.includes('未录入实际报价');
     set('term_scenarios.FOB.quote.amount','10000');set('term_scenarios.FOB.quote.named_place','汉堡港（合成）');confirm('quote','FOB');
@@ -70,7 +74,7 @@ try {
     const overrideWorks=row('FOB').innerText.includes('可参与排名')&&document.body.innerText.includes('合成合同：买方承担这笔起运港THC')&&document.body.innerText.includes('装上船');
     contract('reason','修改条款说明');const overrideInvalidates=row('FOB').innerText.includes('参考测算');contract('reason','合成合同：买方承担这笔起运港THC');confirm('contract-cost',JSON.stringify(['FOB',costId]));
     document.querySelector('[data-action="save"]').click();await pause();window.__contractProject=saved;const file=JSON.parse(saved);
-    const persistence=file.schema_version==='0.7'&&file.term_scenarios.CIF.quote.amount==='10700'&&file.term_scenarios.FOB.quote.amount==='10000'&&file.term_scenarios.FOB.responsibility_overrides[costId].evidence.values_key&&!file.term_scenarios.CIF.responsibility_overrides;
+    const persistence=file.schema_version==='0.8'&&file.term_scenarios.CIF.quote.amount==='10700'&&file.term_scenarios.FOB.quote.amount==='10000'&&file.term_scenarios.FOB.responsibility_overrides[costId].evidence.values_key&&!file.term_scenarios.CIF.responsibility_overrides;
     set('anchor.kind','FIXED_QUOTE');set('anchor.kind','ACTUAL_QUOTES');const restored=document.querySelector('[data-path="term_scenarios.FOB.quote.amount"]').value==='10000';
     let report='';window.showSaveFilePicker=async()=>({name:'contract-report.html',createWritable:async()=>({write:async text=>{report=text;},close:async()=>{}})});document.querySelector('[data-action="export-report"]').click();await pause();window.__contractReport=report;
     const reportWorks=report.includes('各方案实际报价')&&report.includes('合同比较日期')&&report.includes('费用约定：起运港港杂费')&&report.includes('合成合同：买方承担这笔起运港THC')&&!report.includes('<script');

@@ -1,5 +1,6 @@
 import type { BaseRef, CostItem, Tier } from '../domain/cost-item.js';
 import type { Numeric } from '../domain/decimal.js';
+import type { ContainerCharge } from '../domain/logistics.js';
 import type {
   CostCategory,
   CurrencyCode,
@@ -19,6 +20,7 @@ import type {
  * 字典里没有的费用，用户可以自由录入任意名称（`is_custom = true`），引擎照算不误。
  */
 export interface CostPreset {
+  container_charge?: ContainerCharge;
   key: string;
   name: string;
   aliases?: string[];
@@ -175,6 +177,7 @@ export const COST_PRESETS: CostPreset[] = [
   },
   {
     key: 'thc-origin',
+    container_charge: 'THC_ORIGIN',
     name: '起运港港杂费',
     aliases: ['THC', '港杂费', '码头操作费', '起运港费用'],
     cost_category: 'ORIGIN_TERMINAL',
@@ -236,6 +239,7 @@ export const COST_PRESETS: CostPreset[] = [
   },
   {
     key: 'origin-customs-inspection',
+    container_charge: 'INSPECTION',
     name: '出口海关查验费',
     aliases: ['查验费', '查柜费', '开箱查验费'],
     cost_category: 'ORIGIN_TERMINAL',
@@ -343,6 +347,7 @@ export const COST_PRESETS: CostPreset[] = [
   // ---------- 目的地 ----------
   {
     key: 'thc-destination',
+    container_charge: 'THC_DESTINATION',
     name: '目的港港杂费',
     aliases: ['目的港 THC', '目的港费用', 'DTHC'],
     cost_category: 'DESTINATION_TERMINAL',
@@ -366,7 +371,22 @@ export const COST_PRESETS: CostPreset[] = [
     trade_node: 'DESTINATION_TERMINAL',
     pricing_method: 'PER_DAY',
     unit: 'DAY',
-    hint: '归属取决于发生原因：因买方未及时提货归买方，因卖方单证错误归卖方——请填写发生原因。按档位计费（如前 7 天免费）时请改用「阶梯」方式',
+    hint: '旧合并名称不代表已确定联合收费。请据承运人资料选择新的分开或联合预设，核对免费期、计费天数及发生原因；本笔日费率须为全部箱子合计。',
+  },
+  {
+    key: 'container-demurrage', name: 'Demurrage（港内用箱超期）', container_charge: 'DEMURRAGE',
+    cost_category: 'DESTINATION_TERMINAL', trade_node: 'DESTINATION_TERMINAL', pricing_method: 'PER_DAY', unit: 'DAY',
+    hint: '按承运人实际定义核对港内用箱收费，可能与港口堆存费分开。days填扣除已核对免费期后的计费天数，rate填本笔全部箱子的日费率合计；阶梯收费另选阶梯方式。',
+  },
+  {
+    key: 'container-detention', name: 'Detention（港外用箱超期）', container_charge: 'DETENTION',
+    cost_category: 'DESTINATION_TERMINAL', trade_node: 'DESTINATION_TERMINAL', pricing_method: 'PER_DAY', unit: 'DAY',
+    hint: '核对提箱至还空箱等实际起止事件与免费期，days填计费天数，rate填本笔全部箱子的日费率合计。按实际费用节点/原因调整归属，不从名称认定买方责任。',
+  },
+  {
+    key: 'container-combined-dd', name: '联合D&D（须核对收费范围）', container_charge: 'COMBINED_DD',
+    cost_category: 'DESTINATION_TERMINAL', trade_node: 'DESTINATION_TERMINAL', pricing_method: 'PER_DAY', unit: 'DAY',
+    hint: '仅在承运人采用联合收费时录入；核对范围，避免再累计同范围的分开D&D。days填扣除已核对免费期后的计费天数，rate填全部箱子的日费率合计。',
   },
   {
     key: 'destination-storage',
@@ -379,6 +399,7 @@ export const COST_PRESETS: CostPreset[] = [
   },
   {
     key: 'destination-customs-inspection',
+    container_charge: 'INSPECTION',
     name: '目的地海关查验费',
     aliases: ['目的港查验费', '查验费'],
     cost_category: 'DESTINATION_TERMINAL',
@@ -494,6 +515,7 @@ export function presetToCostItem(preset: CostPreset, input: MaterializeInput): C
   const item: CostItem = {
     cost_id: input.cost_id,
     cost_name: preset.name,
+    ...(preset.container_charge ? { container_charge: preset.container_charge } : {}),
     cost_category: preset.cost_category,
     trade_node: preset.trade_node,
     pricing_method: preset.pricing_method,

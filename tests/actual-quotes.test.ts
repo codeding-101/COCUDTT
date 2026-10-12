@@ -5,7 +5,7 @@ import { compare, scenarioWithDerivedInclusions } from '../src/engine/compare';
 import { createProjectReport } from '../src/ui/project-report';
 import { renderContractPanel } from '../src/ui/contracts-input';
 import { renderOutputColumn } from '../src/ui/views-output';
-import { actualQuotesProject, confirmOverride, confirmQuote, syntheticEvidence } from './fixtures/actual-quotes';
+import { actualQuotesProject, confirmInsurance, confirmOverride, confirmQuote, syntheticEvidence } from './fixtures/actual-quotes';
 import { makeCostItem } from './helpers/factory';
 import { fxEvidenceValues } from '../src/domain/source-evidence';
 
@@ -68,6 +68,7 @@ describe('各方案独立合同报价与费用约定', () => {
     p.fx_books = [{ id: 'contract-usd', name: '合成商业汇率', type: 'CONTRACT', date: '2026-09-15', rates: { 'USD/CNY': '7' },
       evidence: { 'USD/CNY': syntheticEvidence(fxEvidenceValues({ type: 'CONTRACT', date: '2026-09-15', from: 'USD', to: 'CNY', rate: '7' })) } }];
     p.quote = { amount: '', currency: 'GBP', fx_type: 'MARKET', fx_date: '1999-01-01' }; confirmQuote(p, 'CIF');
+    p.term_scenarios!.CIF!.insurance!.sum_insured = { amount: '1682', currency: 'USD' }; confirmInsurance(p, 'CIF');
     expect(col(p).quote_amount.toFixed(2)).toBe('10700.00'); expect(col(p).decision_ready).toBe(true);
     p.fx_books = []; expect(col(p).feasible).toBe(false); expect(col(p, 'FOB').decision_ready).toBe(true);
   });
@@ -111,7 +112,7 @@ describe('各方案独立合同报价与费用约定', () => {
   });
   it('0.7完整存取，0.6旧文件不生成实际报价，错误映射和结构拒绝打开', () => {
     const p = actualQuotesProject(); const restored = parseProject(serializeProject(p));
-    expect(restored.term_scenarios).toEqual(p.term_scenarios); expect(restored.schema_version).toBe('0.7'); expect(col(restored).decision_ready).toBe(true);
+    expect(restored.term_scenarios).toEqual(p.term_scenarios); expect(restored.schema_version).toBe('0.8'); expect(col(restored).decision_ready).toBe(true);
     const old = { ...p, schema_version: '0.6', term_scenarios: undefined, evaluation_date: undefined, anchor: { kind: 'FIXED_QUOTE' } };
     expect(parseProject(JSON.stringify(old)).term_scenarios).toBeUndefined();
     for (const bad of [{ FOO: {} }, { CIF: { quote: null } }, { CIF: { quote_evidence: {} } }, { CIF: { responsibility_overrides: { insurance: { responsibility: 'SHARED' } } } }]) {

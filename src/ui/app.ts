@@ -27,6 +27,8 @@ import type {
 import type { ComparisonAnchor } from '../domain/scenario.js';
 import { overrideEvidenceValues, quoteEvidenceValues } from '../domain/contract-evidence.js';
 import { emptyContractQuote } from './contracts-input.js';
+import { emptyInsurancePlan, emptyTransportPlan, insuranceEvidenceValues, transportEvidenceValues } from '../domain/logistics-evidence.js';
+import type { ContainerCharge } from '../domain/logistics.js';
 import { analyze, type AnalysisResult } from '../engine/analyze.js';
 import { compare, scenarioWithDerivedInclusions, type Comparison } from '../engine/compare.js';
 import { isEngineError } from '../engine/errors.js';
@@ -202,6 +204,7 @@ function focusKeyOf(element: Element): string | null {
     return `evidence:${dataset.evidenceOwner}:${dataset.evidenceId ?? ''}:${dataset.evidenceField}`;
   }
   if (dataset.path !== undefined) return `path:${dataset.path}`;
+  if (dataset.logisticsKind !== undefined) return `logistics:${dataset.logisticsKind}:${dataset.logisticsField}:${dataset.segmentIndex ?? ''}`;
   if (dataset.contractCost !== undefined) return `contract:${dataset.contractCost}:${dataset.contractField}`;
   if (dataset.item !== undefined && dataset.itemField !== undefined) {
     return `item:${dataset.item}:${dataset.itemField}${dataset.term === undefined ? '' : `:${dataset.term}`}`;
@@ -214,7 +217,7 @@ function focusKeyOf(element: Element): string | null {
 
 function restoreFocus(key: string | null): void {
   if (key === null) return;
-  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner],[data-contract-cost]')).find(
+  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner],[data-contract-cost],[data-logistics-kind]')).find(
     (candidate) => focusKeyOf(candidate) === key,
   );
   element?.focus();
@@ -245,10 +248,14 @@ function onProjectField(path: string, target: HTMLInputElement | HTMLSelectEleme
     const record = (state.project.term_scenarios ??= {})[term] ??= {};
     record.quote ??= emptyContractQuote(state.project);
     invalidateEvidence(record.quote_evidence);
+    invalidateEvidence(record.insurance?.evidence);
+    if (path.endsWith('.named_place')) invalidateEvidence(record.transport?.evidence);
   }
   if (path.startsWith('goods.') || path.startsWith('facts.') || path === 'base_currency') {
     for (const record of Object.values(state.project.term_scenarios ?? {})) {
       invalidateEvidence(record.quote_evidence);
+      invalidateEvidence(record.insurance?.evidence);
+      invalidateEvidence(record.transport?.evidence);
       if (path.startsWith('facts.') || path === 'base_currency') Object.values(record.responsibility_overrides ?? {}).forEach(override => invalidateEvidence(override.evidence));
     }
   }
@@ -299,6 +306,8 @@ function onItemField(costId: string, field: string, target: HTMLInputElement | H
   if (['currency', 'fx_type', 'fx_date'].includes(field)) invalidateEvidence(item.fx_evidence);
   const isCheckbox = target instanceof HTMLInputElement && target.type === 'checkbox';
   switch (field) {
+    case 'container_charge': item.container_charge = value.trim() ? value as ContainerCharge : undefined; break;
+    case 'container_charge_scope': item.container_charge_scope = value.trim() || undefined; break;
     case 'applicability':
       item.applicable_incoterms = value === 'ALL' ? undefined : value === 'NONE' ? []
         : value === 'SELLER' ? ['CFR', 'CIF', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP']
@@ -503,7 +512,15 @@ function onFxField(rowId: string, field: string, target: HTMLInputElement | HTML
 function onEvidenceField(owner: string, id: string, field: string, value: string): void {
   let evidence: SourceEvidence;
   let values: unknown;
-  if (owner === 'quote') {
+  if (owner === 'transport' || owner === 'insurance') {
+    const term = id as Incoterm;
+    if (!INCOTERMS.includes(term)) return;
+    const record = state.project.term_scenarios?.[term];
+    if (!record?.[owner]) return;
+    evidence = record[owner]!.evidence ??= emptyEvidence();
+    const scenario = toScenario(state.project, term);
+    values = owner === 'transport' ? transportEvidenceValues(scenario) : insuranceEvidenceValues(scenario, state.project.goods);
+  } else if (owner === 'quote') {
     const term = id as Incoterm;
     if (!INCOTERMS.includes(term)) return;
     const record = (state.project.term_scenarios ??= {})[term] ??= {};
@@ -557,6 +574,32 @@ function onEvidenceField(owner: string, id: string, field: string, value: string
 }
 
 // ---------- 动作 ----------
+
+function onLogisticsField(kind: string, field: string, target: HTMLInputElement | HTMLSelectElement): void {
+  const record = (state.project.term_scenarios ??= {})[state.project.incoterm] ??= {};
+  if (kind === 'transport') {
+    const plan = record.transport ??= emptyTransportPlan();
+    invalidateEvidence(plan.evidence); invalidateEvidence(record.insurance?.evidence);
+    if (target.dataset.segmentIndex !== undefined) {
+      const segment = plan.segments[Number(target.dataset.segmentIndex)];
+      if (segment && ['mode', 'from', 'to', 'carrier', 'contract_reference'].includes(field)) (segment as unknown as Record<string, unknown>)[field] = target.value.trim();
+    } else if (['delivery_segment_id', 'delivery_location', 'delivery_at', 'delivery_event', 'handover_basis', 'agreement_note', 'paid_to'].includes(field)) (plan as unknown as Record<string, unknown>)[field] = target.value.trim();
+  } else if (kind === 'insurance') {
+    const policy = record.insurance ??= emptyInsurancePlan((record.quote ?? state.project.quote).currency);
+    invalidateEvidence(policy.evidence);
+    if (field === 'sum_insured.amount' || field === 'sum_insured.currency') policy.sum_insured[field === 'sum_insured.amount' ? 'amount' : 'currency'] = target.value.trim();
+    else if (['scope_confirmed', 'direct_claim_confirmed'].includes(field) && target instanceof HTMLInputElement) (policy as unknown as Record<string, unknown>)[field] = target.checked;
+    else if (['cover', 'clause_version', 'insured_from', 'insured_to', 'insurer', 'policy_reference', 'deductible', 'exclusions', 'agreed_cover_note'].includes(field)) (policy as unknown as Record<string, unknown>)[field] = target.value.trim();
+  }
+}
+
+function addTransportSegment(): void {
+  const record = (state.project.term_scenarios ??= {})[state.project.incoterm] ??= {};
+  const plan = record.transport ??= emptyTransportPlan();
+  let number = 1; while (plan.segments.some(segment => segment.segment_id === `leg-${number}`)) number++;
+  plan.segments.push({ segment_id: `leg-${number}`, mode: 'ROAD', from: plan.segments[plan.segments.length - 1]?.to ?? '', to: '', carrier: '', contract_reference: '' });
+  invalidateEvidence(plan.evidence); invalidateEvidence(record.insurance?.evidence);
+}
 
 function onContractField(costId: string, field: string, value: string): void {
   if (!state.project.items.some(item => item.cost_id === costId) && value !== 'DEFAULT') return;
@@ -966,6 +1009,11 @@ function bind(): void {
       commit();
       return;
     }
+    if (target.dataset.logisticsKind !== undefined && target.dataset.logisticsField !== undefined) {
+      onLogisticsField(target.dataset.logisticsKind, target.dataset.logisticsField, target);
+      commit();
+      return;
+    }
 
     if (target.dataset.action === 'add-preset') {
       if (target.value !== '') addPresetItem(target.value);
@@ -995,6 +1043,35 @@ function bind(): void {
     const action = target.dataset.action;
     if (action === undefined) return;
     switch (action) {
+      case 'add-transport-segment': addTransportSegment(); commit(); break;
+      case 'remove-transport-segment': {
+        const record = state.project.term_scenarios?.[state.project.incoterm]; const plan = record?.transport;
+        const index = Number(target.dataset.segmentIndex);
+        if (plan && Number.isInteger(index) && index >= 0 && index < plan.segments.length) {
+          plan.segments.splice(index, 1); invalidateEvidence(plan.evidence); invalidateEvidence(record?.insurance?.evidence);
+        }
+        commit(); break;
+      }
+      case 'clear-transport-plan': {
+        const record = state.project.term_scenarios?.[state.project.incoterm];
+        if (record) { delete record.transport; invalidateEvidence(record.insurance?.evidence); }
+        commit(); break;
+      }
+      case 'create-insurance-plan': {
+        const record = (state.project.term_scenarios ??= {})[state.project.incoterm] ??= {};
+        record.insurance ??= emptyInsurancePlan((record.quote ?? state.project.quote).currency);
+        commit(); break;
+      }
+      case 'clear-insurance-plan': {
+        const record = state.project.term_scenarios?.[state.project.incoterm]; if (record) delete record.insurance;
+        commit(); break;
+      }
+      case 'add-container-preset': {
+        const before = state.project.items.length;
+        addPresetItem(target.dataset.preset ?? '');
+        if (state.project.items.length > before) state.project.items[state.project.items.length - 1]!.applicable_incoterms = [state.project.incoterm];
+        commit(); break;
+      }
       case 'remove-contract-override': {
         if (target.dataset.contractCost) onContractField(target.dataset.contractCost, 'responsibility', 'DEFAULT');
         commit();

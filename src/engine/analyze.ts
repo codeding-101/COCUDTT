@@ -30,6 +30,7 @@ import { isChinaImport, validateChinaImportContext } from './tax/china-import.js
 import { assessDecision, type DecisionReadiness } from './decision-readiness.js';
 import { assessContract } from './contract-readiness.js';
 import { costsForTerm } from './scenario-costs.js';
+import { reviewLogistics, type LogisticsReview } from './logistics-review.js';
 
 const SHIPMENT_BOUNDARY: TradeNode = 'CARRIER_HANDOVER';
 
@@ -68,6 +69,7 @@ export interface EnrichedCostItem {
 
 export interface AnalysisResult {
   decision: DecisionReadiness;
+  logistics: LogisticsReview;
   rule_set: Pick<IncotermsRuleSet, 'id' | 'version'>;
   scenario_id: string;
   incoterm: Incoterm;
@@ -437,13 +439,15 @@ export function analyze(input: AnalysisInput): AnalysisResult {
     };
   });
 
-  return {
-    decision: assessContract(assessDecision({
+  const reviewed = reviewLogistics(assessContract(assessDecision({
       taxProfile, taxKey: trade.goods.tax_key, goodsPriceBasis: trade.goods.trade_value_basis,
       ...(trade.route !== undefined ? { route: trade.route } : {}), items, warnings,
       customsComponents: dutiableComponents, commercialFx: [...commercialFx, ...fxByCostId.values()],
       totals: [...(aggregated.seller.margin === null ? [] : [aggregated.seller.margin]), aggregated.buyer.landed_cost_with_tax, importTax.duty, importTax.vat, importTax.consumption_tax],
-    }), input.trade, trade.items.map(item => item.cost_id), scenario, warnings),
+    }), input.trade, trade.items.map(item => item.cost_id), scenario, warnings), input.trade, scenario, trade.items.map(item => item.cost_id), risk);
+  return {
+    decision: reviewed.decision,
+    logistics: reviewed.logistics,
     rule_set: { id: ruleSet.id, version: ruleSet.version },
     scenario_id: scenario.id,
     incoterm: scenario.incoterm,
@@ -455,7 +459,7 @@ export function analyze(input: AnalysisInput): AnalysisResult {
     rebate,
     import_tax: importTax,
     dutiable_value: { value: dutiableValue, components: dutiableComponents },
-    risk,
+    risk: reviewed.risk,
     conflicts: inclusion.conflicts,
     warnings,
   };

@@ -32,6 +32,8 @@ import type { FxRow } from './fx-rows.js';
 import { dec, escapeHtml } from './format.js';
 import { renderSourceEditor } from './source-editor.js';
 import { renderContractPanel } from './contracts-input.js';
+import { renderLogisticsPanel } from './logistics-input.js';
+import { CONTAINER_CHARGES } from '../domain/logistics.js';
 
 const BASE_LABELS: Record<'GOODS_VALUE' | 'QUOTE_AMOUNT' | 'CUSTOMS_DUTIABLE_VALUE', string> = {
   GOODS_VALUE: '货值',
@@ -261,6 +263,8 @@ function renderItemCard(item: CostItem, allItems: readonly CostItem[], enrichmen
           <option value="ADD"${item.customs_value === 'ADD' ? ' selected' : ''}>另加计税（未含于货值）</option>
           <option value="EXCLUDE"${item.customs_value === 'EXCLUDE' ? ' selected' : ''}>不另加计税</option>
       </select></label>
+      <label class="f"><span>集装箱收费标记</span><select ${itemAttr(item.cost_id, 'container_charge')}><option value="">未标记/不适用</option>${CONTAINER_CHARGES.map(kind => `<option value="${kind}"${kind === item.container_charge ? ' selected' : ''}>${({ THC_ORIGIN: '起运港THC', THC_DESTINATION: '目的港THC', DEMURRAGE: 'Demurrage', DETENTION: 'Detention', COMBINED_DD: '联合D&D', INSPECTION: '开箱/查验' })[kind]}</option>`).join('')}</select></label>
+      <label class="f"><span>用箱收费范围</span><input type="text" value="${escapeHtml(item.container_charge_scope ?? '')}" ${itemAttr(item.cost_id, 'container_charge_scope')} placeholder="相同箱/地点/期间填同名；未填按节点地点核对"></label>
       <span class="f flags">
         <label title="该费用已打进成交报价"><input type="checkbox" ${itemAttr(item.cost_id, 'included_in_quoted_price')} ${item.included_in_quoted_price ? 'checked' : ''} />含于报价</label>
         <label title="该项代表货物本身的价值"><input type="checkbox" ${itemAttr(item.cost_id, 'is_goods_value')} ${item.is_goods_value === true ? 'checked' : ''} />代表货值</label>
@@ -376,7 +380,8 @@ export function renderFormsRow(project: ProjectFile): string {
     ${panel('goods', '交易与商品', '', goodsBody)}
     ${panel('quote', '报价与方案', '', quoteBody)}
   </div>
-  ${renderContractPanel(project)}`;
+  ${renderContractPanel(project)}
+  ${renderLogisticsPanel(project)}`;
 }
 
 export function renderImportTaxPanel(project: ProjectFile): string {

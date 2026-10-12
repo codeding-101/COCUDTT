@@ -4,6 +4,23 @@ import type { AnalysisResult, EnrichedCostItem } from '../engine/analyze.js';
 import type { Comparison, ComparisonColumn } from '../engine/compare.js';
 import { dec, escapeHtml, levelLabel, warningClass } from './format.js';
 import { SOURCE_STATUS_LABELS } from './source-editor.js';
+import { DELIVERY_EVENT_LABELS } from '../domain/logistics.js';
+import { CARRIAGE_MODE_LABELS } from '../domain/enums.js';
+
+function renderLogistics(result: AnalysisResult): string {
+  const { transport, insurance, container_reminders } = result.logistics;
+  if (!transport && !insurance.configured && !container_reminders.length) return '';
+  return `<section class="panel"><div class="panel-body"><h3 class="panel-heading">运输风险与保险核对</h3>
+    <p class="hint block">运输与保险资料核对版本 ${result.logistics.version}，不替代合同及保单专业复核。</p>
+    ${transport ? `<p class="hint block">${transport.confirmed && !result.risk.needs_confirmation ? '交货事实通过当前人工记录检查' : '运输/交货资料仍待核对'}。仅标记一次交货风险转移；换段不重置风险，费用按明细独立计算。</p>
+      <ol class="transport-flow">${transport.plan.segments.map((segment, n) => `<li${n === transport.delivery_index ? ' class="transfer"' : ''}><strong>${escapeHtml(segment.from || '起点待填')} → ${escapeHtml(segment.to || '终点待填')}</strong><span>${CARRIAGE_MODE_LABELS[segment.mode]} · ${escapeHtml(segment.carrier || '承运人未填')}</span>
+        ${n === transport.delivery_index ? `<p data-risk-event>${transport.confirmed ? '录入交货点' : '待核对交货点'}：${escapeHtml(transport.plan.delivery_location)} · ${DELIVERY_EVENT_LABELS[transport.plan.delivery_event]}（${transport.plan.delivery_at === 'ORIGIN' ? '该段起点' : '该段终点'}）</p>` : ''}</li>`).join('')}</ol>
+      <p>卖方运费支付终点：${escapeHtml(transport.plan.paid_to || '未填/无运输义务')}</p>` : ''}
+    ${insurance.configured ? `<p>保险保障：${escapeHtml(insurance.cover)}；${insurance.issues.length ? '仍待核对' : '通过当前资料检查，非保单认证'}。录入保额 ${escapeHtml(insurance.sum_insured)} ${escapeHtml(insurance.sum_insured_currency)}。</p>
+      ${insurance.required && insurance.minimum_amount ? `<p class="hint block">按原合同价 ${escapeHtml(insurance.contract_amount)} ${escapeHtml(insurance.currency)} 计算110%基线，最低参考保额（展示向上到分）${insurance.minimum_amount.toFixed(2, 0)} ${escapeHtml(insurance.currency)}；保障区间 ${escapeHtml(insurance.insured_from)} → ${escapeHtml(insurance.insured_to)}。保额不计入成本或税基，保费仍在费用明细单独计算。</p>` : ''}` : ''}
+    ${container_reminders.length ? `<h4>集装箱费用提醒</h4><ul class="decision-issues">${container_reminders.map(text => `<li>${escapeHtml(text)}</li>`).join('')}</ul>` : ''}
+  </div></section>`;
+}
 
 function sourceReference(reference: string): string {
   try {
@@ -350,6 +367,7 @@ export function renderOutputColumn(state: OutputState): string {
   }
   return `
   ${renderDecisionCheck(state.result)}
+  ${renderLogistics(state.result)}
   ${renderHero(state.result)}
   ${renderBreakdown(state.result)}
   ${renderWarnings(state.result)}
