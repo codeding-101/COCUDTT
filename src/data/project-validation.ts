@@ -5,54 +5,57 @@ import {
 import { DUTY_RATE_BASES, DUTY_TYPES } from '../domain/hs-rate.js';
 import { CONTAINER_CHARGES, DELIVERY_EVENTS, INSURANCE_COVERS } from '../domain/logistics.js';
 import { EngineError } from '../engine/errors.js';
+import { SCHEMA_VERSION, SUPPORTED_PROJECT_VERSIONS } from './project-versions.js';
 
-type Validator = (value: unknown, path: string) => void;
+export interface JsonSchema { [key:string]:unknown }
+type Validator = ((value: unknown, path: string) => void) & { schema:JsonSchema; isOptional?:true };
+const described=(check:(value:unknown,path:string)=>void,schema:JsonSchema,isOptional=false):Validator=>Object.assign(check,{schema,...(isOptional?{isOptional:true as const}:{})});
 
 function fail(path: string, expected: string): never {
   throw new EngineError('PROJECT_PARSE_FAILED', `项目文件字段 ${path} ${expected}`, { field: path });
 }
 
-const string: Validator = (value, path) => {
+const string = described((value, path) => {
   if (typeof value !== 'string') fail(path, '应为文本');
-};
-const boolean: Validator = (value, path) => {
+},{type:'string'});
+const boolean = described((value, path) => {
   if (typeof value !== 'boolean') fail(path, '应为布尔值');
-};
+},{type:'boolean'});
 // 结构校验允许空数值和未完成的输入原样存取。能否计算由引擎判断，不能因此丢弃草稿。
-const numeric: Validator = (value, path) => {
+const numeric = described((value, path) => {
   if (typeof value !== 'string' && !(typeof value === 'number' && Number.isFinite(value))) {
     fail(path, '应为数值文本或有限数字');
   }
-};
-const number: Validator = (value, path) => {
+},{anyOf:[{type:'string'},{type:'number'}]});
+const number = described((value, path) => {
   if (typeof value !== 'number' || !Number.isFinite(value)) fail(path, '应为有限数字');
-};
+},{type:'number'});
 
 function record(value: unknown, path: string): Record<string, unknown> {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) fail(path, '应为对象');
   return value as Record<string, unknown>;
 }
 
-const optional = (check: Validator): Validator => (value, path) => {
+const optional = (check: Validator): Validator => described((value, path) => {
   if (value !== undefined) check(value, path);
-};
-const nullable = (check: Validator): Validator => (value, path) => {
+},check.schema,true);
+const nullable = (check: Validator): Validator => described((value, path) => {
   if (value !== null) check(value, path);
-};
-const oneOf = (values: readonly string[]): Validator => (value, path) => {
+},{anyOf:[check.schema,{type:'null'}]});
+const oneOf = (values: readonly string[]): Validator => described((value, path) => {
   if (typeof value !== 'string' || !values.includes(value)) fail(path, `应为 ${values.join(' / ')} 之一`);
-};
-const array = (check: Validator): Validator => (value, path) => {
+},{type:'string',enum:[...values]});
+const array = (check: Validator): Validator => described((value, path) => {
   if (!Array.isArray(value)) fail(path, '应为数组');
   value.forEach((entry, index) => check(entry, `${path}[${index}]`));
-};
-const shape = (fields: Record<string, Validator>): Validator => (value, path) => {
+},{type:'array',items:check.schema});
+const shape = (fields: Record<string, Validator>): Validator => described((value, path) => {
   const object = record(value, path);
   for (const [key, check] of Object.entries(fields)) check(object[key], `${path}.${key}`);
-};
-const dictionary = (check: Validator): Validator => (value, path) => {
+},{type:'object',properties:Object.fromEntries(Object.entries(fields).map(([key,check])=>[key,check.schema])),required:Object.entries(fields).filter(([,check])=>!check.isOptional).map(([key])=>key),additionalProperties:true});
+const dictionary = (check: Validator): Validator => described((value, path) => {
   for (const [key, entry] of Object.entries(record(value, path))) check(entry, `${path}.${key}`);
-};
+},{type:'object',additionalProperties:check.schema});
 
 const money = shape({ amount: numeric, currency: string });
 const evidence = shape({
@@ -61,11 +64,11 @@ const evidence = shape({
   values_key: optional(string),
 });
 const rateTable = shape({ fallback: numeric, byKey: optional(dictionary(numeric)) });
-const baseRef: Validator = (value, path) => {
+const baseRef = described((value, path) => {
   const object = record(value, path);
   oneOf(['GOODS_VALUE', 'QUOTE_AMOUNT', 'COST_ITEMS', 'CUSTOMS_DUTIABLE_VALUE'])(object.kind, `${path}.kind`);
   if (object.kind === 'COST_ITEMS') array(string)(object.ids, `${path}.ids`);
-};
+},{...shape({kind:oneOf(['GOODS_VALUE','QUOTE_AMOUNT','COST_ITEMS','CUSTOMS_DUTIABLE_VALUE'])}).schema,allOf:[{if:{type:'object',properties:{kind:{const:'COST_ITEMS'}},required:['kind']},then:shape({ids:array(string)}).schema}]});
 const costItem = shape({
   container_charge: optional(oneOf(CONTAINER_CHARGES)),
   container_charge_scope: optional(string),
@@ -93,6 +96,10 @@ const costItem = shape({
   risk_relation: optional(oneOf(['BEFORE_TRANSFER', 'AFTER_TRANSFER', 'NOT_APPLICABLE'])),
   is_custom: boolean, source: oneOf(['USER', 'DERIVED']), notes: optional(string),
 });
+// These existing application rules are expressible in standard Schema. The global
+// uniqueness of cost_id across different objects remains an application check.
+(costItem.schema.properties as Record<string,JsonSchema>).cost_id={type:'string',pattern:'\\S',not:{enum:['__proto__','constructor','prototype']}};
+(costItem.schema.properties as Record<string,JsonSchema>).applicable_incoterms={type:'array',items:oneOf(INCOTERMS).schema,uniqueItems:true};
 const fxBook = shape({
   id: string, name: string, type: oneOf(FX_TYPES), date: string,
   valid_from: optional(string), valid_to: optional(string), rates: dictionary(string),
@@ -108,14 +115,34 @@ const hsTable = shape({
     consumption_tax_rate: optional(numeric), notes: optional(string),
   })),
 });
-const anchor: Validator = (value, path) => {
+const anchor = described((value, path) => {
   const object = record(value, path);
   oneOf(['ACTUAL_QUOTES', 'FIXED_QUOTE', 'FIXED_MARKET_PRICE', 'FIXED_MARGIN_RATE'])(object.kind, `${path}.kind`);
   if (object.kind === 'FIXED_MARKET_PRICE') {
     numeric(object.buyer_total, `${path}.buyer_total`);
     string(object.currency, `${path}.currency`);
   } else if (object.kind === 'FIXED_MARGIN_RATE') numeric(object.margin_rate, `${path}.margin_rate`);
-};
+},{...shape({kind:oneOf(['ACTUAL_QUOTES','FIXED_QUOTE','FIXED_MARKET_PRICE','FIXED_MARGIN_RATE'])}).schema,allOf:[
+ {if:{type:'object',properties:{kind:{const:'FIXED_MARKET_PRICE'}},required:['kind']},then:shape({buyer_total:numeric,currency:string}).schema},
+ {if:{type:'object',properties:{kind:{const:'FIXED_MARGIN_RATE'}},required:['kind']},then:shape({margin_rate:numeric}).schema},
+]});
+const termScenario = shape({
+  transport: optional(shape({
+    segments: array(shape({ segment_id: string, mode: oneOf(CARRIAGE_MODES.filter(mode => mode !== 'MULTIMODAL')), from: string, to: string, carrier: string, contract_reference: string })),
+    delivery_segment_id: string, delivery_location: string, delivery_at: oneOf(['ORIGIN', 'DESTINATION']),
+    delivery_event: oneOf(DELIVERY_EVENTS), handover_basis: oneOf(['FIRST_CARRIER', 'AGREED_POINT']), agreement_note: string, paid_to: string, evidence: optional(evidence),
+  })),
+  insurance: optional(shape({ cover: oneOf(INSURANCE_COVERS), clause_version: string, sum_insured: shape({ amount: string, currency: string }),
+    insured_from: string, insured_to: string, scope_confirmed: boolean, direct_claim_confirmed: boolean,
+    insurer: string, policy_reference: string, deductible: string, exclusions: string, agreed_cover_note: string, evidence: optional(evidence),
+  })),
+  quote: optional(shape({ amount: string, currency: string, fx_type: oneOf(FX_TYPES), fx_date: optional(string), named_place: optional(string) })),
+  quote_evidence: optional(evidence),
+  responsibility_overrides: optional(dictionary(shape({
+    responsibility: oneOf(['SELLER', 'BUYER']), reason: optional(string), evidence: optional(evidence),
+    payment_party: optional(oneOf(['SELLER', 'BUYER'])), economic_bearer: optional(oneOf(['SELLER', 'BUYER'])),
+  }))),
+});
 const project = shape({
   schema_version: string, name: string, updated_at: string, base_currency: string,
   carriage_mode: oneOf(CARRIAGE_MODES), export_date: optional(string),
@@ -155,29 +182,13 @@ const project = shape({
   }),
   quote: shape({ amount: string, currency: string, fx_type: oneOf(FX_TYPES), fx_date: optional(string), named_place: optional(string) }),
   evaluation_date: optional(string),
-  term_scenarios: optional((value, path) => {
+  term_scenarios: optional(described((value, path) => {
     const object = record(value, path);
     for (const [term, entry] of Object.entries(object)) {
       oneOf(INCOTERMS)(term, `${path}.${term}`);
-      shape({
-        transport: optional(shape({
-          segments: array(shape({ segment_id: string, mode: oneOf(CARRIAGE_MODES.filter(mode => mode !== 'MULTIMODAL')), from: string, to: string, carrier: string, contract_reference: string })),
-          delivery_segment_id: string, delivery_location: string, delivery_at: oneOf(['ORIGIN', 'DESTINATION']),
-          delivery_event: oneOf(DELIVERY_EVENTS), handover_basis: oneOf(['FIRST_CARRIER', 'AGREED_POINT']), agreement_note: string, paid_to: string, evidence: optional(evidence),
-        })),
-        insurance: optional(shape({ cover: oneOf(INSURANCE_COVERS), clause_version: string, sum_insured: shape({ amount: string, currency: string }),
-          insured_from: string, insured_to: string, scope_confirmed: boolean, direct_claim_confirmed: boolean,
-          insurer: string, policy_reference: string, deductible: string, exclusions: string, agreed_cover_note: string, evidence: optional(evidence),
-        })),
-        quote: optional(shape({ amount: string, currency: string, fx_type: oneOf(FX_TYPES), fx_date: optional(string), named_place: optional(string) })),
-        quote_evidence: optional(evidence),
-        responsibility_overrides: optional(dictionary(shape({
-          responsibility: oneOf(['SELLER', 'BUYER']), reason: optional(string), evidence: optional(evidence),
-          payment_party: optional(oneOf(['SELLER', 'BUYER'])), economic_bearer: optional(oneOf(['SELLER', 'BUYER'])),
-        }))),
-      })(entry, `${path}.${term}`);
+      termScenario(entry, `${path}.${term}`);
     }
-  }),
+  },{type:'object',propertyNames:oneOf(INCOTERMS).schema,additionalProperties:termScenario.schema})),
   incoterm: oneOf(INCOTERMS), anchor,
   facts: optional(shape({
     delivery_place: optional(oneOf(['SELLER_PREMISES', 'OTHER'])),
@@ -185,6 +196,14 @@ const project = shape({
     clearance_agent: optional(oneOf(['SELLER_ACTS_FOR_BUYER'])), loading_mode: optional(oneOf(['FCL', 'LCL'])),
   })),
 });
+
+/** Standard Draft-07 structure, generated from the same validators. Business
+ * readiness and uniqueness of cost_id across different objects are separate. */
+export function projectJsonSchema(legacy=false):JsonSchema {
+  const schema=structuredClone(project.schema);
+  (schema.properties as Record<string,JsonSchema>).schema_version=legacy?{type:'string',enum:[...SUPPORTED_PROJECT_VERSIONS]}:{type:'string',const:SCHEMA_VERSION};
+  return {$schema:'http://json-schema.org/draft-07/schema#',$id:`urn:cocudtt:project:${legacy?'import-0.1-0.8':SCHEMA_VERSION}`,title:legacy?'COCUDTT accepted project containers 0.1–0.8':'COCUDTT project file 0.8',description:'Structural validation for saved drafts. Empty numeric/date strings and unknown extension fields are preserved. Application checks additionally enforce unique cost_id values across items; the engine checks calculations and business readiness.',...schema};
+}
 
 /** 检查全部已知字段，但保留未知扩展字段，不静默改写文件内容。 */
 export function validateProjectStructure(value: unknown): void {

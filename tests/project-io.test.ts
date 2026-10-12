@@ -71,6 +71,23 @@ describe('打开、保存项目的失败处理', () => {
   function action(name: string) {
     const button = new ElementStub(); button.dataset.action = name; listeners.get('click')!({ target: button });
   }
+  function resource(kind:'template'|'schema',id:string) {
+    const button=new ElementStub();button.dataset.action=kind==='template'?'download-project-template':'download-project-schema';
+    if(kind==='template')button.dataset.templateId=id;else button.dataset.schemaKind=id;
+    listeners.get('click')!({target:button});
+  }
+  it('下载模板与Schema独立于当前项目，不带内部名称或公开字段，也不替换当前内容',async()=>{
+    await start();await customerProject();customer('reference','PRIVATE_CURRENT_729');const before=storage.get(key);let text='',name='';vi.stubGlobal('window',{showSaveFilePicker:async(o:{suggestedName:string})=>{name=o.suggestedName;return{name,createWritable:async()=>({write:async(s:string)=>{text=s;},close:async()=>{}})}}});resource('template','china-import-blank');await vi.waitFor(()=>expect(text).toContain('空白模板'));expect(name).toBe('china-import-blank.json');expect(text).not.toContain('PRIVATE_');expect(JSON.parse(text).goods.quantity).toBe('');expect(storage.get(key)).toBe(before);text='';resource('schema','current');await vi.waitFor(()=>expect(text).toContain('urn:cocudtt:project:0.8'));expect(text).not.toContain('PRIVATE_');expect(storage.get(key)).toBe(before);
+  });
+  it('模板选择等待期间仍是固定文件，忙碌阻止重复下载，当前编辑保持',async()=>{
+    await start();await customerProject();let resolvePicker!:(h:unknown)=>void,text='';const picker=vi.fn(()=>new Promise(r=>{resolvePicker=r;}));vi.stubGlobal('window',{showSaveFilePicker:picker});resource('template','china-import-actual-quotes');resource('schema','legacy');expect(picker).toHaveBeenCalledOnce();expect(html).toContain('正在导出模板');change('goods.name','修改当前商品');resolvePicker({name:'template.json',createWritable:async()=>({write:async(s:string)=>{text=s;},close:async()=>{}})});await vi.waitFor(()=>expect(text).toContain('ACTUAL_QUOTES'));expect(text).not.toContain('修改当前商品');expect(JSON.parse(storage.get(key)!).project.goods.name).toBe('修改当前商品');expect(html).not.toContain('正在导出模板');
+  });
+  it('模板取消、写盘失败及无效选择保留原项目，不另行下载',async()=>{
+    await start();const before=storage.get(key);vi.stubGlobal('window',{showSaveFilePicker:async()=>{throw new DOMException('cancel','AbortError');}});resource('template','china-import-blank');await vi.waitFor(()=>expect(html).toContain('已取消模板'));vi.stubGlobal('window',{showSaveFilePicker:async()=>({name:'schema.json',createWritable:async()=>({write:async()=>{throw Error('disk-full');},close:async()=>{}})})});resource('schema','legacy');await vi.waitFor(()=>expect(html).toContain('导出失败'));const picker=vi.fn();vi.stubGlobal('window',{showSaveFilePicker:picker});resource('template','UNKNOWN');expect(picker).not.toHaveBeenCalled();expect(storage.get(key)).toBe(before);expect(createElement).not.toHaveBeenCalled();
+  });
+  it('模板下载回退不改变客户检查、项目草稿和保存状态',async()=>{
+    await start();await customerProject();customer('reviewed','',true);const before=storage.get(key),click=vi.fn();createElement.mockReturnValue({click});vi.spyOn(URL,'createObjectURL').mockReturnValue('blob:template');vi.spyOn(URL,'revokeObjectURL').mockImplementation(()=>{});resource('template','china-import-synthetic-example');await vi.waitFor(()=>expect(html).toContain('已发起模板'));expect(click).toHaveBeenCalledOnce();expect(storage.get(key)).toBe(before);expect(html).toContain('已检查上方公开内容');
+  });
   function change(path: string, value: string, checked = false) {
     const field = new InputStub();
     field.id = '';
