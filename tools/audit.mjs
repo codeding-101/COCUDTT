@@ -71,6 +71,11 @@ for (const field of sensitivityFields) {
   if (!sensitivityHandler.includes(`field === '${field}'`)) problems.push(`[假设字段未处理] ${field} 没有对应处理分支`);
 }
 const contractFields = matchAll(uiText, /data-contract-field="([a-z_]+)"/g);
+const customerDomain = read(join(root, 'src/domain/customer-quote.ts'));
+const customerFields = new Set([...matchAll(uiText, /data-customer-field="([a-z_]+)"/g), ...matchAll(customerDomain, /^\s+([a-z_]+): string;/gm)]);
+for (const field of customerFields) {
+  if (field === 'reviewed' ? !appTs.includes("field === 'reviewed'") : !customerDomain.includes(`'${field}'`) || !appTs.includes('CUSTOMER_QUOTE_FIELDS.some')) problems.push(`[客户字段未处理] ${field} 没有对应处理分支`);
+}
 const handledContractFields = matchAll(appTs, /field === '([a-z_]+)'/g);
 for (const field of contractFields) {
   if (!handledContractFields.has(field)) problems.push(`[合同字段未处理] ${field} 没有对应处理分支`);
