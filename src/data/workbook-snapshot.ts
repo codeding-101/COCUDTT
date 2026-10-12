@@ -8,7 +8,7 @@ import { toScenario, toScenarios, toTrade, serializeProject, type ProjectFile } 
 import { decimalCell as n, textCell as t, type WorkbookCell, type WorkbookSheet, type WorkbookSnapshot } from './xlsx-file.js';
 
 const DISCLAIMER='本工具仅供学习与内部测算参考，不构成法律或专业贸易建议。实际合同请以 Incoterms® 官方文本及当地法规为准。';
-const PRECISION='数值超出 Excel 的15位有效数字或12位小数展示范围时以文本保留原值；本文件为生成时快照，编辑单元格不会重新运行测算引擎。';
+const PRECISION='数值超出 Excel 的15位有效数字/整数位或12位小数展示范围时以文本保留原值；本文件为生成时快照，编辑单元格不会重新运行测算引擎。';
 const sheet=(name:string,headers:string[],widths:number[],rows:WorkbookCell[][],freezeColumns=1):WorkbookSheet=>({name,headers,widths,rows,freezeColumns});
 const metric=(value:Decimal|null):WorkbookCell=>value===null?t('未知'):n(value.toFixed());
 const pair=(label:string,value:string):WorkbookCell[]=>[t(label),t(value||'待双方确认')];

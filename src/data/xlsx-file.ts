@@ -19,7 +19,7 @@ function xml(value: string): string {
 export function excelDecimal(value: string): { value: string; numeric: boolean } {
   if (!/^-?\d+(\.\d+)?$/.test(value)) throw new Error('Excel 金额不是有限十进制数');
   const number = d(value), canonical = number.toFixed();
-  const numeric = number.sd() <= 15 && number.decimalPlaces() <= 12 && Number.isFinite(Number(canonical)) && (number.isZero() || Math.abs(Number(canonical)) >= 1e-307);
+  const numeric = number.sd() <= 15 && canonical.replace(/^-/, '').split('.')[0]!.length <= 15 && number.decimalPlaces() <= 12 && Number.isFinite(Number(canonical)) && (number.isZero() || Math.abs(Number(canonical)) >= 1e-307);
   return { value: canonical, numeric };
 }
 function column(index: number): string {
@@ -49,8 +49,10 @@ function sheetXml(sheet: WorkbookSheet): string {
   if (rows.length > 100000 || !sheet.headers.length || sheet.headers.length > 64 || sheet.widths.length !== sheet.headers.length || sheet.widths.some(w=>!Number.isFinite(w)||w<8||w>120) || rows.some(r => r.length !== sheet.headers.length)) throw new Error('Excel 表格尺寸或列数无效');
   const y = 1, x = sheet.freezeColumns ?? 0;
   if(!Number.isInteger(x)||x<0||x>=sheet.headers.length)throw new Error('Excel 冻结列无效');
-  return XML_HEADER + `<worksheet xmlns="${NS}"><dimension ref="A1:${column(sheet.headers.length-1)}${rows.length}"/><sheetViews><sheetView workbookViewId="0"><pane xSplit="${x}" ySplit="${y}" topLeftCell="${column(x)}2" activePane="${x ? 'bottomRight':'bottomLeft'}" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="22"/><cols>${sheet.widths.map((width,i)=>`<col min="${i+1}" max="${i+1}" width="${width}" customWidth="1"/>`).join('')}</cols><sheetData>${rows.map((r,i)=>{
-    const lines = Math.max(1,...r.map((c,j)=>c.value.split('\n').reduce((total,line)=>total+Math.max(1,Math.ceil(Array.from(line).reduce((n,ch)=>n+(ch.charCodeAt(0)>255?2:1),0)/(sheet.widths[j]!-2))),0)));
+  const widths=[...sheet.widths];
+  for(const row of rows)row.forEach((cell,i)=>{if(cell.kind==='decimal'&&excelDecimal(cell.value).numeric){const whole=cell.value.replace(/^-/, '').split('.')[0]!;widths[i]=Math.max(widths[i]!,cell.value.length+Math.floor(whole.length/3)+5);}});
+  return XML_HEADER + `<worksheet xmlns="${NS}"><dimension ref="A1:${column(sheet.headers.length-1)}${rows.length}"/><sheetViews><sheetView workbookViewId="0"><pane xSplit="${x}" ySplit="${y}" topLeftCell="${column(x)}2" activePane="${x ? 'bottomRight':'bottomLeft'}" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="22"/><cols>${widths.map((width,i)=>`<col min="${i+1}" max="${i+1}" width="${width}" customWidth="1"/>`).join('')}</cols><sheetData>${rows.map((r,i)=>{
+    const lines = Math.max(1,...r.map((c,j)=>c.value.split('\n').reduce((total,line)=>total+Math.max(1,Math.ceil(Array.from(line).reduce((n,ch)=>n+(ch.charCodeAt(0)>255?2:1),0)/(widths[j]!-2))),0)));
     const height = i === 0 ? 32 : Math.min(409,Math.max(24,lines*16+8));
     return `<row r="${i+1}" ht="${height}" customHeight="1">${r.map((c,j)=>cellXml(c,column(j)+(i+1),i===0)).join('')}</row>`;
   }).join('')}</sheetData><pageMargins left="0.3" right="0.3" top="0.5" bottom="0.5" header="0.2" footer="0.2"/></worksheet>`;

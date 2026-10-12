@@ -61,9 +61,9 @@ try {
  await evaluate(`(async()=>{window.showSaveFilePicker=async()=>({name:'x.xlsx',createWritable:async()=>({write:async()=>{throw new Error('disk-full')},close:async()=>{}})});document.querySelector('[data-action=export-internal-xlsx]').click();await new Promise(r=>setTimeout(r,150))})()`);
  checks.writeFailure=await evaluate("document.body.innerText.includes('内部成本 Excel导出失败')&&document.body.innerText.includes('disk-full')");
  checks.failureKeepsDraft=unchanged===await evaluate("localStorage.getItem('trade-cost-engine:draft-v1')");
- await mkdir(join(root,'downloads'),{recursive:true});await call('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:resolve(root,'downloads')});
+ const downloadDirectory=join(root,'downloads',String(Date.now()));await mkdir(downloadDirectory,{recursive:true});await call('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:resolve(downloadDirectory)});
  await evaluate("window.showSaveFilePicker=undefined;document.querySelector('[data-action=export-customer-xlsx]').click()");await new Promise(r=>setTimeout(r,800));
- const downloaded=await readFile(join(root,'downloads',customer.name));checks.realDownload=all(downloaded).includes('>1234567890123456</t>');checks.downloadKeepsDraft=unchanged===await evaluate("localStorage.getItem('trade-cost-engine:draft-v1')");
+ const downloaded=await readFile(join(downloadDirectory,customer.name));checks.realDownload=all(downloaded).includes('>1234567890123456</t>');checks.downloadKeepsDraft=unchanged===await evaluate("localStorage.getItem('trade-cost-engine:draft-v1')");
  await upload(simulated);checks.simulationBlocked=await evaluate("document.querySelector('[data-action=export-customer-xlsx]').disabled");
  const report={checks,layouts,exceptions,realHeadlessDownloadVerified:true,savePickerUsesApiSubstitute:true,actualMobileVerified:false};
  await writeFile(join(root,'excel-browser-report.json'),JSON.stringify(report,null,2));if(Object.values(checks).some(v=>v!==true)||layouts.some(l=>l.content>l.viewport)||exceptions.length)throw Error(JSON.stringify(report));console.log(JSON.stringify(report,null,2));

@@ -86,4 +86,10 @@ describe('原生 XLSX 序列化边界',()=>{
   it('冻结列必须指向存在的列，非整数或越界值不会写坏工作簿',()=>{
     const w=workbook();w.sheets[0]!.freezeColumns=99;expect(()=>serializeWorkbook(w)).toThrow('冻结列');w.sheets[0]!.freezeColumns=0.5;expect(()=>serializeWorkbook(w)).toThrow('冻结列');
   });
+  it('16位整数即使含大量尾零也以文本保存，避免Excel整数位限制',()=>{
+    const value='1000000000000000';expect(excelDecimal(value).numeric).toBe(false);expect(parts(serializeWorkbook(workbook([[textCell('金额'),decimalCell(value)]])))['xl/worksheets/sheet1.xml']).toContain('>1000000000000000</t>');
+  });
+  it('原生数值的列宽随大金额扩展，不改变输入列宽或数值',()=>{
+    const w=workbook([[textCell('金额'),decimalCell('999999999999999')]]);w.sheets[0]!.widths=[24,8];const xml=parts(serializeWorkbook(w))['xl/worksheets/sheet1.xml']!;expect(xml).toContain('max="2" width="25"');expect(xml).toContain('<v>999999999999999</v>');expect(w.sheets[0]!.widths).toEqual([24,8]);
+  });
 });
