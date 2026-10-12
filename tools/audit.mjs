@@ -71,6 +71,14 @@ for (const field of sensitivityFields) {
   if (!sensitivityHandler.includes(`field === '${field}'`)) problems.push(`[假设字段未处理] ${field} 没有对应处理分支`);
 }
 const contractFields = matchAll(uiText, /data-contract-field="([a-z_]+)"/g);
+const settlementFields = new Set([
+  ...matchAll(uiText, /data-settlement-field="([a-z_]+)"/g),
+  ...matchAll(uiText, /input\('(?:payment|fee)',\s*index,\s*'([a-z_]+)'/g),
+]);
+const settlementHandler = appTs.slice(appTs.indexOf('function onSettlementField('), appTs.indexOf('async function saveSettlement('));
+for (const field of settlementFields) {
+  if (!settlementHandler.includes(`field === '${field}'`)) problems.push(`[付款字段未处理] ${field} 没有对应处理分支`);
+}
 const customerDomain = read(join(root, 'src/domain/customer-quote.ts'));
 const customerFields = new Set([...matchAll(uiText, /data-customer-field="([a-z_]+)"/g), ...matchAll(customerDomain, /^\s+([a-z_]+): string;/gm)]);
 for (const field of customerFields) {

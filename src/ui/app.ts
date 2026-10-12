@@ -13,6 +13,10 @@ import { validateDraftFxRows } from '../data/project-validation.js';
 import { projectJsonSchema } from '../data/project-validation.js';
 import { projectTemplateText, PROJECT_TEMPLATES } from '../data/project-templates.js';
 import { renderProjectTemplatePanel } from './project-templates.js';
+import { settlementBinding } from '../data/settlement-context.js';
+import { parseSettlementPlan, serializeSettlementPlan } from '../data/settlement-file.js';
+import { newSettlementPlan, newPaymentEntry, newBankFeeEntry, type SettlementPlan } from '../domain/settlement.js';
+import { renderSettlementPanel } from './settlement.js';
 import { emptyEvidence, evidenceKey, fxEvidenceValues, hsEvidenceValues, invalidateEvidence, taxEvidenceValues, type SourceEvidence } from '../domain/source-evidence.js';
 import { eligibilityValues, emptyEligibility, emptyRoute } from '../domain/import-context.js';
 import type { BaseRef, CostItem } from '../domain/cost-item.js';
@@ -150,6 +154,54 @@ let customerSummaryBusy = false;
 let customerPreview: CustomerQuote | null = null;
 let customerError: string | null = null;
 let customerPdfBusy = false;
+let settlementPlan: SettlementPlan | null = null;
+let settlementBusy = false;
+let settlementEpoch = 0;
+
+function onSettlementField(target: HTMLInputElement | HTMLSelectElement): void {
+  if (!settlementPlan) return;
+  const field = target.dataset.settlementField;
+  const kind = target.dataset.settlementRow;
+  const index = Number(target.dataset.settlementIndex);
+  if (kind === 'payment') {
+    const row = settlementPlan.payments[index];
+    if (row && field === 'basis' && ['AMOUNT','PERCENT'].includes(target.value)) row.basis = target.value as typeof row.basis;
+    else if (row && (field === 'value' || field === 'date' || field === 'trigger')) row[field] = target.value;
+  } else if (kind === 'fee') {
+    const row = settlementPlan.bank_fees[index];
+    if (row && field === 'source' && ['EXISTING','EXTRA'].includes(target.value)) {
+      row.source = target.value as typeof row.source;
+      // Preserve old values; incompatible associations must be cleared explicitly.
+      row.not_in_project = false;
+    } else if (row && (field === 'bearer' || field === 'payer') && ['UNCONFIRMED','BUYER','SELLER'].includes(target.value)) row[field] = target.value as typeof row.bearer;
+    else if (row && field === 'not_in_project') row.not_in_project = target instanceof HTMLInputElement && target.checked;
+    else if (row && (field === 'cost_id' || field === 'amount' || field === 'currency' || field === 'date' || field === 'reference')) row[field] = target.value;
+  } else if (field === 'method' && ['UNCONFIRMED','TT','LC','OA'].includes(target.value)) settlementPlan.method = target.value as typeof settlementPlan.method;
+  else if (field === 'bank_status' && ['UNCONFIRMED','NO_FEES','LISTED'].includes(target.value)) settlementPlan.bank_status = target.value as typeof settlementPlan.bank_status;
+  else if (field === 'notes') settlementPlan.notes = target.value;
+  settlementEpoch++;
+  render();
+}
+
+async function saveSettlement(): Promise<void> {
+  if (settlementBusy) return;
+  try {
+    if (!settlementPlan) throw Error('请先创建内部付款计划');
+    const text = serializeSettlementPlan(settlementPlan);
+    settlementBusy = true;
+    render();
+    const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
+    if (picker) {
+      const handle = await picker.call(window, { suggestedName: 'internal-settlement-plan.json', types: [{ description: '内部付款计划', accept: { 'application/json': ['.json'] } }] });
+      const writable = await handle.createWritable(); await writable.write(text); await writable.close();
+      state.status = '已保存内部付款计划快照；项目保存状态未改变，后续付款编辑须再次单独保存';
+    } else { downloadText('internal-settlement-plan.json', text); state.status = '已发起内部付款计划下载，请确认已保存；项目文件不包含付款计划'; }
+    state.statusLevel = 'warn';
+  } catch (error) {
+    state.status = error instanceof Error && error.name === 'AbortError' ? '已取消付款计划保存，输入保留' : `付款计划保存失败：${error instanceof Error ? error.message : String(error)}`;
+    state.statusLevel = 'warn';
+  } finally { settlementBusy = false; render(); }
+}
 
 function recomputeCustomerPreview(): void {
   customerPreview = null;
@@ -850,7 +902,7 @@ async function exportProjectResource(templateId?:string,schemaKind?:string):Prom
 async function exportReport(): Promise<void> {
   try {
     const project = currentProject();
-    const html = createProjectReport(project, undefined, sensitivityControls.enabled ? sensitivityControls : undefined);
+    const html = createProjectReport(project, undefined, sensitivityControls.enabled ? sensitivityControls : undefined, settlementPlan ?? undefined);
     const name = safeFileName(`${project.name || 'trade-cost'}-内部测算报告`, 'html');
     const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
     if (picker !== undefined) {
@@ -972,6 +1024,8 @@ function openProjectFromText(text: string, fileName: string): void {
     // 所有可能失败的准备步骤完成后，才替换当前编辑内容。
     const fxRows = booksToRows(project.fx_books);
     state.project = project;
+    settlementPlan = null;
+    settlementEpoch++;
     sensitivityControls = newSensitivityControls();
     customerFields = emptyCustomerQuoteFields();
     customerReviewed = false;
@@ -988,6 +1042,8 @@ function openProjectFromText(text: string, fileName: string): void {
 }
 
 function newProject(mode: 'sample' | 'china-sample' | 'china-blank' = 'sample'): void {
+  settlementPlan = null;
+  settlementEpoch++;
   sensitivityControls = newSensitivityControls();
   customerFields = emptyCustomerQuoteFields();
   customerReviewed = false;
@@ -1051,7 +1107,7 @@ function render(): void {
           <p>面向外贸业务人员的本地成本测算工具，当前重点是中国一般贸易进口、单商品一票。录入货物净价与费用，记录税率、汇率及业务条件，再比较贸易术语下的买方支付和费用承担。</p>
           <p>项目以标准 JSON 保存，带版本号；计算、项目文件与内部 HTML 报告均在本机处理。请先打开“中国进口示例”理解口径，再用“新建中国进口”录入自己的数据。</p>
           <p>结果中的费用依据可展开查看归属规则、候选条件与汇总去重；计算过程保留真实操作数、税款舍入和免征前后值。四张费用与税基图使用本次测算，内部报告同步保留解释。</p>
-          <p>来源未核对、条件未确认和未知卖方成本会明确提示。客户HTML、Excel、PDF与中英文摘要、内部报告及项目模板均在本机生成。多商品、其他国家专用税制和资金成本仍属后续范围；专业与真实单据验收暂缓。</p>
+          <p>来源未核对、条件未确认和未知卖方成本会明确提示。客户HTML、Excel、PDF与中英文摘要、内部报告及项目模板均在本机生成。内部付款计划独立保存、按原币逐笔对账，银行费用不重复写回成本。多商品、其他国家专用税制和资金成本仍属后续范围；专业与真实单据验收暂缓。</p>
           <p>工程采用严格 TypeScript、decimal.js、Vite 与 Vitest，分开维护领域类型、规则与计算、文件校验和界面。<a href="project-introduction.html">完整项目介绍</a>介绍设计取舍及验证证据；该独立页面与工具放在同一目录时可打开，本说明无需额外文件。</p>
           <details><summary>PDF 字体许可与来源</summary><pre class="font-license">${escapeHtml(fontProvenance)}\n${escapeHtml(fontLicense)}</pre></details>
         </div>
@@ -1064,6 +1120,7 @@ function render(): void {
       ${renderItemsPanel(state.project, enrichmentMap())}
       ${renderOutputColumn({ result: state.result, comparison: state.comparison, error: state.error })}
       ${renderSensitivityPanel(currentProject(), state.result, sensitivityControls, sensitivityAnalysis, sensitivityError)}
+      ${renderSettlementPanel(currentProject(), settlementPlan, state.result, settlementBusy)}
       ${renderCustomerQuotePanel(currentProject(), customerFields, customerReviewed, customerPreview, customerError, customerPdfBusy,customerSummaryBusy)}
       <footer class="app-footer">
         <span>费用 ${state.project.items.length} 项 · 11 术语对比 · 核算币种 ${escapeHtml(state.project.base_currency)}</span>
@@ -1152,6 +1209,21 @@ function bind(): void {
   app.addEventListener('change', (event) => {
     const target = event.target;
 
+    if (target instanceof HTMLInputElement && target.id === 'settlement-file-input') {
+      const file = target.files?.[0];
+      if (!file) return;
+      const epoch = ++settlementEpoch;
+      void file.text().then(text => {
+        if (epoch !== settlementEpoch) return;
+        const parsed = parseSettlementPlan(text);
+        settlementPlan = parsed;
+        state.status = '已打开内部付款计划；当前交易未改变，绑定和费用仍按当前项目重新核对';
+        state.statusLevel = 'warn';
+        expandedEvidenceSections.add('settlement'); render();
+      }).catch(error => { if (epoch === settlementEpoch) showFileError(error); });
+      return;
+    }
+
     if (target instanceof HTMLInputElement && target.id === 'file-input') {
       const file = target.files?.[0];
       if (file === undefined) return;
@@ -1160,6 +1232,10 @@ function bind(): void {
     }
 
     if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement)) return;
+
+    if (target.dataset.settlementField !== undefined && (target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) {
+      onSettlementField(target); return;
+    }
 
     if (target.dataset.customerField !== undefined) {
       const field = target.dataset.customerField;
@@ -1232,6 +1308,38 @@ function bind(): void {
     const action = target.dataset.action;
     if (action === undefined) return;
     switch (action) {
+      case 'settlement-create':
+      case 'settlement-rebind':
+        try {
+          const binding = settlementBinding(currentProject());
+          if (action === 'settlement-rebind' && settlementPlan) settlementPlan.binding = binding;
+          else settlementPlan = newSettlementPlan(binding);
+          settlementEpoch++; expandedEvidenceSections.add('settlement'); render();
+        } catch (error) { showFileError(error); }
+        break;
+      case 'settlement-add-payment':
+      case 'settlement-add-fee': {
+        if (settlementPlan) {
+          const rows = action === 'settlement-add-payment' ? settlementPlan.payments : settlementPlan.bank_fees;
+          if (rows.length < 100) {
+            const prefix = action === 'settlement-add-payment' ? 'payment' : 'fee';
+            let id = 1; while (rows.some(row => row.id === `${prefix}-${id}`)) id++;
+            if (action === 'settlement-add-payment') settlementPlan.payments.push(newPaymentEntry(`${prefix}-${id}`));
+            else settlementPlan.bank_fees.push(newBankFeeEntry(`${prefix}-${id}`));
+          }
+          settlementEpoch++; render();
+        }
+        break;
+      }
+      case 'settlement-remove-payment':
+      case 'settlement-remove-fee': {
+        const index = Number(target.dataset.settlementIndex);
+        const rows = action === 'settlement-remove-payment' ? settlementPlan?.payments : settlementPlan?.bank_fees;
+        if (rows && Number.isInteger(index) && index >= 0 && index < rows.length) { rows.splice(index, 1); settlementEpoch++; render(); }
+        break;
+      }
+      case 'settlement-save': void saveSettlement(); break;
+      case 'settlement-open': document.querySelector<HTMLInputElement>('#settlement-file-input')?.click(); break;
       case 'download-project-template': void exportProjectResource(target.dataset.templateId); break;
       case 'download-project-schema': void exportProjectResource(undefined,target.dataset.schemaKind); break;
       case 'preview-customer-quote':

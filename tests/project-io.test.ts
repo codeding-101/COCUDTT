@@ -68,9 +68,33 @@ describe('打开、保存项目的失败处理', () => {
     button.dataset.action = 'new-china-import';
     listeners.get('click')!({ target: button });
   }
-  function action(name: string) {
-    const button = new ElementStub(); button.dataset.action = name; listeners.get('click')!({ target: button });
+  function action(name: string, index?: number) {
+    const button = new ElementStub(); button.dataset.action = name;if(index!==undefined)button.dataset.settlementIndex=String(index); listeners.get('click')!({ target: button });
   }
+  function settlement(field:string,value:string,row?:'payment'|'fee',index=0,checked=false){
+    const input=new InputStub();input.id='';input.dataset.settlementField=field;input.value=value;input.checked=checked;
+    if(row){input.dataset.settlementRow=row;input.dataset.settlementIndex=String(index);}listeners.get('change')!({target:input});
+  }
+  function openSettlement(text:()=>Promise<string>){const input=new InputStub();input.id='settlement-file-input';input.files=[{name:'payment.json',text}];listeners.get('change')!({target:input});}
+  it('付款输入不修改项目/草稿或客户检查，报价编辑撤销绑定而非沿用旧合计',async()=>{
+    await start();await customerProject();customer('reviewed','',true);const before=storage.get(key);action('settlement-create');settlement('method','TT');settlement('bank_status','NO_FEES');settlement('value','100','payment');settlement('basis','PERCENT','payment');settlement('date','2026-09-15','payment');settlement('trigger','内部合同预付款','payment');
+    expect(html).toContain('data-settlement-result');expect(storage.get(key)).toBe(before);expect(html).toContain('data-customer-field="reviewed" checked');
+    change('term_scenarios.FOB.quote.amount','12345');expect(html).toContain('重新绑定');expect(html).not.toContain('data-settlement-result');action('settlement-rebind');expect(html).toContain('data-settlement-result');
+  });
+  it('付款保存先复制快照并保护重复写入，文件不混入客户公开字段',async()=>{
+    await start();await customerProject();customer('reference','PRIVATE_PUBLIC_REFERENCE_916');action('settlement-create');settlement('notes','INTERNAL_PAYMENT_811');const before=storage.get(key);let resolvePicker!:(h:unknown)=>void,saved='',name='';const picker=vi.fn((o:{suggestedName:string})=>{name=o.suggestedName;return new Promise(r=>{resolvePicker=r;});});vi.stubGlobal('window',{showSaveFilePicker:picker});action('settlement-save');action('settlement-save');settlement('notes','AFTER_SNAPSHOT');expect(picker).toHaveBeenCalledOnce();resolvePicker({name:'payment.json',createWritable:async()=>({write:async(s:string)=>{saved=s;},close:async()=>{}})});await vi.waitFor(()=>expect(saved).toContain('INTERNAL_PAYMENT_811'));expect(saved).not.toContain('AFTER_SNAPSHOT');expect(saved).not.toContain('PRIVATE_PUBLIC_REFERENCE_916');expect(name).toBe('internal-settlement-plan.json');expect(storage.get(key)).toBe(before);
+  });
+  it('付款保存取消/失败和下载回退保留输入，不改项目',async()=>{
+    await start();await customerProject();action('settlement-create');settlement('notes','KEEP_PAYMENT_421');const before=storage.get(key);vi.stubGlobal('window',{showSaveFilePicker:async()=>{throw new DOMException('cancel','AbortError');}});action('settlement-save');await vi.waitFor(()=>expect(html).toContain('已取消付款计划保存'));vi.stubGlobal('window',{showSaveFilePicker:async()=>({name:'pay.json',createWritable:async()=>({write:async()=>{throw Error('disk-full')},close:async()=>{}})})});action('settlement-save');await vi.waitFor(()=>expect(html).toContain('付款计划保存失败'));expect(createElement).not.toHaveBeenCalled();expect(html).toContain('KEEP_PAYMENT_421');
+    vi.stubGlobal('window',{});const click=vi.fn();createElement.mockReturnValue({click});vi.spyOn(URL,'createObjectURL').mockReturnValue('blob:payment');vi.spyOn(URL,'revokeObjectURL').mockImplementation(()=>{});action('settlement-save');await vi.waitFor(()=>expect(html).toContain('已发起内部付款计划下载'));expect(click).toHaveBeenCalledOnce();expect(storage.get(key)).toBe(before);
+  });
+  it('坏付款文件不能替换已有计划，打开项目/新建后重置，慢读取不污染新项目',async()=>{
+    await start();await customerProject();action('settlement-create');settlement('notes','KEEP_PAYMENT_923');openSettlement(async()=>'{}');await vi.waitFor(()=>expect(html).toContain('不是受支持'));expect(html).toContain('KEEP_PAYMENT_923');
+    let finish!:(s:string)=>void;openSettlement(()=>new Promise(r=>{finish=r;}));action('new-china-blank');finish('{}');await Promise.resolve();await Promise.resolve();expect(html).not.toContain('KEEP_PAYMENT_923');expect(html).not.toContain('不是受支持');expect(html).toContain('绑定当前报价并新建');
+  });
+  it('增加/删除费用和价款只修改付款计划，来源切换保留金额与关联并取消新增确认',async()=>{
+    await start();await customerProject();action('settlement-create');const before=storage.get(key);action('settlement-add-payment');settlement('value','4321','payment',1);action('settlement-remove-payment',1);expect(html).not.toContain('value="4321"');action('settlement-add-fee');settlement('cost_id','old-bank','fee');settlement('source','EXTRA','fee');settlement('amount','98.76','fee');settlement('not_in_project','','fee',0,true);settlement('source','EXISTING','fee');settlement('source','EXTRA','fee');expect(html).toContain('value="98.76"');expect(html).toContain('value="old-bank"');expect(html).not.toContain('data-settlement-field="not_in_project" checked');expect(storage.get(key)).toBe(before);
+  });
   function resource(kind:'template'|'schema',id:string) {
     const button=new ElementStub();button.dataset.action=kind==='template'?'download-project-template':'download-project-schema';
     if(kind==='template')button.dataset.templateId=id;else button.dataset.schemaKind=id;

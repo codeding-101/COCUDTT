@@ -605,3 +605,9 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
 .customer-preview { border: 1px solid #d8dee8; border-radius: 8px; padding: 12px; background: white; }
 .customer-review { display: block; margin: 16px 0; }
 .font-license { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
+.settlement-panel fieldset { min-inline-size: 0; margin: 12px 0; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.settlement-panel label { display: block; margin: 8px 0; min-width: 0; }
+.settlement-panel input:not([type="checkbox"]), .settlement-panel select { max-width: 100%; width: 100%; }
+.settlement-panel td, .settlement-panel th, .settlement-panel p { overflow-wrap: anywhere; }
+.settlement-panel small { display: block; }
+.settlement-panel button { max-width: 100%; height: auto; min-height: 28px; white-space: normal; overflow-wrap: anywhere; }
