@@ -101,7 +101,7 @@ export const COST_PRESETS: CostPreset[] = [
     cost_category: 'EXPORT_CLEARANCE',
     trade_node: 'EXPORT_CLEARANCE',
     pricing_method: 'FIXED',
-    hint: 'EXW 下出口清关名义上由买方办理，若实际由卖方代办请用责任覆盖',
+    hint: 'EXW 下买方负出口清关责任；卖方代办不自动改变费用承担，合同另约费用时再逐项覆盖',
   },
   {
     key: 'commodity-inspection',

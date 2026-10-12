@@ -84,7 +84,8 @@ describe('各方案独立合同报价与费用约定', () => {
     p.items.push(makeCostItem({ cost_id: 'thc', cost_name: '起运港THC', cost_category: 'ORIGIN_TERMINAL', trade_node: 'ORIGIN_TERMINAL', amount: '150' }));
     confirmQuote(p, 'FOB'); confirmQuote(p, 'CIF');
     expect(col(p, 'FOB').decision_ready).toBe(false);
-    p.term_scenarios!.FOB!.responsibility_overrides = { thc: { responsibility: 'SELLER', reason: '合同约定卖方承担起运港THC' } };
+    p.term_scenarios!.FOB!.responsibility_overrides = { ...p.term_scenarios!.FOB!.responsibility_overrides, thc: { responsibility: 'SELLER', reason: '合同约定卖方承担起运港THC' } };
+    confirmOverride(p, 'FOB', 'insurance');
     p.term_scenarios!.FOB!.quote!.amount = '10150'; confirmQuote(p, 'FOB');
     expect(col(p, 'FOB').result!.items.find(x => x.item.cost_id === 'thc')!.responsibility).toBe('SELLER');
     expect(col(p, 'FOB').decision_ready).toBe(false); confirmOverride(p, 'FOB', 'thc');

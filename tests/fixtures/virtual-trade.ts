@@ -206,6 +206,7 @@ export const VIRTUAL_TRADE: Trade = {
  * 按 7.10 折算刚好是整数，便于核对。
  */
 export const VIRTUAL_SCENARIO: Scenario = {
+  responsibility_overrides: { 'thc-dest': { responsibility: 'BUYER', reason: '合成合同明确本项THC不属于卖方运输合同费用，由买方承担' } },
   id: 'scenario-virtual',
   name: 'CIF 汉堡',
   trade_id: VIRTUAL_TRADE.id,

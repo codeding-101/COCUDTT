@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { chinaImportSampleProjectFile } from '../src/data/sample-project';
-import { parseProject, serializeProject, toTrade, toScenario } from '../src/data/project-file';
+import { parseProject, serializeProject, toTrade, toScenario, toScenarios } from '../src/data/project-file';
+import { confirmOverride } from './fixtures/actual-quotes';
 import { INCOTERMS, type Incoterm } from '../src/domain/enums';
 import { eligibilityValues } from '../src/domain/import-context';
 import { evidenceKey, taxEvidenceValues } from '../src/domain/source-evidence';
@@ -23,14 +24,22 @@ function project() {
     makeCostItem({ cost_id: 'insurance', cost_name: '保险费', cost_category: 'INSURANCE', trade_node: 'MAIN_CARRIAGE', amount: '100' }),
   ];
   const rules = p.tax_profile.import;
+  p.evaluation_date = '2026-09-10'; p.term_scenarios = {};
+  for (const term of INCOTERMS.filter(t => !['CIF', 'CIP'].includes(t))) {
+    p.term_scenarios[term] = { responsibility_overrides: { insurance: {
+      responsibility: ['DAP', 'DPU', 'DDP'].includes(term) ? 'SELLER' : 'BUYER',
+      reason: '合成合同明确本项自愿保险承担方，非术语强制保险',
+    } } };
+    confirmOverride(p, term, 'insurance');
+  }
   for(const [record, values] of [[rules.rateEvidence!,taxEvidenceValues(rules)], [rules.eligibility!.duty_evidence!,eligibilityValues('duty',p.route,p.goods.tax_key,rules)]] as const) {
     record.reference='合成测试核对'; record.checked_on='2026-10-11'; record.status='USER_CONFIRMED'; record.values_key=evidenceKey(values,record);
   }
   return p;
 }
-function input(p = project()) { return { trade: toTrade(p), template: toScenario(p), taxProfile:p.tax_profile, fxBooks:p.fx_books }; }
+function input(p = project()) { return { trade: toTrade(p), template: toScenario(p), scenarios: toScenarios(p), taxProfile:p.tax_profile, fxBooks:p.fx_books }; }
 function run(p = project(), term: Incoterm = p.incoterm) {
-  const i=input(p); const template={...i.template, incoterm:term, quote:{...i.template.quote,incoterm:term}};
+  const i=input(p); const template=toScenario(p,term);
   return analyze({...i,scenario:scenarioWithDerivedInclusions(template,i.trade)});
 }
 
@@ -51,7 +60,9 @@ describe('按方案启用费用与替代运价',()=>{
     expect(cif.seller.margin).toBeNull(); expect(JSON.stringify(p)).toBe(before);
   });
   it('已核对前提下买方独立排名；改变运价改变税额和成本，不能沿用固定税额解释',()=>{
-    const p=project(); p.facts={delivery_place:'SELLER_PREMISES'}; const c=compare(input(p));
+    const p=project(); p.facts={delivery_place:'SELLER_PREMISES'};
+    for(const term of INCOTERMS.filter(t=>!['CIF','CIP'].includes(t))) confirmOverride(p,term,'insurance');
+    const c=compare(input(p));
     expect(c.uses_scenario_costs).toBe(true);
     expect(c.columns.filter(x=>!x.feasible||!x.decision_ready).map(x=>({term:x.incoterm,issues:x.decision_issues}))).toEqual([]);
     expect(c.best_seller_margin).toBeNull(); expect(c.best_buyer_landed).not.toBeNull();

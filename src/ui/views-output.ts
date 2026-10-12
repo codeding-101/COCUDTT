@@ -7,6 +7,7 @@ import { SOURCE_STATUS_LABELS } from './source-editor.js';
 import { DELIVERY_EVENT_LABELS } from '../domain/logistics.js';
 import { CARRIAGE_MODE_LABELS } from '../domain/enums.js';
 import { renderExplanations, renderItemReasoning, renderCostCharts } from './result-explanation.js';
+import { renderConceptCheck } from './concept-check.js';
 
 function renderLogistics(result: AnalysisResult): string {
   const { transport, insurance, container_reminders } = result.logistics;
@@ -368,6 +369,7 @@ export function renderOutputColumn(state: OutputState): string {
   }
   return `
   ${renderDecisionCheck(state.result)}
+  ${renderConceptCheck(state.result)}
   ${renderLogistics(state.result)}
   ${renderHero(state.result)}
   ${renderBreakdown(state.result)}

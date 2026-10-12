@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { toDisplay, toStorage } from '../src/domain/decimal';
 import type { Scenario } from '../src/domain/scenario';
 import { analyze } from '../src/engine/analyze';
-import { compare, scenarioWithDerivedInclusions } from '../src/engine/compare';
+import { compare as runCompare, scenarioWithDerivedInclusions } from '../src/engine/compare';
+import { explicitAgreements } from './helpers/explicit-agreements';
+
+const compare = (input: Parameters<typeof runCompare>[0]) => runCompare(explicitAgreements(input));
 import { INCOTERMS_2020_RULESET } from '../src/engine/responsibility/rules-incoterms2020';
 import { resolveResponsibility } from '../src/engine/responsibility/resolver';
 import {

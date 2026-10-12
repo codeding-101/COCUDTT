@@ -164,6 +164,7 @@ export function analyze(input: AnalysisInput): AnalysisResult {
 
   if (isChinaImport(taxProfile)) validateChinaImportContext(taxProfile, base);
   requireNumericInput(trade.goods.quantity, '商品数量');
+  if (d(trade.goods.quantity).lte(0)) throw new EngineError('INPUT_VALUE_MISSING', '商品数量必须大于零；零/负数量交易不在当前单商品进口测算范围，不能以费用冲减代替商品数量');
   requireNumericInput(trade.goods.trade_value.amount, '成交货值');
   const sellerCostUnknown = isChinaImport(taxProfile) && String(trade.goods.seller_goods_cost.amount).trim() === '';
   if (!sellerCostUnknown) requireNumericInput(trade.goods.seller_goods_cost.amount, '卖方采购成本');
@@ -171,6 +172,7 @@ export function analyze(input: AnalysisInput): AnalysisResult {
     throw new EngineError('INPUT_VALUE_MISSING', '货值包含运费或保险费，请先拆出货物净价、运费和保险费，再确认净价口径；不能将整价另加运保费计算');
   }
   requireNumericInput(scenario.quote.amount, '报价金额');
+  if (scenario.quote.incoterm !== scenario.incoterm) throw new EngineError('INPUT_VALUE_MISSING', `报价术语${scenario.quote.incoterm}与方案术语${scenario.incoterm}不一致，请核对实际合同；模拟比较须明确构造同术语报价`);
   if (scenario.contract_review?.require_quote && d(scenario.quote.amount).lte(0)) {
     throw new EngineError('INPUT_VALUE_MISSING', '实际合同报价金额必须大于零；未录入的报价不能用零代替');
   }

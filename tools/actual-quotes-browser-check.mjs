@@ -59,6 +59,8 @@ try {
     const cifReady=row('CIF').innerText.includes('可参与排名')&&row('CIF').innerText.includes('12,695.55');
     set('incoterm','FOB');const cifSurvives=row('CIF').innerText.includes('12,695.55')&&row('FOB').innerText.includes('未录入实际报价');
     set('term_scenarios.FOB.quote.amount','10000');set('term_scenarios.FOB.quote.named_place','汉堡港（合成）');confirm('quote','FOB');
+    const insuranceAgreement=(field,value)=>{const e=[...document.querySelectorAll('[data-contract-field]')].find(e=>e.dataset.contractCost==='insurance'&&e.dataset.contractField===field);e.value=value;e.dispatchEvent(new Event('change',{bubbles:true}));};
+    insuranceAgreement('responsibility','BUYER');insuranceAgreement('reason','合成合同：买方自愿投保并承担保费，非FOB强制投保');confirm('contract-cost',JSON.stringify(['FOB','insurance']));
     const fobReady=row('FOB').innerText.includes('可参与排名')&&row('FOB').innerText.includes('13,170.15');
     set('incoterm','CIF');ev('quote','CIF','valid_to','2026-09-09');ev('quote','CIF','status','USER_CONFIRMED');
     const expired=row('CIF').innerText.includes('参考测算')&&row('CIF').textContent.includes('适用期不覆盖')&&document.body.innerText.includes('买方总支付最低：FOB');
@@ -66,6 +68,7 @@ try {
     set('term_scenarios.CIF.quote.amount','10800');const editInvalidates=[...document.querySelectorAll('[data-evidence-owner="quote"][data-evidence-field="status"]')].find(e=>e.dataset.evidenceId==='CIF').value==='UNVERIFIED'&&row('CIF').innerText.includes('参考测算');
     set('term_scenarios.CIF.quote.amount','10700');ev('quote','CIF','status','USER_CONFIRMED');
     set('incoterm','FOB');set('facts.shipping_terms','LINER');
+    confirm('contract-cost',JSON.stringify(['FOB','insurance']));
     const preset=document.querySelector('[data-action="add-preset"]');preset.value='thc-origin';preset.dispatchEvent(new Event('change',{bubbles:true}));
     const item=[...document.querySelectorAll('[data-item-field="cost_name"]')].find(e=>e.value==='起运港港杂费');const costId=item.dataset.item;
     for(const [field,value] of [['quantity','1'],['rate','150']]){const e=[...document.querySelectorAll('[data-item-field="'+field+'"]')].find(e=>e.dataset.item===costId);e.value=value;e.dispatchEvent(new Event('change',{bubbles:true}));}

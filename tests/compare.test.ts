@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { d, toStorage } from '../src/domain/decimal';
 import type { ComparisonAnchor, Scenario } from '../src/domain/scenario';
-import { compare, conditionalSensitivity, scenarioForTerm } from '../src/engine/compare';
+import { compare as runCompare, conditionalSensitivity, scenarioForTerm } from '../src/engine/compare';
+import { explicitAgreements } from './helpers/explicit-agreements';
+
+const compare = (input: Parameters<typeof runCompare>[0]) => runCompare(explicitAgreements(input));
 import { EngineError } from '../src/engine/errors';
 import { INCOTERMS_2020_RULESET } from '../src/engine/responsibility/rules-incoterms2020';
 import {
@@ -237,7 +240,7 @@ describe('CONDITIONAL 费用的敏感度分析', () => {
   });
 
   it('交货地点未填时装船费判定为 CONDITIONAL', () => {
-    const result = compare({ ...BASE_INPUT, trade, template: scenario, incoterms: ['FCA'], fxBooks: [] });
+    const result = runCompare({ ...BASE_INPUT, trade, template: scenario, incoterms: ['FCA'], fxBooks: [] });
     expect(columnFor(result, 'FCA').conditional_count).toBeGreaterThan(0);
   });
 

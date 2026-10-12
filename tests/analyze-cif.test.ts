@@ -15,6 +15,7 @@ const DDP_SCENARIO: Scenario = {
   id: 'scenario-ddp-108300',
   incoterm: 'DDP',
   quote: { ...CIF_108300_SCENARIO.quote, incoterm: 'DDP' },
+  responsibility_overrides: { insurance: { responsibility: 'SELLER', reason: '合成合同：DDP卖方自愿投保并承担保费，非术语强制投保' } },
 };
 
 describe('端到端：CIF 报价 USD 108,300', () => {

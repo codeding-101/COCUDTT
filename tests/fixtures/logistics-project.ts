@@ -2,7 +2,7 @@ import type { Incoterm } from '../../src/domain/enums';
 import { emptyTransportPlan, transportEvidenceValues } from '../../src/domain/logistics-evidence';
 import type { ProjectFile } from '../../src/data/project-file';
 import { toScenario } from '../../src/data/project-file';
-import { actualQuotesProject, confirmInsurance, confirmQuote, syntheticEvidence } from './actual-quotes';
+import { actualQuotesProject, confirmInsurance, confirmQuote, confirmOverride, syntheticEvidence } from './actual-quotes';
 
 export function confirmTransport(project: ProjectFile, term = project.incoterm): void {
   project.term_scenarios![term]!.transport!.evidence = syntheticEvidence(transportEvidenceValues(toScenario(project, term)));
@@ -25,5 +25,9 @@ export function logisticsProject(term: Incoterm = 'CIP'): ProjectFile {
     record.insurance!.insured_from = record.transport.delivery_location; record.insurance!.insured_to = record.quote!.named_place!;
   }
   confirmQuote(p, term); confirmTransport(p, term); if (record.insurance) confirmInsurance(p, term);
+  if (term !== 'CIF' && term !== 'CIP') {
+    record.responsibility_overrides = { insurance: { responsibility: ['DAP', 'DPU', 'DDP'].includes(term) ? 'SELLER' : 'BUYER', reason: '合成合同另约本项自愿保险费用承担；非术语强制投保' } };
+    confirmOverride(p, term, 'insurance');
+  }
   return p;
 }

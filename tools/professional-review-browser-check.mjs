@@ -56,7 +56,7 @@ try {
     const other=document.body.innerText.includes('货物仍在卖方运输工具上、准备卸货') && !document.body.innerText.includes('FCA交货地点未确认');
     let report='';window.showSaveFilePicker=async()=>({name:'fca-report.html',createWritable:async()=>({write:async text=>{report=text;},close:async()=>{}})});
     document.querySelector('[data-action="export-report"]').click();await new Promise(r=>setTimeout(r,150));window.__fcaReport=report;
-    const reportCorrect=report.includes('准备卸货') && report.includes('incoterms2020 · 实现版本 1.1') && !report.includes('<script');
+    const reportCorrect=report.includes('准备卸货') && report.includes('incoterms2020 · 实现版本 1.2') && !report.includes('<script');
     set('facts.delivery_place','');
     const missingAgain=document.body.innerText.includes('交货地点待确认');
     const upload=document.querySelector('input[type="file"]');
