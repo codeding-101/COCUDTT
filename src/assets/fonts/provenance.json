@@ -1,0 +1,19 @@
+{
+  "font": "COCUDTT Quote Sans SC",
+  "version": "1.0",
+  "license": "OFL-1.1",
+  "format": "TrueType",
+  "outline_conversion": "CFF to quadratic, max error 1 font unit",
+  "upstream": "https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf",
+  "upstream_sha256": "2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b",
+  "font_sha256": "6c4d902abc7a874384ea1a12cc5fd3fc0f772a59bc2e6395f61214dfc5d9464c",
+  "compression": "zlib",
+  "bytes": 2257356,
+  "compressed_bytes": 1416994,
+  "characters": 8663,
+  "coverage": "GB2312 plus supported Latin, punctuation and fullwidth glyphs; unsupported characters must block PDF export",
+  "fontTools": "4.65.0",
+  "copyright": [
+    "© 2014-2021 Adobe (http://www.adobe.com/)."
+  ]
+}

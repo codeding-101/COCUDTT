@@ -43,6 +43,8 @@ import { emptyCustomerQuoteFields, CUSTOMER_QUOTE_FIELDS, type CustomerQuote } f
 import { createCustomerQuoteDocument, customerQuoteFileName, projectCustomerQuote, renderCustomerQuotePanel } from './customer-quote.js';
 import { createCustomerWorkbook, createInternalWorkbook } from './workbook-export.js';
 import { XLSX_MIME } from '../data/xlsx-file.js';
+import fontLicense from '../assets/fonts/LICENSE-OFL.txt?raw';
+import fontProvenance from '../assets/fonts/provenance.json?raw';
 
 const DRAFT_KEY = 'trade-cost-engine:draft-v1';
 
@@ -141,6 +143,7 @@ let customerFields = emptyCustomerQuoteFields();
 let customerReviewed = false;
 let customerPreview: CustomerQuote | null = null;
 let customerError: string | null = null;
+let customerPdfBusy = false;
 
 function recomputeCustomerPreview(): void {
   customerPreview = null;
@@ -875,6 +878,36 @@ async function exportWorkbook(customer: boolean): Promise<void> {
   render();
 }
 
+async function exportCustomerPdf(): Promise<void> {
+  if (customerPdfBusy) return;
+  try {
+    if (!customerReviewed) throw new Error('请先检查客户预览中的公开内容');
+    const quote = projectCustomerQuote(currentProject(), customerFields);
+    const generatedAt = new Date().toISOString();
+    const name = customerQuoteFileName(quote).replace(/\.html$/, '.pdf').replace(/[\u0000-\u001F]/g, '-');
+    customerPdfBusy = true; render();
+    // Open the picker while the click still has user activation; generation starts only after selection.
+    const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
+    const handle = picker === undefined ? null : await picker.call(window, { suggestedName: name, types: [{ description: '客户报价 PDF 草稿', accept: { 'application/pdf': ['.pdf'] } }] });
+    const { createCustomerPdf } = await import('./customer-pdf.js');
+    const bytes = await createCustomerPdf(quote, generatedAt);
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    if (handle) {
+      const writable = await handle.createWritable(); await writable.write(blob); await writable.close();
+      state.status = `已导出客户报价 PDF 草稿 ${handle.name}；项目文件仍需单独保存${state.dirty ? '；有未保存改动' : ''}`;
+    } else {
+      const url = URL.createObjectURL(blob);
+      try { const anchor = document.createElement('a'); anchor.href = url; anchor.download = name; anchor.click(); }
+      finally { setTimeout(() => URL.revokeObjectURL(url), 1000); }
+      state.status = '已发起客户报价 PDF 草稿下载，请确认文件已保存；项目保存状态未改变';
+    }
+    state.statusLevel = 'warn';
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') { state.status = '已取消客户报价 PDF 导出，项目保存状态未改变'; state.statusLevel = 'warn'; }
+    else { state.status = `客户报价 PDF 导出失败：${error instanceof Error ? error.message : '文件未写入'}`; state.statusLevel = 'error'; }
+  } finally { customerPdfBusy = false; render(); }
+}
+
 async function exportCustomerQuote(): Promise<void> {
   try {
     if (!customerReviewed) throw new Error('请先检查客户预览中的公开内容');
@@ -991,6 +1024,7 @@ function render(): void {
           <p>结果中的费用依据可展开查看归属规则、候选条件与汇总去重；计算过程保留真实操作数、税款舍入和免征前后值。四张费用与税基图使用本次测算，内部报告同步保留解释。</p>
           <p>来源未核对、条件未确认和未知卖方成本会明确提示。现有模型及测试不能替代专业复核和真实单据验收；多商品、其他国家专用税制、资金成本及可下载 Excel/PDF 仍属后续范围。</p>
           <p>工程采用严格 TypeScript、decimal.js、Vite 与 Vitest，分开维护领域类型、规则与计算、文件校验和界面。<a href="project-introduction.html">完整项目介绍</a>介绍设计取舍及验证证据；该独立页面与工具放在同一目录时可打开，本说明无需额外文件。</p>
+          <details><summary>PDF 字体许可与来源</summary><pre class="font-license">${escapeHtml(fontProvenance)}\n${escapeHtml(fontLicense)}</pre></details>
         </div>
       </details>
       ${renderFormsRow(state.project)}
@@ -1000,7 +1034,7 @@ function render(): void {
       ${renderItemsPanel(state.project, enrichmentMap())}
       ${renderOutputColumn({ result: state.result, comparison: state.comparison, error: state.error })}
       ${renderSensitivityPanel(currentProject(), state.result, sensitivityControls, sensitivityAnalysis, sensitivityError)}
-      ${renderCustomerQuotePanel(currentProject(), customerFields, customerReviewed, customerPreview, customerError)}
+      ${renderCustomerQuotePanel(currentProject(), customerFields, customerReviewed, customerPreview, customerError, customerPdfBusy)}
       <footer class="app-footer">
         <span>费用 ${state.project.items.length} 项 · 11 术语对比 · 核算币种 ${escapeHtml(state.project.base_currency)}</span>
         <span>数据保存在本机，不上传任何服务器</span>
@@ -1174,6 +1208,7 @@ function bind(): void {
         break;
       case 'export-customer-quote': void exportCustomerQuote(); break;
       case 'export-customer-xlsx': void exportWorkbook(true); break;
+      case 'export-customer-pdf': void exportCustomerPdf(); break;
       case 'export-internal-xlsx': void exportWorkbook(false); break;
       case 'add-transport-segment': addTransportSegment(); commit(); break;
       case 'remove-transport-segment': {

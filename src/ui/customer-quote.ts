@@ -35,7 +35,7 @@ const styles=`.customer-quote{color:#162338;font:14px/1.65 system-ui,"Microsoft 
 export function createCustomerQuoteDocument(quote:CustomerQuote,generatedAt=new Date().toISOString()):string {
   return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(quote.reference||'客户报价说明')} · 报价草稿</title><style>${styles}body{margin:0;padding:20px;background:white}</style></head><body><main>${renderCustomerQuoteBody(quote,generatedAt)}<p class="customer-quote">生成时间（ISO时间戳）：${escapeHtml(generatedAt)}</p></main></body></html>`;
 }
-export function renderCustomerQuotePanel(project:ProjectFile,fields:CustomerQuoteFields,reviewed:boolean,quote:CustomerQuote|null,error:string|null):string {
+export function renderCustomerQuotePanel(project:ProjectFile,fields:CustomerQuoteFields,reviewed:boolean,quote:CustomerQuote|null,error:string|null,pdfBusy=false):string {
   return `<details class="panel" data-evidence-section="customer-quote"><summary><span class="panel-title">客户报价预览 · 公开字段</span></summary><div class="panel-body">
     <p>导出对象是客户报价说明草稿。报价取当前术语实际合同原币总额；下方明确填写的文字将进入客户文件，请只填写允许对外发送的内容。参数仅保留在本页，新建/打开项目重置。</p>
     <p class="hint">内部测算报告包含采购成本、利润、来源及完整输入，供内部复核。客户说明从公开字段重新生成，不能替代正式合同或税务确认。</p>
@@ -45,6 +45,8 @@ export function renderCustomerQuotePanel(project:ProjectFile,fields:CustomerQuot
     <label class="customer-review"><input type="checkbox" data-customer-field="reviewed"${reviewed?' checked':''}${!quote?' disabled':''}>已检查上方公开内容，作为待双方确认的草稿导出</label>
     <button data-action="export-customer-quote"${!quote||!reviewed?' disabled':''}>导出客户报价说明（HTML）</button>
     <button data-action="export-customer-xlsx"${!quote||!reviewed?' disabled':''}>导出客户报价 Excel 草稿</button>
+    <button data-action="export-customer-pdf"${!quote||!reviewed||pdfBusy?' disabled':''}>${pdfBusy?'正在生成 PDF…':'导出客户报价 PDF 草稿'}</button>
+    <p class="hint">PDF在本机生成，长条款自动分页。字体不支持的字符会提示并停止；可保留原文使用HTML或Excel。</p>
     <p class="hint">编辑公开字段或项目后须重新检查。导出不保存项目、不改变来源确认，也不包含假设分析结果。</p></div></details>`;
 }
 export { projectCustomerQuote };
