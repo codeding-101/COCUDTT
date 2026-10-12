@@ -17,7 +17,8 @@
     "audit": "node tools/audit.mjs"
   },
   "dependencies": {
-    "decimal.js": "^10.6.0"
+    "decimal.js": "^10.6.0",
+    "fflate": "0.8.3"
   },
   "devDependencies": {
     "@types/node": "^26.5.1",

@@ -14,7 +14,7 @@ try {
  simulated=structuredClone(fixture);simulated.anchor={kind:'FIXED_QUOTE'};simulated.quote={amount:'10000',currency:'CNY',fx_type:'CONTRACT'};
 }finally{await server.close();}
 const targets = await (await fetch(`http://127.0.0.1:${process.env.BROWSER_CHECK_PORT ?? '9359'}/json`)).json();
-const ws = new WebSocket(targets.find(t => t.type === 'page').webSocketDebuggerUrl);
+const ws = new WebSocket(targets.find(t => t.type === 'page' && !t.url.startsWith('edge://')).webSocketDebuggerUrl);
 await new Promise((resolve, reject) => { ws.onopen = resolve; ws.onerror = reject; });
 let id = 0; const pending = new Map(), exceptions = [];
 ws.onmessage = event => {

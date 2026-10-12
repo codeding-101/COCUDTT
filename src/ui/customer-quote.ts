@@ -44,6 +44,7 @@ export function renderCustomerQuotePanel(project:ProjectFile,fields:CustomerQuot
     ${quote?`<div class="customer-preview" aria-label="客户将看到的内容"><style>${styles}</style>${renderCustomerQuoteBody(quote)}</div>`:'<p class="hint">请先录入当前术语的实际报价、指定地点、商品数量及单位。</p>'}
     <label class="customer-review"><input type="checkbox" data-customer-field="reviewed"${reviewed?' checked':''}${!quote?' disabled':''}>已检查上方公开内容，作为待双方确认的草稿导出</label>
     <button data-action="export-customer-quote"${!quote||!reviewed?' disabled':''}>导出客户报价说明（HTML）</button>
+    <button data-action="export-customer-xlsx"${!quote||!reviewed?' disabled':''}>导出客户报价 Excel 草稿</button>
     <p class="hint">编辑公开字段或项目后须重新检查。导出不保存项目、不改变来源确认，也不包含假设分析结果。</p></div></details>`;
 }
 export { projectCustomerQuote };
