@@ -1,0 +1,201 @@
+{
+  "schema_version": "0.8",
+  "name": "空白核对清单：中国进口 · 集装箱费用核对",
+  "updated_at": "2026-10-12T00:00:00Z",
+  "base_currency": "CNY",
+  "carriage_mode": "SEA",
+  "route": {
+    "export_country": "",
+    "import_country": "",
+    "origin_country": "",
+    "customs_regime": "UNCONFIRMED"
+  },
+  "goods": {
+    "name": "",
+    "quantity": "",
+    "unit": "",
+    "tax_key": "",
+    "trade_value_basis": "UNCONFIRMED",
+    "trade_value": {
+      "amount": "",
+      "currency": "CNY"
+    },
+    "seller_goods_cost": {
+      "amount": "",
+      "currency": "CNY"
+    }
+  },
+  "items": [
+    {
+      "cost_id": "thc-origin",
+      "cost_name": "起运港港杂费",
+      "container_charge": "THC_ORIGIN",
+      "cost_category": "ORIGIN_TERMINAL",
+      "trade_node": "ORIGIN_TERMINAL",
+      "pricing_method": "ACTUAL",
+      "currency": "CNY",
+      "base_currency": "CNY",
+      "fx_type": "CONTRACT",
+      "tax_included": false,
+      "responsibility": "CONDITIONAL",
+      "responsibility_source": "UNRESOLVED",
+      "included_in_quoted_price": false,
+      "is_custom": false,
+      "source": "USER",
+      "unit": "TEU",
+      "amount": "",
+      "notes": "待核对：是否发生、合同是否已含、原始账单范围、币种、节点及原因；不适用可删除。空金额不表示零费用。"
+    },
+    {
+      "cost_id": "thc-destination",
+      "cost_name": "目的港港杂费",
+      "container_charge": "THC_DESTINATION",
+      "cost_category": "DESTINATION_TERMINAL",
+      "trade_node": "DESTINATION_TERMINAL",
+      "pricing_method": "ACTUAL",
+      "currency": "CNY",
+      "base_currency": "CNY",
+      "fx_type": "CONTRACT",
+      "tax_included": false,
+      "responsibility": "CONDITIONAL",
+      "responsibility_source": "UNRESOLVED",
+      "included_in_quoted_price": false,
+      "is_custom": false,
+      "source": "USER",
+      "unit": "TEU",
+      "amount": "",
+      "notes": "待核对：是否发生、合同是否已含、原始账单范围、币种、节点及原因；不适用可删除。空金额不表示零费用。"
+    },
+    {
+      "cost_id": "container-demurrage",
+      "cost_name": "Demurrage（港内用箱超期）",
+      "container_charge": "DEMURRAGE",
+      "cost_category": "DESTINATION_TERMINAL",
+      "trade_node": "DESTINATION_TERMINAL",
+      "pricing_method": "ACTUAL",
+      "currency": "CNY",
+      "base_currency": "CNY",
+      "fx_type": "CONTRACT",
+      "tax_included": false,
+      "responsibility": "CONDITIONAL",
+      "responsibility_source": "UNRESOLVED",
+      "included_in_quoted_price": false,
+      "is_custom": false,
+      "source": "USER",
+      "unit": "DAY",
+      "amount": "",
+      "notes": "待核对：是否发生、合同是否已含、原始账单范围、币种、节点及原因；不适用可删除。空金额不表示零费用。"
+    },
+    {
+      "cost_id": "container-detention",
+      "cost_name": "Detention（港外用箱超期）",
+      "container_charge": "DETENTION",
+      "cost_category": "DESTINATION_TERMINAL",
+      "trade_node": "DESTINATION_TERMINAL",
+      "pricing_method": "ACTUAL",
+      "currency": "CNY",
+      "base_currency": "CNY",
+      "fx_type": "CONTRACT",
+      "tax_included": false,
+      "responsibility": "CONDITIONAL",
+      "responsibility_source": "UNRESOLVED",
+      "included_in_quoted_price": false,
+      "is_custom": false,
+      "source": "USER",
+      "unit": "DAY",
+      "amount": "",
+      "notes": "待核对：是否发生、合同是否已含、原始账单范围、币种、节点及原因；不适用可删除。空金额不表示零费用。"
+    },
+    {
+      "cost_id": "destination-customs-inspection",
+      "cost_name": "目的地海关查验费",
+      "container_charge": "INSPECTION",
+      "cost_category": "DESTINATION_TERMINAL",
+      "trade_node": "DESTINATION_TERMINAL",
+      "pricing_method": "ACTUAL",
+      "currency": "CNY",
+      "base_currency": "CNY",
+      "fx_type": "CONTRACT",
+      "tax_included": false,
+      "responsibility": "CONDITIONAL",
+      "responsibility_source": "UNRESOLVED",
+      "included_in_quoted_price": false,
+      "is_custom": false,
+      "source": "USER",
+      "amount": "",
+      "notes": "待核对：是否发生、合同是否已含、原始账单范围、币种、节点及原因；不适用可删除。空金额不表示零费用。"
+    },
+    {
+      "cost_id": "import-customs-broker",
+      "cost_name": "进口报关代理费",
+      "cost_category": "IMPORT_CLEARANCE",
+      "trade_node": "IMPORT_CLEARANCE",
+      "pricing_method": "ACTUAL",
+      "currency": "CNY",
+      "base_currency": "CNY",
+      "fx_type": "CONTRACT",
+      "tax_included": false,
+      "responsibility": "CONDITIONAL",
+      "responsibility_source": "UNRESOLVED",
+      "included_in_quoted_price": false,
+      "is_custom": false,
+      "source": "USER",
+      "amount": "",
+      "notes": "待核对：是否发生、合同是否已含、原始账单范围、币种、节点及原因；不适用可删除。空金额不表示零费用。"
+    }
+  ],
+  "fx_books": [],
+  "quote": {
+    "amount": "",
+    "currency": "CNY",
+    "fx_type": "CONTRACT"
+  },
+  "incoterm": "CIF",
+  "anchor": {
+    "kind": "FIXED_QUOTE"
+  },
+  "facts": {},
+  "tax_profile": {
+    "id": "china-general-trade",
+    "version": "1.0",
+    "import": {
+      "calculationMode": "CN_GENERAL_TRADE",
+      "declarationDate": "",
+      "dutiableValueBasis": "CIF",
+      "dutyRates": {
+        "fallback": ""
+      },
+      "hsTable": {
+        "basis": "MFN",
+        "entries": []
+      },
+      "vatRate": "",
+      "consumptionTax": null,
+      "vatDeductibleForBuyer": false,
+      "eligibility": {
+        "agreement_name": "",
+        "vat_taxpayer": "UNCONFIRMED",
+        "vat_use": "UNCONFIRMED"
+      }
+    },
+    "export": {
+      "dutiableValueBasis": "FOB",
+      "dutyRates": {
+        "fallback": "0"
+      },
+      "rebate": {
+        "entityType": "TRADING",
+        "vatRates": {
+          "fallback": "0"
+        },
+        "rebateRates": {
+          "fallback": "0"
+        }
+      }
+    },
+    "customsFx": {
+      "bookType": "CUSTOMS",
+      "lockPeriod": "MONTHLY"
+    }
+  }
+}

@@ -11,8 +11,9 @@ import type { TradeRoute } from '../domain/import-context.js';
 import type { InsurancePlan, TransportPlan } from '../domain/logistics.js';
 import { EngineError } from '../engine/errors.js';
 import { validateProjectStructure } from './project-validation.js';
+import { SCHEMA_VERSION, SUPPORTED_PROJECT_VERSIONS } from './project-versions.js';
 
-export const SCHEMA_VERSION = '0.8';
+export { SCHEMA_VERSION } from './project-versions.js';
 
 export interface QuoteTemplate {
   amount: string;
@@ -131,7 +132,7 @@ export function parseProject(text: string): ProjectFile {
   if (typeof version !== 'string') {
     throw new EngineError('PROJECT_PARSE_FAILED', '项目文件缺少 schema_version，无法确认格式版本');
   }
-  if (![SCHEMA_VERSION, '0.1', '0.2', '0.3', '0.4', '0.5', '0.6', '0.7'].includes(version)) {
+  if (!(SUPPORTED_PROJECT_VERSIONS as readonly string[]).includes(version)) {
     throw new EngineError(
       'PROJECT_VERSION_UNSUPPORTED',
       `项目文件版本为 ${version}，当前程序支持 0.1–0.7 及 ${SCHEMA_VERSION}，请先迁移`,

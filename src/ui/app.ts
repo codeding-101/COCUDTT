@@ -10,6 +10,9 @@ import {
 } from '../data/project-file.js';
 import { chinaImportSampleProjectFile, newChinaImportProjectFile, sampleProjectFile } from '../data/sample-project.js';
 import { validateDraftFxRows } from '../data/project-validation.js';
+import { projectJsonSchema } from '../data/project-validation.js';
+import { projectTemplateText, PROJECT_TEMPLATES } from '../data/project-templates.js';
+import { renderProjectTemplatePanel } from './project-templates.js';
 import { emptyEvidence, evidenceKey, fxEvidenceValues, hsEvidenceValues, invalidateEvidence, taxEvidenceValues, type SourceEvidence } from '../domain/source-evidence.js';
 import { eligibilityValues, emptyEligibility, emptyRoute } from '../domain/import-context.js';
 import type { BaseRef, CostItem } from '../domain/cost-item.js';
@@ -142,6 +145,7 @@ let sensitivityAnalysis: SensitivityResult | null = null;
 let sensitivityError: string | null = null;
 let customerFields = emptyCustomerQuoteFields();
 let customerReviewed = false;
+let projectResourceBusy = false;
 let customerSummaryBusy = false;
 let customerPreview: CustomerQuote | null = null;
 let customerError: string | null = null;
@@ -823,6 +827,26 @@ async function saveProject(): Promise<void> {
   render();
 }
 
+async function exportProjectResource(templateId?:string,schemaKind?:string):Promise<void> {
+  if(projectResourceBusy)return;
+  try {
+    let text:string,name:string;
+    if(templateId!==undefined&&schemaKind===undefined){
+      if(!PROJECT_TEMPLATES.some(t=>t.id===templateId))throw Error('请选择目录中的模板');
+      text=projectTemplateText(templateId);name=templateId+'.json';
+    }else if(templateId===undefined&&(schemaKind==='current'||schemaKind==='legacy')){
+      text=JSON.stringify(projectJsonSchema(schemaKind==='legacy'),null,2)+'\n';
+      name=schemaKind==='legacy'?'project-import-0.1-0.8.schema.json':'project-0.8.schema.json';
+    }else throw Error('请选择有效的模板或结构文件');
+    projectResourceBusy=true;render();
+    const picker=(window as SaveFilePickerWindow).showSaveFilePicker;
+    if(picker){const handle=await picker.call(window,{suggestedName:name,types:[{description:'项目模板或结构文件',accept:{'application/json':['.json']}}]});const writable=await handle.createWritable();await writable.write(text);await writable.close();state.status=`已导出模板或结构文件 ${handle.name}；当前项目未替换，项目文件仍需单独保存`;}
+    else{downloadText(name,text);state.status='已发起模板或结构文件下载；当前项目未替换，请确认文件已保存';}
+    state.statusLevel='warn';
+  }catch(error){if(error instanceof Error&&error.name==='AbortError'){state.status='已取消模板或结构文件导出，当前项目未改变';state.statusLevel='warn';}else{state.status=`模板或结构文件导出失败：${error instanceof Error?error.message:'文件未写入'}`;state.statusLevel='error';}}
+  finally{projectResourceBusy=false;render();}
+}
+
 async function exportReport(): Promise<void> {
   try {
     const project = currentProject();
@@ -1027,11 +1051,12 @@ function render(): void {
           <p>面向外贸业务人员的本地成本测算工具，当前重点是中国一般贸易进口、单商品一票。录入货物净价与费用，记录税率、汇率及业务条件，再比较贸易术语下的买方支付和费用承担。</p>
           <p>项目以标准 JSON 保存，带版本号；计算、项目文件与内部 HTML 报告均在本机处理。请先打开“中国进口示例”理解口径，再用“新建中国进口”录入自己的数据。</p>
           <p>结果中的费用依据可展开查看归属规则、候选条件与汇总去重；计算过程保留真实操作数、税款舍入和免征前后值。四张费用与税基图使用本次测算，内部报告同步保留解释。</p>
-          <p>来源未核对、条件未确认和未知卖方成本会明确提示。现有模型及测试不能替代专业复核和真实单据验收；多商品、其他国家专用税制、资金成本及可下载 Excel/PDF 仍属后续范围。</p>
+          <p>来源未核对、条件未确认和未知卖方成本会明确提示。客户HTML、Excel、PDF与中英文摘要、内部报告及项目模板均在本机生成。多商品、其他国家专用税制和资金成本仍属后续范围；专业与真实单据验收暂缓。</p>
           <p>工程采用严格 TypeScript、decimal.js、Vite 与 Vitest，分开维护领域类型、规则与计算、文件校验和界面。<a href="project-introduction.html">完整项目介绍</a>介绍设计取舍及验证证据；该独立页面与工具放在同一目录时可打开，本说明无需额外文件。</p>
           <details><summary>PDF 字体许可与来源</summary><pre class="font-license">${escapeHtml(fontProvenance)}\n${escapeHtml(fontLicense)}</pre></details>
         </div>
       </details>
+      ${renderProjectTemplatePanel(projectResourceBusy)}
       ${renderFormsRow(state.project)}
       ${renderImportTaxPanel(state.project)}
       ${renderFxPanel(state.fxRows)}
@@ -1207,6 +1232,8 @@ function bind(): void {
     const action = target.dataset.action;
     if (action === undefined) return;
     switch (action) {
+      case 'download-project-template': void exportProjectResource(target.dataset.templateId); break;
+      case 'download-project-schema': void exportProjectResource(undefined,target.dataset.schemaKind); break;
       case 'preview-customer-quote':
         expandedEvidenceSections.add('customer-quote'); render();
         document.querySelector('[data-evidence-section="customer-quote"]')?.scrollIntoView({ block: 'start' });

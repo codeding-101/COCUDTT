@@ -1,0 +1,1946 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:cocudtt:project:0.8",
+  "title": "COCUDTT project file 0.8",
+  "description": "Structural validation for saved drafts. Empty numeric/date strings and unknown extension fields are preserved. Application checks additionally enforce unique cost_id values across items; the engine checks calculations and business readiness.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.8"
+    },
+    "name": {
+      "type": "string"
+    },
+    "updated_at": {
+      "type": "string"
+    },
+    "base_currency": {
+      "type": "string"
+    },
+    "carriage_mode": {
+      "type": "string",
+      "enum": [
+        "SEA",
+        "INLAND_WATERWAY",
+        "AIR",
+        "RAIL",
+        "ROAD",
+        "MULTIMODAL"
+      ]
+    },
+    "export_date": {
+      "type": "string"
+    },
+    "route": {
+      "type": "object",
+      "properties": {
+        "export_country": {
+          "type": "string"
+        },
+        "import_country": {
+          "type": "string"
+        },
+        "origin_country": {
+          "type": "string"
+        },
+        "customs_regime": {
+          "type": "string",
+          "enum": [
+            "UNCONFIRMED",
+            "GENERAL_TRADE",
+            "OTHER"
+          ]
+        }
+      },
+      "required": [
+        "export_country",
+        "import_country",
+        "origin_country",
+        "customs_regime"
+      ],
+      "additionalProperties": true
+    },
+    "goods": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "quantity": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "unit": {
+          "type": "string"
+        },
+        "trade_value": {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "currency": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "amount",
+            "currency"
+          ],
+          "additionalProperties": true
+        },
+        "seller_goods_cost": {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "currency": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "amount",
+            "currency"
+          ],
+          "additionalProperties": true
+        },
+        "tax_key": {
+          "type": "string"
+        },
+        "trade_value_basis": {
+          "type": "string",
+          "enum": [
+            "UNCONFIRMED",
+            "NET",
+            "INCLUDES_FREIGHT_INSURANCE"
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "quantity",
+        "unit",
+        "trade_value",
+        "seller_goods_cost"
+      ],
+      "additionalProperties": true
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "container_charge": {
+            "type": "string",
+            "enum": [
+              "THC_ORIGIN",
+              "THC_DESTINATION",
+              "DEMURRAGE",
+              "DETENTION",
+              "COMBINED_DD",
+              "INSPECTION"
+            ]
+          },
+          "container_charge_scope": {
+            "type": "string"
+          },
+          "cost_id": {
+            "type": "string",
+            "pattern": "\\S",
+            "not": {
+              "enum": [
+                "__proto__",
+                "constructor",
+                "prototype"
+              ]
+            }
+          },
+          "cost_name": {
+            "type": "string"
+          },
+          "cost_category": {
+            "type": "string",
+            "enum": [
+              "GOODS_AND_PACKING",
+              "INLAND_TRANSPORT",
+              "EXPORT_CLEARANCE",
+              "ORIGIN_TERMINAL",
+              "MAIN_CARRIAGE",
+              "INSURANCE",
+              "DESTINATION_TERMINAL",
+              "IMPORT_CLEARANCE",
+              "IMPORT_DUTIES",
+              "DESTINATION_TRANSPORT",
+              "CUSTOM"
+            ]
+          },
+          "trade_node": {
+            "type": "string",
+            "enum": [
+              "SELLER_PREMISES",
+              "INLAND_TRANSPORT",
+              "EXPORT_CLEARANCE",
+              "ORIGIN_TERMINAL",
+              "CARRIER_HANDOVER",
+              "MAIN_CARRIAGE",
+              "DESTINATION_TERMINAL",
+              "IMPORT_CLEARANCE",
+              "IMPORT_DUTIES",
+              "DESTINATION_TRANSPORT",
+              "FINAL_DELIVERY"
+            ]
+          },
+          "applicable_incoterms": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "EXW",
+                "FCA",
+                "FAS",
+                "FOB",
+                "CFR",
+                "CIF",
+                "CPT",
+                "CIP",
+                "DAP",
+                "DPU",
+                "DDP"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "alternative_group": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "timing": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string"
+              },
+              "start": {
+                "type": "string"
+              },
+              "end": {
+                "type": "string"
+              },
+              "phase": {
+                "type": "string",
+                "enum": [
+                  "PRE_SHIPMENT",
+                  "IN_TRANSIT",
+                  "POST_ARRIVAL"
+                ]
+              }
+            },
+            "required": [],
+            "additionalProperties": true
+          },
+          "occurrence_reason": {
+            "type": "string",
+            "enum": [
+              "NORMAL_OPERATION",
+              "SELLER_FAULT",
+              "BUYER_FAULT",
+              "CARRIER_FAULT",
+              "CUSTOMS_INSPECTION",
+              "REGULATORY_REQUIREMENT",
+              "FORCE_MAJEURE"
+            ]
+          },
+          "pricing_method": {
+            "type": "string",
+            "enum": [
+              "FIXED",
+              "QTY_X_UNIT",
+              "PERCENT",
+              "PER_DAY",
+              "ACTUAL",
+              "TIERED"
+            ]
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "unit": {
+            "type": "string"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "rate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "days": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "day_basis": {
+            "type": "string",
+            "enum": [
+              "CALENDAR",
+              "WORKING"
+            ]
+          },
+          "calculation_base": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "GOODS_VALUE",
+                  "QUOTE_AMOUNT",
+                  "COST_ITEMS",
+                  "CUSTOMS_DUTIABLE_VALUE"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "additionalProperties": true,
+            "allOf": [
+              {
+                "if": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "const": "COST_ITEMS"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "type": "object",
+                  "properties": {
+                    "ids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "ids"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            ]
+          },
+          "tiers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "up_to": {
+                  "anyOf": [
+                    {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "rate": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "up_to",
+                "rate"
+              ],
+              "additionalProperties": true
+            }
+          },
+          "tier_mode": {
+            "type": "string",
+            "enum": [
+              "MARGINAL",
+              "FLAT"
+            ]
+          },
+          "tier_basis": {
+            "type": "string",
+            "enum": [
+              "QUANTITY",
+              "DAYS"
+            ]
+          },
+          "tier_charge_lower": {
+            "type": "boolean"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "fx_rate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "fx_type": {
+            "type": "string",
+            "enum": [
+              "MANUAL",
+              "CONTRACT",
+              "MARKET",
+              "CUSTOMS"
+            ]
+          },
+          "fx_date": {
+            "type": "string"
+          },
+          "fx_evidence": {
+            "type": "object",
+            "properties": {
+              "reference": {
+                "type": "string"
+              },
+              "valid_from": {
+                "type": "string"
+              },
+              "valid_to": {
+                "type": "string"
+              },
+              "checked_on": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "EXAMPLE",
+                  "UNVERIFIED",
+                  "USER_CONFIRMED"
+                ]
+              },
+              "values_key": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "reference",
+              "valid_from",
+              "valid_to",
+              "checked_on",
+              "status"
+            ],
+            "additionalProperties": true
+          },
+          "base_currency": {
+            "type": "string"
+          },
+          "base_amount": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "tax_included": {
+            "type": "boolean"
+          },
+          "tax_rate_ref": {
+            "type": "string"
+          },
+          "customs_value": {
+            "type": "string",
+            "enum": [
+              "ADD",
+              "EXCLUDE"
+            ]
+          },
+          "responsibility": {
+            "type": "string",
+            "enum": [
+              "SELLER",
+              "BUYER",
+              "SHARED",
+              "CONDITIONAL"
+            ]
+          },
+          "responsibility_source": {
+            "type": "string",
+            "enum": [
+              "USER_OVERRIDE",
+              "CONTRACT",
+              "OCCURRENCE_REASON",
+              "INCOTERM_RULE",
+              "SPECIAL_CONDITION",
+              "TRADE_NODE",
+              "UNRESOLVED"
+            ]
+          },
+          "payment_party": {
+            "type": "string",
+            "enum": [
+              "SELLER",
+              "BUYER"
+            ]
+          },
+          "economic_bearer": {
+            "type": "string",
+            "enum": [
+              "SELLER",
+              "BUYER"
+            ]
+          },
+          "included_in_quoted_price": {
+            "type": "boolean"
+          },
+          "contained_in_cost_id": {
+            "type": "string"
+          },
+          "dedup_group": {
+            "type": "string"
+          },
+          "is_goods_value": {
+            "type": "boolean"
+          },
+          "includes_port_charges": {
+            "type": "boolean"
+          },
+          "risk_relation": {
+            "type": "string",
+            "enum": [
+              "BEFORE_TRANSFER",
+              "AFTER_TRANSFER",
+              "NOT_APPLICABLE"
+            ]
+          },
+          "is_custom": {
+            "type": "boolean"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "USER",
+              "DERIVED"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cost_id",
+          "cost_name",
+          "cost_category",
+          "trade_node",
+          "pricing_method",
+          "currency",
+          "fx_type",
+          "base_currency",
+          "tax_included",
+          "responsibility",
+          "responsibility_source",
+          "included_in_quoted_price",
+          "is_custom",
+          "source"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "fx_books": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "MANUAL",
+              "CONTRACT",
+              "MARKET",
+              "CUSTOMS"
+            ]
+          },
+          "date": {
+            "type": "string"
+          },
+          "valid_from": {
+            "type": "string"
+          },
+          "valid_to": {
+            "type": "string"
+          },
+          "rates": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "evidence": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "reference": {
+                  "type": "string"
+                },
+                "valid_from": {
+                  "type": "string"
+                },
+                "valid_to": {
+                  "type": "string"
+                },
+                "checked_on": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EXAMPLE",
+                    "UNVERIFIED",
+                    "USER_CONFIRMED"
+                  ]
+                },
+                "values_key": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "reference",
+                "valid_from",
+                "valid_to",
+                "checked_on",
+                "status"
+              ],
+              "additionalProperties": true
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "date",
+          "rates"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "tax_profile": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "import": {
+          "type": "object",
+          "properties": {
+            "calculationMode": {
+              "type": "string",
+              "enum": [
+                "LEGACY",
+                "CN_GENERAL_TRADE"
+              ]
+            },
+            "declarationDate": {
+              "type": "string"
+            },
+            "rateEvidence": {
+              "type": "object",
+              "properties": {
+                "reference": {
+                  "type": "string"
+                },
+                "valid_from": {
+                  "type": "string"
+                },
+                "valid_to": {
+                  "type": "string"
+                },
+                "checked_on": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EXAMPLE",
+                    "UNVERIFIED",
+                    "USER_CONFIRMED"
+                  ]
+                },
+                "values_key": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "reference",
+                "valid_from",
+                "valid_to",
+                "checked_on",
+                "status"
+              ],
+              "additionalProperties": true
+            },
+            "eligibility": {
+              "type": "object",
+              "properties": {
+                "agreement_name": {
+                  "type": "string"
+                },
+                "vat_taxpayer": {
+                  "type": "string",
+                  "enum": [
+                    "UNCONFIRMED",
+                    "GENERAL",
+                    "OTHER"
+                  ]
+                },
+                "vat_use": {
+                  "type": "string",
+                  "enum": [
+                    "UNCONFIRMED",
+                    "TAXABLE_BUSINESS",
+                    "OTHER"
+                  ]
+                },
+                "duty_evidence": {
+                  "type": "object",
+                  "properties": {
+                    "reference": {
+                      "type": "string"
+                    },
+                    "valid_from": {
+                      "type": "string"
+                    },
+                    "valid_to": {
+                      "type": "string"
+                    },
+                    "checked_on": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "EXAMPLE",
+                        "UNVERIFIED",
+                        "USER_CONFIRMED"
+                      ]
+                    },
+                    "values_key": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "reference",
+                    "valid_from",
+                    "valid_to",
+                    "checked_on",
+                    "status"
+                  ],
+                  "additionalProperties": true
+                },
+                "vat_evidence": {
+                  "type": "object",
+                  "properties": {
+                    "reference": {
+                      "type": "string"
+                    },
+                    "valid_from": {
+                      "type": "string"
+                    },
+                    "valid_to": {
+                      "type": "string"
+                    },
+                    "checked_on": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "EXAMPLE",
+                        "UNVERIFIED",
+                        "USER_CONFIRMED"
+                      ]
+                    },
+                    "values_key": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "reference",
+                    "valid_from",
+                    "valid_to",
+                    "checked_on",
+                    "status"
+                  ],
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "agreement_name",
+                "vat_taxpayer",
+                "vat_use"
+              ],
+              "additionalProperties": true
+            },
+            "dutiableValueBasis": {
+              "type": "string",
+              "enum": [
+                "CIF"
+              ]
+            },
+            "insuranceFallbackRate": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "dutyRates": {
+              "type": "object",
+              "properties": {
+                "fallback": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "byKey": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "fallback"
+              ],
+              "additionalProperties": true
+            },
+            "hsTable": {
+              "type": "object",
+              "properties": {
+                "basis": {
+                  "type": "string",
+                  "enum": [
+                    "MFN",
+                    "AGREEMENT",
+                    "INTERIM",
+                    "GENERAL"
+                  ]
+                },
+                "entries": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": "string"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "duty_type": {
+                        "type": "string",
+                        "enum": [
+                          "AD_VALOREM",
+                          "SPECIFIC",
+                          "COMPOUND"
+                        ]
+                      },
+                      "evidence": {
+                        "type": "object",
+                        "properties": {
+                          "reference": {
+                            "type": "string"
+                          },
+                          "valid_from": {
+                            "type": "string"
+                          },
+                          "valid_to": {
+                            "type": "string"
+                          },
+                          "checked_on": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "EXAMPLE",
+                              "UNVERIFIED",
+                              "USER_CONFIRMED"
+                            ]
+                          },
+                          "values_key": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "reference",
+                          "valid_from",
+                          "valid_to",
+                          "checked_on",
+                          "status"
+                        ],
+                        "additionalProperties": true
+                      },
+                      "duty_rates": {
+                        "type": "object",
+                        "properties": {
+                          "MFN": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "AGREEMENT": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "INTERIM": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "GENERAL": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": true
+                      },
+                      "specific_amount": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "specific_unit": {
+                        "type": "string"
+                      },
+                      "vat_rate": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "consumption_tax_rate": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "notes": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "description"
+                    ],
+                    "additionalProperties": true
+                  }
+                }
+              },
+              "required": [
+                "basis",
+                "entries"
+              ],
+              "additionalProperties": true
+            },
+            "dutyExemptionThreshold": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "consumptionTax": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "rate": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "basis": {
+                      "type": "string",
+                      "enum": [
+                        "DUTIABLE_PLUS_DUTY"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "rate",
+                    "basis"
+                  ],
+                  "additionalProperties": true
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "vatRate": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "vatDeductibleForBuyer": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "dutiableValueBasis",
+            "dutyRates",
+            "vatRate",
+            "vatDeductibleForBuyer"
+          ],
+          "additionalProperties": true
+        },
+        "export": {
+          "type": "object",
+          "properties": {
+            "dutiableValueBasis": {
+              "type": "string",
+              "enum": [
+                "FOB"
+              ]
+            },
+            "dutyRates": {
+              "type": "object",
+              "properties": {
+                "fallback": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "byKey": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "fallback"
+              ],
+              "additionalProperties": true
+            },
+            "rebate": {
+              "type": "object",
+              "properties": {
+                "entityType": {
+                  "type": "string",
+                  "enum": [
+                    "TRADING",
+                    "MANUFACTURER"
+                  ]
+                },
+                "rebateRates": {
+                  "type": "object",
+                  "properties": {
+                    "fallback": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "byKey": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "fallback"
+                  ],
+                  "additionalProperties": true
+                },
+                "vatRates": {
+                  "type": "object",
+                  "properties": {
+                    "fallback": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "byKey": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "fallback"
+                  ],
+                  "additionalProperties": true
+                },
+                "rebateLagDays": {
+                  "type": "number"
+                },
+                "sellerFundingRate": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "endingCreditBalance": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "consumption_tax_rebate_rate": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "entityType",
+                "rebateRates",
+                "vatRates"
+              ],
+              "additionalProperties": true
+            }
+          },
+          "required": [
+            "dutiableValueBasis",
+            "dutyRates",
+            "rebate"
+          ],
+          "additionalProperties": true
+        },
+        "customsFx": {
+          "type": "object",
+          "properties": {
+            "bookType": {
+              "type": "string",
+              "enum": [
+                "CUSTOMS"
+              ]
+            },
+            "lockPeriod": {
+              "type": "string",
+              "enum": [
+                "MONTHLY"
+              ]
+            }
+          },
+          "required": [
+            "bookType",
+            "lockPeriod"
+          ],
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "import",
+        "export",
+        "customsFx"
+      ],
+      "additionalProperties": true
+    },
+    "quote": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "string"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "fx_type": {
+          "type": "string",
+          "enum": [
+            "MANUAL",
+            "CONTRACT",
+            "MARKET",
+            "CUSTOMS"
+          ]
+        },
+        "fx_date": {
+          "type": "string"
+        },
+        "named_place": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "currency",
+        "fx_type"
+      ],
+      "additionalProperties": true
+    },
+    "evaluation_date": {
+      "type": "string"
+    },
+    "term_scenarios": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "enum": [
+          "EXW",
+          "FCA",
+          "FAS",
+          "FOB",
+          "CFR",
+          "CIF",
+          "CPT",
+          "CIP",
+          "DAP",
+          "DPU",
+          "DDP"
+        ]
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "transport": {
+            "type": "object",
+            "properties": {
+              "segments": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "segment_id": {
+                      "type": "string"
+                    },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "SEA",
+                        "INLAND_WATERWAY",
+                        "AIR",
+                        "RAIL",
+                        "ROAD"
+                      ]
+                    },
+                    "from": {
+                      "type": "string"
+                    },
+                    "to": {
+                      "type": "string"
+                    },
+                    "carrier": {
+                      "type": "string"
+                    },
+                    "contract_reference": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "segment_id",
+                    "mode",
+                    "from",
+                    "to",
+                    "carrier",
+                    "contract_reference"
+                  ],
+                  "additionalProperties": true
+                }
+              },
+              "delivery_segment_id": {
+                "type": "string"
+              },
+              "delivery_location": {
+                "type": "string"
+              },
+              "delivery_at": {
+                "type": "string",
+                "enum": [
+                  "ORIGIN",
+                  "DESTINATION"
+                ]
+              },
+              "delivery_event": {
+                "type": "string",
+                "enum": [
+                  "UNCONFIRMED",
+                  "AVAILABLE",
+                  "LOADED",
+                  "READY_UNLOAD",
+                  "ALONGSIDE",
+                  "ON_BOARD",
+                  "CARRIER_HANDOVER",
+                  "UNLOADED"
+                ]
+              },
+              "handover_basis": {
+                "type": "string",
+                "enum": [
+                  "FIRST_CARRIER",
+                  "AGREED_POINT"
+                ]
+              },
+              "agreement_note": {
+                "type": "string"
+              },
+              "paid_to": {
+                "type": "string"
+              },
+              "evidence": {
+                "type": "object",
+                "properties": {
+                  "reference": {
+                    "type": "string"
+                  },
+                  "valid_from": {
+                    "type": "string"
+                  },
+                  "valid_to": {
+                    "type": "string"
+                  },
+                  "checked_on": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "EXAMPLE",
+                      "UNVERIFIED",
+                      "USER_CONFIRMED"
+                    ]
+                  },
+                  "values_key": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "reference",
+                  "valid_from",
+                  "valid_to",
+                  "checked_on",
+                  "status"
+                ],
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "segments",
+              "delivery_segment_id",
+              "delivery_location",
+              "delivery_at",
+              "delivery_event",
+              "handover_basis",
+              "agreement_note",
+              "paid_to"
+            ],
+            "additionalProperties": true
+          },
+          "insurance": {
+            "type": "object",
+            "properties": {
+              "cover": {
+                "type": "string",
+                "enum": [
+                  "UNCONFIRMED",
+                  "ICC_A",
+                  "ICC_B",
+                  "ICC_C",
+                  "EQUIVALENT",
+                  "OTHER"
+                ]
+              },
+              "clause_version": {
+                "type": "string"
+              },
+              "sum_insured": {
+                "type": "object",
+                "properties": {
+                  "amount": {
+                    "type": "string"
+                  },
+                  "currency": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "amount",
+                  "currency"
+                ],
+                "additionalProperties": true
+              },
+              "insured_from": {
+                "type": "string"
+              },
+              "insured_to": {
+                "type": "string"
+              },
+              "scope_confirmed": {
+                "type": "boolean"
+              },
+              "direct_claim_confirmed": {
+                "type": "boolean"
+              },
+              "insurer": {
+                "type": "string"
+              },
+              "policy_reference": {
+                "type": "string"
+              },
+              "deductible": {
+                "type": "string"
+              },
+              "exclusions": {
+                "type": "string"
+              },
+              "agreed_cover_note": {
+                "type": "string"
+              },
+              "evidence": {
+                "type": "object",
+                "properties": {
+                  "reference": {
+                    "type": "string"
+                  },
+                  "valid_from": {
+                    "type": "string"
+                  },
+                  "valid_to": {
+                    "type": "string"
+                  },
+                  "checked_on": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "EXAMPLE",
+                      "UNVERIFIED",
+                      "USER_CONFIRMED"
+                    ]
+                  },
+                  "values_key": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "reference",
+                  "valid_from",
+                  "valid_to",
+                  "checked_on",
+                  "status"
+                ],
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "cover",
+              "clause_version",
+              "sum_insured",
+              "insured_from",
+              "insured_to",
+              "scope_confirmed",
+              "direct_claim_confirmed",
+              "insurer",
+              "policy_reference",
+              "deductible",
+              "exclusions",
+              "agreed_cover_note"
+            ],
+            "additionalProperties": true
+          },
+          "quote": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "string"
+              },
+              "currency": {
+                "type": "string"
+              },
+              "fx_type": {
+                "type": "string",
+                "enum": [
+                  "MANUAL",
+                  "CONTRACT",
+                  "MARKET",
+                  "CUSTOMS"
+                ]
+              },
+              "fx_date": {
+                "type": "string"
+              },
+              "named_place": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "amount",
+              "currency",
+              "fx_type"
+            ],
+            "additionalProperties": true
+          },
+          "quote_evidence": {
+            "type": "object",
+            "properties": {
+              "reference": {
+                "type": "string"
+              },
+              "valid_from": {
+                "type": "string"
+              },
+              "valid_to": {
+                "type": "string"
+              },
+              "checked_on": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "EXAMPLE",
+                  "UNVERIFIED",
+                  "USER_CONFIRMED"
+                ]
+              },
+              "values_key": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "reference",
+              "valid_from",
+              "valid_to",
+              "checked_on",
+              "status"
+            ],
+            "additionalProperties": true
+          },
+          "responsibility_overrides": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "responsibility": {
+                  "type": "string",
+                  "enum": [
+                    "SELLER",
+                    "BUYER"
+                  ]
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "evidence": {
+                  "type": "object",
+                  "properties": {
+                    "reference": {
+                      "type": "string"
+                    },
+                    "valid_from": {
+                      "type": "string"
+                    },
+                    "valid_to": {
+                      "type": "string"
+                    },
+                    "checked_on": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "EXAMPLE",
+                        "UNVERIFIED",
+                        "USER_CONFIRMED"
+                      ]
+                    },
+                    "values_key": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "reference",
+                    "valid_from",
+                    "valid_to",
+                    "checked_on",
+                    "status"
+                  ],
+                  "additionalProperties": true
+                },
+                "payment_party": {
+                  "type": "string",
+                  "enum": [
+                    "SELLER",
+                    "BUYER"
+                  ]
+                },
+                "economic_bearer": {
+                  "type": "string",
+                  "enum": [
+                    "SELLER",
+                    "BUYER"
+                  ]
+                }
+              },
+              "required": [
+                "responsibility"
+              ],
+              "additionalProperties": true
+            }
+          }
+        },
+        "required": [],
+        "additionalProperties": true
+      }
+    },
+    "incoterm": {
+      "type": "string",
+      "enum": [
+        "EXW",
+        "FCA",
+        "FAS",
+        "FOB",
+        "CFR",
+        "CIF",
+        "CPT",
+        "CIP",
+        "DAP",
+        "DPU",
+        "DDP"
+      ]
+    },
+    "anchor": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "ACTUAL_QUOTES",
+            "FIXED_QUOTE",
+            "FIXED_MARKET_PRICE",
+            "FIXED_MARGIN_RATE"
+          ]
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": true,
+      "allOf": [
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "const": "FIXED_MARKET_PRICE"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "buyer_total": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "currency": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "buyer_total",
+              "currency"
+            ],
+            "additionalProperties": true
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "const": "FIXED_MARGIN_RATE"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "margin_rate": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "margin_rate"
+            ],
+            "additionalProperties": true
+          }
+        }
+      ]
+    },
+    "facts": {
+      "type": "object",
+      "properties": {
+        "delivery_place": {
+          "type": "string",
+          "enum": [
+            "SELLER_PREMISES",
+            "OTHER"
+          ]
+        },
+        "shipping_terms": {
+          "type": "string",
+          "enum": [
+            "LINER",
+            "UNDER_TACKLE",
+            "STOWED",
+            "TRIMMED",
+            "STOWED_TRIMMED",
+            "EX_SHIP_HOLD",
+            "BULK"
+          ]
+        },
+        "clearance_agent": {
+          "type": "string",
+          "enum": [
+            "SELLER_ACTS_FOR_BUYER"
+          ]
+        },
+        "loading_mode": {
+          "type": "string",
+          "enum": [
+            "FCL",
+            "LCL"
+          ]
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "schema_version",
+    "name",
+    "updated_at",
+    "base_currency",
+    "carriage_mode",
+    "goods",
+    "items",
+    "fx_books",
+    "tax_profile",
+    "quote",
+    "incoterm",
+    "anchor"
+  ],
+  "additionalProperties": true
+}

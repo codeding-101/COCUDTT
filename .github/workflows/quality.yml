@@ -42,6 +42,10 @@ jobs:
         run: npm run build:single
       - name: Verify tracked deliverable matches source
         run: git diff --exit-code -- trade-cost-engine.html
+      - name: Rebuild project schemas and templates
+        run: npm run build:catalog
+      - name: Verify tracked schemas and templates match source
+        run: git diff --exit-code -- schemas/ templates/
       - name: Retain reviewed build
         uses: actions/upload-artifact@v7
         with:
@@ -49,5 +53,9 @@ jobs:
           path: |
             trade-cost-engine.html
             dist/
+            schemas/
+            templates/
+            docs/project-format.md
+            docs/project-migration.md
           if-no-files-found: error
           retention-days: 14
