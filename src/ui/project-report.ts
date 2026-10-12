@@ -5,9 +5,11 @@ import { compare, scenarioWithDerivedInclusions } from '../engine/compare.js';
 import { escapeHtml } from './format.js';
 import { renderOutputColumn } from './views-output.js';
 import { projectSensitivity, renderSensitivityResult, type SensitivityControls } from './sensitivity.js';
+import type { SettlementPlan } from '../domain/settlement.js';
+import { renderSettlementSnapshot } from './settlement.js';
 
 /** 每次重新计算并生成独立HTML字符串，不保留可被后续编辑改变的引用。 */
-export function createProjectReport(project: ProjectFile, generatedAt = new Date().toISOString(), hypothesis?: SensitivityControls): string {
+export function createProjectReport(project: ProjectFile, generatedAt = new Date().toISOString(), hypothesis?: SensitivityControls, settlement?: SettlementPlan): string {
   const trade = toTrade(project);
   const template = toScenario(project);
   const input = { trade, taxProfile: project.tax_profile, fxBooks: project.fx_books,
@@ -53,6 +55,7 @@ body { padding: 16px; } .report { margin: 0 auto; max-width: 1600px; }
 <table class="grid stackable"><tbody>${rows.map(([label = '', value = '']) => `<tr><th>${escapeHtml(label)}</th><td data-label="输入">${escapeHtml(value)}</td></tr>`).join('')}</tbody></table></div></section>
 ${output}
 ${hypothesisHtml}
+${settlement ? renderSettlementSnapshot(project, settlement, result) : ''}
 <section class="panel"><div class="panel-body"><details class="snapshot"><summary>完整项目输入快照（可另存为项目JSON）</summary><pre>${escapeHtml(snapshot)}</pre></details></div></section>
 </main></body></html>`;
 }
