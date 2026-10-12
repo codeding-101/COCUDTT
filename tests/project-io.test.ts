@@ -12,7 +12,7 @@ class InputStub extends ElementStub {
   value = '';
   checked = false;
   type = 'text';
-  files: { name: string; text: () => Promise<string> }[] = [];
+  files: { name: string; text: () => Promise<string>; size?: number }[] = [];
 }
 
 describe('打开、保存项目的失败处理', () => {
@@ -89,6 +89,31 @@ describe('打开、保存项目的失败处理', () => {
     if(row){input.dataset.settlementRow=row;input.dataset.settlementIndex=String(index);}listeners.get('change')!({target:input});
   }
   function openSettlement(text:()=>Promise<string>){const input=new InputStub();input.id='settlement-file-input';input.files=[{name:'payment.json',text}];listeners.get('change')!({target:input});}
+  function inspectRecovery(text:()=>Promise<string>,size=1000) { const input=new InputStub();input.id='recovery-review-input';input.files=[{name:'recovery.json',text,size}];listeners.get('change')!({target:input}); }
+  function minimalRecovery() { return JSON.stringify({kind:'INTERNAL_RECOVERY_SNAPSHOT',version:'1.0',stage:'RENDER',project:null,fx_rows:null,settlement_plan:null,sensitivity:null,customer_fields:null,browser_draft_text:null}); }
+  it('恢复检查不改交易、草稿、付款备注或客户确认，原始内容不展示',async()=>{
+    await start();await customerProject();customer('reviewed','',true);action('settlement-create');settlement('notes','CURRENT_PLAN_718');const before=storage.get(key);
+    const value=JSON.parse(minimalRecovery());value.project=sampleProjectFile();value.project.name='PRIVATE_RECOVERY_911';value.fx_rows=[];inspectRecovery(async()=>JSON.stringify(value));
+    await vi.waitFor(()=>expect(html).toContain('data-recovery-review-result'));expect(html).not.toContain('PRIVATE_RECOVERY_911');expect(html).toContain('CURRENT_PLAN_718');expect(html).toContain('data-customer-field="reviewed" checked');expect(storage.get(key)).toBe(before);
+    action('clear-recovery-review');expect(html).not.toContain('data-recovery-review-result');expect(storage.get(key)).toBe(before);
+  });
+  it('恢复检查的新选择或清空撤销慢文件读取；坏文件不能沿用旧成功结果',async()=>{
+    await start();let finish!:(s:string)=>void;inspectRecovery(()=>new Promise(r=>{finish=r}));inspectRecovery(async()=>'{}');await vi.waitFor(()=>expect(html).toContain('请选择内部恢复备份'));finish(minimalRecovery());await Promise.resolve();await Promise.resolve();expect(html).not.toContain('data-recovery-review-result');
+    inspectRecovery(async()=>minimalRecovery());await vi.waitFor(()=>expect(html).toContain('data-recovery-review-result'));inspectRecovery(()=>new Promise(r=>{finish=r}));action('clear-recovery-review');finish(minimalRecovery());await Promise.resolve();await Promise.resolve();expect(html).not.toContain('data-recovery-review-result');expect(html).not.toContain('正在本机读取');
+  });
+  it('过大文件不调用读取，读取异常不泄露私有路径；选择错误格式不触发项目导入',async()=>{
+    await start();const before=storage.get(key);const read=vi.fn(async()=>minimalRecovery());inspectRecovery(read,5*1024*1024+1);await vi.waitFor(()=>expect(html).toContain('超过5 MiB'));expect(read).not.toHaveBeenCalled();
+    inspectRecovery(async()=>{throw Error('PRIVATE_PATH_916')});await vi.waitFor(()=>expect(html).toContain('恢复文件读取失败'));expect(html).not.toContain('PRIVATE_PATH_916');
+    inspectRecovery(async()=>serializeProject(sampleProjectFile()));await vi.waitFor(()=>expect(html).toContain('请选择内部恢复备份'));expect(storage.get(key)).toBe(before);
+  });
+  it('恢复界面出现后丢弃慢检查完成，重试不重新显示过期检查',async()=>{
+    await start();let finish!:(s:string)=>void;inspectRecovery(()=>new Promise(r=>{finish=r}));recoveryElements();const views=await import('../src/ui/views-input');const fault=vi.spyOn(views,'renderFormsRow').mockImplementation(()=>{throw Error('fault')});
+    action('settlement-create');expect(recoveryPanel).not.toBeNull();finish(minimalRecovery());await Promise.resolve();await Promise.resolve();fault.mockRestore();recoveryPanel!.callbacks.get('#recovery-retry')!();expect(html).not.toContain('data-recovery-review-result');expect(html).not.toContain('正在本机读取');
+  });
+  it('普通输入错误提供真实关联面板入口，修正后清除错误入口',async()=>{
+    await start();change('goods.quantity','');expect(html).toContain('data-action="locate-input"');expect(html).toContain('data-input-section="goods"');expect(html).toContain('data-input-section="contract"');
+    change('goods.quantity','100');expect(html).not.toContain('data-action="locate-input"');
+  });
   function recoveryElements(download?:()=>void) {
     createElement.mockImplementation((tag:string)=>tag==='section'?new RecoveryPanelStub():{click:download??(()=>{}),href:'',download:''});
     vi.spyOn(URL,'createObjectURL').mockReturnValue('blob:recovery');vi.spyOn(URL,'revokeObjectURL').mockImplementation(()=>{});
