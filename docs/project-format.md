@@ -64,3 +64,7 @@ kind=INTERNAL_RECOVERY_SNAPSHOT、version=1.0包含异常阶段、原始项目�
 ## 第二十七轮补充：拟议期间格式尚未启用
 
 [明确期间设计](funding-period-design.md)中的1.5及funding.period_schedule为后续方案，当前付款解析仍最高1.4，未来版本仍拒绝。docs/cases/funding-period-design.json是FUNDING_PERIOD_DESIGN_FIXTURES 1.0设计容器，不能作为项目、付款或恢复文件导入；不修改项目0.8或现有Schema/模板。
+
+## 第二十八轮补充：独立模块不升级文件
+
+领域的FundingPeriodSchedule/FundingPeriodRounding仅为独立函数参数，非当前项目或付款字段。归集模块不读取旧period_schedule扩展；1.0–1.4另存保持原文，1.5及1.4的新scope仍拒绝，Schema/模板不变。[验收](funding-periods-validation.md)。后续须将UI/兼容/恢复/导出同轮贯通才启用1.5。
