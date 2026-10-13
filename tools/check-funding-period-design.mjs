@@ -91,4 +91,4 @@ for(const c of data.cases){
   }
 }
 assert.equal(accepted,14);assert.equal(rejected,16);
-console.log(JSON.stringify({kind:data.kind,validHandCases:accepted,rejectedBoundaryCases:rejected,productionFeatureEnabled:false,productionImports:false}));
+console.log(JSON.stringify({kind:data.kind,validHandCases:accepted,rejectedBoundaryCases:rejected,checkerEnablesProductionFeature:false,productionImports:false}));

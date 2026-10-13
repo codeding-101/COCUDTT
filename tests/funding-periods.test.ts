@@ -146,7 +146,7 @@ describe('独立结构校验及旧文件不激活新字段',()=>{
     Object.assign(plan,{period_schedule:{keep:'😀'}});const before=serializeSettlementPlan(plan),parsed=parseSettlementPlan(before);expect(serializeSettlementPlan(parsed)).toBe(before);expect(parsed.version).toBe(version);
     if(version==='1.0'){expect(()=>calculateFunding(parsed,ctx.binding)).toThrow('尚未设置');}else{const a=calculateFunding(parsed,ctx.binding)!;expect(a).not.toHaveProperty('periods');expect(a).not.toHaveProperty('period_schedule');expect(a.cost).toBe('0.018');}
   });
-  it('未来1.5和旧1.4新层级仍拒绝，不把独立类型当已启用文件格式',()=>{
-    const ctx=context(),plan=enableFundingRounding(ctx.plan),future=JSON.parse(serializeSettlementPlan(plan));future.version='1.5';expect(()=>parseSettlementPlan(JSON.stringify(future))).toThrow('受支持');future.version='1.4';future.funding.rounding.scope='PERIODS';expect(()=>parseSettlementPlan(JSON.stringify(future))).toThrow('scope');
+  it('未来1.6和旧1.4新层级仍拒绝，不把独立类型当已启用文件格式',()=>{
+    const ctx=context(),plan=enableFundingRounding(ctx.plan),future=JSON.parse(serializeSettlementPlan(plan));future.version='1.6';expect(()=>parseSettlementPlan(JSON.stringify(future))).toThrow('受支持');future.version='1.4';future.funding.rounding.scope='PERIODS';expect(()=>parseSettlementPlan(JSON.stringify(future))).toThrow('scope');
   });
 });

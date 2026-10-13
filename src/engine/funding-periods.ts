@@ -44,7 +44,7 @@ function day(date:string):number{
 function reference(text:string,label:string):string{
   if(typeof text!=='string'||text.length>4000||!text.trim())return fail(`${label}须记录依据`);return text;
 }
-/** Explicit standalone audit over a validated UNROUNDED result. No settlement/UI integration.
+/** Explicit audit over a validated UNROUNDED result; isolated from cash flow and trade/tax cost.
  * Rebuild exact interest from original segment inputs; never apportion rounded cost strings.
  * Null means explicitly not applied, not zero interest. All inputs remain untouched.
  */

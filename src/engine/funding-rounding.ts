@@ -33,6 +33,7 @@ function roundedUnits(value:Fraction,unit:{coefficient:bigint;scale:number},mode
 export function applyFundingRounding(result:FundingResult,input:FundingRoundingAssumption):FundingResult {
   if(input.status==='NOT_APPLIED')return result;
   if(input.status!=='APPLIED'||input.scope==='UNCONFIRMED'||input.mode==='UNCONFIRMED')return fail('请明确是否应用、层级及舍入方式；未知不当作已舍入');
+  if(input.scope!=='TOTAL'&&input.scope!=='INTERVALS')return fail('明确期间须使用1.5期间归集，旧模式不能解释新层级');
   if(!input.reference.trim())return fail('须记录金额步长、方式和舍入时点依据');
   if(input.scope==='INTERVALS'&&!input.intervals_confirmed)return fail('须确认计算区间就是本次拟采用的舍入边界；不自动视为银行结息日');
   const raw=input.unit.trim();

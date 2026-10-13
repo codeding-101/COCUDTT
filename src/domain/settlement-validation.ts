@@ -1,4 +1,5 @@
 import { SETTLEMENT_METHODS, type SettlementPlan } from './settlement.js';
+import {validateFundingPeriodSchedule} from './funding-periods-validation.js';
 
 const fail = (message: string): never => { throw new Error(`付款计划：${message}`); };
 function object(value: unknown, label: string): Record<string, unknown> {
@@ -13,7 +14,7 @@ function choice(row: Record<string, unknown>, key: string, values: readonly stri
 }
 export function validateSettlementPlan(value: unknown): asserts value is SettlementPlan {
   const plan = object(value, '文件');
-  if (!['1.0','1.1','1.2','1.3','1.4'].includes(plan.version as string) || plan.kind !== 'INTERNAL_SETTLEMENT_PLAN') fail('不是受支持的内部付款计划1.0/1.1/1.2/1.3/1.4，不能作为项目JSON使用');
+  if (!['1.0','1.1','1.2','1.3','1.4','1.5'].includes(plan.version as string) || plan.kind !== 'INTERNAL_SETTLEMENT_PLAN') fail('不是受支持的内部付款计划1.0/1.1/1.2/1.3/1.4/1.5，不能作为项目JSON使用');
   if (plan.version === '1.0' && Object.hasOwn(plan, 'funding')) fail('1.0扩展字段funding与新语义冲突，须人工核对，不能静默升级');
   if (plan.version !== '1.0') {
     const funding = object(plan.funding, '资金占用假设');
@@ -22,7 +23,7 @@ export function validateSettlementPlan(value: unknown): asserts value is Settlem
     choice(funding, 'kind', ['UNCONFIRMED','FINANCING','OPPORTUNITY']);
     choice(funding, 'party', ['UNCONFIRMED','BUYER','SELLER']);
     choice(funding, 'day_basis', ['UNCONFIRMED','ACT_365F','ACT_360']);
-    if (plan.version === '1.2' || plan.version === '1.3' || plan.version === '1.4') {
+    if (plan.version === '1.2' || plan.version === '1.3' || plan.version === '1.4' || plan.version === '1.5') {
       choice(funding,'balance_model',['CONSTANT','EVENTS']);
       if (!Array.isArray(funding.events) || funding.events.length > 100) fail('本金事件须为最多100行的数组');
       const ids = new Set<string>();
@@ -36,7 +37,7 @@ export function validateSettlementPlan(value: unknown): asserts value is Settlem
       });
     }
   }
-  if(plan.version==='1.3'||plan.version==='1.4'){
+  if(plan.version==='1.3'||plan.version==='1.4'||plan.version==='1.5'){
     const funding=object(plan.funding,'资金占用假设');choice(funding,'rate_model',['CONSTANT','EVENTS']);
     if(!Array.isArray(funding.rate_events)||funding.rate_events.length>100)fail('利率事件须为最多100行的数组');
     const ids=new Set<string>();
@@ -47,14 +48,15 @@ export function validateSettlementPlan(value: unknown): asserts value is Settlem
       ids.add(id);
     });
   }
-  if(plan.version==='1.4'){
+  if(plan.version==='1.4'||plan.version==='1.5'){
     const rounding=object(object(plan.funding,'资金占用假设').rounding,'金额舍入');
     texts(rounding,['unit','reference'],'金额舍入');
     choice(rounding,'status',['UNCONFIRMED','NOT_APPLIED','APPLIED']);
-    choice(rounding,'scope',['UNCONFIRMED','TOTAL','INTERVALS']);
+    choice(rounding,'scope',plan.version==='1.5'?['UNCONFIRMED','TOTAL','INTERVALS','PERIODS']:['UNCONFIRMED','TOTAL','INTERVALS']);
     choice(rounding,'mode',['UNCONFIRMED','HALF_UP','HALF_EVEN','DOWN']);
     if(typeof rounding.intervals_confirmed!=='boolean')fail('区间舍入边界确认须为布尔值');
   }
+  if(plan.version==='1.5')validateFundingPeriodSchedule(object(plan.funding,'资金占用假设').period_schedule);
   texts(plan, ['notes'], '文件');
   texts(object(plan.binding, '报价绑定'), ['project_name','goods_name','quantity','unit','incoterm','named_place','amount','currency'], '报价绑定');
   choice(plan, 'method', SETTLEMENT_METHODS);

@@ -1,4 +1,4 @@
-/** Standalone period inputs. Not part of any currently supported settlement file. */
+/** Explicit period inputs; interpreted by settlement 1.5 only. */
 export interface FundingPeriod {
   id: string;
   start_date: string;

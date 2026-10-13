@@ -100,7 +100,7 @@ describe('计划格式1.1与内部快照的安全边界',()=>{
   });
   it('旧扩展与新字段重名须人工核对，未来版本、缺结构和数值类型不静默清洗',()=>{
     const {plan}=fixture();const bad=structuredClone(plan) as unknown as Record<string,unknown>;bad.version='1.0';expect(()=>parseSettlementPlan(JSON.stringify(bad))).toThrow('新语义冲突');
-    bad.version='1.5';expect(()=>parseSettlementPlan(JSON.stringify(bad))).toThrow('不是受支持');bad.version='1.1';bad.funding={};expect(()=>parseSettlementPlan(JSON.stringify(bad))).toThrow('文本');
+    bad.version='1.6';expect(()=>parseSettlementPlan(JSON.stringify(bad))).toThrow('不是受支持');bad.version='1.1';bad.funding={};expect(()=>parseSettlementPlan(JSON.stringify(bad))).toThrow('文本');
     bad.funding={...plan.funding,annual_rate:6};expect(()=>parseSettlementPlan(JSON.stringify(bad))).toThrow('文本');delete bad.funding;expect(()=>parseSettlementPlan(JSON.stringify(bad))).toThrow('对象');
   });
   it('内部Excel保留原6张表，付款/假设追加，所有数据是生成时脱离引用的快照',()=>{
