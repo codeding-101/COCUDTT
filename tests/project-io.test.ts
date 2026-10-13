@@ -84,7 +84,7 @@ describe('打开、保存项目的失败处理', () => {
   function action(name: string, index?: number) {
     const button = new ElementStub(); button.dataset.action = name;if(index!==undefined)button.dataset.settlementIndex=String(index); listeners.get('click')!({ target: button });
   }
-  function settlement(field:string,value:string,row?:'payment'|'fee'|'funding',index=0,checked=false){
+  function settlement(field:string,value:string,row?:'payment'|'fee'|'funding'|'funding-event',index=0,checked=false){
     const input=new InputStub();input.id='';input.dataset.settlementField=field;input.value=value;input.checked=checked;
     if(row){input.dataset.settlementRow=row;input.dataset.settlementIndex=String(index);}listeners.get('change')!({target:input});
   }
@@ -154,6 +154,33 @@ describe('打开、保存项目的失败处理', () => {
   function fundingInputs() {
     for (const [key,value] of Object.entries({status:'PROVIDED',kind:'OPPORTUNITY',party:'SELLER',principal:'12000',currency:'USD',start_date:'2026-09-01',end_date:'2026-10-01',annual_rate:'6',day_basis:'ACT_360',reference:'PRIVATE_FUNDING_UI_981'})) settlement(key,value,'funding');
   }
+  function ledgerInputs() {
+    action('settlement-enable-ledger');settlement('status','PROVIDED','funding');
+    for(const [index,values]of [{direction:'DECREASE',amount:'4000',currency:'USD',date:'2026-09-11',reference:'PRIVATE_EVENT_UI_817'},{direction:'INCREASE',amount:'2000',currency:'USD',date:'2026-09-21',reference:'PRIVATE_EVENT_UI_818'}].entries()) {
+      action('settlement-add-funding-event');for(const [key,value]of Object.entries(values))settlement(key,value,'funding-event',index);
+    }
+  }
+  it('显式升级1.2重新确认范围，逐笔事件、模型切换保留输入且不写项目/客户确认',async()=>{
+    await start();await customerProject();customer('reviewed','',true);action('settlement-create');fundingInputs();const before=storage.get(key);action('settlement-enable-ledger');expect(html).not.toContain('data-funding-result');expect(html).toContain('重新确认');settlement('status','PROVIDED','funding');expect(html).toContain('60 USD');
+    action('settlement-add-funding-event');expect(html).not.toContain('data-funding-result');for(const [key,value]of Object.entries({direction:'DECREASE',amount:'4000',currency:'USD',date:'2026-09-11',reference:'PRIVATE_EVENT_ONE'}))settlement(key,value,'funding-event');
+    expect(html).toContain('46.666666');expect(html).toContain('data-funding-ledger');settlement('balance_model','CONSTANT','funding');expect(html).not.toContain('data-funding-result');settlement('status','PROVIDED','funding');expect(html).toContain('60 USD');expect(html).toContain('PRIVATE_EVENT_ONE');expect(html).not.toContain('data-funding-ledger');expect(html).toContain('data-customer-field="reviewed" checked');expect(storage.get(key)).toBe(before);
+  });
+  it('事件编辑和增删撤销慢导入，坏事件不沿用结果，绑定变化也退出',async()=>{
+    await start();await customerProject();action('settlement-create');fundingInputs();ledgerInputs();expect(html).toContain('50 USD');let finish!:(s:string)=>void;openSettlement(()=>new Promise(r=>{finish=r}));settlement('reference','AFTER_SLOW_READ','funding-event');finish('{}');await Promise.resolve();await Promise.resolve();expect(html).toContain('AFTER_SLOW_READ');expect(html).not.toContain('不是受支持');
+    settlement('amount','12001','funding-event');expect(html).not.toContain('data-funding-result');expect(html).toContain('超过当时本金');settlement('amount','4000','funding-event');expect(html).toContain('50 USD');change('term_scenarios.FOB.quote.amount','20000');expect(html).not.toContain('data-funding-result');action('settlement-rebind');expect(html).toContain('50 USD');
+    openSettlement(()=>new Promise(r=>{finish=r}));action('settlement-remove-funding-event',1);finish('{}');await Promise.resolve();await Promise.resolve();expect(html).not.toContain('不是受支持');expect(html).not.toContain('PRIVATE_EVENT_UI_818');
+  });
+  it('1.2保存及Excel在文件选择前冻结事件；等待时编辑不改已生成内容',async()=>{
+    await start();await customerProject();action('settlement-create');fundingInputs();ledgerInputs();const before=storage.get(key);let finish!:(h:unknown)=>void,saved='';vi.stubGlobal('window',{showSaveFilePicker:()=>new Promise(r=>{finish=r})});action('settlement-save');settlement('reference','AFTER_SAVE_817','funding-event');finish({name:'plan.json',createWritable:async()=>({write:async(s:string)=>{saved=s},close:async()=>{}})});await vi.waitFor(()=>expect(saved).not.toBe(''));expect(JSON.parse(saved)).toMatchObject({version:'1.2',funding:{balance_model:'EVENTS'}});expect(saved).not.toContain('AFTER_SAVE_817');
+    let blob:Blob|null=null;vi.stubGlobal('window',{showSaveFilePicker:()=>new Promise(r=>{finish=r})});action('export-internal-xlsx');settlement('reference','AFTER_XLSX_817','funding-event');finish({name:'ledger.xlsx',createWritable:async()=>({write:async(b:Blob)=>{blob=b},close:async()=>{}})});await vi.waitFor(()=>expect(blob).not.toBeNull());const{unzipSync,strFromU8}=await import('fflate');const text=Object.values(unzipSync(new Uint8Array(await blob!.arrayBuffer()))).map(v=>strFromU8(v)).join('\n');expect(text).toContain('AFTER_SAVE_817');expect(text).not.toContain('AFTER_XLSX_817');expect(text).toContain('300000 × 6');expect(storage.get(key)).toBe(before);
+  });
+  it('1.2原始事件进入恢复备份并在重试后保留，损坏导入不能覆盖原账本',async()=>{
+    await start();await customerProject();action('settlement-create');fundingInputs();ledgerInputs();const before=storage.get(key);let blob:Blob|null=null;recoveryElements();vi.spyOn(URL,'createObjectURL').mockImplementation(b=>{blob=b as Blob;return 'blob:recovery'});const views=await import('../src/ui/views-input'),fault=vi.spyOn(views,'renderFormsRow').mockImplementation(()=>{throw Error('fault')});settlement('reference','KEEP_RAW_EVENT_817','funding-event');recoveryPanel!.callbacks.get('#recovery-backup')!();expect(JSON.parse(await blob!.text()).settlement_plan).toMatchObject({version:'1.2',funding:{balance_model:'EVENTS',events:[{reference:'KEEP_RAW_EVENT_817'},{reference:'PRIVATE_EVENT_UI_818'}]}});fault.mockRestore();recoveryPanel!.callbacks.get('#recovery-retry')!();expect(html).toContain('50 USD');expect(storage.get(key)).toBe(before);
+    openSettlement(async()=>JSON.stringify({version:'1.2',kind:'INTERNAL_SETTLEMENT_PLAN'}));await vi.waitFor(()=>expect(html).toContain('付款计划：'));expect(html).toContain('KEEP_RAW_EVENT_817');expect(html).toContain('50 USD');
+  });
+  it('旧1.1重名扩展在界面不激活，显式升级失败不覆盖扩展',async()=>{
+    await start();await customerProject();const{newSettlementPlan}=await import('../src/domain/settlement'),{settlementBinding}=await import('../src/data/settlement-context');const legacy=newSettlementPlan(settlementBinding(JSON.parse(storage.get(key)!).project));Object.assign(legacy.funding!,{events:'PRIVATE_LEGACY_EXT_817',balance_model:'EVENTS'});openSettlement(async()=>JSON.stringify(legacy));await vi.waitFor(()=>expect(html).toContain('启用变动本金'));action('settlement-enable-ledger');expect(html).toContain('重名');expect(html).not.toContain('data-settlement-row="funding-event"');let saved='';vi.stubGlobal('window',{showSaveFilePicker:async()=>({name:'legacy.json',createWritable:async()=>({write:async(s:string)=>{saved=s},close:async()=>{}})})});action('settlement-save');await vi.waitFor(()=>expect(saved).not.toBe(''));expect(JSON.parse(saved)).toMatchObject({version:'1.1',funding:{events:'PRIVATE_LEGACY_EXT_817'}});
+  });
   it('资金假设事件独立于项目/客户检查，缺项退出，原文保存而非填造',async()=>{
     await start();await customerProject();customer('reviewed','',true);const before=storage.get(key);action('settlement-create');fundingInputs();
     expect(html).toContain('data-funding-result');expect(html).toContain('60 USD');expect(storage.get(key)).toBe(before);expect(html).toContain('data-customer-field="reviewed" checked');
