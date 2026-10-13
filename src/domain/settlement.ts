@@ -1,4 +1,5 @@
 import { newFundingAssumption, newFundingRounding, type FundingAssumption } from './funding.js';
+import {newFundingPeriodSchedule} from './funding-periods.js';
 /** Internal payment worksheet, separate from the project 0.8 container. */
 export const SETTLEMENT_METHODS = ['UNCONFIRMED', 'TT', 'LC', 'OA'] as const;
 export type SettlementMethod = (typeof SETTLEMENT_METHODS)[number];
@@ -33,7 +34,7 @@ export interface BankFeeEntry {
   not_in_project: boolean;
 }
 export interface SettlementPlan {
-  version: '1.0' | '1.1' | '1.2' | '1.3' | '1.4';
+  version: '1.0' | '1.1' | '1.2' | '1.3' | '1.4' | '1.5';
   kind: 'INTERNAL_SETTLEMENT_PLAN';
   binding: SettlementBinding;
   method: SettlementMethod;
@@ -66,6 +67,12 @@ export function enableFundingRounding(plan:SettlementPlan):SettlementPlan {
   const copy=structuredClone(plan);copy.version='1.4';copy.funding!.rounding=newFundingRounding();copy.funding!.status='UNCONFIRMED';return copy;
 }
 export const newPaymentEntry = (id: string): PaymentEntry => ({ id, basis: 'AMOUNT', value: '', date: '', trigger: '' });
+export function enableFundingPeriods(plan:SettlementPlan):SettlementPlan{
+  if(plan.version!=='1.4'||!plan.funding?.rounding)throw Error('请先启用1.4金额舍入，再单独启用明确期间');
+  if(Object.hasOwn(plan.funding,'period_schedule'))throw Error('旧资金扩展与期间表字段重名，请保留原文件并人工核对；未升级或覆盖');
+  const copy=structuredClone(plan);copy.version='1.5';copy.funding!.period_schedule=newFundingPeriodSchedule();copy.funding!.status='UNCONFIRMED';
+  copy.funding!.rounding!.status='UNCONFIRMED';copy.funding!.rounding!.intervals_confirmed=false;return copy;
+}
 export const newBankFeeEntry = (id: string): BankFeeEntry => ({
   id, source: 'EXISTING', cost_id: '', amount: '', currency: '', bearer: 'UNCONFIRMED', payer: 'UNCONFIRMED', date: '', reference: '', not_in_project: false,
 });

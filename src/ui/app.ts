@@ -15,7 +15,7 @@ import { projectTemplateText, PROJECT_TEMPLATES } from '../data/project-template
 import { renderProjectTemplatePanel } from './project-templates.js';
 import { settlementBinding } from '../data/settlement-context.js';
 import { parseSettlementPlan, serializeSettlementPlan } from '../data/settlement-file.js';
-import { newSettlementPlan, newPaymentEntry, newBankFeeEntry, enableFundingLedger, enableFundingRates, enableFundingRounding, type SettlementPlan } from '../domain/settlement.js';
+import { newSettlementPlan, newPaymentEntry, newBankFeeEntry, enableFundingLedger, enableFundingRates, enableFundingRounding, enableFundingPeriods, type SettlementPlan } from '../domain/settlement.js';
 import { renderSettlementPanel } from './settlement.js';
 import { newFundingAssumption, newFundingPrincipalEvent, newFundingRateEvent } from '../domain/funding.js';
 import { emptyEvidence, evidenceKey, fxEvidenceValues, hsEvidenceValues, invalidateEvidence, taxEvidenceValues, type SourceEvidence } from '../domain/source-evidence.js';
@@ -232,42 +232,57 @@ function onSettlementField(target: HTMLInputElement | HTMLSelectElement): void {
     } else if (row && (field === 'bearer' || field === 'payer') && ['UNCONFIRMED','BUYER','SELLER'].includes(target.value)) row[field] = target.value as typeof row.bearer;
     else if (row && field === 'not_in_project') row.not_in_project = target instanceof HTMLInputElement && target.checked;
     else if (row && (field === 'cost_id' || field === 'amount' || field === 'currency' || field === 'date' || field === 'reference')) row[field] = target.value;
-  } else if (kind === 'funding-event' && (['1.2','1.3','1.4'].includes(settlementPlan.version))) {
+  } else if (kind === 'funding-event' && (['1.2','1.3','1.4','1.5'].includes(settlementPlan.version))) {
     const row = settlementPlan.funding?.events?.[index];
     if (row && field === 'direction' && ['INCREASE','DECREASE'].includes(target.value)) row.direction = target.value as typeof row.direction;
     else if (row && (field === 'amount' || field === 'currency' || field === 'date' || field === 'reference')) row[field] = target.value;
-  } else if(kind==='funding-rate'&&(settlementPlan.version==='1.3'||settlementPlan.version==='1.4')){
+  } else if(kind==='funding-rate'&&(settlementPlan.version==='1.3'||settlementPlan.version==='1.4'||settlementPlan.version==='1.5')){
     const row=settlementPlan.funding?.rate_events?.[index];
     if(row&&(field==='date'||field==='annual_rate'||field==='reference'))row[field]=target.value;
-  } else if(kind==='funding-rounding'&&settlementPlan.version==='1.4'){
+  } else if(kind==='funding-rounding'&&(settlementPlan.version==='1.4'||settlementPlan.version==='1.5')){
     const row=settlementPlan.funding!.rounding!;
     if(field === 'status'&&['UNCONFIRMED','NOT_APPLIED','APPLIED'].includes(target.value))row.status=target.value as typeof row.status;
-    else if(field === 'scope'&&['UNCONFIRMED','TOTAL','INTERVALS'].includes(target.value)){row.scope=target.value as typeof row.scope;row.status='UNCONFIRMED';row.intervals_confirmed=false;}
+    else if(field === 'scope'&&(settlementPlan.version==='1.5'?['UNCONFIRMED','TOTAL','INTERVALS','PERIODS']:['UNCONFIRMED','TOTAL','INTERVALS']).includes(target.value)){row.scope=target.value as typeof row.scope;row.status='UNCONFIRMED';row.intervals_confirmed=false;}
     else if(field === 'mode'&&['UNCONFIRMED','HALF_UP','HALF_EVEN','DOWN'].includes(target.value))row.mode=target.value as typeof row.mode;
     else if(field === 'unit'||field === 'reference')row[field]=target.value;
     else if(field === 'intervals_confirmed')row.intervals_confirmed=target instanceof HTMLInputElement&&target.checked;
+  } else if(kind==='funding-period-schedule'&&settlementPlan.version==='1.5'){
+    const row=settlementPlan.funding!.period_schedule!;
+    if(field==='status'&&['UNCONFIRMED','PROVIDED'].includes(target.value))row.status=target.value as typeof row.status;
+    else if(field==='reference')row.reference=target.value;
+    else if(field === 'periods_confirmed')row.periods_confirmed=target instanceof HTMLInputElement&&target.checked;
+  } else if(kind==='funding-period'&&settlementPlan.version==='1.5'){
+    const row=settlementPlan.funding!.period_schedule!.periods[index];
+    if(row&&(field==='start_date'||field==='end_date'||field==='reference'))row[field]=target.value;
   } else if (kind === 'funding' && settlementPlan.version !== '1.0' && settlementPlan.funding) {
     const row = settlementPlan.funding;
     if (field === 'status' && ['UNCONFIRMED','NOT_MODELED','PROVIDED'].includes(target.value)) row.status = target.value as typeof row.status;
     else if (field === 'kind' && ['UNCONFIRMED','FINANCING','OPPORTUNITY'].includes(target.value)) row.kind = target.value as typeof row.kind;
     else if (field === 'party' && ['UNCONFIRMED','BUYER','SELLER'].includes(target.value)) row.party = target.value as typeof row.party;
     else if (field === 'day_basis' && ['UNCONFIRMED','ACT_365F','ACT_360'].includes(target.value)) row.day_basis = target.value as typeof row.day_basis;
-    else if (field === 'balance_model' && (['1.2','1.3','1.4'].includes(settlementPlan.version)) && ['CONSTANT','EVENTS'].includes(target.value)) { row.balance_model = target.value as typeof row.balance_model; row.status = 'UNCONFIRMED'; }
-    else if(field === 'rate_model'&&(settlementPlan.version==='1.3'||settlementPlan.version==='1.4')&&['CONSTANT','EVENTS'].includes(target.value)){row.rate_model=target.value as typeof row.rate_model;row.status='UNCONFIRMED';}
+    else if (field === 'balance_model' && (['1.2','1.3','1.4','1.5'].includes(settlementPlan.version)) && ['CONSTANT','EVENTS'].includes(target.value)) { row.balance_model = target.value as typeof row.balance_model; row.status = 'UNCONFIRMED'; }
+    else if(field === 'rate_model'&&(settlementPlan.version==='1.3'||settlementPlan.version==='1.4'||settlementPlan.version==='1.5')&&['CONSTANT','EVENTS'].includes(target.value)){row.rate_model=target.value as typeof row.rate_model;row.status='UNCONFIRMED';}
     else if (field === 'principal' || field === 'currency' || field === 'start_date' || field === 'end_date' || field === 'annual_rate' || field === 'reference') row[field] = target.value;
   } else if (field === 'method' && ['UNCONFIRMED','TT','LC','OA'].includes(target.value)) settlementPlan.method = target.value as typeof settlementPlan.method;
   else if (field === 'bank_status' && ['UNCONFIRMED','NO_FEES','LISTED'].includes(target.value)) settlementPlan.bank_status = target.value as typeof settlementPlan.bank_status;
   else if (field === 'notes') settlementPlan.notes = target.value;
-  if(settlementPlan.version==='1.4'&&((kind==='funding-event'||kind==='funding-rate')&&field==='date'||kind==='funding'&&['start_date','end_date','balance_model','rate_model'].includes(field??'')))settlementPlan.funding!.rounding!.intervals_confirmed=false;
+  if((settlementPlan.version==='1.4'||settlementPlan.version==='1.5')&&((kind==='funding-event'||kind==='funding-rate')&&field==='date'||kind==='funding'&&['start_date','end_date','balance_model','rate_model'].includes(field??'')))settlementPlan.funding!.rounding!.intervals_confirmed=false;
+  if(settlementPlan.version==='1.5'){
+    const f=settlementPlan.funding!;
+    if(['funding','funding-event','funding-rate','funding-period','funding-rounding'].includes(kind??'')||kind==='funding-period-schedule'&&field!=='periods_confirmed')f.period_schedule!.periods_confirmed=false;
+    if(kind==='funding-rounding'&&['mode','unit','reference'].includes(field??''))f.rounding!.status='UNCONFIRMED';
+  }
   settlementEpoch++;
   render();
 }
 
 async function saveSettlement(): Promise<void> {
   if (settlementBusy) return;
+  let writing=false;
   try {
     if (!settlementPlan) throw Error('请先创建内部付款计划');
     const text = serializeSettlementPlan(settlementPlan);
+    writing=true;
     settlementBusy = true;
     render();
     const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
@@ -278,7 +293,7 @@ async function saveSettlement(): Promise<void> {
     } else { downloadText('internal-settlement-plan.json', text); state.status = '已发起内部付款计划下载，请确认已保存；项目文件不包含付款计划'; }
     state.statusLevel = 'warn';
   } catch (error) {
-    state.status = error instanceof Error && error.name === 'AbortError' ? '已取消付款计划保存，输入保留' : `付款计划保存失败：${error instanceof Error ? error.message : String(error)}`;
+    state.status = error instanceof Error && error.name === 'AbortError' ? '已取消付款计划保存，输入保留' : writing?'付款计划保存失败，请检查浏览器保存权限或存储空间后重试；输入保留':`付款计划保存失败：${error instanceof Error ? error.message : String(error)}`;
     state.statusLevel = 'warn';
   } finally { settlementBusy = false; render(); }
 }
@@ -1464,34 +1479,46 @@ function bind(): void {
       case 'settlement-enable-rounding':
         if(settlementPlan){try{settlementPlan=enableFundingRounding(settlementPlan);settlementEpoch++;state.status='已升级付款计划1.4；请重新确认资金范围与金额舍入依据';state.statusLevel='warn';render();}catch(error){showFileError(error);}}
         break;
+      case 'settlement-enable-periods':
+        if(settlementPlan){try{settlementPlan=enableFundingPeriods(settlementPlan);settlementEpoch++;state.status='已升级付款计划1.5；请重新核对资金、舍入与明确期间边界';state.statusLevel='warn';render();}catch(error){showFileError(error);}}
+        break;
+      case 'settlement-add-period':
+      case 'settlement-remove-period': {
+        if(settlementPlan?.version==='1.5'){
+          const f=settlementPlan.funding!,rows=f.period_schedule!.periods;
+          if(action==='settlement-add-period'&&rows.length<100){let id=1;while(rows.some(row=>row.id===`period-${id}`))id++;rows.push({id:`period-${id}`,start_date:'',end_date:'',reference:''});}
+          else if(action==='settlement-remove-period'){const index=Number(target.dataset.settlementIndex);if(Number.isInteger(index)&&index>=0&&index<rows.length)rows.splice(index,1);}
+          f.period_schedule!.periods_confirmed=false;settlementEpoch++;render();
+        }break;
+      }
       case 'settlement-enable-rates':
         if(settlementPlan){try{settlementPlan=enableFundingRates(settlementPlan);settlementEpoch++;state.status='已升级付款计划1.3；请重新确认利率及资金测算范围';state.statusLevel='warn';render();}catch(error){showFileError(error);}}
         break;
       case 'settlement-add-rate-event': {
-        if((settlementPlan?.version==='1.3'||settlementPlan?.version==='1.4')){const rows=settlementPlan.funding!.rate_events!;if(rows.length<100){let id=1;while(rows.some(row=>row.id===`rate-${id}`))id++;rows.push(newFundingRateEvent(`rate-${id}`));if(settlementPlan.version==='1.4')settlementPlan.funding!.rounding!.intervals_confirmed=false;settlementEpoch++;render();}}
+        if((settlementPlan?.version==='1.3'||settlementPlan?.version==='1.4'||settlementPlan?.version==='1.5')){const rows=settlementPlan.funding!.rate_events!;if(rows.length<100){let id=1;while(rows.some(row=>row.id===`rate-${id}`))id++;rows.push(newFundingRateEvent(`rate-${id}`));if(settlementPlan.version==='1.4'||settlementPlan.version==='1.5')settlementPlan.funding!.rounding!.intervals_confirmed=false;if(settlementPlan.version==='1.5')settlementPlan.funding!.period_schedule!.periods_confirmed=false;settlementEpoch++;render();}}
         break;
       }
       case 'settlement-remove-rate-event': {
-        const index=Number(target.dataset.settlementIndex),rows=(settlementPlan?.version==='1.3'||settlementPlan?.version==='1.4')?settlementPlan.funding?.rate_events:null;
-        if(rows&&Number.isInteger(index)&&index>=0&&index<rows.length){rows.splice(index,1);if(settlementPlan?.version==='1.4')settlementPlan.funding!.rounding!.intervals_confirmed=false;settlementEpoch++;render();}break;
+        const index=Number(target.dataset.settlementIndex),rows=(settlementPlan?.version==='1.3'||settlementPlan?.version==='1.4'||settlementPlan?.version==='1.5')?settlementPlan.funding?.rate_events:null;
+        if(rows&&Number.isInteger(index)&&index>=0&&index<rows.length){rows.splice(index,1);if(settlementPlan?.version==='1.4'||settlementPlan?.version==='1.5')settlementPlan.funding!.rounding!.intervals_confirmed=false;if(settlementPlan?.version==='1.5')settlementPlan.funding!.period_schedule!.periods_confirmed=false;settlementEpoch++;render();}break;
       }
       case 'settlement-add-funding-event': {
-        if (settlementPlan && ['1.2','1.3','1.4'].includes(settlementPlan.version)) {
+        if (settlementPlan && ['1.2','1.3','1.4','1.5'].includes(settlementPlan.version)) {
           const rows = settlementPlan.funding!.events!;
-          if (rows.length < 100) { let id=1; while(rows.some(row=>row.id===`funding-${id}`))id++; rows.push(newFundingPrincipalEvent(`funding-${id}`)); if(settlementPlan.version==='1.4')settlementPlan.funding!.rounding!.intervals_confirmed=false; settlementEpoch++; render(); }
+          if (rows.length < 100) { let id=1; while(rows.some(row=>row.id===`funding-${id}`))id++; rows.push(newFundingPrincipalEvent(`funding-${id}`)); if(settlementPlan.version==='1.4'||settlementPlan.version==='1.5')settlementPlan.funding!.rounding!.intervals_confirmed=false;if(settlementPlan.version==='1.5')settlementPlan.funding!.period_schedule!.periods_confirmed=false; settlementEpoch++; render(); }
         }
         break;
       }
       case 'settlement-remove-funding-event': {
-        const index=Number(target.dataset.settlementIndex),rows=(['1.2','1.3','1.4'].includes(settlementPlan?.version??''))?settlementPlan?.funding?.events:null;
-        if(rows&&Number.isInteger(index)&&index>=0&&index<rows.length){rows.splice(index,1);if(settlementPlan?.version==='1.4')settlementPlan.funding!.rounding!.intervals_confirmed=false;settlementEpoch++;render();}
+        const index=Number(target.dataset.settlementIndex),rows=(['1.2','1.3','1.4','1.5'].includes(settlementPlan?.version??''))?settlementPlan?.funding?.events:null;
+        if(rows&&Number.isInteger(index)&&index>=0&&index<rows.length){rows.splice(index,1);if(settlementPlan?.version==='1.4'||settlementPlan?.version==='1.5')settlementPlan.funding!.rounding!.intervals_confirmed=false;if(settlementPlan?.version==='1.5')settlementPlan.funding!.period_schedule!.periods_confirmed=false;settlementEpoch++;render();}
         break;
       }
       case 'settlement-create':
       case 'settlement-rebind':
         try {
           const binding = settlementBinding(currentProject());
-          if (action === 'settlement-rebind' && settlementPlan) settlementPlan.binding = binding;
+          if (action === 'settlement-rebind' && settlementPlan){settlementPlan.binding=binding;if(settlementPlan.version==='1.5'){settlementPlan.funding!.status='UNCONFIRMED';settlementPlan.funding!.rounding!.status='UNCONFIRMED';settlementPlan.funding!.rounding!.intervals_confirmed=false;settlementPlan.funding!.period_schedule!.periods_confirmed=false;}}
           else settlementPlan = newSettlementPlan(binding);
           settlementEpoch++; expandedEvidenceSections.add('settlement'); render();
         } catch (error) { showFileError(error); }

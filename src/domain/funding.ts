@@ -1,4 +1,5 @@
-/** Explicit simple interest; 1.2 principal events, 1.3 rate events, 1.4 amount rounding. */
+import type {FundingPeriodSchedule} from './funding-periods.js';
+/** Explicit simple interest; 1.2 principal events, 1.3 rate events, 1.4 rounding, 1.5 explicit periods. */
 export interface FundingAssumption {
   status: 'UNCONFIRMED' | 'NOT_MODELED' | 'PROVIDED';
   kind: 'UNCONFIRMED' | 'FINANCING' | 'OPPORTUNITY';
@@ -16,12 +17,14 @@ export interface FundingAssumption {
   /** Interpreted from settlement 1.3. */
   rate_model?: 'CONSTANT' | 'EVENTS';
   rate_events?: FundingRateEvent[];
-  /** Only interpreted by settlement format 1.4. */
+  /** Only interpreted by settlement format 1.4/1.5. */
   rounding?: FundingRoundingAssumption;
+  /** Only interpreted by settlement 1.5; old same-name extensions remain inactive. */
+  period_schedule?: FundingPeriodSchedule;
 }
 export interface FundingRoundingAssumption {
   status:'UNCONFIRMED'|'NOT_APPLIED'|'APPLIED';
-  scope:'UNCONFIRMED'|'TOTAL'|'INTERVALS';
+  scope:'UNCONFIRMED'|'TOTAL'|'INTERVALS'|'PERIODS';
   mode:'UNCONFIRMED'|'HALF_UP'|'HALF_EVEN'|'DOWN';
   unit:string;
   reference:string;

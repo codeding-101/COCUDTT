@@ -9,7 +9,7 @@ export function renderFundingRateResult(result:FundingResult):string {
 }
 export function renderFundingRateControls(plan:SettlementPlan):string {
   if(plan.version==='1.2')return '<button data-action="settlement-enable-rates">启用利率事件（升级为1.3，须重新确认假设）</button>';
-  if(plan.version!=='1.3'&&plan.version!=='1.4')return '';
+  if(plan.version!=='1.3'&&plan.version!=='1.4'&&plan.version!=='1.5')return '';
   const f=plan.funding!,field=(index:number,key:string,label:string,value:string)=>`<label>${label}<input data-settlement-row="funding-rate" data-settlement-index="${index}" data-settlement-field="${key}" value="${e(value)}"></label>`;
   return `<fieldset><legend>利率模型（${plan.version}）</legend><label>年利率模型<select data-settlement-row="funding" data-settlement-field="rate_model"><option value="CONSTANT"${f.rate_model==='CONSTANT'?' selected':''}>固定年利率；保留事件不参与</option><option value="EVENTS"${f.rate_model==='EVENTS'?' selected':''}>显式新年利率及生效日</option></select></label>
   <p class="hint">切换模型须重新确认测算范围。期初年利率仍须填写；事件填写新的绝对年利率百分数，不填增减幅度。利率与本金模型可独立选择。</p>

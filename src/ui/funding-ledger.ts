@@ -15,7 +15,7 @@ export function renderFundingLedgerResult(result:FundingResult):string {
 }
 export function renderFundingLedgerControls(plan:SettlementPlan):string {
   if(plan.version==='1.1')return '<button data-action="settlement-enable-ledger">启用变动本金（升级为1.2，须重新确认假设）</button>';
-  if(plan.version!=='1.2'&&plan.version!=='1.3'&&plan.version!=='1.4')return '';
+  if(plan.version!=='1.2'&&plan.version!=='1.3'&&plan.version!=='1.4'&&plan.version!=='1.5')return '';
   const input=plan.funding!;
   const field=(index:number,key:string,label:string,value:string)=>`<label>${label}<input data-settlement-row="funding-event" data-settlement-index="${index}" data-settlement-field="${key}" value="${e(value)}"></label>`;
   return `<fieldset><legend>本金模型（${plan.version}）</legend><label>计息模型<select data-settlement-row="funding" data-settlement-field="balance_model"><option value="CONSTANT"${input.balance_model==='CONSTANT'?' selected':''}>恒定本金；保留的事件不参与</option><option value="EVENTS"${input.balance_model==='EVENTS'?' selected':''}>显式本金事件</option></select></label>
