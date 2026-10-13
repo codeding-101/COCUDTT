@@ -84,6 +84,22 @@ describe('打开、保存项目的失败处理', () => {
   function action(name: string, index?: number) {
     const button = new ElementStub(); button.dataset.action = name;if(index!==undefined)button.dataset.settlementIndex=String(index); listeners.get('click')!({ target: button });
   }
+  function downloadExample(kind:string) {const button=new ElementStub();button.dataset.action='download-funding-example';button.dataset.exampleKind=kind;listeners.get('click')!({target:button});}
+  it('案例四资源不读取或替换私有项目/付款/客户/草稿，文件类型和预期值正确',async()=>{
+    await start();await customerProject();change('name','PRIVATE_PROJECT_EXAMPLE_916');customer('remarks','PRIVATE_CLIENT_EXAMPLE_717');customer('reviewed','',true);action('settlement-create');fundingInputs();settlement('notes','PRIVATE_PLAN_EXAMPLE_819');const before=storage.get(key),captures:{name:string;mime:string;text:string}[]=[];
+    vi.stubGlobal('window',{showSaveFilePicker:async(o:{suggestedName:string;types:{accept:Record<string,string[]>}[]})=>{const result={name:o.suggestedName,mime:Object.keys(o.types[0]!.accept)[0]!,text:''};captures.push(result);return{name:o.suggestedName,createWritable:async()=>({write:async(s:string)=>{result.text=s},close:async()=>{}})};}});
+    for(const kind of ['project','plan','record','guide']){downloadExample(kind);await vi.waitFor(()=>expect(html).toContain('已导出合成案例文件'));await vi.waitFor(()=>expect(captures.at(-1)!.text).not.toBe(''));}
+    expect(captures).toHaveLength(4);for(const c of captures)expect(c.text).not.toMatch(/PRIVATE_(PROJECT|CLIENT|PLAN)_EXAMPLE/);expect(captures[3]!.mime).toBe('text/html');expect(captures[3]!.name).toContain('.guide.html');expect(JSON.parse(captures[2]!.text).expected.cost).toBe('50');expect(storage.get(key)).toBe(before);expect(html).toContain('PRIVATE_PLAN_EXAMPLE_819');expect(html).toContain('data-customer-field="reviewed" checked');
+  });
+  it('案例文件在选择器前固定，共用资源忙碌保护，后续编辑不混入输出',async()=>{
+    await start();await customerProject();let finish!:(h:unknown)=>void,saved='';const picker=vi.fn(()=>new Promise(r=>{finish=r}));vi.stubGlobal('window',{showSaveFilePicker:picker});downloadExample('project');downloadExample('plan');expect(picker).toHaveBeenCalledOnce();expect(html).toContain('data-example-kind="plan" disabled');change('name','LATER_PRIVATE_CASE_719');const before=storage.get(key);finish({name:'case.project.json',createWritable:async()=>({write:async(s:string)=>{saved=s},close:async()=>{}})});await vi.waitFor(()=>expect(saved).not.toBe(''));expect(saved).not.toContain('LATER_PRIVATE_CASE_719');expect(storage.get(key)).toBe(before);expect(html).toContain('LATER_PRIVATE_CASE_719');
+  });
+  it('案例取消/写入失败/未知类型不导入、不回退下载，原项目保留',async()=>{
+    await start();const before=storage.get(key);vi.stubGlobal('window',{showSaveFilePicker:async()=>{throw new DOMException('cancel','AbortError')}});downloadExample('plan');await vi.waitFor(()=>expect(html).toContain('已取消合成案例文件导出'));vi.stubGlobal('window',{showSaveFilePicker:async()=>({name:'guide.html',createWritable:async()=>({write:async()=>{throw Error('PRIVATE_FILE_PATH_827')},close:async()=>{}})})});downloadExample('guide');await vi.waitFor(()=>expect(html).toContain('合成案例文件导出失败'));expect(html).not.toContain('PRIVATE_FILE_PATH_827');expect(createElement).not.toHaveBeenCalled();downloadExample('../secret');await vi.waitFor(()=>expect(html).toContain('合成案例文件导出失败'));expect(storage.get(key)).toBe(before);
+  });
+  it('无选择器时真实Blob下载保留MIME和独立内容，不改保存状态或草稿',async()=>{
+    await start();let blob:Blob|null=null,anchor:{download?:string;href?:string;click:()=>void}|null=null;const click=vi.fn();createElement.mockImplementation(()=>{anchor={click};return anchor});vi.spyOn(URL,'createObjectURL').mockImplementation(b=>{blob=b as Blob;return 'blob:example'});vi.spyOn(URL,'revokeObjectURL').mockImplementation(()=>{});const before=storage.get(key);downloadExample('guide');await vi.waitFor(()=>expect(html).toContain('已发起合成案例文件下载'));expect(blob!.type).toBe('text/html');expect(anchor!.download).toContain('.guide.html');expect(await blob!.text()).toContain('合成手算案例');expect(click).toHaveBeenCalledOnce();expect(storage.get(key)).toBe(before);
+  });
   function settlement(field:string,value:string,row?:'payment'|'fee'|'funding'|'funding-event',index=0,checked=false){
     const input=new InputStub();input.id='';input.dataset.settlementField=field;input.value=value;input.checked=checked;
     if(row){input.dataset.settlementRow=row;input.dataset.settlementIndex=String(index);}listeners.get('change')!({target:input});

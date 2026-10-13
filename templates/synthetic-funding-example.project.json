@@ -1,0 +1,214 @@
+{
+  "schema_version": "0.8",
+  "name": "合成案例：本金事件与分段单利（非真实交易）",
+  "updated_at": "2026-10-13T00:00:00Z",
+  "base_currency": "CNY",
+  "carriage_mode": "SEA",
+  "goods": {
+    "name": "演示商品（非真实税则归类）",
+    "quantity": "1000",
+    "unit": "PCS",
+    "trade_value": {
+      "amount": "100000",
+      "currency": "USD"
+    },
+    "seller_goods_cost": {
+      "amount": "620000",
+      "currency": "CNY"
+    },
+    "tax_key": "DEMO-IMPORT",
+    "trade_value_basis": "NET"
+  },
+  "items": [
+    {
+      "cost_id": "goods",
+      "cost_name": "商品货值",
+      "cost_category": "GOODS_AND_PACKING",
+      "trade_node": "SELLER_PREMISES",
+      "pricing_method": "ACTUAL",
+      "currency": "USD",
+      "base_currency": "CNY",
+      "fx_type": "CONTRACT",
+      "tax_included": false,
+      "responsibility": "CONDITIONAL",
+      "responsibility_source": "UNRESOLVED",
+      "included_in_quoted_price": false,
+      "is_custom": false,
+      "source": "USER",
+      "is_goods_value": true,
+      "amount": "100000"
+    },
+    {
+      "cost_id": "freight",
+      "cost_name": "国际海运费",
+      "cost_category": "MAIN_CARRIAGE",
+      "trade_node": "MAIN_CARRIAGE",
+      "pricing_method": "ACTUAL",
+      "currency": "USD",
+      "base_currency": "CNY",
+      "fx_type": "CONTRACT",
+      "tax_included": false,
+      "responsibility": "CONDITIONAL",
+      "responsibility_source": "UNRESOLVED",
+      "included_in_quoted_price": false,
+      "is_custom": true,
+      "source": "USER",
+      "amount": "8000"
+    },
+    {
+      "cost_id": "insurance",
+      "cost_name": "保险费",
+      "cost_category": "INSURANCE",
+      "trade_node": "MAIN_CARRIAGE",
+      "pricing_method": "ACTUAL",
+      "currency": "USD",
+      "base_currency": "CNY",
+      "fx_type": "CONTRACT",
+      "tax_included": false,
+      "responsibility": "CONDITIONAL",
+      "responsibility_source": "UNRESOLVED",
+      "included_in_quoted_price": false,
+      "is_custom": false,
+      "source": "USER",
+      "calculation_base": {
+        "kind": "QUOTE_AMOUNT"
+      },
+      "amount": "300"
+    }
+  ],
+  "fx_books": [
+    {
+      "id": "fx-contract",
+      "name": "合同约定汇率",
+      "type": "CONTRACT",
+      "date": "2026-08-15",
+      "rates": {
+        "USD/CNY": "7.0000"
+      },
+      "evidence": {
+        "USD/CNY": {
+          "status": "EXAMPLE",
+          "reference": "内置虚构汇率，用于公式演示",
+          "valid_from": "2026-08-01",
+          "valid_to": "2026-09-30",
+          "checked_on": ""
+        }
+      }
+    },
+    {
+      "id": "fx-customs",
+      "name": "演示计征汇率（虚构，适用 2026-09）",
+      "type": "CUSTOMS",
+      "date": "2026-08-19",
+      "valid_from": "2026-09-01",
+      "valid_to": "2026-09-30",
+      "rates": {
+        "USD/CNY": "7.0800"
+      },
+      "evidence": {
+        "USD/CNY": {
+          "status": "EXAMPLE",
+          "reference": "内置虚构汇率，用于公式演示",
+          "valid_from": "2026-08-01",
+          "valid_to": "2026-09-30",
+          "checked_on": ""
+        }
+      }
+    }
+  ],
+  "tax_profile": {
+    "id": "china-customs",
+    "version": "1.0",
+    "import": {
+      "dutiableValueBasis": "CIF",
+      "dutyRates": {
+        "fallback": "0.05"
+      },
+      "hsTable": {
+        "basis": "MFN",
+        "entries": []
+      },
+      "vatRate": "0.13",
+      "consumptionTax": null,
+      "vatDeductibleForBuyer": false,
+      "calculationMode": "CN_GENERAL_TRADE",
+      "declarationDate": "2026-09-10",
+      "dutyExemptionThreshold": "50",
+      "eligibility": {
+        "agreement_name": "",
+        "vat_taxpayer": "UNCONFIRMED",
+        "vat_use": "UNCONFIRMED",
+        "duty_evidence": {
+          "status": "EXAMPLE",
+          "reference": "虚构待遇条件，不对应实际原产地资格",
+          "valid_from": "2026-09-01",
+          "valid_to": "2026-09-30",
+          "checked_on": ""
+        }
+      },
+      "rateEvidence": {
+        "status": "EXAMPLE",
+        "reference": "内置虚构税率，用于公式演示",
+        "valid_from": "2026-09-01",
+        "valid_to": "2026-09-30",
+        "checked_on": ""
+      }
+    },
+    "export": {
+      "dutiableValueBasis": "FOB",
+      "dutyRates": {
+        "fallback": "0"
+      },
+      "rebate": {
+        "entityType": "TRADING",
+        "vatRates": {
+          "fallback": "0.13"
+        },
+        "rebateRates": {
+          "fallback": "0.13"
+        }
+      }
+    },
+    "customsFx": {
+      "bookType": "CUSTOMS",
+      "lockPeriod": "MONTHLY"
+    }
+  },
+  "quote": {
+    "amount": "108300",
+    "currency": "USD",
+    "fx_type": "CONTRACT",
+    "fx_date": "2026-09-01",
+    "named_place": "合成目的港（仅演示）"
+  },
+  "incoterm": "CIF",
+  "anchor": {
+    "kind": "ACTUAL_QUOTES"
+  },
+  "facts": {},
+  "route": {
+    "export_country": "德国（演示）",
+    "import_country": "中国",
+    "origin_country": "德国（演示）",
+    "customs_regime": "GENERAL_TRADE"
+  },
+  "evaluation_date": "2026-09-01",
+  "term_scenarios": {
+    "CIF": {
+      "quote": {
+        "amount": "108300",
+        "currency": "USD",
+        "fx_type": "CONTRACT",
+        "fx_date": "2026-09-01",
+        "named_place": "合成目的港（仅演示）"
+      },
+      "quote_evidence": {
+        "status": "EXAMPLE",
+        "reference": "合成报价，仅为文件配对和计算演示；不是真实合同",
+        "valid_from": "2026-09-01",
+        "valid_to": "2026-09-30",
+        "checked_on": ""
+      }
+    }
+  }
+}

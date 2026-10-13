@@ -14,11 +14,11 @@
 |---|---|
 | [在线演示](https://codeding-101.github.io/COCUDTT/) | 当前已发布版本，尚未包含下方全部新增能力 |
 | [`main` 分支](https://github.com/codeding-101/COCUDTT/tree/main) | 历史源码；此前单独更新 README，功能尚未合并 |
-| [最新开发候选](https://github.com/codeding-101/COCUDTT/tree/codex/funding-ledger) | 当前功能源码、单文件工具、文档与测试 |
-| [前轮草稿 PR #18](https://github.com/codeding-101/COCUDTT/pull/18) | 只读恢复与定位基础；本轮候选追加本金事件与分段计息 |
-| [项目说明页源码](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/project-introduction.html) | 产品工作流、设计取舍与能力边界，可与工具一起离线打开 |
+| [最新开发候选](https://github.com/codeding-101/COCUDTT/tree/codex/funding-example) | 当前功能源码、单文件工具、文档与测试 |
+| [前轮草稿 PR #19](https://github.com/codeding-101/COCUDTT/pull/19) | 本金事件基础；本轮候选追加配套合成案例及导出指引 |
+| [项目说明页源码](https://github.com/codeding-101/COCUDTT/blob/codex/funding-example/project-introduction.html) | 产品工作流、设计取舍与能力边界，可与工具一起离线打开 |
 
-日常试用可从[候选分支下载源码 ZIP](https://github.com/codeding-101/COCUDTT/archive/refs/heads/codex/funding-ledger.zip)，解压后双击根目录的 `trade-cost-engine.html`。运行离线工具无需安装 Node.js；开发与构建时才需要。
+日常试用可从[候选分支下载源码 ZIP](https://github.com/codeding-101/COCUDTT/archive/refs/heads/codex/funding-example.zip)，解压后双击根目录的 `trade-cost-engine.html`。运行离线工具无需安装 Node.js；开发与构建时才需要。
 
 ## 解决什么问题
 
@@ -49,6 +49,8 @@
 
 资金假设区分融资利息与机会成本，结果独立于经营利润和合同/银行费用收付。付款主方式不证明已付款、单证相符或保证收款。
 
+配套案例位于工具“合成案例”面板，可下载项目、付款、独立手算记录及离线说明；先保存自己的输入再打开配对文件。[手算核对记录](https://github.com/codeding-101/COCUDTT/blob/codex/funding-example/templates/synthetic-funding-example.check.json)使用合成预期，不代表真实业务验收。
+
 本金事件首版限一个明确主体、单币种及固定年利率：本金增减逐笔填写，按日期和同日列表顺序处理，截止日事件不多计一天；每段本金、天数、余额及公式可复查。
 
 ## 使用流程
@@ -69,10 +71,10 @@
 
 | 模块 | 职责 |
 |---|---|
-| [`src/domain`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-ledger/src/domain) | 贸易、费用、规则、来源、付款与资金假设类型 |
-| [`src/engine`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-ledger/src/engine) | 依赖、责任解析、计价、税费及方案比较 |
-| [`src/data`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-ledger/src/data) | 文件校验、兼容格式、模板、客户投影与工作簿快照 |
-| [`src/ui`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-ledger/src/ui) | 输入事件、结果展示、导出及错误恢复 |
+| [`src/domain`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-example/src/domain) | 贸易、费用、规则、来源、付款与资金假设类型 |
+| [`src/engine`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-example/src/engine) | 依赖、责任解析、计价、税费及方案比较 |
+| [`src/data`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-example/src/data) | 文件校验、兼容格式、模板、客户投影与工作簿快照 |
+| [`src/ui`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-example/src/ui) | 输入事件、结果展示、导出及错误恢复 |
 
 ```mermaid
 flowchart LR
@@ -89,9 +91,9 @@ flowchart LR
 
 ## 验证证据与限制
 
-第二十二轮本地 **45 个测试文件、1060 项测试**通过，其中新增 43 项本金事件、兼容、导出及界面测试。浏览器验收包括 Edge 离线操作、实际文件下载、异常注入、草稿/客户边界及 1440/768/390/320 模拟宽度；远程结果以本轮草稿 PR 的实际提交检查为准；[前轮检查](https://github.com/codeding-101/COCUDTT/pull/18/checks)记录只读恢复与定位基础版本。
+第二十三轮本地 **46 个测试文件、1081 项测试**通过，其中新增 21 项配套案例、文件一致性及导出隔离测试。17套浏览器流程的验收包括 Edge 离线操作、实际文件下载、异常注入、草稿/客户边界及 1440/768/390/320 模拟宽度；远程结果以本轮草稿 PR 的实际提交检查为准；[前轮检查](https://github.com/codeding-101/COCUDTT/pull/19/checks)记录本金事件基础版本。
 
-可复查的记录：[基础概念核验](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/foundations-validation.md)、[中国进口验收](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/china-import-validation.md)、[客户与内部隔离](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/customer-quotes-validation.md)、[资金占用与 Excel](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/funding-validation.md)、[错误恢复验收](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/recovery-validation.md)、[恢复文件与输入定位](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/recovery-review-validation.md)、[本金事件与分段计息](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/funding-ledger-validation.md)。
+可复查的记录：[基础概念核验](https://github.com/codeding-101/COCUDTT/blob/codex/funding-example/docs/foundations-validation.md)、[中国进口验收](https://github.com/codeding-101/COCUDTT/blob/codex/funding-example/docs/china-import-validation.md)、[客户与内部隔离](https://github.com/codeding-101/COCUDTT/blob/codex/funding-example/docs/customer-quotes-validation.md)、[资金占用与 Excel](https://github.com/codeding-101/COCUDTT/blob/codex/funding-example/docs/funding-validation.md)、[错误恢复验收](https://github.com/codeding-101/COCUDTT/blob/codex/funding-example/docs/recovery-validation.md)、[恢复文件与输入定位](https://github.com/codeding-101/COCUDTT/blob/codex/funding-example/docs/recovery-review-validation.md)、[本金事件与分段计息](https://github.com/codeding-101/COCUDTT/blob/codex/funding-example/docs/funding-ledger-validation.md)、[配套合成案例与导出指引](https://github.com/codeding-101/COCUDTT/blob/codex/funding-example/docs/funding-example-validation.md)。
 
 已有自动化和合成对照不能证明全部国家税制、贸易例外或银行实务已经适配。税率、归类、原产地待遇及抵扣资格仍需核对，示例不代表真实报关。真实交易对照资料尚未取得；真实手机和人工专业复核按当前安排暂缓。PDF 字体覆盖有限，无法表示的字符会停止生成并提示使用其他格式。
 
@@ -100,7 +102,7 @@ flowchart LR
 以下命令面向开发候选，建议使用 CI 同款 **Node.js 24**：
 
 ```bash
-git clone --branch codex/funding-ledger https://github.com/codeding-101/COCUDTT.git cocudtt
+git clone --branch codex/funding-example https://github.com/codeding-101/COCUDTT.git cocudtt
 cd cocudtt
 npm ci
 npm run dev
@@ -112,15 +114,15 @@ npm run build:single
 npm run build:catalog
 ```
 
-`npm run audit` 检查界面字段/动作和引擎编码的连接；`npm audit` 检查依赖漏洞。CI 还会重建并比较已提交的单文件 HTML、Schema 和模板，防止交付文件与源码漂移。浏览器脚本位于 [`tools`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-ledger/tools)，需要单独准备浏览器调试环境。
+`npm run audit` 检查界面字段/动作和引擎编码的连接；`npm audit` 检查依赖漏洞。CI 还会重建并比较已提交的单文件 HTML、Schema 和模板，防止交付文件与源码漂移。浏览器脚本位于 [`tools`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-example/tools)，需要单独准备浏览器调试环境。
 
 ## 后续方向
 
-恢复备份只读检查、人工复原指引及输入定位已加入候选。显式本金事件与区间计息已加入候选。下一步整理可复查合成示例及内部导出使用说明；变动利率和银行舍入需独立设计，保证金、代付清偿与净额到账继续保留边界。跨运输段费用关联、箱量/免费期账单及双语 PDF/Excel 排版继续按验收结果推进。真实资料取得后补业务对照及专业、设备验收，不用功能数量替代这些证据。
+恢复备份只读检查、人工复原指引及输入定位已加入候选。显式本金事件与区间计息已加入候选。配套合成案例和内部导出说明已加入候选。下一步独立设计利率变更事件及其生效区间，明确来源和日界；银行舍入继续单独设计，保证金、代付清偿与净额到账继续保留边界。跨运输段费用关联、箱量/免费期账单及双语 PDF/Excel 排版继续按验收结果推进。真实资料取得后补业务对照及专业、设备验收，不用功能数量替代这些证据。
 
-详见[开发计划](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/product-development-plan.md)、[项目展望](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/project-outlook.md)和[设计文档](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/design.md)。
+详见[开发计划](https://github.com/codeding-101/COCUDTT/blob/codex/funding-example/docs/product-development-plan.md)、[项目展望](https://github.com/codeding-101/COCUDTT/blob/codex/funding-example/docs/project-outlook.md)和[设计文档](https://github.com/codeding-101/COCUDTT/blob/codex/funding-example/docs/design.md)。
 
 ## 许可证
 
-[Apache-2.0](https://github.com/codeding-101/COCUDTT/blob/main/LICENSE)。离线中文字体另附[OFL 许可与来源](https://github.com/codeding-101/COCUDTT/tree/codex/funding-ledger/src/assets/fonts)，分发时请保留。
+[Apache-2.0](https://github.com/codeding-101/COCUDTT/blob/main/LICENSE)。离线中文字体另附[OFL 许可与来源](https://github.com/codeding-101/COCUDTT/tree/codex/funding-example/src/assets/fonts)，分发时请保留。
 
