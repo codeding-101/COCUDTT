@@ -59,6 +59,7 @@ import { showRecoveryView, clearRecoveryView, type FailureStage } from './recove
 import { inspectRecoveryText, RECOVERY_REVIEW_MAX_BYTES, type RecoveryReview } from '../data/recovery-review.js';
 import { renderRecoveryReviewPanel } from './recovery-review.js';
 import { inputSections, focusInputSection, type InputSection } from './input-location.js';
+import { renderFundingExamplePanel, fundingExampleResource } from './funding-example.js';
 
 const DRAFT_KEY = 'trade-cost-engine:draft-v1';
 
@@ -955,23 +956,26 @@ async function saveProject(): Promise<void> {
   render();
 }
 
-async function exportProjectResource(templateId?:string,schemaKind?:string):Promise<void> {
+async function exportProjectResource(templateId?:string,schemaKind?:string,exampleKind?:string):Promise<void> {
   if(projectResourceBusy)return;
+  const label=exampleKind===undefined?'模板或结构文件':'合成案例文件';
   try {
-    let text:string,name:string;
-    if(templateId!==undefined&&schemaKind===undefined){
+    let text:string,name:string,mime='application/json';
+    if(exampleKind!==undefined&&templateId===undefined&&schemaKind===undefined){
+      const resource=fundingExampleResource(exampleKind);text=resource.text;name=resource.name;mime=resource.mime;
+    }else if(templateId!==undefined&&schemaKind===undefined&&exampleKind===undefined){
       if(!PROJECT_TEMPLATES.some(t=>t.id===templateId))throw Error('请选择目录中的模板');
       text=projectTemplateText(templateId);name=templateId+'.json';
-    }else if(templateId===undefined&&(schemaKind==='current'||schemaKind==='legacy')){
+    }else if(templateId===undefined&&exampleKind===undefined&&(schemaKind==='current'||schemaKind==='legacy')){
       text=JSON.stringify(projectJsonSchema(schemaKind==='legacy'),null,2)+'\n';
       name=schemaKind==='legacy'?'project-import-0.1-0.8.schema.json':'project-0.8.schema.json';
     }else throw Error('请选择有效的模板或结构文件');
     projectResourceBusy=true;render();
     const picker=(window as SaveFilePickerWindow).showSaveFilePicker;
-    if(picker){const handle=await picker.call(window,{suggestedName:name,types:[{description:'项目模板或结构文件',accept:{'application/json':['.json']}}]});const writable=await handle.createWritable();await writable.write(text);await writable.close();state.status=`已导出模板或结构文件 ${handle.name}；当前项目未替换，项目文件仍需单独保存`;}
-    else{downloadText(name,text);state.status='已发起模板或结构文件下载；当前项目未替换，请确认文件已保存';}
+    if(picker){const handle=await picker.call(window,{suggestedName:name,types:[{description:label,accept:{[mime]:[mime==='text/html'?'.html':'.json']}}]});const writable=await handle.createWritable();await writable.write(text);await writable.close();state.status=`已导出${label} ${handle.name}；当前项目未替换，项目文件仍需单独保存`;}
+    else{downloadText(name,text,mime);state.status=`已发起${label}下载；当前项目未替换，请确认文件已保存`;}
     state.statusLevel='warn';
-  }catch(error){if(error instanceof Error&&error.name==='AbortError'){state.status='已取消模板或结构文件导出，当前项目未改变';state.statusLevel='warn';}else{state.status=`模板或结构文件导出失败：${error instanceof Error?error.message:'文件未写入'}`;state.statusLevel='error';}}
+  }catch(error){if(error instanceof Error&&error.name==='AbortError'){state.status=`已取消${label}导出，当前项目未改变`;state.statusLevel='warn';}else{state.status=`${label}导出失败：${exampleKind!==undefined?'文件未写入，请核对案例类型及保存权限':error instanceof Error?error.message:'文件未写入'}`;state.statusLevel='error';}}
   finally{projectResourceBusy=false;render();}
 }
 
@@ -1194,6 +1198,7 @@ function renderApp(): void {
         </div>
       </details>
       ${renderProjectTemplatePanel(projectResourceBusy)}
+      ${renderFundingExamplePanel(projectResourceBusy)}
       ${renderRecoveryReviewPanel(recoveryReview,recoveryReviewBusy,recoveryReviewError)}
       ${renderFormsRow(state.project)}
       ${renderImportTaxPanel(state.project)}
@@ -1487,6 +1492,7 @@ function bind(): void {
       case 'settlement-save': void saveSettlement(); break;
       case 'settlement-open': document.querySelector<HTMLInputElement>('#settlement-file-input')?.click(); break;
       case 'download-project-template': void exportProjectResource(target.dataset.templateId); break;
+      case 'download-funding-example': void exportProjectResource(undefined,undefined,target.dataset.exampleKind ?? ''); break;
       case 'download-project-schema': void exportProjectResource(undefined,target.dataset.schemaKind); break;
       case 'preview-customer-quote':
         expandedEvidenceSections.add('customer-quote'); render();

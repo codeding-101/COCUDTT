@@ -1,0 +1,58 @@
+{
+  "version": "1.2",
+  "kind": "INTERNAL_SETTLEMENT_PLAN",
+  "binding": {
+    "project_name": "合成案例：本金事件与分段单利（非真实交易）",
+    "goods_name": "演示商品（非真实税则归类）",
+    "quantity": "1000",
+    "unit": "PCS",
+    "incoterm": "CIF",
+    "named_place": "合成目的港（仅演示）",
+    "amount": "108300",
+    "currency": "USD"
+  },
+  "method": "TT",
+  "bank_status": "NO_FEES",
+  "payments": [
+    {
+      "id": "synthetic-payment",
+      "basis": "PERCENT",
+      "value": "100",
+      "date": "2026-10-01",
+      "trigger": "合成条件：本例约定的全额价款计划；不是已付款证明"
+    }
+  ],
+  "bank_fees": [],
+  "notes": "全部为合成输入。无银行费仅为此例设定；资金本金不是合同价或付款额，不生成实际融资/还款收付，不可套用为真实交易。",
+  "funding": {
+    "status": "PROVIDED",
+    "kind": "FINANCING",
+    "party": "SELLER",
+    "principal": "12000",
+    "currency": "USD",
+    "start_date": "2026-09-01",
+    "end_date": "2026-10-01",
+    "annual_rate": "6",
+    "day_basis": "ACT_360",
+    "reference": "合成期初本金、固定6%年利率及ACT/360单利；事件当天计息前生效，不是银行计息约定",
+    "balance_model": "EVENTS",
+    "events": [
+      {
+        "id": "synthetic-decrease",
+        "direction": "DECREASE",
+        "amount": "4000",
+        "currency": "USD",
+        "date": "2026-09-11",
+        "reference": "合成设定：9月11日计息前本金减少4000，不冲抵利息"
+      },
+      {
+        "id": "synthetic-increase",
+        "direction": "INCREASE",
+        "amount": "2000",
+        "currency": "USD",
+        "date": "2026-09-21",
+        "reference": "合成设定：9月21日计息前本金增加2000，不代表实际融资到账"
+      }
+    ]
+  }
+}

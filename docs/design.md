@@ -1604,3 +1604,7 @@ data/recovery-review按恢复快照1.0识别并分别调用已有项目/汇率/�
 ## 第二十二轮：本金事件账本（2026-10-13）
 
 付款1.2在funding增加显式balance_model/events，旧1.1扩展仍未知且升级冲突时保留原文。engine/funding在结构和报价绑定核验后，EVENTS分派至独立funding-ledger；CONSTANT复用原算法。账本按录入顺序处理正数同币种增减，生成余额审计及非零天数区间，先汇总本金×天数再按固定利率/年基数计算。UI和内部Excel/HTML复用同一结果，不新增合同/银行现金事件或改变贸易结果。事件输入、增删和模型切换沿用epoch及独立保存快照。详见[验收](funding-ledger-validation.md)。
+
+## 第二十三轮：确定性合成资源与用户导出指引（2026-10-13）
+
+data/funding-example只依赖生产数据工厂和文件序列化，输出固定日期的配套项目/付款，手算预期独立于引擎。ui/funding-example提供无脚本内联样式说明页及四资源入口；应用复用资源忙碌及选择器前固定内容，不修改项目、计划、客户确认或草稿。build:catalog增加四文件，CI模板目录重建检查覆盖。JSON/HTML MIME分开；说明强调文件配对、不自动重绑定及内部/客户边界。引擎及格式保持，见[验收](funding-example-validation.md)。
