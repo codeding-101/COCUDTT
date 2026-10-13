@@ -14,11 +14,11 @@
 |---|---|
 | [在线演示](https://codeding-101.github.io/COCUDTT/) | 当前已发布版本，尚未包含下方全部新增能力 |
 | [`main` 分支](https://github.com/codeding-101/COCUDTT/tree/main) | 历史源码；此前单独更新 README，功能尚未合并 |
-| [最新开发候选](https://github.com/codeding-101/COCUDTT/tree/codex/rounding-example) | 当前功能源码、单文件工具、文档与测试 |
-| [前轮草稿 PR #22](https://github.com/codeding-101/COCUDTT/pull/22) | 金额舍入基础；本轮候选追加配套合成例题与离线操作指引 |
-| [项目说明页源码](https://github.com/codeding-101/COCUDTT/blob/codex/rounding-example/project-introduction.html) | 产品工作流、设计取舍与能力边界，可与工具一起离线打开 |
+| [最新开发候选](https://github.com/codeding-101/COCUDTT/tree/codex/funding-period-design) | 当前功能源码、单文件工具、文档、测试及实现前期间设计 |
+| [前轮草稿 PR #23](https://github.com/codeding-101/COCUDTT/pull/23) | 舍入配套例题基础；本轮候选追加期间设计及独立验收基准 |
+| [项目说明页源码](https://github.com/codeding-101/COCUDTT/blob/codex/funding-period-design/project-introduction.html) | 产品工作流、设计取舍与能力边界，可与工具一起离线打开 |
 
-日常试用可从[候选分支下载源码 ZIP](https://github.com/codeding-101/COCUDTT/archive/refs/heads/codex/rounding-example.zip)，解压后双击根目录的 `trade-cost-engine.html`。运行离线工具无需安装 Node.js；开发与构建时才需要。
+日常试用可从[候选分支下载源码 ZIP](https://github.com/codeding-101/COCUDTT/archive/refs/heads/codex/funding-period-design.zip)，解压后双击根目录的 `trade-cost-engine.html`。运行离线工具无需安装 Node.js；开发与构建时才需要。
 
 ## 解决什么问题
 
@@ -49,7 +49,7 @@
 
 资金假设区分融资利息与机会成本，结果独立于经营利润和合同/银行费用收付。付款主方式不证明已付款、单证相符或保证收款。
 
-本金及舍入两套案例分别提供项目、付款、独立手算记录及离线说明；先保存自己的输入再打开配对文件。舍入例题保留0.018原值，默认合计后0.02 USD，明确确认逐区间边界后为0.03 USD；微额例题不代表银行账单。[手算核对记录](https://github.com/codeding-101/COCUDTT/blob/codex/rounding-example/templates/synthetic-funding-example.check.json)使用合成预期，不代表真实业务验收。
+本金及舍入两套案例分别提供项目、付款、独立手算记录及离线说明；先保存自己的输入再打开配对文件。舍入例题保留0.018原值，默认合计后0.02 USD，明确确认逐区间边界后为0.03 USD；微额例题不代表银行账单。[手算核对记录](https://github.com/codeding-101/COCUDTT/blob/codex/funding-period-design/templates/synthetic-funding-example.check.json)使用合成预期，不代表真实业务验收。
 
 资金事件限一个明确主体、单币种及固定计息基准：本金增减按日期及同日列表顺序处理；利率事件填写新的绝对年利率、生效日及依据，同日重复利率阻断。起始日生效，截止日只审计不多计一天；每段本金、实际利率、天数、余额及公式可复查。金额步长、方式和层级需明确填写；原始单利与舍入金额分开，逐区间应用必须确认边界，不能自动当作银行结息日。
 
@@ -61,6 +61,8 @@
 4. 修改假设时查看变化；先检查公开预览，再生成客户文件。内部文件包含成本及来源，请按内部资料管理。
 5. 用“保存项目”保存项目 JSON；付款计划另存 JSON。自动草稿不能代替文件备份。
 
+自定义计息归集期仍是设计方案；拟议1.5尚未启用，当前工具会拒绝该未来版本。
+
 项目格式为 **0.8**，支持读取 0.1–0.7 旧容器。新建内部付款计划仍为 **1.1**，显式启用变动本金才升级 **1.2** 并重新确认假设；显式启用利率事件才升级 **1.3**，同样重新确认；显式启用金额舍入才升级 **1.4**，原值保留且须重新确认；旧1.0/1.1/1.2/1.3读取与另存保持原格式，重名扩展升级时拒绝覆盖。客户公开字段和临时假设不随项目 JSON 自动保存。跨设备需自行传递文件，没有云同步。
 
 异常恢复界面隐藏旧结果，可下载内部恢复备份并保留输入重试。恢复备份包含原始项目、汇率行和本页参数，用于人工复原，不能作为项目 JSON 直接打开。正常页面可检查5 MiB以内恢复文件，分别标出六部分的结构状态；不替换当前交易、转换汇率或自动导入。检查不保证原始数字精度，人工复原仍以原文件为依据。脚本无法加载、浏览器崩溃或内存丢失不在该恢复机制的保障范围。
@@ -71,10 +73,10 @@
 
 | 模块 | 职责 |
 |---|---|
-| [`src/domain`](https://github.com/codeding-101/COCUDTT/tree/codex/rounding-example/src/domain) | 贸易、费用、规则、来源、付款与资金假设类型 |
-| [`src/engine`](https://github.com/codeding-101/COCUDTT/tree/codex/rounding-example/src/engine) | 依赖、责任解析、计价、税费及方案比较 |
-| [`src/data`](https://github.com/codeding-101/COCUDTT/tree/codex/rounding-example/src/data) | 文件校验、兼容格式、模板、客户投影与工作簿快照 |
-| [`src/ui`](https://github.com/codeding-101/COCUDTT/tree/codex/rounding-example/src/ui) | 输入事件、结果展示、导出及错误恢复 |
+| [`src/domain`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-period-design/src/domain) | 贸易、费用、规则、来源、付款与资金假设类型 |
+| [`src/engine`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-period-design/src/engine) | 依赖、责任解析、计价、税费及方案比较 |
+| [`src/data`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-period-design/src/data) | 文件校验、兼容格式、模板、客户投影与工作簿快照 |
+| [`src/ui`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-period-design/src/ui) | 输入事件、结果展示、导出及错误恢复 |
 
 ```mermaid
 flowchart LR
@@ -91,9 +93,9 @@ flowchart LR
 
 ## 验证证据与限制
 
-第二十六轮本地 **49 个测试文件、1186 项测试**通过，其中新增24项合成资源、独立手算、兼容及实际界面下载测试。20套浏览器流程通过，新增舍入案例30项检查及四份真实文件下载，工具和说明页在1440/768/390/320模拟宽度无横向溢出。远程结果以本轮草稿 PR 的实际提交检查为准；[前轮检查](https://github.com/codeding-101/COCUDTT/pull/22/checks)记录金额舍入版本。
+第二十七轮应用回归 **49 个测试文件、1186 项测试**通过。本轮新增自定义期间的实现前设计和独立验收器：14个固定手算案例、16个错误案例，不计入应用测试数。20套浏览器流程及舍入案例30项检查由[前轮 PR #23](https://github.com/codeding-101/COCUDTT/pull/23/checks)记录，本轮运行工具字节保持。远程Windows/Linux CI按本轮实际提交核对应用回归、设计基准与构建。
 
-可复查的记录：[基础概念核验](https://github.com/codeding-101/COCUDTT/blob/codex/rounding-example/docs/foundations-validation.md)、[中国进口验收](https://github.com/codeding-101/COCUDTT/blob/codex/rounding-example/docs/china-import-validation.md)、[客户与内部隔离](https://github.com/codeding-101/COCUDTT/blob/codex/rounding-example/docs/customer-quotes-validation.md)、[资金占用与 Excel](https://github.com/codeding-101/COCUDTT/blob/codex/rounding-example/docs/funding-validation.md)、[错误恢复验收](https://github.com/codeding-101/COCUDTT/blob/codex/rounding-example/docs/recovery-validation.md)、[恢复文件与输入定位](https://github.com/codeding-101/COCUDTT/blob/codex/rounding-example/docs/recovery-review-validation.md)、[本金事件与分段计息](https://github.com/codeding-101/COCUDTT/blob/codex/rounding-example/docs/funding-ledger-validation.md)、[配套合成案例与导出指引](https://github.com/codeding-101/COCUDTT/blob/codex/rounding-example/docs/funding-example-validation.md)、[显式利率与区间审计](https://github.com/codeding-101/COCUDTT/blob/codex/rounding-example/docs/funding-rates-validation.md)、[金额舍入假设与层级差异](https://github.com/codeding-101/COCUDTT/blob/codex/rounding-example/docs/funding-rounding-validation.md)、[舍入配套案例与操作指引](https://github.com/codeding-101/COCUDTT/blob/codex/rounding-example/docs/rounding-example-validation.md)。
+可复查的记录：[基础概念核验](https://github.com/codeding-101/COCUDTT/blob/codex/funding-period-design/docs/foundations-validation.md)、[中国进口验收](https://github.com/codeding-101/COCUDTT/blob/codex/funding-period-design/docs/china-import-validation.md)、[客户与内部隔离](https://github.com/codeding-101/COCUDTT/blob/codex/funding-period-design/docs/customer-quotes-validation.md)、[资金占用与 Excel](https://github.com/codeding-101/COCUDTT/blob/codex/funding-period-design/docs/funding-validation.md)、[错误恢复验收](https://github.com/codeding-101/COCUDTT/blob/codex/funding-period-design/docs/recovery-validation.md)、[恢复文件与输入定位](https://github.com/codeding-101/COCUDTT/blob/codex/funding-period-design/docs/recovery-review-validation.md)、[本金事件与分段计息](https://github.com/codeding-101/COCUDTT/blob/codex/funding-period-design/docs/funding-ledger-validation.md)、[配套合成案例与导出指引](https://github.com/codeding-101/COCUDTT/blob/codex/funding-period-design/docs/funding-example-validation.md)、[显式利率与区间审计](https://github.com/codeding-101/COCUDTT/blob/codex/funding-period-design/docs/funding-rates-validation.md)、[金额舍入假设与层级差异](https://github.com/codeding-101/COCUDTT/blob/codex/funding-period-design/docs/funding-rounding-validation.md)、[舍入配套案例与操作指引](https://github.com/codeding-101/COCUDTT/blob/codex/funding-period-design/docs/rounding-example-validation.md)、[明确期间的实现前设计及验收门槛](https://github.com/codeding-101/COCUDTT/blob/codex/funding-period-design/docs/funding-period-design.md)。
 
 已有自动化和合成对照不能证明全部国家税制、贸易例外或银行实务已经适配。税率、归类、原产地待遇及抵扣资格仍需核对，示例不代表真实报关。真实交易对照资料尚未取得；真实手机和人工专业复核按当前安排暂缓。PDF 字体覆盖有限，无法表示的字符会停止生成并提示使用其他格式。
 
@@ -102,11 +104,12 @@ flowchart LR
 以下命令面向开发候选，建议使用 CI 同款 **Node.js 24**：
 
 ```bash
-git clone --branch codex/rounding-example https://github.com/codeding-101/COCUDTT.git cocudtt
+git clone --branch codex/funding-period-design https://github.com/codeding-101/COCUDTT.git cocudtt
 cd cocudtt
 npm ci
 npm run dev
 npm test
+npm run check:funding-period-design
 npm run typecheck
 npm run audit
 npm audit --audit-level=high
@@ -114,15 +117,15 @@ npm run build:single
 npm run build:catalog
 ```
 
-`npm run audit` 检查界面字段/动作和引擎编码的连接；`npm audit` 检查依赖漏洞。CI 还会重建并比较已提交的单文件 HTML、Schema 和模板，防止交付文件与源码漂移。浏览器脚本位于 [`tools`](https://github.com/codeding-101/COCUDTT/tree/codex/rounding-example/tools)，需要单独准备浏览器调试环境。
+`npm run audit` 检查界面字段/动作和引擎编码的连接；`npm audit` 检查依赖漏洞。CI 还会重建并比较已提交的单文件 HTML、Schema 和模板，防止交付文件与源码漂移。浏览器脚本位于 [`tools`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-period-design/tools)，需要单独准备浏览器调试环境。
 
 ## 后续方向
 
-恢复备份只读检查、人工复原指引及输入定位已加入候选。显式本金事件与区间计息已加入候选。配套合成案例和内部导出说明已加入候选。显式利率事件、生效区间和内部审计已加入候选。明确金额步长、方式和舍入层级及精确分数审计已加入候选。舍入配套合成手算案例和操作指引已加入候选。下一步先设计独立结息期与计算分段的关系，再决定实现范围，保证金、代付清偿与净额到账继续保留边界。跨运输段费用关联、箱量/免费期账单及双语 PDF/Excel 排版继续按验收结果推进。真实资料取得后补业务对照及专业、设备验收，不用功能数量替代这些证据。
+恢复备份只读检查、人工复原指引及输入定位已加入候选。显式本金事件与区间计息已加入候选。配套合成案例和内部导出说明已加入候选。显式利率事件、生效区间和内部审计已加入候选。明确金额步长、方式和舍入层级及精确分数审计已加入候选。舍入配套合成手算案例和操作指引已加入候选。明确期间与计算分段的设计及30项独立基准已完成，尚未接入运行工具。下一步实现独立归集函数并用逐日基准验收，再贯通界面、文件、恢复与内外导出后启用新模式，保证金、代付清偿与净额到账继续保留边界。跨运输段费用关联、箱量/免费期账单及双语 PDF/Excel 排版继续按验收结果推进。真实资料取得后补业务对照及专业、设备验收，不用功能数量替代这些证据。
 
-详见[开发计划](https://github.com/codeding-101/COCUDTT/blob/codex/rounding-example/docs/product-development-plan.md)、[项目展望](https://github.com/codeding-101/COCUDTT/blob/codex/rounding-example/docs/project-outlook.md)和[设计文档](https://github.com/codeding-101/COCUDTT/blob/codex/rounding-example/docs/design.md)。
+详见[开发计划](https://github.com/codeding-101/COCUDTT/blob/codex/funding-period-design/docs/product-development-plan.md)、[项目展望](https://github.com/codeding-101/COCUDTT/blob/codex/funding-period-design/docs/project-outlook.md)和[设计文档](https://github.com/codeding-101/COCUDTT/blob/codex/funding-period-design/docs/design.md)。
 
 ## 许可证
 
-[Apache-2.0](https://github.com/codeding-101/COCUDTT/blob/main/LICENSE)。离线中文字体另附[OFL 许可与来源](https://github.com/codeding-101/COCUDTT/tree/codex/rounding-example/src/assets/fonts)，分发时请保留。
+[Apache-2.0](https://github.com/codeding-101/COCUDTT/blob/main/LICENSE)。离线中文字体另附[OFL 许可与来源](https://github.com/codeding-101/COCUDTT/tree/codex/funding-period-design/src/assets/fonts)，分发时请保留。
 

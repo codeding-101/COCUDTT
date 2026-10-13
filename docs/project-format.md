@@ -60,3 +60,7 @@ kind=INTERNAL_RECOVERY_SNAPSHOT、version=1.0包含异常阶段、原始项目�
 ## 第二十六轮补充：舍入例题文件
 
 新增synthetic-rounding-example配套项目0.8与付款1.4，绑定独立例题名称；不升级现有文件或新建付款默认1.1。SYNTHETIC_ROUNDING_CHECK_RECORD记录1.0是固定手算答案，非项目/付款容器，禁止导入。独立HTML仅作说明；旧本金案例四资源与两份Schema保持原字节。细节见[验收](rounding-example-validation.md)。
+
+## 第二十七轮补充：拟议期间格式尚未启用
+
+[明确期间设计](funding-period-design.md)中的1.5及funding.period_schedule为后续方案，当前付款解析仍最高1.4，未来版本仍拒绝。docs/cases/funding-period-design.json是FUNDING_PERIOD_DESIGN_FIXTURES 1.0设计容器，不能作为项目、付款或恢复文件导入；不修改项目0.8或现有Schema/模板。
