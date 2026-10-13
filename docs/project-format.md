@@ -56,3 +56,7 @@ kind=INTERNAL_RECOVERY_SNAPSHOT、version=1.0包含异常阶段、原始项目�
 ## 付款1.4：显式金额舍入假设
 
 从1.3单独启用；funding.rounding必需对象，包含status（UNCONFIRMED/NOT_APPLIED/APPLIED）、scope（UNCONFIRMED/TOTAL/INTERVALS）、mode（UNCONFIRMED/HALF_UP/HALF_EVEN/DOWN）、文本unit/reference及布尔intervals_confirmed。允许保存未完成草稿；应用时查正步长/来源，逐区间须明确边界确认。升级保留输入且不填单位或默认方式，旧1.3同名扩展原文保留且升级拒绝覆盖。新建仍1.1，旧格式不自动升级，未来1.5拒绝。原cost保持、舍入审计单独输出，见[验收](funding-rounding-validation.md)。
+
+## 第二十六轮补充：舍入例题文件
+
+新增synthetic-rounding-example配套项目0.8与付款1.4，绑定独立例题名称；不升级现有文件或新建付款默认1.1。SYNTHETIC_ROUNDING_CHECK_RECORD记录1.0是固定手算答案，非项目/付款容器，禁止导入。独立HTML仅作说明；旧本金案例四资源与两份Schema保持原字节。细节见[验收](rounding-example-validation.md)。
