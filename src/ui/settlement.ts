@@ -25,7 +25,7 @@ export function renderSettlementPanel(project: ProjectFile, plan: SettlementPlan
   const disabled = busy ? ' disabled' : '';
   const input = (kind: 'payment'|'fee', index: number, key: string, label: string, value: string) => `<label>${label}<input type="text" data-settlement-row="${kind}" data-settlement-index="${index}" data-settlement-field="${key}" value="${escapeHtml(value)}"></label>`;
   const options = (values: [string,string][], value: string) => values.map(([key,label]) => `<option value="${key}"${key === value ? ' selected' : ''}>${label}</option>`).join('');
-  let html = `<p>绑定当前术语实际报价，逐笔输入约定付款日。付款安排不决定货损风险、所有权或信用风险；L/C付款条件及单证相符需另核，TT不等于已预付，OA不自动生成30/60/90天账期。</p><p class="hint">内部付款计划独立保存为JSON 1.1（兼容读取1.0），本页修改不写入项目0.8或自动草稿，刷新或打开项目后重置。请单独保存；客户文件不自动包含这份内部计划。银行费先在费用清单录入并确认承担方，或明确确认属于未录入的新费用；不按名称自动识别账单重复。</p>`;
+  let html = `<p>绑定当前术语实际报价，逐笔输入约定付款日。付款安排不决定货损风险、所有权或信用风险；L/C付款条件及单证相符需另核，TT不等于已预付，OA不自动生成30/60/90天账期。</p><p class="hint">内部付款计划独立保存为JSON默认1.1（兼容读取1.0–1.3；本金及利率事件须显式升级），本页修改不写入项目0.8或自动草稿，刷新或打开项目后重置。请单独保存；客户文件不自动包含这份内部计划。银行费先在费用清单录入并确认承担方，或明确确认属于未录入的新费用；不按名称自动识别账单重复。</p>`;
   if (!plan) html += `<button data-action="settlement-create"${disabled}>绑定当前报价并新建付款计划</button>`;
   else {
     html += `<p>绑定：${escapeHtml(plan.binding.incoterm)} ${escapeHtml(plan.binding.named_place)} · ${escapeHtml(plan.binding.amount)} ${escapeHtml(plan.binding.currency)}</p>

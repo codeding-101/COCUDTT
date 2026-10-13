@@ -33,7 +33,7 @@ export interface BankFeeEntry {
   not_in_project: boolean;
 }
 export interface SettlementPlan {
-  version: '1.0' | '1.1' | '1.2';
+  version: '1.0' | '1.1' | '1.2' | '1.3';
   kind: 'INTERNAL_SETTLEMENT_PLAN';
   binding: SettlementBinding;
   method: SettlementMethod;
@@ -41,7 +41,7 @@ export interface SettlementPlan {
   payments: PaymentEntry[];
   bank_fees: BankFeeEntry[];
   notes: string;
-  /** Required in 1.1/1.2; 1.2 additionally requires an explicit balance model and events. */
+  /** Required from 1.1; 1.2 adds balance events, 1.3 explicit rate events. */
   funding?: FundingAssumption;
 }
 /** Explicit upgrade; unknown legacy extensions must not be overwritten or activated. */
@@ -51,6 +51,13 @@ export function enableFundingLedger(plan: SettlementPlan): SettlementPlan {
   const copy = structuredClone(plan);
   copy.version = '1.2';
   Object.assign(copy.funding!,{balance_model:'EVENTS',events:[],status:'UNCONFIRMED'});
+  return copy;
+}
+export function enableFundingRates(plan: SettlementPlan): SettlementPlan {
+  if(plan.version!=='1.2'||!plan.funding)throw Error('请先启用1.2本金模型，再单独启用利率事件');
+  if(Object.hasOwn(plan.funding,'rate_model')||Object.hasOwn(plan.funding,'rate_events'))throw Error('旧资金扩展与利率事件字段重名，请保留原文件并人工核对；未升级或覆盖');
+  const copy=structuredClone(plan);copy.version='1.3';
+  Object.assign(copy.funding!,{rate_model:'EVENTS',rate_events:[],status:'UNCONFIRMED'});
   return copy;
 }
 export const newPaymentEntry = (id: string): PaymentEntry => ({ id, basis: 'AMOUNT', value: '', date: '', trigger: '' });
