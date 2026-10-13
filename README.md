@@ -14,11 +14,11 @@
 |---|---|
 | [在线演示](https://codeding-101.github.io/COCUDTT/) | 当前已发布版本，尚未包含下方全部新增能力 |
 | [`main` 分支](https://github.com/codeding-101/COCUDTT/tree/main) | 历史源码；此前单独更新 README，功能尚未合并 |
-| [最新开发候选](https://github.com/codeding-101/COCUDTT/tree/codex/recovery-review) | 当前功能源码、单文件工具、文档与测试 |
-| [前轮草稿 PR #17](https://github.com/codeding-101/COCUDTT/pull/17) | 错误恢复基础；本轮候选追加只读检查与输入定位 |
-| [项目说明页源码](https://github.com/codeding-101/COCUDTT/blob/codex/recovery-review/project-introduction.html) | 产品工作流、设计取舍与能力边界，可与工具一起离线打开 |
+| [最新开发候选](https://github.com/codeding-101/COCUDTT/tree/codex/funding-ledger) | 当前功能源码、单文件工具、文档与测试 |
+| [前轮草稿 PR #18](https://github.com/codeding-101/COCUDTT/pull/18) | 只读恢复与定位基础；本轮候选追加本金事件与分段计息 |
+| [项目说明页源码](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/project-introduction.html) | 产品工作流、设计取舍与能力边界，可与工具一起离线打开 |
 
-日常试用可从[候选分支下载源码 ZIP](https://github.com/codeding-101/COCUDTT/archive/refs/heads/codex/recovery-review.zip)，解压后双击根目录的 `trade-cost-engine.html`。运行离线工具无需安装 Node.js；开发与构建时才需要。
+日常试用可从[候选分支下载源码 ZIP](https://github.com/codeding-101/COCUDTT/archive/refs/heads/codex/funding-ledger.zip)，解压后双击根目录的 `trade-cost-engine.html`。运行离线工具无需安装 Node.js；开发与构建时才需要。
 
 ## 解决什么问题
 
@@ -44,10 +44,12 @@
 | 假设分析 | 运费、商业/海关汇率及未决费用承担，显示相对基准变化 |
 | 客户交付 | 公开字段预览，HTML、原生 Excel、可检索 PDF 报价草稿及固定中英文条款摘要 |
 | 内部存档 | HTML/Excel 成本、方案、公式、来源及输入快照；付款和资金假设单独保存 |
-| 付款与资金假设 | TT/L/C/OA 原币分期对账、银行费关联；明确本金、日期、利率及计息基准的单笔单利假设 |
+| 付款与资金假设 | TT/L/C/OA 原币分期对账、银行费关联；恒定/显式变动本金、日期、固定利率及计息基准的单利假设 |
 | 文件与恢复 | 标准 JSON、离线 Schema、四种模板；输入修正及关联面板定位、启动/渲染/操作异常恢复、本地恢复备份只读检查 |
 
 资金假设区分融资利息与机会成本，结果独立于经营利润和合同/银行费用收付。付款主方式不证明已付款、单证相符或保证收款。
+
+本金事件首版限一个明确主体、单币种及固定年利率：本金增减逐笔填写，按日期和同日列表顺序处理，截止日事件不多计一天；每段本金、天数、余额及公式可复查。
 
 ## 使用流程
 
@@ -57,7 +59,7 @@
 4. 修改假设时查看变化；先检查公开预览，再生成客户文件。内部文件包含成本及来源，请按内部资料管理。
 5. 用“保存项目”保存项目 JSON；付款计划另存 JSON。自动草稿不能代替文件备份。
 
-项目格式为 **0.8**，支持读取 0.1–0.7 旧容器。内部付款计划为 **1.1**，旧 1.0 保持原格式，用户显式启用资金字段后才升级；客户公开字段和临时假设不随项目 JSON 自动保存。跨设备需自行传递文件，没有云同步。
+项目格式为 **0.8**，支持读取 0.1–0.7 旧容器。新建内部付款计划仍为 **1.1**，显式启用变动本金才升级 **1.2** 并重新确认假设；旧1.0/1.1读取与另存保持原格式。客户公开字段和临时假设不随项目 JSON 自动保存。跨设备需自行传递文件，没有云同步。
 
 异常恢复界面隐藏旧结果，可下载内部恢复备份并保留输入重试。恢复备份包含原始项目、汇率行和本页参数，用于人工复原，不能作为项目 JSON 直接打开。正常页面可检查5 MiB以内恢复文件，分别标出六部分的结构状态；不替换当前交易、转换汇率或自动导入。检查不保证原始数字精度，人工复原仍以原文件为依据。脚本无法加载、浏览器崩溃或内存丢失不在该恢复机制的保障范围。
 
@@ -67,10 +69,10 @@
 
 | 模块 | 职责 |
 |---|---|
-| [`src/domain`](https://github.com/codeding-101/COCUDTT/tree/codex/recovery-review/src/domain) | 贸易、费用、规则、来源、付款与资金假设类型 |
-| [`src/engine`](https://github.com/codeding-101/COCUDTT/tree/codex/recovery-review/src/engine) | 依赖、责任解析、计价、税费及方案比较 |
-| [`src/data`](https://github.com/codeding-101/COCUDTT/tree/codex/recovery-review/src/data) | 文件校验、兼容格式、模板、客户投影与工作簿快照 |
-| [`src/ui`](https://github.com/codeding-101/COCUDTT/tree/codex/recovery-review/src/ui) | 输入事件、结果展示、导出及错误恢复 |
+| [`src/domain`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-ledger/src/domain) | 贸易、费用、规则、来源、付款与资金假设类型 |
+| [`src/engine`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-ledger/src/engine) | 依赖、责任解析、计价、税费及方案比较 |
+| [`src/data`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-ledger/src/data) | 文件校验、兼容格式、模板、客户投影与工作簿快照 |
+| [`src/ui`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-ledger/src/ui) | 输入事件、结果展示、导出及错误恢复 |
 
 ```mermaid
 flowchart LR
@@ -87,9 +89,9 @@ flowchart LR
 
 ## 验证证据与限制
 
-第二十一轮本地 **44 个测试文件、1017 项测试**通过，其中新增 34 项只读检查、异步与定位测试。浏览器验收包括 Edge 离线操作、实际文件下载、异常注入、草稿/客户边界及 1440/768/390/320 模拟宽度；远程结果以本轮草稿 PR 的实际提交检查为准；[前轮检查](https://github.com/codeding-101/COCUDTT/pull/17/checks)记录恢复基础版本。
+第二十二轮本地 **45 个测试文件、1060 项测试**通过，其中新增 43 项本金事件、兼容、导出及界面测试。浏览器验收包括 Edge 离线操作、实际文件下载、异常注入、草稿/客户边界及 1440/768/390/320 模拟宽度；远程结果以本轮草稿 PR 的实际提交检查为准；[前轮检查](https://github.com/codeding-101/COCUDTT/pull/18/checks)记录只读恢复与定位基础版本。
 
-可复查的记录：[基础概念核验](https://github.com/codeding-101/COCUDTT/blob/codex/recovery-review/docs/foundations-validation.md)、[中国进口验收](https://github.com/codeding-101/COCUDTT/blob/codex/recovery-review/docs/china-import-validation.md)、[客户与内部隔离](https://github.com/codeding-101/COCUDTT/blob/codex/recovery-review/docs/customer-quotes-validation.md)、[资金占用与 Excel](https://github.com/codeding-101/COCUDTT/blob/codex/recovery-review/docs/funding-validation.md)、[错误恢复验收](https://github.com/codeding-101/COCUDTT/blob/codex/recovery-review/docs/recovery-validation.md)、[恢复文件与输入定位](https://github.com/codeding-101/COCUDTT/blob/codex/recovery-review/docs/recovery-review-validation.md)。
+可复查的记录：[基础概念核验](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/foundations-validation.md)、[中国进口验收](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/china-import-validation.md)、[客户与内部隔离](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/customer-quotes-validation.md)、[资金占用与 Excel](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/funding-validation.md)、[错误恢复验收](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/recovery-validation.md)、[恢复文件与输入定位](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/recovery-review-validation.md)、[本金事件与分段计息](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/funding-ledger-validation.md)。
 
 已有自动化和合成对照不能证明全部国家税制、贸易例外或银行实务已经适配。税率、归类、原产地待遇及抵扣资格仍需核对，示例不代表真实报关。真实交易对照资料尚未取得；真实手机和人工专业复核按当前安排暂缓。PDF 字体覆盖有限，无法表示的字符会停止生成并提示使用其他格式。
 
@@ -98,7 +100,7 @@ flowchart LR
 以下命令面向开发候选，建议使用 CI 同款 **Node.js 24**：
 
 ```bash
-git clone --branch codex/recovery-review https://github.com/codeding-101/COCUDTT.git cocudtt
+git clone --branch codex/funding-ledger https://github.com/codeding-101/COCUDTT.git cocudtt
 cd cocudtt
 npm ci
 npm run dev
@@ -110,14 +112,15 @@ npm run build:single
 npm run build:catalog
 ```
 
-`npm run audit` 检查界面字段/动作和引擎编码的连接；`npm audit` 检查依赖漏洞。CI 还会重建并比较已提交的单文件 HTML、Schema 和模板，防止交付文件与源码漂移。浏览器脚本位于 [`tools`](https://github.com/codeding-101/COCUDTT/tree/codex/recovery-review/tools)，需要单独准备浏览器调试环境。
+`npm run audit` 检查界面字段/动作和引擎编码的连接；`npm audit` 检查依赖漏洞。CI 还会重建并比较已提交的单文件 HTML、Schema 和模板，防止交付文件与源码漂移。浏览器脚本位于 [`tools`](https://github.com/codeding-101/COCUDTT/tree/codex/funding-ledger/tools)，需要单独准备浏览器调试环境。
 
 ## 后续方向
 
-恢复备份只读检查、人工复原指引及输入定位已加入候选。下一步独立设计变动本金事件与资金区间，再考虑保证金、代付清偿与净额到账。跨运输段费用关联、箱量/免费期账单及双语 PDF/Excel 排版继续按验收结果推进。真实资料取得后补业务对照及专业、设备验收，不用功能数量替代这些证据。
+恢复备份只读检查、人工复原指引及输入定位已加入候选。显式本金事件与区间计息已加入候选。下一步整理可复查合成示例及内部导出使用说明；变动利率和银行舍入需独立设计，保证金、代付清偿与净额到账继续保留边界。跨运输段费用关联、箱量/免费期账单及双语 PDF/Excel 排版继续按验收结果推进。真实资料取得后补业务对照及专业、设备验收，不用功能数量替代这些证据。
 
-详见[开发计划](https://github.com/codeding-101/COCUDTT/blob/codex/recovery-review/docs/product-development-plan.md)、[项目展望](https://github.com/codeding-101/COCUDTT/blob/codex/recovery-review/docs/project-outlook.md)和[设计文档](https://github.com/codeding-101/COCUDTT/blob/codex/recovery-review/docs/design.md)。
+详见[开发计划](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/product-development-plan.md)、[项目展望](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/project-outlook.md)和[设计文档](https://github.com/codeding-101/COCUDTT/blob/codex/funding-ledger/docs/design.md)。
 
 ## 许可证
 
-[Apache-2.0](https://github.com/codeding-101/COCUDTT/blob/main/LICENSE)。离线中文字体另附[OFL 许可与来源](https://github.com/codeding-101/COCUDTT/tree/codex/recovery-review/src/assets/fonts)，分发时请保留。
+[Apache-2.0](https://github.com/codeding-101/COCUDTT/blob/main/LICENSE)。离线中文字体另附[OFL 许可与来源](https://github.com/codeding-101/COCUDTT/tree/codex/funding-ledger/src/assets/fonts)，分发时请保留。
+

@@ -1600,3 +1600,7 @@ FundingAssumption领域对象只描述单笔恒定本金单利，engine/funding�
 ## 第二十一轮：只读恢复检查与面板定位（2026-10-13）
 
 data/recovery-review按恢复快照1.0识别并分别调用已有项目/汇率/付款结构验证器，仅返回状态，不迁移、转换或输出原始字段；本页客户/假设只验类型。UI面板不读取报告中的业务值，文件读取有5 MiB及独立epoch保护，恢复边界撤销过期读取。input-location使用闭合集合映射EngineError到真实面板，展开/聚焦无需重新计算或保存。无法定位具体字段时明确保留多个面板入口；项目/付款/业务引擎保持。详见[验收](recovery-review-validation.md)。
+
+## 第二十二轮：本金事件账本（2026-10-13）
+
+付款1.2在funding增加显式balance_model/events，旧1.1扩展仍未知且升级冲突时保留原文。engine/funding在结构和报价绑定核验后，EVENTS分派至独立funding-ledger；CONSTANT复用原算法。账本按录入顺序处理正数同币种增减，生成余额审计及非零天数区间，先汇总本金×天数再按固定利率/年基数计算。UI和内部Excel/HTML复用同一结果，不新增合同/银行现金事件或改变贸易结果。事件输入、增删和模型切换沿用epoch及独立保存快照。详见[验收](funding-ledger-validation.md)。
