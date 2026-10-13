@@ -15,9 +15,9 @@ import { projectTemplateText, PROJECT_TEMPLATES } from '../data/project-template
 import { renderProjectTemplatePanel } from './project-templates.js';
 import { settlementBinding } from '../data/settlement-context.js';
 import { parseSettlementPlan, serializeSettlementPlan } from '../data/settlement-file.js';
-import { newSettlementPlan, newPaymentEntry, newBankFeeEntry, enableFundingLedger, type SettlementPlan } from '../domain/settlement.js';
+import { newSettlementPlan, newPaymentEntry, newBankFeeEntry, enableFundingLedger, enableFundingRates, type SettlementPlan } from '../domain/settlement.js';
 import { renderSettlementPanel } from './settlement.js';
-import { newFundingAssumption, newFundingPrincipalEvent } from '../domain/funding.js';
+import { newFundingAssumption, newFundingPrincipalEvent, newFundingRateEvent } from '../domain/funding.js';
 import { emptyEvidence, evidenceKey, fxEvidenceValues, hsEvidenceValues, invalidateEvidence, taxEvidenceValues, type SourceEvidence } from '../domain/source-evidence.js';
 import { eligibilityValues, emptyEligibility, emptyRoute } from '../domain/import-context.js';
 import type { BaseRef, CostItem } from '../domain/cost-item.js';
@@ -231,17 +231,21 @@ function onSettlementField(target: HTMLInputElement | HTMLSelectElement): void {
     } else if (row && (field === 'bearer' || field === 'payer') && ['UNCONFIRMED','BUYER','SELLER'].includes(target.value)) row[field] = target.value as typeof row.bearer;
     else if (row && field === 'not_in_project') row.not_in_project = target instanceof HTMLInputElement && target.checked;
     else if (row && (field === 'cost_id' || field === 'amount' || field === 'currency' || field === 'date' || field === 'reference')) row[field] = target.value;
-  } else if (kind === 'funding-event' && settlementPlan.version === '1.2') {
+  } else if (kind === 'funding-event' && (settlementPlan.version === '1.2'||settlementPlan.version==='1.3')) {
     const row = settlementPlan.funding?.events?.[index];
     if (row && field === 'direction' && ['INCREASE','DECREASE'].includes(target.value)) row.direction = target.value as typeof row.direction;
     else if (row && (field === 'amount' || field === 'currency' || field === 'date' || field === 'reference')) row[field] = target.value;
+  } else if(kind==='funding-rate'&&settlementPlan.version==='1.3'){
+    const row=settlementPlan.funding?.rate_events?.[index];
+    if(row&&(field==='date'||field==='annual_rate'||field==='reference'))row[field]=target.value;
   } else if (kind === 'funding' && settlementPlan.version !== '1.0' && settlementPlan.funding) {
     const row = settlementPlan.funding;
     if (field === 'status' && ['UNCONFIRMED','NOT_MODELED','PROVIDED'].includes(target.value)) row.status = target.value as typeof row.status;
     else if (field === 'kind' && ['UNCONFIRMED','FINANCING','OPPORTUNITY'].includes(target.value)) row.kind = target.value as typeof row.kind;
     else if (field === 'party' && ['UNCONFIRMED','BUYER','SELLER'].includes(target.value)) row.party = target.value as typeof row.party;
     else if (field === 'day_basis' && ['UNCONFIRMED','ACT_365F','ACT_360'].includes(target.value)) row.day_basis = target.value as typeof row.day_basis;
-    else if (field === 'balance_model' && settlementPlan.version === '1.2' && ['CONSTANT','EVENTS'].includes(target.value)) { row.balance_model = target.value as typeof row.balance_model; row.status = 'UNCONFIRMED'; }
+    else if (field === 'balance_model' && (settlementPlan.version === '1.2'||settlementPlan.version==='1.3') && ['CONSTANT','EVENTS'].includes(target.value)) { row.balance_model = target.value as typeof row.balance_model; row.status = 'UNCONFIRMED'; }
+    else if(field === 'rate_model'&&settlementPlan.version==='1.3'&&['CONSTANT','EVENTS'].includes(target.value)){row.rate_model=target.value as typeof row.rate_model;row.status='UNCONFIRMED';}
     else if (field === 'principal' || field === 'currency' || field === 'start_date' || field === 'end_date' || field === 'annual_rate' || field === 'reference') row[field] = target.value;
   } else if (field === 'method' && ['UNCONFIRMED','TT','LC','OA'].includes(target.value)) settlementPlan.method = target.value as typeof settlementPlan.method;
   else if (field === 'bank_status' && ['UNCONFIRMED','NO_FEES','LISTED'].includes(target.value)) settlementPlan.bank_status = target.value as typeof settlementPlan.bank_status;
@@ -1447,15 +1451,26 @@ function bind(): void {
           catch (error) { showFileError(error); }
         }
         break;
+      case 'settlement-enable-rates':
+        if(settlementPlan){try{settlementPlan=enableFundingRates(settlementPlan);settlementEpoch++;state.status='已升级付款计划1.3；请重新确认利率及资金测算范围';state.statusLevel='warn';render();}catch(error){showFileError(error);}}
+        break;
+      case 'settlement-add-rate-event': {
+        if(settlementPlan?.version==='1.3'){const rows=settlementPlan.funding!.rate_events!;if(rows.length<100){let id=1;while(rows.some(row=>row.id===`rate-${id}`))id++;rows.push(newFundingRateEvent(`rate-${id}`));settlementEpoch++;render();}}
+        break;
+      }
+      case 'settlement-remove-rate-event': {
+        const index=Number(target.dataset.settlementIndex),rows=settlementPlan?.version==='1.3'?settlementPlan.funding?.rate_events:null;
+        if(rows&&Number.isInteger(index)&&index>=0&&index<rows.length){rows.splice(index,1);settlementEpoch++;render();}break;
+      }
       case 'settlement-add-funding-event': {
-        if (settlementPlan?.version === '1.2') {
+        if (settlementPlan?.version === '1.2'||settlementPlan?.version==='1.3') {
           const rows = settlementPlan.funding!.events!;
           if (rows.length < 100) { let id=1; while(rows.some(row=>row.id===`funding-${id}`))id++; rows.push(newFundingPrincipalEvent(`funding-${id}`)); settlementEpoch++; render(); }
         }
         break;
       }
       case 'settlement-remove-funding-event': {
-        const index=Number(target.dataset.settlementIndex),rows=settlementPlan?.version==='1.2'?settlementPlan.funding?.events:null;
+        const index=Number(target.dataset.settlementIndex),rows=(settlementPlan?.version==='1.2'||settlementPlan?.version==='1.3')?settlementPlan.funding?.events:null;
         if(rows&&Number.isInteger(index)&&index>=0&&index<rows.length){rows.splice(index,1);settlementEpoch++;render();}
         break;
       }

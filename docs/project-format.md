@@ -46,3 +46,8 @@ kind=INTERNAL_RECOVERY_SNAPSHOT、version=1.0包含异常阶段、原始项目�
 ## 配套合成本金案例
 
 工具提供独立下载的合成项目0.8、付款1.2、手算核对记录1.0和无脚本HTML说明。记录kind=SYNTHETIC_FUNDING_CHECK_RECORD，不属于项目/付款/恢复格式；HTML/记录不能导入。四文件从固定工厂生成，不读取当前交易。先保存自己的两份JSON，再打开配对案例，绑定错误不直接重绑定。详见[案例与导出指引](funding-example-validation.md)。
+
+
+## 付款1.3：显式利率事件
+
+先启用1.2，再单独升级1.3；新增必需funding.rate_model（CONSTANT/EVENTS）与rate_events数组（最多100条），每条id/date/annual_rate/reference均为文本。利率是新年利率绝对百分数，业务就绪另查日界、严格日期顺序与来源。升级保留输入、状态归待确认；旧1.2同名未知扩展仍保留、不解释，升级时拒绝覆盖。新建仍1.1，旧文件不静默升级；未来1.4拒绝导入。项目0.8和四份原合成资源保持。见[利率验收](funding-rates-validation.md)。
