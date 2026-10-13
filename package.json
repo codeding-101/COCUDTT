@@ -6,6 +6,7 @@
   "type": "module",
   "description": "国际贸易成本与贸易术语方案分析系统",
   "scripts": {
+    "check:funding-period-design": "node tools/check-funding-period-design.mjs",
     "build:catalog": "node tools/build-project-catalog.mjs",
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
