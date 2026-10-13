@@ -1,4 +1,4 @@
-import { newFundingAssumption, type FundingAssumption } from './funding.js';
+import { newFundingAssumption, newFundingRounding, type FundingAssumption } from './funding.js';
 /** Internal payment worksheet, separate from the project 0.8 container. */
 export const SETTLEMENT_METHODS = ['UNCONFIRMED', 'TT', 'LC', 'OA'] as const;
 export type SettlementMethod = (typeof SETTLEMENT_METHODS)[number];
@@ -33,7 +33,7 @@ export interface BankFeeEntry {
   not_in_project: boolean;
 }
 export interface SettlementPlan {
-  version: '1.0' | '1.1' | '1.2' | '1.3';
+  version: '1.0' | '1.1' | '1.2' | '1.3' | '1.4';
   kind: 'INTERNAL_SETTLEMENT_PLAN';
   binding: SettlementBinding;
   method: SettlementMethod;
@@ -59,6 +59,11 @@ export function enableFundingRates(plan: SettlementPlan): SettlementPlan {
   const copy=structuredClone(plan);copy.version='1.3';
   Object.assign(copy.funding!,{rate_model:'EVENTS',rate_events:[],status:'UNCONFIRMED'});
   return copy;
+}
+export function enableFundingRounding(plan:SettlementPlan):SettlementPlan {
+  if(plan.version!=='1.3'||!plan.funding)throw Error('请先启用1.3利率模型，再单独启用金额舍入');
+  if(Object.hasOwn(plan.funding,'rounding'))throw Error('旧资金扩展与金额舍入字段重名，请保留原文件并人工核对；未升级或覆盖');
+  const copy=structuredClone(plan);copy.version='1.4';copy.funding!.rounding=newFundingRounding();copy.funding!.status='UNCONFIRMED';return copy;
 }
 export const newPaymentEntry = (id: string): PaymentEntry => ({ id, basis: 'AMOUNT', value: '', date: '', trigger: '' });
 export const newBankFeeEntry = (id: string): BankFeeEntry => ({

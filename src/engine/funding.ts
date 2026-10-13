@@ -4,7 +4,8 @@ import { validateSettlementBinding } from './settlement.js';
 import { isIsoDate } from './tax/china-import.js';
 import { calculateFundingLedger } from './funding-ledger.js';
 import { calculateFundingRates } from './funding-rates.js';
-import type { FundingLedgerAudit, FundingRateAudit } from '../domain/funding.js';
+import { applyFundingRounding } from './funding-rounding.js';
+import type { FundingLedgerAudit, FundingRateAudit, FundingRoundingAudit } from '../domain/funding.js';
 
 // Isolated from the existing trade/tax engine. Division may recur; expose the basis and precision.
 const Money = Decimal.clone({ precision: 256, rounding: Decimal.ROUND_HALF_UP });
@@ -31,15 +32,21 @@ export interface FundingResult {
   reference: string;
   ledger?: FundingLedgerAudit;
   rates?: FundingRateAudit;
+  rounding?: FundingRoundingAudit;
 }
 /** Null means explicitly not modeled, never an assumed zero cost. */
 export function calculateFunding(plan: SettlementPlan, current: SettlementBinding): FundingResult | null {
+  const result=calculateUnroundedFunding(plan,current);
+  if(!result||plan.version!=='1.4')return result;
+  return applyFundingRounding(result,plan.funding!.rounding!);
+}
+function calculateUnroundedFunding(plan: SettlementPlan, current: SettlementBinding): FundingResult | null {
   validateSettlementBinding(plan, current);
   const input = plan.funding;
   if (!input || input.status === 'UNCONFIRMED') return fail('尚未设置资金占用口径，不能以空白当零成本');
   if (input.status === 'NOT_MODELED') return null;
-  if(plan.version==='1.3'&&input.rate_model==='EVENTS')return calculateFundingRates(input);
-  if ((plan.version === '1.2'||plan.version==='1.3') && input.balance_model === 'EVENTS') return calculateFundingLedger(input);
+  if((plan.version==='1.3'||plan.version==='1.4')&&input.rate_model==='EVENTS')return calculateFundingRates(input);
+  if ((plan.version === '1.2'||plan.version==='1.3'||plan.version==='1.4') && input.balance_model === 'EVENTS') return calculateFundingLedger(input);
   if (input.kind === 'UNCONFIRMED' || input.party === 'UNCONFIRMED') return fail('请选择融资利息/机会成本及测算方，不从付款方式猜测');
   if (input.day_basis === 'UNCONFIRMED') return fail('请明确计息基准，不从币种推定365或360');
   if (!/^[A-Z]{3}$/.test(input.currency)) return fail('币种须为三位大写代码，不推定汇率');

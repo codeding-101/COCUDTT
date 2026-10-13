@@ -51,3 +51,8 @@ kind=INTERNAL_RECOVERY_SNAPSHOT、version=1.0包含异常阶段、原始项目�
 ## 付款1.3：显式利率事件
 
 先启用1.2，再单独升级1.3；新增必需funding.rate_model（CONSTANT/EVENTS）与rate_events数组（最多100条），每条id/date/annual_rate/reference均为文本。利率是新年利率绝对百分数，业务就绪另查日界、严格日期顺序与来源。升级保留输入、状态归待确认；旧1.2同名未知扩展仍保留、不解释，升级时拒绝覆盖。新建仍1.1，旧文件不静默升级；未来1.4拒绝导入。项目0.8和四份原合成资源保持。见[利率验收](funding-rates-validation.md)。
+
+
+## 付款1.4：显式金额舍入假设
+
+从1.3单独启用；funding.rounding必需对象，包含status（UNCONFIRMED/NOT_APPLIED/APPLIED）、scope（UNCONFIRMED/TOTAL/INTERVALS）、mode（UNCONFIRMED/HALF_UP/HALF_EVEN/DOWN）、文本unit/reference及布尔intervals_confirmed。允许保存未完成草稿；应用时查正步长/来源，逐区间须明确边界确认。升级保留输入且不填单位或默认方式，旧1.3同名扩展原文保留且升级拒绝覆盖。新建仍1.1，旧格式不自动升级，未来1.5拒绝。原cost保持、舍入审计单独输出，见[验收](funding-rounding-validation.md)。

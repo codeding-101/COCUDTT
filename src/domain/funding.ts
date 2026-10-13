@@ -1,4 +1,4 @@
-/** Explicit simple-interest assumption; 1.2 adds principal events, 1.3 explicit rate events. */
+/** Explicit simple interest; 1.2 principal events, 1.3 rate events, 1.4 amount rounding. */
 export interface FundingAssumption {
   status: 'UNCONFIRMED' | 'NOT_MODELED' | 'PROVIDED';
   kind: 'UNCONFIRMED' | 'FINANCING' | 'OPPORTUNITY';
@@ -10,12 +10,30 @@ export interface FundingAssumption {
   annual_rate: string;
   day_basis: 'UNCONFIRMED' | 'ACT_365F' | 'ACT_360';
   reference: string;
-  /** Interpreted by settlement 1.2/1.3. Legacy 1.1 extensions remain inactive. */
+  /** Interpreted from settlement 1.2. Legacy 1.1 extensions remain inactive. */
   balance_model?: 'CONSTANT' | 'EVENTS';
   events?: FundingPrincipalEvent[];
-  /** Only interpreted by settlement format 1.3. */
+  /** Interpreted from settlement 1.3. */
   rate_model?: 'CONSTANT' | 'EVENTS';
   rate_events?: FundingRateEvent[];
+  /** Only interpreted by settlement format 1.4. */
+  rounding?: FundingRoundingAssumption;
+}
+export interface FundingRoundingAssumption {
+  status:'UNCONFIRMED'|'NOT_APPLIED'|'APPLIED';
+  scope:'UNCONFIRMED'|'TOTAL'|'INTERVALS';
+  mode:'UNCONFIRMED'|'HALF_UP'|'HALF_EVEN'|'DOWN';
+  unit:string;
+  reference:string;
+  /** Explicit user assertion: computed intervals are the intended rounding boundaries. */
+  intervals_confirmed:boolean;
+}
+export const newFundingRounding=():FundingRoundingAssumption=>({status:'UNCONFIRMED',scope:'UNCONFIRMED',mode:'UNCONFIRMED',unit:'',reference:'',intervals_confirmed:false});
+export interface FundingRoundingAudit {
+  scope:'TOTAL'|'INTERVALS';mode:'HALF_UP'|'HALF_EVEN'|'DOWN';unit:string;reference:string;
+  rounded_cost:string;total_rounded:string;interval_rounded:string;scope_difference:string;
+  unrounded_fraction:string;adjustment:string;adjustment_fraction:string;
+  intervals:{start_date:string;end_date:string;unrounded_cost:string;unrounded_fraction:string;rounded_cost:string;adjustment:string;adjustment_fraction:string}[];
 }
 export interface FundingRateEvent { id:string; date:string; annual_rate:string; reference:string }
 export const newFundingRateEvent=(id:string):FundingRateEvent=>({id,date:'',annual_rate:'',reference:''});

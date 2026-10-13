@@ -1613,3 +1613,8 @@ data/funding-example只依赖生产数据工厂和文件序列化，输出固定
 ## 第二十四轮：显式利率与合并边界（2026-10-13）
 
 付款1.3只通过独立升级启用rate_model/rate_events，未知旧重名字段保留且拒绝覆盖。funding wrapper在结构/绑定核验后仅对1.3 EVENTS分派funding-rates；固定利率继续复用原算法。独立验证两种事件原序后合并内部日期边界，同日先处理本金和新率，再生成非零天数段；总额汇总本金×百分数率×天数后统一除基数。输出包含利率前后值、来源及各段率，不改变费用/税务/收付。UI/Excel共享结果，输入变动沿用epoch，1.3恢复原值，客户投影保持。见[验收](funding-rates-validation.md)。
+
+
+## 第二十五轮：金额步长与精确分数舍入（2026-10-13）
+
+付款1.4在funding增加rounding对象，显式从1.3启用并重确认；旧同名扩展不解释或覆盖。funding wrapper先复用原未舍入计算，再仅对1.4应用独立funding-rounding。逐段从规范化本金/实际利率/整数天数重建BigInt分数，约分与求和后用步长分数的余数判定HALF_UP/HALF_EVEN/DOWN；不消费已截短小数。原cost保持，审计另列两层级、差额与精确分数。UI边界确认随日期/模型/事件增删清除，JSON/XLSX快照及恢复沿用原机制；付款与客户投影隔离。见[验收](funding-rounding-validation.md)。
