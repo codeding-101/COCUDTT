@@ -733,7 +733,7 @@ describe('打开、保存项目的失败处理', () => {
       }),
     }) });
     save();
-    await vi.waitFor(() => expect(html).toContain('保存失败'));
+    await vi.waitFor(() => expect(html).toContain('磁盘已满'));
     expect(html).toContain('磁盘已满');
     expect(html).not.toContain('已保存到');
     expect(createElement).not.toHaveBeenCalled();

@@ -72,3 +72,7 @@ kind=INTERNAL_RECOVERY_SNAPSHOT、version=1.0包含异常阶段、原始项目�
 ## 第二十九轮：显式付款1.5
 
 [明确期间接入](funding-period-integration-validation.md)从1.4独立启用1.5，保留未知扩展，funding.period_schedule重名拒绝覆盖；新建仍1.1。新期间字段结构参见[设计](funding-period-design.md)，1.5舍入scope新增PERIODS，旧版原文保存不解释新扩展。1.5保存未完成结构合法草稿，完整覆盖/依据/确认在计算时另查；未来1.6拒绝。项目0.8、恢复1.0及两份项目Schema不变，恢复检查支持1.5且不导入。
+
+## 第三十轮：期间例题四资源
+
+新增synthetic-period-example项目0.8与付款1.5，名称和绑定独立；不升级新建付款或已有文件。SYNTHETIC_PERIOD_CHECK_RECORD 1.0是固定手算记录，不可导入为项目/付款；HTML是无脚本离线说明。例题就绪/应用/确认仅为固定合成输入，不是用户银行合同认证。两份Schema、旧项目模板和八份旧配套资源保持原字节。见[验收](period-example-validation.md)。

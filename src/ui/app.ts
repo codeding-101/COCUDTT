@@ -60,6 +60,7 @@ import { inspectRecoveryText, RECOVERY_REVIEW_MAX_BYTES, type RecoveryReview } f
 import { renderRecoveryReviewPanel } from './recovery-review.js';
 import { inputSections, focusInputSection, type InputSection } from './input-location.js';
 import { renderRoundingExamplePanel, roundingExampleResource } from './rounding-example.js';
+import { renderPeriodExamplePanel, periodExampleResource } from './period-example.js';
 import { renderFundingExamplePanel, fundingExampleResource } from './funding-example.js';
 
 const DRAFT_KEY = 'trade-cost-engine:draft-v1';
@@ -984,13 +985,13 @@ async function saveProject(): Promise<void> {
   render();
 }
 
-async function exportProjectResource(templateId?:string,schemaKind?:string,exampleKind?:string,exampleFamily:'funding'|'rounding'='funding'):Promise<void> {
+async function exportProjectResource(templateId?:string,schemaKind?:string,exampleKind?:string,exampleFamily:'funding'|'rounding'|'period'='funding'):Promise<void> {
   if(projectResourceBusy)return;
   const label=exampleKind===undefined?'模板或结构文件':'合成案例文件';
   try {
     let text:string,name:string,mime='application/json';
     if(exampleKind!==undefined&&templateId===undefined&&schemaKind===undefined){
-      const resource=exampleFamily==='rounding'?roundingExampleResource(exampleKind):fundingExampleResource(exampleKind);text=resource.text;name=resource.name;mime=resource.mime;
+      const resource=exampleFamily==='period'?periodExampleResource(exampleKind):exampleFamily==='rounding'?roundingExampleResource(exampleKind):fundingExampleResource(exampleKind);text=resource.text;name=resource.name;mime=resource.mime;
     }else if(templateId!==undefined&&schemaKind===undefined&&exampleKind===undefined){
       if(!PROJECT_TEMPLATES.some(t=>t.id===templateId))throw Error('请选择目录中的模板');
       text=projectTemplateText(templateId);name=templateId+'.json';
@@ -1228,6 +1229,7 @@ function renderApp(): void {
       ${renderProjectTemplatePanel(projectResourceBusy)}
       ${renderFundingExamplePanel(projectResourceBusy)}
       ${renderRoundingExamplePanel(projectResourceBusy)}
+      ${renderPeriodExamplePanel(projectResourceBusy)}
       ${renderRecoveryReviewPanel(recoveryReview,recoveryReviewBusy,recoveryReviewError)}
       ${renderFormsRow(state.project)}
       ${renderImportTaxPanel(state.project)}
@@ -1549,6 +1551,7 @@ function bind(): void {
       case 'download-project-template': void exportProjectResource(target.dataset.templateId); break;
       case 'download-funding-example': void exportProjectResource(undefined,undefined,target.dataset.exampleKind ?? ''); break;
       case 'download-rounding-example': void exportProjectResource(undefined,undefined,target.dataset.roundingKind ?? '','rounding'); break;
+      case 'download-period-example': void exportProjectResource(undefined,undefined,target.dataset.periodKind ?? '','period'); break;
       case 'download-project-schema': void exportProjectResource(undefined,target.dataset.schemaKind); break;
       case 'preview-customer-quote':
         expandedEvidenceSections.add('customer-quote'); render();

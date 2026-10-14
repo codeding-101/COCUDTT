@@ -1,0 +1,155 @@
+{
+  "kind": "SYNTHETIC_PERIOD_CHECK_RECORD",
+  "version": "1.0",
+  "synthetic": true,
+  "generated_at": "2026-10-14T00:00:00Z",
+  "files": {
+    "project": "synthetic-period-example.project.json",
+    "plan": "synthetic-period-example.plan.json",
+    "record": "synthetic-period-example.check.json",
+    "guide": "synthetic-period-example.guide.html"
+  },
+  "project_version": "0.8",
+  "plan_version": "1.5",
+  "purpose": "明确期间合成手算记录，不可导入为项目/付款；不是银行账单或认证",
+  "expected": {
+    "currency": "USD",
+    "opening_principal": "6",
+    "closing_principal": "12",
+    "days": 4,
+    "denominator": 360,
+    "cost": "0.03",
+    "cost_exact": "3/100",
+    "scope": "PERIODS",
+    "mode": "HALF_UP",
+    "unit": "0.01",
+    "periods_confirmed": true,
+    "intervals_confirmed": false,
+    "calculation_segment_count": 3,
+    "fragment_count": 4,
+    "rounded_cost": "0.03",
+    "total_rounded": "0.03",
+    "scope_difference": "0.00",
+    "adjustment": "0",
+    "adjustment_exact": "0/1",
+    "formula": "(6 × 36 × 1 + 12 × 36 × 1 + 12 × 18 × 2) ÷ 100 ÷ 360 = 0.03",
+    "segments": [
+      {
+        "start_date": "2026-09-01",
+        "end_date": "2026-09-02",
+        "principal": "6",
+        "annual_rate": "36",
+        "days": 1,
+        "cost": "0.006",
+        "cost_exact": "3/500"
+      },
+      {
+        "start_date": "2026-09-02",
+        "end_date": "2026-09-03",
+        "principal": "12",
+        "annual_rate": "36",
+        "days": 1,
+        "cost": "0.012",
+        "cost_exact": "3/250"
+      },
+      {
+        "start_date": "2026-09-03",
+        "end_date": "2026-09-05",
+        "principal": "12",
+        "annual_rate": "18",
+        "days": 2,
+        "cost": "0.012",
+        "cost_exact": "3/250"
+      }
+    ],
+    "periods": [
+      {
+        "start_date": "2026-09-01",
+        "end_date": "2026-09-04",
+        "days": 3,
+        "cost": "0.024",
+        "cost_exact": "3/125",
+        "rounded": "0.02",
+        "adjustment": "-0.004",
+        "adjustment_exact": "-1/250",
+        "source_segments": [
+          1,
+          2,
+          3
+        ],
+        "fragment_costs": [
+          "0.006",
+          "0.012",
+          "0.006"
+        ],
+        "fragment_fractions": [
+          "3/500",
+          "3/250",
+          "3/500"
+        ]
+      },
+      {
+        "start_date": "2026-09-04",
+        "end_date": "2026-09-05",
+        "days": 1,
+        "cost": "0.006",
+        "cost_exact": "3/500",
+        "rounded": "0.01",
+        "adjustment": "0.004",
+        "adjustment_exact": "1/250",
+        "source_segments": [
+          3
+        ],
+        "fragment_costs": [
+          "0.006"
+        ],
+        "fragment_fractions": [
+          "3/500"
+        ]
+      }
+    ],
+    "daily_costs": [
+      "0.006",
+      "0.012",
+      "0.006",
+      "0.006"
+    ],
+    "comparisons": [
+      {
+        "mode": "HALF_UP",
+        "total": "0.03",
+        "calculation_intervals": "0.03",
+        "explicit_periods": "0.03",
+        "daily_periods": "0.04",
+        "period_minus_total": "0.00",
+        "daily_minus_total": "0.01"
+      },
+      {
+        "mode": "HALF_EVEN",
+        "total": "0.03",
+        "calculation_intervals": "0.03",
+        "explicit_periods": "0.03",
+        "daily_periods": "0.04",
+        "period_minus_total": "0.00",
+        "daily_minus_total": "0.01"
+      },
+      {
+        "mode": "DOWN",
+        "total": "0.03",
+        "calculation_intervals": "0.02",
+        "explicit_periods": "0.02",
+        "daily_periods": "0.01",
+        "period_minus_total": "-0.01",
+        "daily_minus_total": "-0.02"
+      }
+    ]
+  },
+  "notes": [
+    "就绪、应用及期间确认仅适用于此固定合成例题，不证明用户的银行合同事实。",
+    "本金6/12 USD与108300 USD合成报价独立，不据TT、币种或贸易术语推定。",
+    "归集首期跨三个计算段，第三段被归集切点分为两个交集；原分段仍三段。",
+    "逐日比较指人为设置四个一天归集期，不是新增自动逐日舍入功能。",
+    "修改任何输入后固定预期不再适用，须重新复核确认；短尾期仅内部应计。",
+    "资金假设独立于利润、税费和价款收付，截止日不推定本金归还。"
+  ]
+}
