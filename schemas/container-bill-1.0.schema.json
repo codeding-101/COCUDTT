@@ -1,0 +1,369 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:cocudtt:internal-container-bill:1.0",
+  "title": "COCUDTT internal container bill draft 1.0",
+  "description": "Draft shape only; unique line_id, JSON limits, byte bounds and supported calculations/sources/references require runtime review. No project costs are written.",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "const": "INTERNAL_CONTAINER_BILL"
+    },
+    "version": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "maxLength": 200,
+      "pattern": "\\S",
+      "not": {
+        "enum": [
+          "__proto__",
+          "constructor",
+          "prototype"
+        ]
+      }
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 4000
+    },
+    "review_date": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "binding": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "term": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "context_key": {
+              "type": "string",
+              "maxLength": 1048576
+            }
+          },
+          "required": [
+            "term",
+            "context_key"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 4000
+    },
+    "rows": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {
+              "line_id": {
+                "type": "string",
+                "maxLength": 200,
+                "pattern": "\\S",
+                "not": {
+                  "enum": [
+                    "__proto__",
+                    "constructor",
+                    "prototype"
+                  ]
+                }
+              },
+              "scope_id": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "direction": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "equipment_type": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "container_ids": {
+                "type": "array",
+                "maxItems": 50,
+                "items": {
+                  "type": "string",
+                  "maxLength": 200
+                }
+              },
+              "currency": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "reference": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "charge_kind": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "mode": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "rate": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "period": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "start_date": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "end_date": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "start_event": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "end_event": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "start_included": {
+                        "anyOf": [
+                          {
+                            "type": "null"
+                          },
+                          {
+                            "type": "boolean"
+                          }
+                        ]
+                      },
+                      "end_included": {
+                        "anyOf": [
+                          {
+                            "type": "null"
+                          },
+                          {
+                            "type": "boolean"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "daily": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "free_day_basis": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "charge_day_basis": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "free_days": {
+                        "anyOf": [
+                          {
+                            "type": "null"
+                          },
+                          {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          }
+                        ]
+                      },
+                      "tier_mode": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "tier_basis": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "tiers": {
+                        "type": "array",
+                        "maxItems": 20,
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "through_day": {
+                              "anyOf": [
+                                {
+                                  "type": "null"
+                                },
+                                {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                }
+                              ]
+                            },
+                            "rate": {
+                              "type": "string",
+                              "maxLength": 200
+                            }
+                          },
+                          "required": [],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "required": [
+              "line_id"
+            ],
+            "additionalProperties": false
+          },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "reference": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "valid_from": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "valid_to": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "checked_on": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "status": {
+                "enum": [
+                  "EXAMPLE",
+                  "UNVERIFIED",
+                  "USER_CONFIRMED"
+                ]
+              },
+              "values_key": {
+                "type": "string",
+                "maxLength": 1048576
+              }
+            },
+            "required": [
+              "reference",
+              "valid_from",
+              "valid_to",
+              "checked_on",
+              "status"
+            ],
+            "additionalProperties": false
+          },
+          "cost_reference": {
+            "type": "object",
+            "properties": {
+              "cost_id": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "note": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "evidence": {
+                "type": "object",
+                "properties": {
+                  "reference": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "valid_from": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "valid_to": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "checked_on": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "status": {
+                    "enum": [
+                      "EXAMPLE",
+                      "UNVERIFIED",
+                      "USER_CONFIRMED"
+                    ]
+                  },
+                  "values_key": {
+                    "type": "string",
+                    "maxLength": 1048576
+                  }
+                },
+                "required": [
+                  "reference",
+                  "valid_from",
+                  "valid_to",
+                  "checked_on",
+                  "status"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "cost_id",
+              "note"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "input"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "extensions": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "kind",
+    "version",
+    "id",
+    "name",
+    "review_date",
+    "binding",
+    "notes",
+    "rows"
+  ],
+  "additionalProperties": false
+}
