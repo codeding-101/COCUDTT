@@ -4,6 +4,7 @@ import type {
   DateStr,
   DayBasis,
   FxType,
+  Incoterm,
   OccurrenceReason,
   Party,
   PricingMethod,
@@ -15,6 +16,8 @@ import type {
   TradeNode,
 } from './enums.js';
 import type { Numeric } from './decimal.js';
+import type { SourceEvidence } from './source-evidence.js';
+import type { ContainerCharge } from './logistics.js';
 
 /**
  * 计费基数引用（设计文档 4.3）。
@@ -52,6 +55,13 @@ export interface CostItem {
   // ---- 标识 ----
   cost_id: string;
   cost_name: string;
+  /** 集装箱清单提示按显式类型识别，不按自由名称猜收费口径。 */
+  container_charge?: ContainerCharge;
+  container_charge_scope?: string;
+  /** 未设置适用所有术语；空数组表示不启用。用于按方案选择实际发生的费用。 */
+  applicable_incoterms?: Incoterm[];
+  /** 同组费用是替代报价，同一方案最多启用一项；空值表示独立费用。 */
+  alternative_group?: string;
   cost_category: CostCategory;
   trade_node: TradeNode;
   location?: string;
@@ -87,6 +97,7 @@ export interface CostItem {
   // ---- 币种与汇率 ----
   currency: CurrencyCode;
   fx_rate?: Numeric;
+  fx_evidence?: SourceEvidence;
   fx_type: FxType;
   fx_date?: DateStr;
   base_currency: CurrencyCode;
@@ -96,6 +107,8 @@ export interface CostItem {
   // ---- 税务 ----
   tax_included: boolean;
   tax_rate_ref?: string;
+  /** 中国进口计税价格：显式加计未含于货值的费用，或排除不应加计的费用。 */
+  customs_value?: 'ADD' | 'EXCLUDE';
 
   // ---- 归属 ----
   responsibility: Responsibility;

@@ -1,0 +1,63 @@
+name: Project quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Check dependency advisories
+        run: npm audit --audit-level=high
+      - name: Run calculation and file regression tests
+        run: npm test
+      - name: Check funding period design fixtures
+        run: npm run check:funding-period-design
+      - name: Audit UI bindings and engine codes
+        run: npm run audit
+      - name: Typecheck and build offline deliverable
+        run: npm run build:single
+      - name: Verify tracked deliverable matches source
+        run: git diff --exit-code -- trade-cost-engine.html
+      - name: Rebuild project schemas and templates
+        run: npm run build:catalog
+      - name: Verify tracked schemas and templates match source
+        run: git diff --exit-code -- schemas/ templates/
+      - name: Retain reviewed build
+        uses: actions/upload-artifact@v7
+        with:
+          name: offline-${{ runner.os }}-${{ github.sha }}
+          path: |
+            trade-cost-engine.html
+            dist/
+            schemas/
+            templates/
+            docs/project-format.md
+            docs/project-migration.md
+          if-no-files-found: error
+          retention-days: 14

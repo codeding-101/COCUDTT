@@ -1,5 +1,6 @@
 import type { CurrencyCode, DateStr, FxType } from '../domain/enums.js';
 import type { FxBook } from '../domain/fx.js';
+import type { SourceEvidence } from '../domain/source-evidence.js';
 
 /**
  * 界面上用扁平的一行表示一条汇率：类型 + 生效日期 + 币种对 + 汇率。
@@ -14,6 +15,7 @@ export interface FxRow {
   from: CurrencyCode;
   to: CurrencyCode;
   rate: string;
+  evidence?: SourceEvidence;
 }
 
 export function booksToRows(books: readonly FxBook[]): FxRow[] {
@@ -30,6 +32,7 @@ export function booksToRows(books: readonly FxBook[]): FxRow[] {
         from: from ?? '',
         to: to ?? '',
         rate,
+        ...(book.evidence?.[pair] !== undefined ? { evidence: { ...book.evidence[pair] } } : {}),
       });
     });
   });
@@ -52,6 +55,12 @@ export function rowsToBooks(rows: readonly FxRow[]): FxBook[] {
         rates: {},
       };
     book.rates[`${row.from}/${row.to}`] = row.rate;
+    if (row.evidence !== undefined) {
+      book.evidence ??= {};
+      book.evidence[`${row.from}/${row.to}`] = { ...row.evidence };
+    } else if (book.evidence !== undefined) {
+      delete book.evidence[`${row.from}/${row.to}`];
+    }
     grouped.set(key, book);
   }
   return [...grouped.values()];

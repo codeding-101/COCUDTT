@@ -15,6 +15,7 @@ const DDP_SCENARIO: Scenario = {
   id: 'scenario-ddp-108300',
   incoterm: 'DDP',
   quote: { ...CIF_108300_SCENARIO.quote, incoterm: 'DDP' },
+  responsibility_overrides: { insurance: { responsibility: 'SELLER', reason: '合成合同：DDP卖方自愿投保并承担保费，非术语强制投保' } },
 };
 
 describe('端到端：CIF 报价 USD 108,300', () => {
@@ -52,15 +53,15 @@ describe('端到端：CIF 报价 USD 108,300', () => {
     expect(goodsValue?.counts_to_seller).toBe(false);
     // 运费 56,000 + 保险费 2,100
     expect(toStorage(result.seller.cost_total)).toBe('58100.000000');
-    expect(toStorage(result.seller.goods_cost)).toBe('620000.000000');
+    expect(toStorage(result.seller.goods_cost!)).toBe('620000.000000');
   });
 
   it('利润区分含退税与不含退税两个口径', () => {
     // 758,100 − 58,100 − 620,000 = 80,000
-    expect(toStorage(result.seller.margin_ex_rebate)).toBe('80000.000000');
+    expect(toStorage(result.seller.margin_ex_rebate!)).toBe('80000.000000');
     // 80,000 + 退税 71,327.433628
     expect(toStorage(result.seller.rebate_total)).toBe('71327.433628');
-    expect(toStorage(result.seller.margin)).toBe('151327.433628');
+    expect(toStorage(result.seller.margin!)).toBe('151327.433628');
   });
 
   it('风险与费用分离标记正确', () => {
@@ -111,9 +112,9 @@ describe('同一报价换用 DDP 术语：进口税费改由卖方承担', () =>
   });
 
   it('同一报价下 DDP 的利润远低于 CIF，说明跨术语比较必须固定基准', () => {
-    expect(toStorage(result.seller.margin)).toBe('8325.947628');
-    expect(result.seller.margin.toNumber()).toBeLessThan(
-      analyze({ ...INPUT, scenario: CIF_108300_SCENARIO }).seller.margin.toNumber(),
+    expect(toStorage(result.seller.margin!)).toBe('8325.947628');
+    expect(result.seller.margin!.toNumber()).toBeLessThan(
+      analyze({ ...INPUT, scenario: CIF_108300_SCENARIO }).seller.margin!.toNumber(),
     );
   });
 });

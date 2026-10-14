@@ -1,0 +1,87 @@
+{
+  "kind": "SYNTHETIC_ROUNDING_CHECK_RECORD",
+  "version": "1.0",
+  "synthetic": true,
+  "generated_at": "2026-10-13T00:00:00Z",
+  "files": {
+    "project": "synthetic-rounding-example.project.json",
+    "plan": "synthetic-rounding-example.plan.json",
+    "record": "synthetic-rounding-example.check.json",
+    "guide": "synthetic-rounding-example.guide.html"
+  },
+  "project_version": "0.8",
+  "plan_version": "1.4",
+  "purpose": "舍入层级合成手算记录，不是可导入项目/付款、银行账单或认证",
+  "expected": {
+    "currency": "USD",
+    "principal": "6",
+    "closing_principal": "6",
+    "annual_rate_percent": "36",
+    "denominator": 360,
+    "days": 3,
+    "unit": "0.01",
+    "scope": "TOTAL",
+    "mode": "HALF_UP",
+    "intervals_confirmed": false,
+    "cost": "0.018",
+    "cost_exact": "9/500",
+    "rounded_cost": "0.02",
+    "adjustment": "0.002",
+    "adjustment_exact": "1/500",
+    "formula": "6 × 36 ÷ 100 × 3 ÷ 360 = 0.018；合计后按0.01舍入 = 0.02",
+    "segments": [
+      {
+        "start_date": "2026-09-01",
+        "end_date": "2026-09-02",
+        "days": 1,
+        "cost": "0.006",
+        "cost_exact": "3/500"
+      },
+      {
+        "start_date": "2026-09-02",
+        "end_date": "2026-09-03",
+        "days": 1,
+        "cost": "0.006",
+        "cost_exact": "3/500"
+      },
+      {
+        "start_date": "2026-09-03",
+        "end_date": "2026-09-04",
+        "days": 1,
+        "cost": "0.006",
+        "cost_exact": "3/500"
+      }
+    ],
+    "comparisons": [
+      {
+        "mode": "HALF_UP",
+        "total": "0.02",
+        "per_interval": "0.01",
+        "interval_sum": "0.03",
+        "interval_minus_total": "0.01"
+      },
+      {
+        "mode": "HALF_EVEN",
+        "total": "0.02",
+        "per_interval": "0.01",
+        "interval_sum": "0.03",
+        "interval_minus_total": "0.01"
+      },
+      {
+        "mode": "DOWN",
+        "total": "0.01",
+        "per_interval": "0.00",
+        "interval_sum": "0.00",
+        "interval_minus_total": "-0.01"
+      }
+    ]
+  },
+  "notes": [
+    "就绪及应用状态是例题设定，不是用户交易的事实确认。",
+    "同率生效记录人为拆成三段，逐段舍入不能自动当银行结息。",
+    "本金独立于108300 USD合成报价；不从合同价、付款方式或币种推定。",
+    "合计模型未确认逐区间边界；切换INTERVALS须重新确认应用及边界。",
+    "原始单利、舍入值和调整分别核对；不按显示近似值重复舍入。",
+    "改变输入后本记录固定预期不再适用；来源仍EXAMPLE，不升级业务确认。"
+  ]
+}

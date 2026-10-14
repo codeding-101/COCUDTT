@@ -1,20 +1,37 @@
 import type { CostItem } from '../domain/cost-item.js';
-import type { CarriageMode, CurrencyCode, DateStr, FxType, Incoterm } from '../domain/enums.js';
+import { INCOTERMS, type CarriageMode, type CurrencyCode, type DateStr, type FxType, type Incoterm } from '../domain/enums.js';
 import type { FxBook } from '../domain/fx.js';
 import type { Goods } from '../domain/goods.js';
 import type { ScenarioFacts } from '../domain/rule.js';
-import type { ComparisonAnchor, Scenario } from '../domain/scenario.js';
+import type { ComparisonAnchor, ResponsibilityOverride, Scenario } from '../domain/scenario.js';
+import type { SourceEvidence } from '../domain/source-evidence.js';
 import type { TaxProfile } from '../domain/tax-profile.js';
 import type { Trade } from '../domain/trade.js';
+import type { TradeRoute } from '../domain/import-context.js';
+import type { InsurancePlan, TransportPlan } from '../domain/logistics.js';
 import { EngineError } from '../engine/errors.js';
+import { validateProjectStructure } from './project-validation.js';
+import { SCHEMA_VERSION, SUPPORTED_PROJECT_VERSIONS } from './project-versions.js';
+import type {TransportCostLinkInput} from '../domain/transport-cost-links.js';
 
-export const SCHEMA_VERSION = '0.1';
+export { SCHEMA_VERSION } from './project-versions.js';
 
 export interface QuoteTemplate {
   amount: string;
   currency: CurrencyCode;
   fx_type: FxType;
   fx_date?: DateStr;
+  named_place?: string;
+}
+
+export interface TermScenario {
+  /** Interpreted in 0.9 only; old same-name extensions remain inert. */
+  transport_cost_links?:TransportCostLinkInput;
+  transport?: TransportPlan;
+  insurance?: InsurancePlan;
+  quote?: QuoteTemplate;
+  quote_evidence?: SourceEvidence;
+  responsibility_overrides?: Record<string, ResponsibilityOverride>;
 }
 
 /**
@@ -28,6 +45,7 @@ export interface ProjectFile {
   base_currency: CurrencyCode;
   carriage_mode: CarriageMode;
   export_date?: DateStr;
+  route?: TradeRoute;
   goods: Goods;
   items: CostItem[];
   fx_books: FxBook[];
@@ -37,12 +55,15 @@ export interface ProjectFile {
   incoterm: Incoterm;
   anchor: ComparisonAnchor;
   facts?: ScenarioFacts;
+  evaluation_date?: DateStr;
+  term_scenarios?: Partial<Record<Incoterm, TermScenario>>;
 }
 
 export function toTrade(project: ProjectFile): Trade {
   return {
     id: 'trade-1',
     name: project.name,
+    ...(project.route !== undefined ? { route: project.route } : {}),
     goods: project.goods,
     carriage_mode: project.carriage_mode,
     items: project.items,
@@ -51,27 +72,46 @@ export function toTrade(project: ProjectFile): Trade {
   };
 }
 
-export function toScenario(project: ProjectFile): Scenario {
-  return {
+export function toScenario(project: ProjectFile, term: Incoterm = project.incoterm): Scenario {
+  const actual = project.anchor.kind === 'ACTUAL_QUOTES';
+  const record = project.term_scenarios?.[term];
+  // 未录入的实际报价保持缺失，绝不回退到公共模拟报价。
+  const quote = actual ? record?.quote ?? { amount: '', currency: project.base_currency, fx_type: 'CONTRACT' } : project.quote;
+  const scenario:Scenario = {
     id: 'scenario-1',
-    name: `${project.incoterm} 方案`,
+    name: `${term} 方案`,
     trade_id: 'trade-1',
-    incoterm: project.incoterm,
+    incoterm: term,
     base_currency: project.base_currency,
     quote: {
-      amount: project.quote.amount,
-      currency: project.quote.currency,
-      incoterm: project.incoterm,
+      amount: quote.amount,
+      currency: quote.currency,
+      incoterm: term,
       included_cost_ids: [],
-      fx_type: project.quote.fx_type,
-      ...(project.quote.fx_date !== undefined ? { fx_date: project.quote.fx_date } : {}),
+      fx_type: quote.fx_type,
+      ...(quote.fx_date !== undefined ? { fx_date: quote.fx_date } : {}),
+      ...(quote.named_place !== undefined ? { named_place: quote.named_place } : {}),
+      ...(actual && record?.quote_evidence ? { evidence: record.quote_evidence } : {}),
     },
     ...(project.facts !== undefined ? { facts: project.facts } : {}),
+    ...(record?.transport ? { transport: record.transport } : {}),
+    ...(record?.insurance ? { insurance: record.insurance } : {}),
+    ...((record?.insurance || record?.transport) && record.quote ? { logistics_quote: { ...record.quote, incoterm: term, included_cost_ids: [] } } : {}),
+    ...(record?.responsibility_overrides ? { responsibility_overrides: record.responsibility_overrides } : {}),
+    ...(actual || record?.responsibility_overrides || record?.transport || record?.insurance ? { contract_review: { require_quote: actual,
+      ...(project.evaluation_date !== undefined ? { evaluation_date: project.evaluation_date } : {}) } } : {}),
   };
+  if(project.schema_version==='0.9'&&record?.transport_cost_links){scenario.transport_cost_link_basis={...scenario};scenario.transport_cost_links=record.transport_cost_links;}
+  return scenario;
+}
+
+export function toScenarios(project: ProjectFile): Partial<Record<Incoterm, Scenario>> {
+  return Object.fromEntries(INCOTERMS.map(term => [term, toScenario(project, term)]));
 }
 
 export function serializeProject(project: ProjectFile): string {
-  return `${JSON.stringify(project, null, 2)}\n`;
+  // 新语义必须用新版本落盘，旧程序应明确拒绝，而非忽略中国模式继续错算。
+  return `${JSON.stringify({ ...project, schema_version: project.schema_version==='0.9'?'0.9':SCHEMA_VERSION }, null, 2)}\n`;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -97,24 +137,17 @@ export function parseProject(text: string): ProjectFile {
   if (typeof version !== 'string') {
     throw new EngineError('PROJECT_PARSE_FAILED', '项目文件缺少 schema_version，无法确认格式版本');
   }
-  if (version !== SCHEMA_VERSION) {
+  if (!(SUPPORTED_PROJECT_VERSIONS as readonly string[]).includes(version)) {
     throw new EngineError(
       'PROJECT_VERSION_UNSUPPORTED',
-      `项目文件版本为 ${version}，当前程序支持 ${SCHEMA_VERSION}，请先迁移`,
+      `项目文件版本为 ${version}，当前程序支持 0.1–0.9，请先核对格式`,
       { version, supported: SCHEMA_VERSION },
     );
   }
 
-  const required = ['name', 'base_currency', 'carriage_mode', 'goods', 'items', 'fx_books', 'tax_profile', 'quote', 'incoterm'];
-  for (const key of required) {
-    if (raw[key] === undefined) {
-      throw new EngineError('PROJECT_PARSE_FAILED', `项目文件缺少必需字段: ${key}`, { field: key });
-    }
-  }
-  if (!Array.isArray(raw.items)) {
-    throw new EngineError('PROJECT_PARSE_FAILED', '项目文件的 items 应为数组');
-  }
-
+  validateProjectStructure(raw);
+  // 旧项目只升级容器版本，不自动开启中国进口计算语义。
+  if(version!=='0.9')raw.schema_version = SCHEMA_VERSION;
   return raw as unknown as ProjectFile;
 }
 

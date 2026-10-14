@@ -21,11 +21,18 @@ import { compareDate } from '../domain/date.js';
 import { buildValueGraph, type ValueGraph } from './graph.js';
 import { applyInclusion, buildInclusionPredicate, type ExclusionReason, type InclusionConflict } from './inclusion.js';
 import { INCOTERMS_2020_RULESET } from './responsibility/rules-incoterms2020.js';
-import { resolveItemResponsibility, resolveResponsibility, type Confidence } from './responsibility/resolver.js';
+import { resolveItemResponsibility, resolveResponsibility, type Confidence, type ResponsibilityTraceStep } from './responsibility/resolver.js';
+import type { CalculationGroup, CalculationStep } from './calculation.js';
 import { resolveRisk, type RiskResult } from './risk.js';
 import { computeDutiableValue, type DutiableComponent } from './tax/dutiable-value.js';
 import { computeImportTaxes, type ImportTaxResult } from './tax/import-tax.js';
-import { computeRebate, type RebateResult } from './tax/rebate.js';
+import { computeRebate, noExportRebate, type RebateResult } from './tax/rebate.js';
+import { isChinaImport, validateChinaImportContext } from './tax/china-import.js';
+import { assessDecision, type DecisionReadiness } from './decision-readiness.js';
+import { assessContract } from './contract-readiness.js';
+import { costsForTerm } from './scenario-costs.js';
+import { reviewLogistics, type LogisticsReview } from './logistics-review.js';
+import {reviewTransportCostLinks,type TransportCostLinkReview} from './transport-cost-links.js';
 
 const SHIPMENT_BOUNDARY: TradeNode = 'CARRIER_HANDOVER';
 
@@ -45,6 +52,10 @@ export interface AnalysisInput {
 }
 
 export interface EnrichedCostItem {
+  responsibility_trace: ResponsibilityTraceStep[];
+  calculations: CalculationStep[];
+  included_in_quote: boolean;
+  inclusion_basis: 'DECLARED_LIST' | 'ITEM_FLAG';
   item: CostItem;
   /** 原币金额 */
   gross_amount: Decimal;
@@ -63,10 +74,18 @@ export interface EnrichedCostItem {
 }
 
 export interface AnalysisResult {
+  explanation_version: '1.0';
+  calculations: CalculationGroup[];
+  decision: DecisionReadiness;
+  logistics: LogisticsReview;
+  transport_cost_links?:TransportCostLinkReview;
+  rule_set: Pick<IncotermsRuleSet, 'id' | 'version'>;
   scenario_id: string;
   incoterm: Incoterm;
   base_currency: CurrencyCode;
   items: EnrichedCostItem[];
+  /** 未启用项未解析金额或汇率，也未计入税基与买卖方汇总。 */
+  inactive_items: CostItem[];
   seller: SellerSummary;
   buyer: BuyerSummary;
   rebate: RebateResult;
@@ -138,15 +157,27 @@ function requireNumericInput(value: Numeric | undefined, label: string): void {
  * 输入同一套交易事实与一个方案，输出该方案下买卖双方的成本与利润。
  */
 export function analyze(input: AnalysisInput): AnalysisResult {
-  const { trade, scenario, taxProfile, fxBooks } = input;
+  const { scenario, taxProfile, fxBooks } = input;
+  const selected = costsForTerm(input.trade, scenario.incoterm);
+  const trade = selected.trade;
   const ruleSet = input.ruleSet ?? INCOTERMS_2020_RULESET;
   const base = scenario.base_currency ?? trade.base_currency;
   const warnings: Warning[] = [];
 
+  if (isChinaImport(taxProfile)) validateChinaImportContext(taxProfile, base);
   requireNumericInput(trade.goods.quantity, '商品数量');
+  if (d(trade.goods.quantity).lte(0)) throw new EngineError('INPUT_VALUE_MISSING', '商品数量必须大于零；零/负数量交易不在当前单商品进口测算范围，不能以费用冲减代替商品数量');
   requireNumericInput(trade.goods.trade_value.amount, '成交货值');
-  requireNumericInput(trade.goods.seller_goods_cost.amount, '卖方采购成本');
+  const sellerCostUnknown = isChinaImport(taxProfile) && String(trade.goods.seller_goods_cost.amount).trim() === '';
+  if (!sellerCostUnknown) requireNumericInput(trade.goods.seller_goods_cost.amount, '卖方采购成本');
+  if (isChinaImport(taxProfile) && trade.goods.trade_value_basis === 'INCLUDES_FREIGHT_INSURANCE') {
+    throw new EngineError('INPUT_VALUE_MISSING', '货值包含运费或保险费，请先拆出货物净价、运费和保险费，再确认净价口径；不能将整价另加运保费计算');
+  }
   requireNumericInput(scenario.quote.amount, '报价金额');
+  if (scenario.quote.incoterm !== scenario.incoterm) throw new EngineError('INPUT_VALUE_MISSING', `报价术语${scenario.quote.incoterm}与方案术语${scenario.incoterm}不一致，请核对实际合同；模拟比较须明确构造同术语报价`);
+  if (scenario.contract_review?.require_quote && d(scenario.quote.amount).lte(0)) {
+    throw new EngineError('INPUT_VALUE_MISSING', '实际合同报价金额必须大于零；未录入的报价不能用零代替');
+  }
 
   // 步骤 1：责任判定（同时校验术语与运输方式是否兼容）
   const initialDecisions = resolveResponsibility({ trade, scenario, ruleSet });
@@ -169,12 +200,19 @@ export function analyze(input: AnalysisInput): AnalysisResult {
     ...(scenario.quote.fx_rate !== undefined ? { explicitRate: scenario.quote.fx_rate } : {}),
   });
   const quoteAmountBase = convertAmount(scenario.quote.amount, quoteFx);
+  const commercialFx = [quoteFx];
+  const priceLevelFx = new Map<string, FxResolution>();
 
-  const convertPriceLevel = (amount: Numeric, currency: CurrencyCode): Decimal =>
-    currency === base ? q(amount) : convertAmount(amount, resolveFxRate({ from: currency, ...priceLevelFxInput }));
+  const convertPriceLevel = (amount: Numeric, currency: CurrencyCode): Decimal => {
+    if (currency === base) return q(amount);
+    const fx = resolveFxRate({ from: currency, ...priceLevelFxInput });
+    priceLevelFx.set(currency, fx);
+    commercialFx.push(fx);
+    return convertAmount(amount, fx);
+  };
 
   const goodsValueBase = convertPriceLevel(trade.goods.trade_value.amount, trade.goods.trade_value.currency);
-  const sellerGoodsCostBase = convertPriceLevel(
+  const sellerGoodsCostBase = sellerCostUnknown ? null : convertPriceLevel(
     trade.goods.seller_goods_cost.amount,
     trade.goods.seller_goods_cost.currency,
   );
@@ -192,6 +230,7 @@ export function analyze(input: AnalysisInput): AnalysisResult {
         fxType: item.fx_type,
         books: fxBooks,
         ...(explicitRate !== undefined ? { explicitRate } : {}),
+        ...(item.fx_evidence !== undefined ? { explicitEvidence: item.fx_evidence } : {}),
         ...(item.fx_date !== undefined ? { fxDate: item.fx_date } : {}),
         ...(designatedBookId !== undefined ? { designatedBookId } : {}),
       }),
@@ -269,9 +308,10 @@ export function analyze(input: AnalysisInput): AnalysisResult {
     if (!included && isPreShipment(item.trade_node)) preShipmentExcludedBase = add(preShipmentExcludedBase, amount);
   }
 
-  const rebate = computeRebate({
+  const rebate = isChinaImport(taxProfile) ? noExportRebate(taxProfile.export.rebate) : computeRebate({
     profile: taxProfile.export.rebate,
-    seller_goods_cost_base: sellerGoodsCostBase,
+    // 旧模式必填采购成本；中国模式已走noExportRebate，不会进入此分支。
+    seller_goods_cost_base: sellerGoodsCostBase!,
     quote_amount_base: quoteAmountBase,
     post_shipment_included_base: postShipmentIncludedBase,
     pre_shipment_excluded_base: preShipmentExcludedBase,
@@ -286,6 +326,7 @@ export function analyze(input: AnalysisInput): AnalysisResult {
     items: allItems,
     included_cost_ids: scenario.quote.included_cost_ids,
     quote_amount_base: quoteAmountBase,
+    ...(isChinaImport(taxProfile) ? { goods_value_base: goodsValueBase } : {}),
     amountBaseOf,
     responsibilityOf: (costId) => decisions.get(costId)?.responsibility ?? 'CONDITIONAL',
   });
@@ -320,7 +361,14 @@ export function analyze(input: AnalysisInput): AnalysisResult {
   warnings.push(...aggregated.warnings);
 
   // 步骤 10：风险转移
-  const risk = resolveRisk(scenario.incoterm);
+  const risk = resolveRisk(scenario.incoterm, scenario.facts);
+  if (risk.needs_confirmation) {
+    warnings.push({
+      code: 'FCA_DELIVERY_UNCONFIRMED',
+      level: 'WARN',
+      message: 'FCA交货地点未确认，请选择卖方场所或其他指定地点并核对交货条件；该方案仅供参考，暂不参与排名',
+    });
+  }
 
   // 步骤 11：其余业务告警
   for (const decision of decisions.values()) {
@@ -345,11 +393,11 @@ export function analyze(input: AnalysisInput): AnalysisResult {
   if ((scenario.incoterm === 'CIF' || scenario.incoterm === 'CIP') && !hasInsuranceItem(trade)) {    warnings.push({
       code: 'INSURANCE_REQUIRED_MISSING',
       level: 'WARN',
-      message: `${scenario.incoterm} 下卖方负有投保义务（保额不低于合同价 110%），但费用清单中没有保险费项，卖方成本与利润会被高估`,
+      message: `${scenario.incoterm}默认要求卖方投保（${scenario.incoterm === 'CIF' ? 'Institute Cargo Clauses (C)' : 'Institute Cargo Clauses (A)'}或等效条款，保额至少合同价110%），当前未单列保险费，成本与利润可能不完整；请核对是否已含在其他费用及合同约定。录入保费不代表保单保障已核实`,
     });
   }
 
-  // 承运人原因与不可抗力产生的费用先按术语归属垫付，再向承运人索赔
+  // 先按现有费用规则测算；是否有追偿权必须另核合同、事实与证据。
   const claimable = trade.items.filter(
     (item) => item.occurrence_reason === 'CARRIER_FAULT' || item.occurrence_reason === 'FORCE_MAJEURE',
   );
@@ -359,12 +407,12 @@ export function analyze(input: AnalysisInput): AnalysisResult {
       level: 'INFO',
       message: `以下费用因承运人原因或不可抗力产生（${claimable
         .map((item) => item.cost_name)
-        .join('、')}）：先按术语归属由承担方垫付，可向承运人索赔或另行协商`,
+        .join('、')}）：当前按费用规则测算承担方；追偿或分担须另核运输合同、原因和证据，本工具不判定承运人赔偿责任`,
     });
   }
 
   // 海关汇率按月锁定，出口日期不在任何一本海关汇率簿的有效期内时提示
-  if (trade.export_date !== undefined && fxBooks.some((book) => book.type === 'CUSTOMS')) {
+  if (!isChinaImport(taxProfile) && trade.export_date !== undefined && fxBooks.some((book) => book.type === 'CUSTOMS')) {
     const covered = fxBooks.some(
       (book) =>
         book.type === 'CUSTOMS' &&
@@ -388,6 +436,12 @@ export function analyze(input: AnalysisInput): AnalysisResult {
     const fx = fxByCostId.get(item.cost_id) ?? null;
     const responsibility = decision?.responsibility ?? 'CONDITIONAL';
     return {
+      responsibility_trace: decision?.trace ?? [],
+      included_in_quote: isIncludedInQuote(item),
+      inclusion_basis: scenario.quote.included_cost_ids.length ? 'DECLARED_LIST' : 'ITEM_FLAG',
+      calculations: taxAmounts.has(item.cost_id)
+        ? (importTax.calculations ?? []).filter(step => step.id === (item.cost_id === DEFAULT_DERIVED_TAX_IDS.duty ? 'duty' : item.cost_id === DEFAULT_DERIVED_TAX_IDS.vat ? 'vat' : 'consumption'))
+        : graph.calculations(item.cost_id),
       item,
       gross_amount: taxAmounts.has(item.cost_id) ? baseAmount : graph.grossOriginal(item.cost_id),
       base_amount: baseAmount,
@@ -404,17 +458,55 @@ export function analyze(input: AnalysisInput): AnalysisResult {
     };
   });
 
+  const reviewed = reviewLogistics(assessContract(assessDecision({
+      taxProfile, taxKey: trade.goods.tax_key, goodsPriceBasis: trade.goods.trade_value_basis,
+      ...(trade.route !== undefined ? { route: trade.route } : {}), items, warnings,
+      customsComponents: dutiableComponents, commercialFx: [...commercialFx, ...fxByCostId.values()],
+      totals: [...(aggregated.seller.margin === null ? [] : [aggregated.seller.margin]), aggregated.buyer.landed_cost_with_tax, importTax.duty, importTax.vat, importTax.consumption_tax],
+    }), input.trade, trade.items.map(item => item.cost_id), scenario, warnings), input.trade, scenario, trade.items.map(item => item.cost_id), risk);
+  const linkReview=scenario.transport_cost_links?reviewTransportCostLinks(input.trade,scenario.transport_cost_link_basis??scenario,scenario.transport_cost_links):undefined;
+  if(linkReview&&(!linkReview.reference_checks_passed||linkReview.review_required||(scenario.transport_cost_link_basis&&scenario.transport_cost_link_basis.incoterm!==scenario.incoterm))){
+    reviewed.decision.ready=false;reviewed.decision.issues.push('运输费用关联尚未完成或有重叠候选：仅保留参考金额，请核对范围、来源及包含关系');
+  }
   return {
+    ...(linkReview?{transport_cost_links:linkReview}:{}),
+    explanation_version: '1.0',
+    calculations: [
+      { id: 'customs', label: '完税价格与海关换算', steps: [
+        ...dutiableComponents.flatMap(component => component.calculation ? [component.calculation] : []),
+        { id: 'dutiable-total', label: '完税价格合计', formula: '本次实际入选计税组成之和', substitution: dutiableComponents.map(c => c.amount.toString()).join(' + ') || '0', value: dutiableValue,
+          note: '计税口径独立于商业费用承担和报价内含；不是全部费用之和。保额不是保费，不加入税基。' },
+      ] },
+      { id: 'import-tax', label: '进口税额', steps: importTax.calculations ?? [] },
+      { id: 'rebate', label: '出口退税与资金占用', steps: rebate.calculations ?? [] },
+      { id: 'totals', label: '利润与买方支付', steps: [
+        { id: 'quote', label: '核算报价', formula: '原币报价 × 商业解析汇率', substitution: `${scenario.quote.amount} × ${quoteFx.rate}`, value: quoteAmountBase,
+          note: `${scenario.quote.currency}→${base}，来源 ${quoteFx.source}；簿 ${quoteFx.book_id ?? '无'}；结果保留6位小数。` },
+        { id: 'goods-cost', label: '核算采购成本', formula: sellerCostUnknown ? '采购成本未知，不以0替代' : '采购金额 × 商业解析汇率', substitution: sellerCostUnknown ? '未填写' : `${trade.goods.seller_goods_cost.amount} × ${priceLevelFx.get(trade.goods.seller_goods_cost.currency)?.rate ?? '1'}`, value: sellerGoodsCostBase,
+          note: `${trade.goods.seller_goods_cost.currency}→${base}；来源 ${priceLevelFx.get(trade.goods.seller_goods_cost.currency)?.source ?? '同币种'}；结果保留6位小数。` },
+        ...(['SELLER', 'BUYER'] as const).map(side => ({ id: side === 'SELLER' ? 'seller-fees' : 'buyer-fees', label: side === 'SELLER' ? '卖方承担费用' : '买方报价外费用', formula: '只加总逐项汇总标记为计入的费用',
+          substitution: items.filter(i => side === 'SELLER' ? i.counts_to_seller : i.counts_to_buyer).map(i => `${i.item.cost_id}: ${i.base_amount}`).join(' + ') || '0', value: side === 'SELLER' ? aggregated.seller.cost_total : aggregated.buyer.additional_cost_total })),
+        { id: 'profit-before-rebate', label: '不含退税利润', formula: '核算报价 − 卖方承担费用 − 核算采购成本', substitution: `${quoteAmountBase} − ${aggregated.seller.cost_total} − ${sellerGoodsCostBase ?? '未知'}`, value: aggregated.seller.margin_ex_rebate },
+        { id: 'profit', label: '模型利润', formula: '不含退税利润 + 退税 − 退税资金占用', substitution: `${aggregated.seller.margin_ex_rebate ?? '未知'} + ${rebate.rebate_total} − ${rebate.lag_cost}`, value: aggregated.seller.margin },
+        { id: 'buyer-total', label: '买方总支付', formula: '核算报价 + 买方报价外费用', substitution: `${quoteAmountBase} + ${aggregated.buyer.additional_cost_total}`, value: aggregated.buyer.landed_cost_with_tax },
+        { id: 'buyer-net', label: '不含可抵扣税落地成本', formula: '买方总支付 − 买方承担且可抵扣的进口增值税', substitution: `${aggregated.buyer.landed_cost_with_tax} − ${aggregated.buyer.deductible_vat}`, value: aggregated.buyer.landed_cost_ex_deductible,
+          note: 'DDP卖方承担的进口增值税不作为买方抵扣额；可抵扣标记仍须用户核实资格。' },
+      ] },
+    ],
+    decision: reviewed.decision,
+    logistics: reviewed.logistics,
+    rule_set: { id: ruleSet.id, version: ruleSet.version },
     scenario_id: scenario.id,
     incoterm: scenario.incoterm,
     base_currency: base,
     items,
+    inactive_items: selected.inactive,
     seller: aggregated.seller,
     buyer: aggregated.buyer,
     rebate,
     import_tax: importTax,
     dutiable_value: { value: dutiableValue, components: dutiableComponents },
-    risk,
+    risk: reviewed.risk,
     conflicts: inclusion.conflicts,
     warnings,
   };

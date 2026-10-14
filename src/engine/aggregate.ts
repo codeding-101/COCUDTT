@@ -27,7 +27,7 @@ export interface AggregateInput {
   ) => { responsibility: Responsibility; source: string; confidence: string; note: string } | undefined;
   quote_amount_base: Decimal;
   /** 卖方采购含税成本 / 生产成本（核算币种） */
-  seller_goods_cost_base: Decimal;
+  seller_goods_cost_base: Decimal | null;
   rebate: RebateResult;
   /** 买方进口增值税是否可抵扣，决定落地成本的不含税口径 */
   vat_deductible_for_buyer: boolean;
@@ -38,14 +38,14 @@ export interface SellerSummary {
   revenue: Decimal;
   cost_total: Decimal;
   cost_by_category: Partial<Record<CostCategory, Decimal>>;
-  goods_cost: Decimal;
+  goods_cost: Decimal | null;
   rebate_total: Decimal;
   non_refundable_vat: Decimal;
   rebate_lag_cost: Decimal;
   /** 含出口退税的利润 */
-  margin: Decimal;
+  margin: Decimal | null;
   /** 不含出口退税的利润，用于看利润对退税的依赖度 */
-  margin_ex_rebate: Decimal;
+  margin_ex_rebate: Decimal | null;
 }
 
 export interface BuyerSummary {
@@ -123,10 +123,10 @@ export function aggregate(input: AggregateInput): AggregateResult {
   const landedExDeductible = sub(landedWithTax, deductibleVatAmount);
 
   const rebateTotal = input.rebate.rebate_total;
-  const marginExRebate = sub(sub(input.quote_amount_base, costTotal), input.seller_goods_cost_base);
-  const margin = sub(add(marginExRebate, rebateTotal), input.rebate.lag_cost);
+  const marginExRebate = input.seller_goods_cost_base === null ? null : sub(sub(input.quote_amount_base, costTotal), input.seller_goods_cost_base);
+  const margin = marginExRebate === null ? null : sub(add(marginExRebate, rebateTotal), input.rebate.lag_cost);
 
-  if (!rebateTotal.isZero()) {
+  if (margin !== null && !rebateTotal.isZero()) {
     if (margin.isNegative()) {
       warnings.push({
         code: 'REBATE_DRIVES_MARGIN',

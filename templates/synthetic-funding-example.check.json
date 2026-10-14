@@ -1,0 +1,59 @@
+{
+  "kind": "SYNTHETIC_FUNDING_CHECK_RECORD",
+  "version": "1.0",
+  "synthetic": true,
+  "generated_at": "2026-10-13T00:00:00Z",
+  "files": {
+    "project": "synthetic-funding-example.project.json",
+    "plan": "synthetic-funding-example.plan.json",
+    "record": "synthetic-funding-example.check.json",
+    "guide": "synthetic-funding-example.guide.html"
+  },
+  "project_version": "0.8",
+  "plan_version": "1.2",
+  "purpose": "合成手算核对记录，不是内部报告、项目或付款文件，不可导入。",
+  "expected": {
+    "currency": "USD",
+    "opening_principal": "12000",
+    "closing_principal": "10000",
+    "annual_rate_percent": "6",
+    "denominator": 360,
+    "days": 30,
+    "principal_days": "300000",
+    "cost": "50",
+    "formula": "(12000 × 10 + 8000 × 10 + 10000 × 10) × 6 ÷ 100 ÷ 360 = 50",
+    "segments": [
+      {
+        "start_date": "2026-09-01",
+        "end_date": "2026-09-11",
+        "principal": "12000",
+        "days": 10,
+        "principal_days": "120000",
+        "cost_exact": "20"
+      },
+      {
+        "start_date": "2026-09-11",
+        "end_date": "2026-09-21",
+        "principal": "8000",
+        "days": 10,
+        "principal_days": "80000",
+        "cost_exact": "40/3"
+      },
+      {
+        "start_date": "2026-09-21",
+        "end_date": "2026-10-01",
+        "principal": "10000",
+        "days": 10,
+        "principal_days": "100000",
+        "cost_exact": "50/3"
+      }
+    ]
+  },
+  "notes": [
+    "每段含起日、不含止日，事件当天计息前生效；不按每月30天。",
+    "成本分数与小数表示同一合成算术值；合计先汇总本金×天数。",
+    "只提供CIF合成报价，其余术语缺报价，不作为完整方案排名。",
+    "来源仍为EXAMPLE，不是业务核对或税则、汇率、银行合同认证。",
+    "独立保存项目与付款计划；HTML/Excel/核对记录不能替代可导入JSON。"
+  ]
+}

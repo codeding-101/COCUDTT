@@ -5,6 +5,7 @@ import type { DateStr, RebateEntityType } from '../../domain/enums.js';
 import type { RebateProfile } from '../../domain/rebate.js';
 import { lookupRate } from '../../domain/rate-table.js';
 import type { Warning } from '../../domain/warning.js';
+import type { CalculationStep } from '../calculation.js';
 
 export interface RebateInput {
   profile: RebateProfile;
@@ -18,11 +19,14 @@ export interface RebateInput {
   pre_shipment_excluded_base: Decimal;
   taxKey?: string;
   export_date?: DateStr;
-  /** 当前日期，用于申报期限提示 */
+  /** 兼容已有调用；仅凭当前日期不判断退税申报或收汇是否逾期。 */
   today?: DateStr;
 }
 
 export interface RebateResult {
+  calculations?: CalculationStep[];
+  /** 中国进口场景不适用中国出口退税，区别于适用但金额为零。 */
+  applicable?: boolean;
   entity_type: RebateEntityType;
   /** 由成交价还原的离岸价 */
   fob_value: Decimal;
@@ -44,10 +48,41 @@ export interface RebateResult {
   warnings: Warning[];
 }
 
-/** 出口退税申报期限：次年 4 月增值税纳税申报期截止，此处按 4 月 30 日近似 */
-function declarationDeadline(exportDate: DateStr): DateStr {
-  const year = Number(exportDate.slice(0, 4)) + 1;
-  return `${year}-04-30`;
+export function noExportRebate(profile: RebateProfile): RebateResult {
+  return {
+    calculations: [{ id: 'not-applicable', label: '中国出口退税', formula: '中国进口场景不适用', substitution: '境外卖方本国税务未建模', value: null }],
+    applicable: false, entity_type: profile.entityType, fob_value: d(0), basis: d(0),
+    basis_rule: '中国进口场景不适用中国出口退税；境外卖方本国税务未建模',
+    rebate_rate: d(0), vat_rate: d(0), vat_rebate: d(0), consumption_tax_rebate: d(0),
+    rebate_total: d(0), theoretical_rebate: d(0), non_refundable_vat: d(0),
+    is_capped_by_credit: false, lag_cost: d(0), warnings: [],
+  };
+}
+
+/**
+ * 期限核对提示，不是税务机关的逾期或征税认定。
+ * 财政部、税务总局公告2026年第11号九（一）4、十：2026年起新增36个月规则，
+ * 2025-12-31及以前出口业务按原政策过渡。申报期、出口类型、凭证和收汇状态均未建模，
+ * 因此不再用次年4月30日的近似日期推定逾期或视同内销。
+ * https://szs.mof.gov.cn/zhengcefabu/202601/t20260131_3983038.htm
+ */
+function declarationReview(exportDate?: DateStr): Warning {
+  const validDate = exportDate !== undefined && /^\d{4}-\d{2}-\d{2}$/.test(exportDate)
+    && !Number.isNaN(Date.parse(exportDate))
+    && new Date(exportDate).toISOString().slice(0, 10) === exportDate;
+  let rule: string;
+  if (!validDate) {
+    rule = '缺少有效出口日期，无法区分旧业务过渡与2026年起的规则';
+  } else if (exportDate !== undefined && compareDate(exportDate, '2026-01-01') < 0) {
+    rule = '录入日期在2025年12月31日及以前；财政部、税务总局公告2026年第11号规定此类出口业务仍按原政策执行，不适用新增36个月期限未申报视同向境内销售的规定';
+  } else {
+    rule = '2026年起的业务需按财政部、税务总局公告2026年第11号核对；普通报关出口货物涉及次月起至次年4月30日前的各增值税纳税申报期、收汇及36个月期限规则';
+  }
+  return {
+    code: 'REBATE_DEADLINE',
+    level: 'WARN',
+    message: `出口退（免）税申报与收汇期限需核对：${rule}。本工具未录入出口类型、实际申报、凭证及收汇状态，不判定是否逾期或应按境内销售征税；请向主管税务机关核实，测算金额不等于可取得的退税款`,
+  };
 }
 
 /**
@@ -85,6 +120,7 @@ export function restoreFobValue(input: RebateInput): { fob: Decimal; warnings: W
  */
 export function computeRebate(input: RebateInput): RebateResult {
   const warnings: Warning[] = [];
+  const calculations: CalculationStep[] = [];
   const profile = input.profile;
 
   const vatRate = q(lookupRate(profile.vatRates, input.taxKey));
@@ -92,6 +128,9 @@ export function computeRebate(input: RebateInput): RebateResult {
 
   const { fob, warnings: fobWarnings } = restoreFobValue(input);
   warnings.push(...fobWarnings);
+  calculations.push({ id: 'fob', label: '模型离岸价还原', formula: 'max(0, 报价 − 报价已含装船后费用 + 报价未含装船前费用)',
+    substitution: `max(0, ${input.quote_amount_base} − ${input.post_shipment_included_base} + ${input.pre_shipment_excluded_base})`, value: fob,
+    note: '按现有粗粒度贸易节点还原；非海运/多式联运及实际申报离岸价须人工复核，不从运输分段自动推导。' });
 
   const isTrading = profile.entityType === 'TRADING';
 
@@ -129,6 +168,16 @@ export function computeRebate(input: RebateInput): RebateResult {
     consumptionRebateRate === undefined ? d(0) : mul(basis, consumptionRebateRate);
 
   const rebateTotal = add(vatRebate, consumptionTaxRebate);
+  calculations.push({ id: 'basis', label: '退税计税依据', formula: isTrading ? '采购含税成本 ÷ (1 + 征税率)' : '模型还原离岸价',
+    substitution: isTrading ? `${input.seller_goods_cost_base} ÷ (1 + ${vatRate})` : `${fob}`, value: basis, note: basisRule });
+  calculations.push({ id: 'theoretical-vat', label: '理论增值税退税', formula: '退税计税依据 × 退税率', substitution: `${basis} × ${rebateRate}`, value: vatRebateTheoretical });
+  calculations.push({ id: 'vat-rebate', label: '模型增值税退税', formula: !isTrading && credit !== undefined ? 'min(理论增值税退税, 期末留抵税额)' : '理论增值税退税（本模型未另设上限）',
+    substitution: !isTrading && credit !== undefined ? `min(${vatRebateTheoretical}, ${credit})` : `${vatRebateTheoretical}`, value: vatRebate,
+    note: '简化测算，未覆盖全部免抵退抵减、凭证和申报条件，不等于可取得的退税款。' });
+  calculations.push({ id: 'consumption-rebate', label: '模型消费税退税', formula: '计税依据 × 录入消费税退税率', substitution: consumptionRebateRate === undefined ? '未配置，按0计' : `${basis} × ${consumptionRebateRate}`, value: consumptionTaxRebate });
+  calculations.push({ id: 'rebate-total', label: '退税合计', formula: '模型增值税退税 + 模型消费税退税', substitution: `${vatRebate} + ${consumptionTaxRebate}`, value: rebateTotal });
+  calculations.push({ id: 'non-refundable', label: '征退税率差测算', formula: '依据 × max(0, 征税率 − 退税率)', substitution: `${basis} × max(0, ${vatRate} − ${rebateRate})`, value: nonRefundable,
+    note: '现有采购成本为含税成本；该差额只作提示，不再单独扣一次利润，避免重复计成本。' });
 
   if (isZero(rebateRate)) {
     warnings.push({
@@ -150,18 +199,13 @@ export function computeRebate(input: RebateInput): RebateResult {
     });
   }
 
-  if (input.export_date !== undefined && input.today !== undefined) {
-    const deadline = declarationDeadline(input.export_date);
-    if (compareDate(input.today, deadline) > 0) {
-      warnings.push({
-        code: 'REBATE_DEADLINE',
-        level: 'WARN',
-        message: `出口退税申报期限（${deadline}）已过，逾期未申报可能视同内销征税`,
-      });
-    }
-  }
+  warnings.push(declarationReview(input.export_date));
+  calculations.push({ id: 'lag-cost', label: '退税资金占用', formula: lagDays !== undefined && fundingRate !== undefined && lagDays > 0 ? '退税合计 × 年资金率 × 天数 ÷ 365' : '未启用退税资金占用测算',
+    substitution: lagDays !== undefined && fundingRate !== undefined && lagDays > 0 ? `${rebateTotal} × ${fundingRate} × ${lagDays} ÷ 365` : '按0计', value: lagCost,
+    note: '退税与资金占用中间计算保留6位小数。' });
 
   return {
+    calculations,
     entity_type: profile.entityType,
     fob_value: fob,
     basis,
