@@ -1,0 +1,1109 @@
+{
+  "version": "0.1",
+  "scope": "SYNTHETIC_HAND_CALCULATIONS",
+  "checked_on": "2026-10-14",
+  "note": "预期为固定十进制手算文字，生成此文件未调用计算模块；不是可导入项目/真实费率。",
+  "cases": [
+    {
+      "id": "basic",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "basic",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "40HC (synthetic)",
+            "container_ids": [
+              "BOX-A"
+            ],
+            "currency": "USD",
+            "reference": "合成手算条件；不是承运人价目表",
+            "charge_kind": "DEMURRAGE",
+            "mode": "DAILY",
+            "period": {
+              "start_date": "2026-10-01",
+              "end_date": "2026-10-05",
+              "start_included": true,
+              "end_included": true,
+              "start_event": "人工指定计期起点",
+              "end_event": "人工指定计期终点"
+            },
+            "daily": {
+              "free_day_basis": "CALENDAR_DAYS",
+              "charge_day_basis": "CALENDAR_DAYS",
+              "free_days": 2,
+              "tier_mode": "MARGINAL",
+              "tier_basis": "AFTER_FREE_TIME",
+              "tiers": [
+                {
+                  "through_day": null,
+                  "rate": "10"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": 5,
+        "consumed_free_days": 2,
+        "billable_days": 3,
+        "per_container_amount": "30",
+        "amount": "30"
+      },
+      "hand": "(5-2)×10×1=30"
+    },
+    {
+      "id": "all-free",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "all-free",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "40HC (synthetic)",
+            "container_ids": [
+              "BOX-A"
+            ],
+            "currency": "USD",
+            "reference": "合成手算条件；不是承运人价目表",
+            "charge_kind": "DEMURRAGE",
+            "mode": "DAILY",
+            "period": {
+              "start_date": "2026-10-01",
+              "end_date": "2026-10-05",
+              "start_included": true,
+              "end_included": true,
+              "start_event": "人工指定计期起点",
+              "end_event": "人工指定计期终点"
+            },
+            "daily": {
+              "free_day_basis": "CALENDAR_DAYS",
+              "charge_day_basis": "CALENDAR_DAYS",
+              "free_days": 7,
+              "tier_mode": "MARGINAL",
+              "tier_basis": "AFTER_FREE_TIME",
+              "tiers": [
+                {
+                  "through_day": null,
+                  "rate": "10"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": 5,
+        "consumed_free_days": 5,
+        "billable_days": 0,
+        "per_container_amount": "0",
+        "amount": "0",
+        "unused_free_days": 2
+      },
+      "hand": "5天均免费，7-5=2天未用；金额0"
+    },
+    {
+      "id": "zero-free",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "zero-free",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "40HC (synthetic)",
+            "container_ids": [
+              "BOX-A"
+            ],
+            "currency": "USD",
+            "reference": "合成手算条件；不是承运人价目表",
+            "charge_kind": "DEMURRAGE",
+            "mode": "DAILY",
+            "period": {
+              "start_date": "2026-10-01",
+              "end_date": "2026-10-05",
+              "start_included": true,
+              "end_included": true,
+              "start_event": "人工指定计期起点",
+              "end_event": "人工指定计期终点"
+            },
+            "daily": {
+              "free_day_basis": "CALENDAR_DAYS",
+              "charge_day_basis": "CALENDAR_DAYS",
+              "free_days": 0,
+              "tier_mode": "MARGINAL",
+              "tier_basis": "AFTER_FREE_TIME",
+              "tiers": [
+                {
+                  "through_day": null,
+                  "rate": "10"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": 5,
+        "consumed_free_days": 0,
+        "billable_days": 5,
+        "per_container_amount": "50",
+        "amount": "50"
+      },
+      "hand": "5×10=50"
+    },
+    {
+      "id": "same-true-true",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "same-true-true",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "40HC (synthetic)",
+            "container_ids": [
+              "BOX-A"
+            ],
+            "currency": "USD",
+            "reference": "合成手算条件；不是承运人价目表",
+            "charge_kind": "DEMURRAGE",
+            "mode": "DAILY",
+            "period": {
+              "start_date": "2026-10-01",
+              "end_date": "2026-10-01",
+              "start_included": true,
+              "end_included": true,
+              "start_event": "人工指定计期起点",
+              "end_event": "人工指定计期终点"
+            },
+            "daily": {
+              "free_day_basis": "CALENDAR_DAYS",
+              "charge_day_basis": "CALENDAR_DAYS",
+              "free_days": 0,
+              "tier_mode": "MARGINAL",
+              "tier_basis": "AFTER_FREE_TIME",
+              "tiers": [
+                {
+                  "through_day": null,
+                  "rate": "10"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": 1,
+        "consumed_free_days": 0,
+        "billable_days": 1,
+        "per_container_amount": "10",
+        "amount": "10"
+      },
+      "hand": "同日两端计入=1天，1×10=10"
+    },
+    {
+      "id": "same-true-false",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "same-true-false",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "40HC (synthetic)",
+            "container_ids": [
+              "BOX-A"
+            ],
+            "currency": "USD",
+            "reference": "合成手算条件；不是承运人价目表",
+            "charge_kind": "DEMURRAGE",
+            "mode": "DAILY",
+            "period": {
+              "start_date": "2026-10-01",
+              "end_date": "2026-10-01",
+              "start_included": true,
+              "end_included": false,
+              "start_event": "人工指定计期起点",
+              "end_event": "人工指定计期终点"
+            },
+            "daily": {
+              "free_day_basis": "CALENDAR_DAYS",
+              "charge_day_basis": "CALENDAR_DAYS",
+              "free_days": 0,
+              "tier_mode": "MARGINAL",
+              "tier_basis": "AFTER_FREE_TIME",
+              "tiers": [
+                {
+                  "through_day": null,
+                  "rate": "10"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": 0,
+        "consumed_free_days": 0,
+        "billable_days": 0,
+        "per_container_amount": "0",
+        "amount": "0"
+      },
+      "hand": "同日任一端不计入=0天，金额0"
+    },
+    {
+      "id": "same-false-true",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "same-false-true",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "40HC (synthetic)",
+            "container_ids": [
+              "BOX-A"
+            ],
+            "currency": "USD",
+            "reference": "合成手算条件；不是承运人价目表",
+            "charge_kind": "DEMURRAGE",
+            "mode": "DAILY",
+            "period": {
+              "start_date": "2026-10-01",
+              "end_date": "2026-10-01",
+              "start_included": false,
+              "end_included": true,
+              "start_event": "人工指定计期起点",
+              "end_event": "人工指定计期终点"
+            },
+            "daily": {
+              "free_day_basis": "CALENDAR_DAYS",
+              "charge_day_basis": "CALENDAR_DAYS",
+              "free_days": 0,
+              "tier_mode": "MARGINAL",
+              "tier_basis": "AFTER_FREE_TIME",
+              "tiers": [
+                {
+                  "through_day": null,
+                  "rate": "10"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": 0,
+        "consumed_free_days": 0,
+        "billable_days": 0,
+        "per_container_amount": "0",
+        "amount": "0"
+      },
+      "hand": "同日任一端不计入=0天，金额0"
+    },
+    {
+      "id": "same-false-false",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "same-false-false",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "40HC (synthetic)",
+            "container_ids": [
+              "BOX-A"
+            ],
+            "currency": "USD",
+            "reference": "合成手算条件；不是承运人价目表",
+            "charge_kind": "DEMURRAGE",
+            "mode": "DAILY",
+            "period": {
+              "start_date": "2026-10-01",
+              "end_date": "2026-10-01",
+              "start_included": false,
+              "end_included": false,
+              "start_event": "人工指定计期起点",
+              "end_event": "人工指定计期终点"
+            },
+            "daily": {
+              "free_day_basis": "CALENDAR_DAYS",
+              "charge_day_basis": "CALENDAR_DAYS",
+              "free_days": 0,
+              "tier_mode": "MARGINAL",
+              "tier_basis": "AFTER_FREE_TIME",
+              "tiers": [
+                {
+                  "through_day": null,
+                  "rate": "10"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": 0,
+        "consumed_free_days": 0,
+        "billable_days": 0,
+        "per_container_amount": "0",
+        "amount": "0"
+      },
+      "hand": "同日任一端不计入=0天，金额0"
+    },
+    {
+      "id": "cross-month",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "cross-month",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "40HC (synthetic)",
+            "container_ids": [
+              "BOX-A"
+            ],
+            "currency": "USD",
+            "reference": "合成手算条件；不是承运人价目表",
+            "charge_kind": "DEMURRAGE",
+            "mode": "DAILY",
+            "period": {
+              "start_date": "2026-09-29",
+              "end_date": "2026-10-03",
+              "start_included": true,
+              "end_included": true,
+              "start_event": "人工指定计期起点",
+              "end_event": "人工指定计期终点"
+            },
+            "daily": {
+              "free_day_basis": "CALENDAR_DAYS",
+              "charge_day_basis": "CALENDAR_DAYS",
+              "free_days": 2,
+              "tier_mode": "MARGINAL",
+              "tier_basis": "AFTER_FREE_TIME",
+              "tiers": [
+                {
+                  "through_day": null,
+                  "rate": "10"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": 5,
+        "consumed_free_days": 2,
+        "billable_days": 3,
+        "per_container_amount": "30",
+        "amount": "30"
+      },
+      "hand": "9/29、30免费，10/1、2、3收费3×10=30"
+    },
+    {
+      "id": "leap-day",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "leap-day",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "40HC (synthetic)",
+            "container_ids": [
+              "BOX-A"
+            ],
+            "currency": "USD",
+            "reference": "合成手算条件；不是承运人价目表",
+            "charge_kind": "DEMURRAGE",
+            "mode": "DAILY",
+            "period": {
+              "start_date": "2024-02-28",
+              "end_date": "2024-03-01",
+              "start_included": true,
+              "end_included": true,
+              "start_event": "人工指定计期起点",
+              "end_event": "人工指定计期终点"
+            },
+            "daily": {
+              "free_day_basis": "CALENDAR_DAYS",
+              "charge_day_basis": "CALENDAR_DAYS",
+              "free_days": 1,
+              "tier_mode": "MARGINAL",
+              "tier_basis": "AFTER_FREE_TIME",
+              "tiers": [
+                {
+                  "through_day": null,
+                  "rate": "10"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": 3,
+        "consumed_free_days": 1,
+        "billable_days": 2,
+        "per_container_amount": "20",
+        "amount": "20"
+      },
+      "hand": "2/28免费，2/29与3/1收费2×10=20"
+    },
+    {
+      "id": "cross-year",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "cross-year",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "40HC (synthetic)",
+            "container_ids": [
+              "BOX-A"
+            ],
+            "currency": "USD",
+            "reference": "合成手算条件；不是承运人价目表",
+            "charge_kind": "DEMURRAGE",
+            "mode": "DAILY",
+            "period": {
+              "start_date": "2025-12-30",
+              "end_date": "2026-01-02",
+              "start_included": true,
+              "end_included": true,
+              "start_event": "人工指定计期起点",
+              "end_event": "人工指定计期终点"
+            },
+            "daily": {
+              "free_day_basis": "CALENDAR_DAYS",
+              "charge_day_basis": "CALENDAR_DAYS",
+              "free_days": 1,
+              "tier_mode": "MARGINAL",
+              "tier_basis": "AFTER_FREE_TIME",
+              "tiers": [
+                {
+                  "through_day": null,
+                  "rate": "10"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": 4,
+        "consumed_free_days": 1,
+        "billable_days": 3,
+        "per_container_amount": "30",
+        "amount": "30"
+      },
+      "hand": "12/30免费，其余3天×10=30"
+    },
+    {
+      "id": "exclude-both",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "exclude-both",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "40HC (synthetic)",
+            "container_ids": [
+              "BOX-A"
+            ],
+            "currency": "USD",
+            "reference": "合成手算条件；不是承运人价目表",
+            "charge_kind": "DEMURRAGE",
+            "mode": "DAILY",
+            "period": {
+              "start_date": "2026-10-01",
+              "end_date": "2026-10-05",
+              "start_included": false,
+              "end_included": false,
+              "start_event": "人工指定计期起点",
+              "end_event": "人工指定计期终点"
+            },
+            "daily": {
+              "free_day_basis": "CALENDAR_DAYS",
+              "charge_day_basis": "CALENDAR_DAYS",
+              "free_days": 0,
+              "tier_mode": "MARGINAL",
+              "tier_basis": "AFTER_FREE_TIME",
+              "tiers": [
+                {
+                  "through_day": null,
+                  "rate": "10"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": 3,
+        "consumed_free_days": 0,
+        "billable_days": 3,
+        "per_container_amount": "30",
+        "amount": "30"
+      },
+      "hand": "仅10/2、3、4=3天"
+    },
+    {
+      "id": "tiers-AFTER_FREE_TIME",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "tiers-AFTER_FREE_TIME",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "40HC (synthetic)",
+            "container_ids": [
+              "BOX-A",
+              "BOX-B"
+            ],
+            "currency": "USD",
+            "reference": "合成手算条件；不是承运人价目表",
+            "charge_kind": "DEMURRAGE",
+            "mode": "DAILY",
+            "period": {
+              "start_date": "2026-10-01",
+              "end_date": "2026-10-08",
+              "start_included": true,
+              "end_included": true,
+              "start_event": "人工指定计期起点",
+              "end_event": "人工指定计期终点"
+            },
+            "daily": {
+              "free_day_basis": "CALENDAR_DAYS",
+              "charge_day_basis": "CALENDAR_DAYS",
+              "free_days": 2,
+              "tier_mode": "MARGINAL",
+              "tier_basis": "AFTER_FREE_TIME",
+              "tiers": [
+                {
+                  "through_day": 2,
+                  "rate": "10"
+                },
+                {
+                  "through_day": 4,
+                  "rate": "20"
+                },
+                {
+                  "through_day": null,
+                  "rate": "30"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": 8,
+        "consumed_free_days": 2,
+        "billable_days": 6,
+        "per_container_amount": "120",
+        "amount": "240"
+      },
+      "hand": "每箱2×10+2×20+2×30=120；2箱240"
+    },
+    {
+      "id": "tiers-FROM_PERIOD_START",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "tiers-FROM_PERIOD_START",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "40HC (synthetic)",
+            "container_ids": [
+              "BOX-A",
+              "BOX-B"
+            ],
+            "currency": "USD",
+            "reference": "合成手算条件；不是承运人价目表",
+            "charge_kind": "DEMURRAGE",
+            "mode": "DAILY",
+            "period": {
+              "start_date": "2026-10-01",
+              "end_date": "2026-10-08",
+              "start_included": true,
+              "end_included": true,
+              "start_event": "人工指定计期起点",
+              "end_event": "人工指定计期终点"
+            },
+            "daily": {
+              "free_day_basis": "CALENDAR_DAYS",
+              "charge_day_basis": "CALENDAR_DAYS",
+              "free_days": 2,
+              "tier_mode": "MARGINAL",
+              "tier_basis": "FROM_PERIOD_START",
+              "tiers": [
+                {
+                  "through_day": 2,
+                  "rate": "10"
+                },
+                {
+                  "through_day": 4,
+                  "rate": "20"
+                },
+                {
+                  "through_day": null,
+                  "rate": "30"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": 8,
+        "consumed_free_days": 2,
+        "billable_days": 6,
+        "per_container_amount": "160",
+        "amount": "320"
+      },
+      "hand": "期间第3、4日2×20，第5–8日4×30=160；2箱320"
+    },
+    {
+      "id": "tier-boundary",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "tier-boundary",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "40HC (synthetic)",
+            "container_ids": [
+              "BOX-A"
+            ],
+            "currency": "USD",
+            "reference": "合成手算条件；不是承运人价目表",
+            "charge_kind": "DEMURRAGE",
+            "mode": "DAILY",
+            "period": {
+              "start_date": "2026-10-01",
+              "end_date": "2026-10-05",
+              "start_included": true,
+              "end_included": true,
+              "start_event": "人工指定计期起点",
+              "end_event": "人工指定计期终点"
+            },
+            "daily": {
+              "free_day_basis": "CALENDAR_DAYS",
+              "charge_day_basis": "CALENDAR_DAYS",
+              "free_days": 0,
+              "tier_mode": "MARGINAL",
+              "tier_basis": "AFTER_FREE_TIME",
+              "tiers": [
+                {
+                  "through_day": 5,
+                  "rate": "7.25"
+                },
+                {
+                  "through_day": null,
+                  "rate": "99"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": 5,
+        "consumed_free_days": 0,
+        "billable_days": 5,
+        "per_container_amount": "36.25",
+        "amount": "36.25"
+      },
+      "hand": "截至第5日仍第一阶，5×7.25=36.25"
+    },
+    {
+      "id": "decreasing-tier",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "decreasing-tier",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "40HC (synthetic)",
+            "container_ids": [
+              "BOX-A"
+            ],
+            "currency": "USD",
+            "reference": "合成手算条件；不是承运人价目表",
+            "charge_kind": "DEMURRAGE",
+            "mode": "DAILY",
+            "period": {
+              "start_date": "2026-10-01",
+              "end_date": "2026-10-05",
+              "start_included": true,
+              "end_included": true,
+              "start_event": "人工指定计期起点",
+              "end_event": "人工指定计期终点"
+            },
+            "daily": {
+              "free_day_basis": "CALENDAR_DAYS",
+              "charge_day_basis": "CALENDAR_DAYS",
+              "free_days": 0,
+              "tier_mode": "MARGINAL",
+              "tier_basis": "AFTER_FREE_TIME",
+              "tiers": [
+                {
+                  "through_day": 2,
+                  "rate": "20"
+                },
+                {
+                  "through_day": null,
+                  "rate": "5"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": 5,
+        "consumed_free_days": 0,
+        "billable_days": 5,
+        "per_container_amount": "55",
+        "amount": "55"
+      },
+      "hand": "允许下降：2×20+3×5=55；不以末阶追溯"
+    },
+    {
+      "id": "no-automatic-rounding",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "no-automatic-rounding",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "40HC (synthetic)",
+            "container_ids": [
+              "BOX-A",
+              "BOX-B"
+            ],
+            "currency": "USD",
+            "reference": "合成手算条件；不是承运人价目表",
+            "charge_kind": "DEMURRAGE",
+            "mode": "DAILY",
+            "period": {
+              "start_date": "2026-10-01",
+              "end_date": "2026-10-05",
+              "start_included": true,
+              "end_included": true,
+              "start_event": "人工指定计期起点",
+              "end_event": "人工指定计期终点"
+            },
+            "daily": {
+              "free_day_basis": "CALENDAR_DAYS",
+              "charge_day_basis": "CALENDAR_DAYS",
+              "free_days": 0,
+              "tier_mode": "MARGINAL",
+              "tier_basis": "AFTER_FREE_TIME",
+              "tiers": [
+                {
+                  "through_day": null,
+                  "rate": "0.003"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": 5,
+        "consumed_free_days": 0,
+        "billable_days": 5,
+        "per_container_amount": "0.015",
+        "amount": "0.03"
+      },
+      "hand": "每箱5×0.003=0.015；2箱0.03，无逐日两位舍入"
+    },
+    {
+      "id": "eighteen-decimals",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "eighteen-decimals",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "40HC (synthetic)",
+            "container_ids": [
+              "BOX-0",
+              "BOX-1",
+              "BOX-2",
+              "BOX-3",
+              "BOX-4",
+              "BOX-5",
+              "BOX-6",
+              "BOX-7",
+              "BOX-8",
+              "BOX-9",
+              "BOX-10",
+              "BOX-11",
+              "BOX-12",
+              "BOX-13",
+              "BOX-14",
+              "BOX-15",
+              "BOX-16",
+              "BOX-17",
+              "BOX-18",
+              "BOX-19",
+              "BOX-20",
+              "BOX-21",
+              "BOX-22",
+              "BOX-23",
+              "BOX-24",
+              "BOX-25",
+              "BOX-26",
+              "BOX-27",
+              "BOX-28",
+              "BOX-29",
+              "BOX-30",
+              "BOX-31",
+              "BOX-32",
+              "BOX-33",
+              "BOX-34",
+              "BOX-35",
+              "BOX-36",
+              "BOX-37",
+              "BOX-38",
+              "BOX-39",
+              "BOX-40",
+              "BOX-41",
+              "BOX-42",
+              "BOX-43",
+              "BOX-44",
+              "BOX-45",
+              "BOX-46",
+              "BOX-47",
+              "BOX-48",
+              "BOX-49"
+            ],
+            "currency": "USD",
+            "reference": "合成手算条件；不是承运人价目表",
+            "charge_kind": "DEMURRAGE",
+            "mode": "DAILY",
+            "period": {
+              "start_date": "2026-10-01",
+              "end_date": "2026-10-05",
+              "start_included": true,
+              "end_included": true,
+              "start_event": "人工指定计期起点",
+              "end_event": "人工指定计期终点"
+            },
+            "daily": {
+              "free_day_basis": "CALENDAR_DAYS",
+              "charge_day_basis": "CALENDAR_DAYS",
+              "free_days": 2,
+              "tier_mode": "MARGINAL",
+              "tier_basis": "AFTER_FREE_TIME",
+              "tiers": [
+                {
+                  "through_day": null,
+                  "rate": "0.000000000000000001"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": 5,
+        "consumed_free_days": 2,
+        "billable_days": 3,
+        "per_container_amount": "0.000000000000000003",
+        "amount": "0.00000000000000015"
+      },
+      "hand": "3×10^-18×50=150×10^-18；不用六位量化"
+    },
+    {
+      "id": "zero-rate",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "zero-rate",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "40HC (synthetic)",
+            "container_ids": [
+              "BOX-A"
+            ],
+            "currency": "USD",
+            "reference": "合成手算条件；不是承运人价目表",
+            "charge_kind": "DEMURRAGE",
+            "mode": "DAILY",
+            "period": {
+              "start_date": "2026-10-01",
+              "end_date": "2026-10-05",
+              "start_included": true,
+              "end_included": true,
+              "start_event": "人工指定计期起点",
+              "end_event": "人工指定计期终点"
+            },
+            "daily": {
+              "free_day_basis": "CALENDAR_DAYS",
+              "charge_day_basis": "CALENDAR_DAYS",
+              "free_days": 2,
+              "tier_mode": "MARGINAL",
+              "tier_basis": "AFTER_FREE_TIME",
+              "tiers": [
+                {
+                  "through_day": null,
+                  "rate": "0"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": 5,
+        "consumed_free_days": 2,
+        "billable_days": 3,
+        "per_container_amount": "0",
+        "amount": "0"
+      },
+      "hand": "收费天数仍3，明确零费率金额0，不把零率等同免费天数"
+    },
+    {
+      "id": "fixed-THC_ORIGIN",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "fixed-THC_ORIGIN",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "20GP",
+            "container_ids": [
+              "BOX-A",
+              "BOX-B"
+            ],
+            "currency": "CNY",
+            "reference": "合成每箱假设",
+            "charge_kind": "THC_ORIGIN",
+            "mode": "PER_CONTAINER",
+            "rate": "125.125"
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": null,
+        "consumed_free_days": null,
+        "billable_days": null,
+        "per_container_amount": "125.125",
+        "amount": "250.25"
+      },
+      "hand": "125.125×2=250.25 CNY；不假设THC/查验必按箱收"
+    },
+    {
+      "id": "fixed-THC_DESTINATION",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "fixed-THC_DESTINATION",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "20GP",
+            "container_ids": [
+              "BOX-A",
+              "BOX-B"
+            ],
+            "currency": "CNY",
+            "reference": "合成每箱假设",
+            "charge_kind": "THC_DESTINATION",
+            "mode": "PER_CONTAINER",
+            "rate": "125.125"
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": null,
+        "consumed_free_days": null,
+        "billable_days": null,
+        "per_container_amount": "125.125",
+        "amount": "250.25"
+      },
+      "hand": "125.125×2=250.25 CNY；不假设THC/查验必按箱收"
+    },
+    {
+      "id": "fixed-INSPECTION",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "fixed-INSPECTION",
+            "scope_id": "synthetic-import-001",
+            "direction": "IMPORT",
+            "equipment_type": "20GP",
+            "container_ids": [
+              "BOX-A",
+              "BOX-B"
+            ],
+            "currency": "CNY",
+            "reference": "合成每箱假设",
+            "charge_kind": "INSPECTION",
+            "mode": "PER_CONTAINER",
+            "rate": "125.125"
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": null,
+        "consumed_free_days": null,
+        "billable_days": null,
+        "per_container_amount": "125.125",
+        "amount": "250.25"
+      },
+      "hand": "125.125×2=250.25 CNY；不假设THC/查验必按箱收"
+    },
+    {
+      "id": "large-exact",
+      "input": {
+        "version": "0.1",
+        "lines": [
+          {
+            "line_id": "large-exact",
+            "scope_id": "synthetic",
+            "direction": "EXPORT",
+            "equipment_type": "20GP",
+            "container_ids": [
+              "A",
+              "B"
+            ],
+            "currency": "USD",
+            "reference": "精度边界合成",
+            "charge_kind": "THC_ORIGIN",
+            "mode": "PER_CONTAINER",
+            "rate": "999999999999999999999999.999999999999999999"
+          }
+        ]
+      },
+      "expected": {
+        "selected_days": null,
+        "consumed_free_days": null,
+        "billable_days": null,
+        "per_container_amount": "999999999999999999999999.999999999999999999",
+        "amount": "1999999999999999999999999.999999999999999998"
+      },
+      "hand": "原率×2，整数24位与小数18位保持，不经浮点"
+    }
+  ]
+}
