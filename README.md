@@ -14,7 +14,7 @@
 |---|---|
 | [在线演示](https://codeding-101.github.io/COCUDTT/) | 当前已发布版本，尚未包含下方全部新增能力 |
 | [`main` 分支](https://github.com/codeding-101/COCUDTT/tree/main) | 当前验收源码、离线工具、文档与测试 |
-| [前轮草稿 PR #28](https://github.com/codeding-101/COCUDTT/pull/28) | 独立关联模块的历史审查记录；本轮已贯通0.9、界面、文件与内部审计 |
+| [运输关联集成 PR #29](https://github.com/codeding-101/COCUDTT/pull/29) | 已合并main；贯通0.9、界面、文件与内部审计 |
 | [项目说明页源码](https://github.com/codeding-101/COCUDTT/blob/main/project-introduction.html) | 产品工作流、设计取舍与能力边界，可与工具一起离线打开 |
 
 日常试用可从[main下载源码 ZIP](https://github.com/codeding-101/COCUDTT/archive/refs/heads/main.zip)，解压后双击根目录的 `trade-cost-engine.html`。运行离线工具无需安装 Node.js；开发与构建时才需要。
@@ -38,6 +38,7 @@
 | 术语与方案比较 | 11 种术语、六种计价方式、逐术语实际报价及原有模拟基准 |
 | 费用与运输 | 适用术语、互斥运价组、合同承担约定；运输分段、交货点与运费终点分别记录 |
 | 保险与集装箱提醒 | CIF/CIP 保障资料、保额及范围核对；THC、demurrage、detention、查验等费用预设和提醒 |
+| 集装箱账单独立模块 | 明确箱数、日历日免费期/起止、边际阶梯与每箱固定项；逐日审计及联合/分开D&D候选；尚未接入界面或自动纳入费用 |
 | 中国进口 | 独立申报日期、人民币计税、海关汇率适用期、支持范围内的税基和税款舍入；资格及来源待核对 |
 | 解释与可视化 | 费用推理链、真实替值公式、去重依据、运输风险流程及费用/税基图 |
 | 假设分析 | 运费、商业/海关汇率及未决费用承担，显示相对基准变化 |
@@ -92,7 +93,9 @@ flowchart LR
 
 ## 验证证据与限制
 
-第三十二轮完整 **54 个测试文件、1418 项测试**通过，新增30项关联接入及候选依据核对。23套浏览器流程、新0.9流程32项检查通过；原生JSON下载、保存/恢复、内部与客户隔离及1440/768/390/320模拟宽度按最终产物核对。独立14手算/16错误另列。Windows/Linux CI按本轮PR和main实际提交核对，专业及真实业务/设备验收不由测试替代。
+第三十三轮完整 **55 个测试文件、1564 项测试**通过，新增146项集装箱独立模块检查，包含22个固定合成手算、24组逐箱逐日对照及50行×50箱×3660日上限。[模型边界](https://github.com/codeding-101/COCUDTT/blob/main/docs/container-bill-design.md)、[固定手算](https://github.com/codeding-101/COCUDTT/blob/main/docs/cases/container-bill-design.json)和[验收记录](https://github.com/codeding-101/COCUDTT/blob/main/docs/container-bill-validation.md)可复查；工作日/小时截点等口径暂不计算，结果不自动改变成本或推荐。
+
+第三十二轮的23套浏览器流程及新0.9流程32项为历史验收，包含原生JSON下载、保存/恢复、内部与客户隔离及1440/768/390/320模拟宽度。本轮独立模块未引入运行工具，重建后单文件、Schema及模板与main基线一致，因此不把历史浏览器记录写成本轮重跑。独立资金14手算/16错误另列；本轮远程Windows/Linux CI按PR及main实际提交核对。专业及真实业务/设备验收不由测试替代。
 
 可复查的记录：[基础概念核验](https://github.com/codeding-101/COCUDTT/blob/main/docs/foundations-validation.md)、[中国进口验收](https://github.com/codeding-101/COCUDTT/blob/main/docs/china-import-validation.md)、[客户与内部隔离](https://github.com/codeding-101/COCUDTT/blob/main/docs/customer-quotes-validation.md)、[资金占用与 Excel](https://github.com/codeding-101/COCUDTT/blob/main/docs/funding-validation.md)、[错误恢复验收](https://github.com/codeding-101/COCUDTT/blob/main/docs/recovery-validation.md)、[恢复文件与输入定位](https://github.com/codeding-101/COCUDTT/blob/main/docs/recovery-review-validation.md)、[本金事件与分段计息](https://github.com/codeding-101/COCUDTT/blob/main/docs/funding-ledger-validation.md)、[配套合成案例与导出指引](https://github.com/codeding-101/COCUDTT/blob/main/docs/funding-example-validation.md)、[显式利率与区间审计](https://github.com/codeding-101/COCUDTT/blob/main/docs/funding-rates-validation.md)、[金额舍入假设与层级差异](https://github.com/codeding-101/COCUDTT/blob/main/docs/funding-rounding-validation.md)、[舍入配套案例与操作指引](https://github.com/codeding-101/COCUDTT/blob/main/docs/rounding-example-validation.md)、[明确期间的实现前设计及验收门槛](https://github.com/codeding-101/COCUDTT/blob/main/docs/funding-period-design.md)、[独立期间归集函数验收](https://github.com/codeding-101/COCUDTT/blob/main/docs/funding-periods-validation.md)、[明确期间完整接入验收](https://github.com/codeding-101/COCUDTT/blob/main/docs/funding-period-integration-validation.md)、[期间配套案例与离线操作指引](https://github.com/codeding-101/COCUDTT/blob/main/docs/period-example-validation.md)、[运输费用关联独立模块](https://github.com/codeding-101/COCUDTT/blob/main/docs/transport-cost-links-validation.md)、[关联完整接入与main集成](https://github.com/codeding-101/COCUDTT/blob/main/docs/transport-links-integration-validation.md)。
 
@@ -126,7 +129,8 @@ npm run build:catalog
 |---|---|
 | 已完成：独立规则与模块 | 明确关联/来源/重叠候选，证明原金额、责任、风险和税费不变 |
 | 已完成：完整接入 | 显式0.9、失效引用、候选核对、保存恢复与内部审计已贯通 |
-| 下一阶段：集装箱账单 | 先设计箱数/免费期/计费日与阶梯，再以固定手算验证；不默认承运人规则 |
+| 已完成：集装箱独立账单 | 日历日/明确边界/边际阶梯、逐日审计、候选及固定手算；不默认承运人规则 |
+| 下一阶段：账单录入与费用接入 | 先定独立文件格式及来源失效，再接界面/内部报告；显式纳入已有或新增费用并防重复计入 |
 | 报价与移动端操作质量 | 完善既有双视图、双语/长表/PDF及窄屏操作，客户隔离和真实下载验收 |
 | 发布前工程收敛 | 统一候选与证据、CI/离线回归及规则矩阵；准备可审查结果后由用户决定发布 |
 
