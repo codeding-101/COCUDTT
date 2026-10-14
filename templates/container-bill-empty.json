@@ -1,0 +1,23 @@
+{
+  "kind": "INTERNAL_CONTAINER_BILL",
+  "version": "1.0",
+  "id": "container-bill-empty",
+  "name": "集装箱账单空草稿",
+  "review_date": "",
+  "binding": null,
+  "notes": "先逐项录入原始计费条件；缺条件不补零。独立草稿不是项目JSON，尚未接入工具。",
+  "rows": [
+    {
+      "input": {
+        "line_id": "bill-1"
+      },
+      "evidence": {
+        "reference": "",
+        "valid_from": "",
+        "valid_to": "",
+        "checked_on": "",
+        "status": "UNVERIFIED"
+      }
+    }
+  ]
+}
