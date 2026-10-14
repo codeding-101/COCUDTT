@@ -66,6 +66,8 @@ import {transportCostLinkEvidenceValues,transportOverlapEvidenceValues,type Tran
 import {renderTransportLinkControls} from './transport-cost-links.js';
 import {transportProjectSchema} from '../data/transport-project-schema.js';
 import { renderFundingExamplePanel, fundingExampleResource } from './funding-example.js';
+import {ContainerBillController,BILL_STORAGE_KEY} from './container-bill-controller.js';
+import {renderContainerBillPanel} from './container-bill.js';
 
 const DRAFT_KEY = 'trade-cost-engine:draft-v1';
 
@@ -180,10 +182,18 @@ let recoveryReviewError: string | null = null;
 let recoveryReviewBusy = false;
 let recoveryReviewEpoch = 0;
 let projectReadEpoch=0;
+const containerBill=new ContainerBillController({project:()=>currentProject(),render:()=>render(),blocked:()=>recoveryStage!==null,write:writeBillFile});
+async function writeBillFile(name:string,text:string,mime:string):Promise<'SAVED'|'DOWNLOAD_STARTED'> {
+ const picker=(window as SaveFilePickerWindow).showSaveFilePicker;
+ if(!picker){downloadText(name,text);return 'DOWNLOAD_STARTED';}
+ const handle=await picker.call(window,{suggestedName:name,types:[{description:'独立账单文件',accept:{[mime]:['.json']}}]});
+ const writable=await handle.createWritable();await writable.write(text);await writable.close();return 'SAVED';
+}
 
 function showFatalFailure(stage: FailureStage): void {
   projectReadEpoch++;
   recoveryStage = stage;
+  containerBill.cancelReads();
   settlementEpoch++;
   recoveryReviewEpoch++; recoveryReviewBusy = false; inputLocations = [];
   if (stateInitialized) { state.result = null; state.comparison = null; }
@@ -199,6 +209,7 @@ function retryInterface(): void {
   recoveryStage = null;
   runUi('STARTUP',()=>{
     if (!stateInitialized) { state = initialState(); stateInitialized = true; }
+    containerBill.loadLocal();
     bind(); recompute(false);
     if ((initializing && draftFailure) || startupWarning) { state.status = startupWarning ?? draftFailure!; state.statusLevel = 'warn'; }
     render();
@@ -207,13 +218,15 @@ function retryInterface(): void {
 function backupRecovery(): void {
   if (!recoveryStage) return;
   let draft: string | null = null;
+  let billDraftText:string|null=null;
   try { draft = localStorage.getItem(DRAFT_KEY); } catch { /* Memory backup remains available. */ }
+  try{billDraftText=localStorage.getItem(BILL_STORAGE_KEY);}catch{/* Raw memory bill remains available. */}
   try {
     // Raw inputs, including uncommitted FX rows, without running any calculation/validator.
     const text = JSON.stringify({kind:'INTERNAL_RECOVERY_SNAPSHOT',version:'1.0',stage:recoveryStage,
       project:stateInitialized ? state.project : null,fx_rows:stateInitialized ? state.fxRows : null,
       settlement_plan:settlementPlan,sensitivity:sensitivityControls,customer_fields:customerFields,
-      browser_draft_text:draft},null,2) + '\n';
+      browser_draft_text:draft,container_bill:containerBill.draft,container_bill_draft_text:billDraftText},null,2) + '\n';
     downloadText('internal-recovery-snapshot.json',text);
     showRecoveryView(recoveryStage,{retry:retryInterface,backup:backupRecovery},'已发起内部恢复备份下载，请确认文件已保存；原项目与草稿未改写');
   } catch {
@@ -397,6 +410,7 @@ function enrichmentMap(): Map<string, ItemEnrichment> {
 
 function focusKeyOf(element: Element): string | null {
   const dataset = (element as HTMLElement).dataset;
+  if(dataset.billField!==undefined)return `bill:${dataset.billRow??''}:${dataset.billTier??''}:${dataset.billField}`;
   if (dataset.sensitivityField !== undefined) return `sensitivity:${dataset.sensitivityField}`;
   if (dataset.customerField !== undefined) return `customer:${dataset.customerField}`;
   if (dataset.evidenceOwner !== undefined && dataset.evidenceField !== undefined) {
@@ -416,7 +430,7 @@ function focusKeyOf(element: Element): string | null {
 
 function restoreFocus(key: string | null): void {
   if (key === null) return;
-  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner],[data-contract-cost],[data-logistics-kind],[data-sensitivity-field],[data-customer-field]')).find(
+  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner],[data-contract-cost],[data-logistics-kind],[data-sensitivity-field],[data-customer-field],[data-bill-field]')).find(
     (candidate) => focusKeyOf(candidate) === key,
   );
   element?.focus();
@@ -1027,7 +1041,7 @@ async function exportProjectResource(templateId?:string,schemaKind?:string,examp
 async function exportReport(): Promise<void> {
   try {
     const project = currentProject();
-    const html = createProjectReport(project, undefined, sensitivityControls.enabled ? sensitivityControls : undefined, settlementPlan ?? undefined);
+    const html = createProjectReport(project, undefined, sensitivityControls.enabled ? sensitivityControls : undefined, settlementPlan ?? undefined,containerBill.draft??undefined);
     const name = safeFileName(`${project.name || 'trade-cost'}-内部测算报告`, 'html');
     const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
     if (picker !== undefined) {
@@ -1056,7 +1070,7 @@ async function exportWorkbook(customer: boolean): Promise<void> {
     if (customer && !customerReviewed) throw new Error('请先检查客户预览中的公开内容');
     const project = currentProject();
     const quote = customer ? projectCustomerQuote(project, customerFields) : null;
-    const bytes = quote ? createCustomerWorkbook(quote) : createInternalWorkbook(project, undefined, sensitivityControls.enabled ? sensitivityControls : undefined, settlementPlan ?? undefined);
+    const bytes = quote ? createCustomerWorkbook(quote) : createInternalWorkbook(project, undefined, sensitivityControls.enabled ? sensitivityControls : undefined, settlementPlan ?? undefined,containerBill.draft??undefined);
     const name = quote ? customerQuoteFileName(quote).replace(/\.html$/, '.xlsx') : safeFileName(`${project.name || 'trade-cost'}-内部成本`, 'xlsx');
     const blob = new Blob([bytes], { type: XLSX_MIME });
     const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
@@ -1150,6 +1164,7 @@ function openProjectFromText(text: string, fileName: string): void {
     // 所有可能失败的准备步骤完成后，才替换当前编辑内容。
     const fxRows = booksToRows(project.fx_books);
     state.project = project;
+    containerBill.projectChanged();
     settlementPlan = null;
     settlementEpoch++;
     sensitivityControls = newSensitivityControls();
@@ -1176,6 +1191,7 @@ function newProject(mode: 'sample' | 'china-sample' | 'china-blank' = 'sample'):
   customerReviewed = false;
   state.project = mode === 'china-blank' ? newChinaImportProjectFile() : mode === 'china-sample' ? chinaImportSampleProjectFile() : sampleProjectFile();
   state.fxRows = booksToRows(state.project.fx_books);
+  containerBill.projectChanged();
   state.fileName = null;
   state.savedAt = null;
   state.dirty = true;
@@ -1257,6 +1273,7 @@ function renderApp(): void {
       ${renderOutputColumn({ result: state.result, comparison: state.comparison, error: state.error, inputLocations })}
       ${renderSensitivityPanel(currentProject(), state.result, sensitivityControls, sensitivityAnalysis, sensitivityError)}
       ${renderSettlementPanel(currentProject(), settlementPlan, state.result, settlementBusy)}
+      ${renderContainerBillPanel(containerBill.draft,currentProject(),containerBill.busy,containerBill.message)}
       ${renderCustomerQuotePanel(currentProject(), customerFields, customerReviewed, customerPreview, customerError, customerPdfBusy,customerSummaryBusy)}
       <footer class="app-footer">
         <span>费用 ${state.project.items.length} 项 · 11 术语对比 · 核算币种 ${escapeHtml(state.project.base_currency)}</span>
@@ -1278,6 +1295,7 @@ function renderApp(): void {
 
 function commit(): void {
   invalidateTransportCostLinks(state.project);
+  containerBill.projectChanged();
   projectReadEpoch++;
   customerReviewed = false;
   state.dirty = true;
@@ -1352,6 +1370,10 @@ function bind(): void {
 
   listen('change', (event) => {
     const target = event.target;
+    if(target instanceof HTMLInputElement&&target.id==='bill-file-input'){
+     const file=target.files?.[0];if(file)void containerBill.open(file);return;
+    }
+    if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement||target instanceof HTMLTextAreaElement)&&target.dataset.billField!==undefined){containerBill.edit(target.dataset,target.value);return;}
 
     if (target instanceof HTMLInputElement && target.id === 'recovery-review-input') {
       const file = target.files?.[0];
@@ -1489,6 +1511,24 @@ function bind(): void {
     const action = target.dataset.action;
     if (action === undefined) return;
     switch (action) {
+      case 'bill-new':
+      case 'bill-example':
+      case 'bill-clear':
+      case 'bill-save':
+      case 'bill-rebind':
+      case 'bill-schema':
+      case 'bill-empty-template':
+      case 'bill-example-template':
+      case 'bill-add-line':
+      case 'bill-remove-line':
+      case 'bill-add-tier':
+      case 'bill-remove-tier':
+      case 'bill-clean-mode':
+      case 'bill-confirm-source':
+      case 'bill-confirm-reference':
+      case 'bill-clear-reference':
+        expandedEvidenceSections.add('container-bill');containerBill.action(action,target.dataset);break;
+      case 'bill-open':document.querySelector<HTMLInputElement>('#bill-file-input')?.click();break;
       case 'inspect-recovery':
         document.querySelector<HTMLInputElement>('#recovery-review-input')?.click();
         break;
@@ -1718,6 +1758,7 @@ export function start(): void {
 }
 function startApplication(): void {
   if (!stateInitialized) { state = initialState(); stateInitialized = true; }
+  containerBill.loadLocal();
   bind();
   recompute(draftFailure === null);
   if (draftFailure !== null) {
