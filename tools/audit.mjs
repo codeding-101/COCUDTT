@@ -65,6 +65,11 @@ const handledActions = new Set([
   ...matchAll(appTs, /dataset\.action === '([a-z-]+)'/g),
 ]);
 const renderedActions = matchAll(uiText, /data-action="([a-z-]+)"/g);
+const billUi=read(join(root,'src/ui/container-bill.ts')),billController=read(join(root,'src/ui/container-bill-controller.ts'));
+for(const action of matchAll(billUi,/(?:button|scope)\('([a-z-]+)'/g))renderedActions.add(action);
+const billFields=matchAll(billUi,/(?:field|choose)\('([a-z_.]+)'/g);
+for(const field of billFields){if(field.endsWith('.'))continue;if(['name','notes','review_date'].includes(field)?!billController.includes(`path==='${field}'`):!billController.includes(`'${field}'`))problems.push(`[账单字段未处理] ${field}没有对应白名单/处理分支`);}
+for(const prefix of['source.','cost_source.'])for(const key of['reference','valid_from','valid_to','checked_on'])if(!billController.includes(`'${prefix+key}'`))problems.push(`[账单来源字段未处理] ${prefix+key}`);
 const sensitivityFields = new Set([...matchAll(uiText, /data-sensitivity-field="([a-z_]+)"/g), 'from', 'to', 'step']);
 const sensitivityHandler = appTs.slice(appTs.indexOf('if (target.dataset.sensitivityField !== undefined)'), appTs.indexOf("if (target.dataset.evidenceOwner !== undefined", appTs.indexOf('if (target.dataset.sensitivityField !== undefined)')));
 for (const field of sensitivityFields) {

@@ -5,11 +5,13 @@ import type { ProjectFile } from '../data/project-file.js';
 import { projectSensitivity, type SensitivityControls } from './sensitivity.js';
 import type { SettlementPlan } from '../domain/settlement.js';
 import { settlementWorkbookSheets } from '../data/settlement-workbook.js';
+import type {ContainerBillDraft} from '../domain/container-bill-draft.js';
+import {containerBillWorkbookSheets} from '../data/container-bill-workbook.js';
 
 export function createCustomerWorkbook(quote:CustomerQuote,generatedAt=new Date().toISOString()):Uint8Array<ArrayBuffer> {
   return serializeWorkbook(customerWorkbook(quote,generatedAt));
 }
-export function internalWorkbookSnapshot(project:ProjectFile,generatedAt=new Date().toISOString(),hypothesis?:SensitivityControls,plan?:SettlementPlan):WorkbookSnapshot {
+export function internalWorkbookSnapshot(project:ProjectFile,generatedAt=new Date().toISOString(),hypothesis?:SensitivityControls,plan?:SettlementPlan,bill?:ContainerBillDraft):WorkbookSnapshot {
   const workbook=internalWorkbook(project,generatedAt);
   if(hypothesis?.enabled){
     const note=(label:string,value:string)=>[t(label),t(value),t(''),t(''),t(''),t(''),t(''),t('')];
@@ -27,8 +29,9 @@ export function internalWorkbookSnapshot(project:ProjectFile,generatedAt=new Dat
     workbook.sheets.push({name:'假设分析',headers:['情景','指标/参数','结果','相对基准变化','相对基准变化(%)','单位','状态','待办'],widths:[26,50,22,22,22,36,30,80],rows,freezeColumns:2});
   }
   if (plan) workbook.sheets.push(...settlementWorkbookSheets(project,plan));
+  if(bill)workbook.sheets.push(...containerBillWorkbookSheets(project,bill));
   return workbook;
 }
-export function createInternalWorkbook(project:ProjectFile,generatedAt=new Date().toISOString(),hypothesis?:SensitivityControls,plan?:SettlementPlan):Uint8Array<ArrayBuffer> {
-  return serializeWorkbook(internalWorkbookSnapshot(project,generatedAt,hypothesis,plan));
+export function createInternalWorkbook(project:ProjectFile,generatedAt=new Date().toISOString(),hypothesis?:SensitivityControls,plan?:SettlementPlan,bill?:ContainerBillDraft):Uint8Array<ArrayBuffer> {
+  return serializeWorkbook(internalWorkbookSnapshot(project,generatedAt,hypothesis,plan,bill));
 }

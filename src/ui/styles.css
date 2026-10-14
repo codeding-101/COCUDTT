@@ -618,3 +618,11 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
 .settlement-panel td, .settlement-panel th, .settlement-panel p { overflow-wrap: anywhere; }
 .settlement-panel small { display: block; }
 .settlement-panel button { max-width: 100%; height: auto; min-height: 28px; white-space: normal; overflow-wrap: anywhere; }
+.container-bill-panel { min-width: 0; }
+.container-bill-panel fieldset { min-inline-size: 0; margin: 12px 0; padding: 10px; }
+.container-bill-panel p, .container-bill-panel legend, .container-bill-panel td, .container-bill-panel th, .container-bill-panel summary { overflow-wrap: anywhere; }
+.bill-fields { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,240px),1fr)); gap: 10px; margin: 10px 0; }
+.bill-fields label { display: flex; flex-direction: column; min-width: 0; gap: 5px; }
+.bill-fields input, .bill-fields select, .bill-fields textarea { width: 100%; min-width: 0; box-sizing: border-box; }
+.bill-fields textarea { min-height: 65px; font: inherit; resize: vertical; }
+.container-bill-panel button { max-width: 100%; height: auto; min-height: 28px; white-space: normal; overflow-wrap: anywhere; }

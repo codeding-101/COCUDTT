@@ -1,6 +1,6 @@
 # 项目 JSON 格式与结构 Schema
 
-集装箱账单另有独立`INTERNAL_CONTAINER_BILL` JSON **1.0**文件层和[Schema](../schemas/container-bill-1.0.schema.json)，不是项目或付款文件。可保存未完成/不支持条件并只读核对已有费用；尚未接入工具打开/另存、恢复及导出入口，不自动写入成本。详见[独立格式与边界](container-bill-file-design.md)；项目默认0.8和显式运输关联0.9的语义保持。
+集装箱账单另有独立`INTERNAL_CONTAINER_BILL` JSON **1.0**和[Schema](../schemas/container-bill-1.0.schema.json)，不是项目或付款文件。工具独立面板可打开/另存、恢复草稿及下载Schema/两模板，内部HTML/Excel记录快照；未完成/不支持条件可留存，只读已有费用，不自动写成本。详见[格式边界](container-bill-file-design.md)及[界面接入](container-bill-ui-validation.md)；项目默认0.8和显式运输关联0.9语义保持。
 
 内部付款计划采用独立`INTERNAL_SETTLEMENT_PLAN` JSON 1.0，须单独保存/打开，不属于0.8项目或自动草稿；刷新或打开项目后重置。内部HTML可记录付款快照，客户文件不自动读取；详见[付款计划格式与边界](settlement-validation.md)。
 

@@ -86,6 +86,24 @@ describe('打开、保存项目的失败处理', () => {
   }
   function downloadExample(kind:string) {const button=new ElementStub();button.dataset.action='download-funding-example';button.dataset.exampleKind=kind;listeners.get('click')!({target:button});}
   function downloadRoundingExample(kind:string){const button=new ElementStub();button.dataset.action='download-rounding-example';button.dataset.roundingKind=kind;listeners.get('click')!({target:button});}
+  function billField(field:string,value:string,row?:number){const e=new InputStub();e.dataset={billField:field,...(row===undefined?{}:{billRow:String(row)})};e.value=value;listeners.get('change')!({target:e});}
+  function billAction(name:string,row=0){const b=new ElementStub();b.dataset={action:name,billRow:String(row)};listeners.get('click')!({target:b});}
+  function billOpen(text:()=>Promise<string>){const e=new InputStub();e.id='bill-file-input';e.files=[{name:'bill.json',text}];listeners.get('change')!({target:e});}
+  it('真实账单事件新建/示例/编辑保存，项目JSON及客户确认不被账单改写',async()=>{
+    await start();const before=storage.get(key);billAction('bill-example');billField('notes','PRIVATE_UI_BILL_EVENT');expect(html).toContain('PRIVATE_UI_BILL_EVENT');expect(storage.get(key)).toBe(before);const captures:string[]=[];vi.stubGlobal('window',{showSaveFilePicker:async()=>({name:'bill.json',createWritable:async()=>({write:async(s:string)=>captures.push(s),close:async()=>{}})})});billAction('bill-save');await vi.waitFor(()=>expect(captures).toHaveLength(1));expect(JSON.parse(captures[0]!).kind).toBe('INTERNAL_CONTAINER_BILL');expect(JSON.parse(storage.get(key)!).project).not.toHaveProperty('container_bill');
+  });
+  it('真实账单文件事件拒绝坏/未来文件，编辑取消迟到读取',async()=>{
+    await start();billAction('bill-example');billField('name','KEPT');billOpen(async()=>JSON.stringify({kind:'INTERNAL_CONTAINER_BILL',version:'future'}));await vi.waitFor(()=>expect(html).toContain('账单读取失败'));expect(html).toContain('KEPT');let finish!:(v:string)=>void;billOpen(()=>new Promise(r=>finish=r));billField('name','AFTER_READ');finish('{}');await Promise.resolve();expect(html).toContain('AFTER_READ');expect(html).not.toContain('账单读取失败');
+  });
+  it('真实账单失败保存不泄露私有路径，取消仍保留输入',async()=>{
+    await start();billAction('bill-example');vi.stubGlobal('window',{showSaveFilePicker:async()=>{throw Error('PRIVATE_BILL_PATH')}});billAction('bill-save');await vi.waitFor(()=>expect(html).toContain('账单保存失败'));expect(html).not.toContain('PRIVATE_BILL_PATH');vi.stubGlobal('window',{showSaveFilePicker:async()=>{throw new DOMException('cancel','AbortError')}});billAction('bill-save');await vi.waitFor(()=>expect(html).toContain('已取消账单保存'));expect(html).toContain('synthetic-dd-1');
+  });
+  it('打开新项目保留账单，刷新读取独立草稿且不嵌入项目',async()=>{
+    await start();billAction('bill-example');billField('notes','PRIVATE_BILL_KEEP');action('new-china-import');expect(html).toContain('PRIVATE_BILL_KEEP');expect(html).toContain('当前项目已变更');expect(JSON.parse(storage.get(key)!).project).not.toHaveProperty('container_bill');
+  });
+  it('账单条件渲染失败进入原始恢复，备份保存账单及独立草稿，重试保留编辑',async()=>{
+    await start();billAction('bill-example');recoveryElements();const setter=Object.getOwnPropertyDescriptor(appRoot,'innerHTML')!.set!;let fail=true;Object.defineProperty(appRoot,'innerHTML',{get:()=>html,set:(v:string)=>{if(fail){fail=false;throw Error('PRIVATE_RENDER_BILL');}setter.call(appRoot,v)}});billField('notes','RAW_BILL_RECOVERY');expect(recoveryPanel).not.toBeNull();let blob:Blob|null=null;vi.stubGlobal('URL',{createObjectURL:(b:Blob)=>{blob=b;return 'blob:backup'},revokeObjectURL:()=>{}});recoveryPanel!.callbacks.get('#recovery-backup')!();const raw=JSON.parse(await blob!.text());expect(raw.container_bill.notes).toBe('RAW_BILL_RECOVERY');expect(JSON.parse(raw.container_bill_draft_text).notes).toBe('RAW_BILL_RECOVERY');recoveryPanel!.callbacks.get('#recovery-retry')!();expect(html).toContain('RAW_BILL_RECOVERY');expect(appRoot.hidden).toBe(false);
+  });
   it('舍入四资源不读取或替换当前交易/付款/客户/草稿，独立文件名和类型正确',async()=>{
     await start();await customerProject();change('name','PRIVATE_PROJECT_ROUND_CASE_143');customer('remarks','PRIVATE_CLIENT_ROUND_CASE_144');customer('reviewed','',true);action('settlement-create');fundingInputs();settlement('notes','PRIVATE_PLAN_ROUND_CASE_145');const before=storage.get(key),captures:{name:string;mime:string;text:string}[]=[];
     vi.stubGlobal('window',{showSaveFilePicker:async(o:{suggestedName:string;types:{accept:Record<string,string[]>}[]})=>{const result={name:o.suggestedName,mime:Object.keys(o.types[0]!.accept)[0]!,text:''};captures.push(result);return{name:o.suggestedName,createWritable:async()=>({write:async(s:string)=>{result.text=s},close:async()=>{}})};}});

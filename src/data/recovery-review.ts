@@ -2,12 +2,13 @@ import { validateDraftFxRows, validateProjectStructure } from './project-validat
 import { SUPPORTED_PROJECT_VERSIONS } from './project-versions.js';
 import { validateSettlementPlan } from '../domain/settlement-validation.js';
 import { CUSTOMER_QUOTE_FIELDS } from '../domain/customer-quote.js';
+import {validateContainerBillDraft} from './container-bill-file.js';
 
 export const RECOVERY_REVIEW_MAX_BYTES = 5 * 1024 * 1024;
 export type RecoveryPartStatus = 'STRUCTURE_OK' | 'INVALID' | 'ABSENT' | 'MISSING' | 'UNSUPPORTED';
 export interface RecoveryPartReview { key: string; label: string; status: RecoveryPartStatus }
 export interface RecoveryReview { stage: 'STARTUP' | 'RENDER' | 'INTERACTION'; parts: RecoveryPartReview[]; unknownFields: number }
-const keys = ['kind','version','stage','project','fx_rows','settlement_plan','sensitivity','customer_fields','browser_draft_text'];
+const keys = ['kind','version','stage','project','fx_rows','settlement_plan','sensitivity','customer_fields','browser_draft_text','container_bill','container_bill_draft_text'];
 const record = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 function projectStatus(value: unknown): RecoveryPartStatus {
   if (!record(value) || typeof value.schema_version !== 'string') return 'INVALID';
@@ -45,5 +46,7 @@ export function inspectRecoveryText(text: string): RecoveryReview {
     validateDraftFxRows(draft.fxRows);
     return status;
   });
+  if(Object.hasOwn(value,'container_bill'))check('container_bill','独立集装箱账单',raw=>{validateContainerBillDraft(raw);return 'STRUCTURE_OK';});
+  if(Object.hasOwn(value,'container_bill_draft_text'))check('container_bill_draft_text','独立账单浏览器草稿原文',raw=>{if(typeof raw!=='string')return 'INVALID';if(raw==='null')return 'ABSENT';validateContainerBillDraft(JSON.parse(raw));return 'STRUCTURE_OK';});
   return {stage:value.stage,parts,unknownFields:Object.keys(value).filter(k => !keys.includes(k)).length};
 }
