@@ -1,0 +1,1761 @@
+{
+  "kind": "FUNDING_PERIOD_DESIGN_FIXTURES",
+  "version": "1.0",
+  "synthetic": true,
+  "review_date": "2026-10-13",
+  "status": "DESIGN_ONLY_NOT_IMPORTABLE",
+  "limits": "独立逐日手算验收器：最多366日、六位小数；不代表生产输入限制。",
+  "cases": [
+    {
+      "id": "one-period-three-segments",
+      "note": "同率记录拆三段，但一期间只舍入一次",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-04",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected": {
+        "raw_fraction": "9/500",
+        "period_fractions": [
+          "9/500"
+        ],
+        "period_rounded": [
+          "0.02"
+        ],
+        "rounded_total": "0.02",
+        "calculation_segments": 3,
+        "closing_principal_scaled": "6000000",
+        "closing_rate_scaled": "36000000"
+      }
+    },
+    {
+      "id": "two-periods-three-segments",
+      "note": "前两段同一期，第三段另一期",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-03",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "id": "p2",
+              "start_date": "2026-09-03",
+              "end_date": "2026-09-04",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected": {
+        "raw_fraction": "9/500",
+        "period_fractions": [
+          "3/250",
+          "3/500"
+        ],
+        "period_rounded": [
+          "0.01",
+          "0.01"
+        ],
+        "rounded_total": "0.02",
+        "calculation_segments": 3,
+        "closing_principal_scaled": "6000000",
+        "closing_rate_scaled": "36000000"
+      }
+    },
+    {
+      "id": "three-periods-three-segments",
+      "note": "三期边界明确，与三计算段巧合一致",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-02",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "id": "p2",
+              "start_date": "2026-09-02",
+              "end_date": "2026-09-03",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "id": "p3",
+              "start_date": "2026-09-03",
+              "end_date": "2026-09-04",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected": {
+        "raw_fraction": "9/500",
+        "period_fractions": [
+          "3/500",
+          "3/500",
+          "3/500"
+        ],
+        "period_rounded": [
+          "0.01",
+          "0.01",
+          "0.01"
+        ],
+        "rounded_total": "0.03",
+        "calculation_segments": 3,
+        "closing_principal_scaled": "6000000",
+        "closing_rate_scaled": "36000000"
+      }
+    },
+    {
+      "id": "period-cut-inside-calculation-segment",
+      "note": "无事件仍可明示期间切点；原计算段数量仍1",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [],
+          "rate_events": []
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-02",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "id": "p2",
+              "start_date": "2026-09-02",
+              "end_date": "2026-09-04",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected": {
+        "raw_fraction": "9/500",
+        "period_fractions": [
+          "3/500",
+          "3/250"
+        ],
+        "period_rounded": [
+          "0.01",
+          "0.01"
+        ],
+        "rounded_total": "0.02",
+        "calculation_segments": 1,
+        "closing_principal_scaled": "6000000",
+        "closing_rate_scaled": "36000000"
+      }
+    },
+    {
+      "id": "events-at-period-boundary",
+      "note": "边界日本金减额及新率从后一期间生效；12000×6%×5/360=10，8000×3%×5/360=10/3",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "12000",
+          "annual_rate": "6",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-11",
+          "principal_events": [
+            {
+              "date": "2026-09-06",
+              "direction": "DECREASE",
+              "amount": "4000",
+              "currency": "USD",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ],
+          "rate_events": [
+            {
+              "date": "2026-09-06",
+              "annual_rate": "3",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-06",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "id": "p2",
+              "start_date": "2026-09-06",
+              "end_date": "2026-09-11",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected": {
+        "raw_fraction": "40/3",
+        "period_fractions": [
+          "10/1",
+          "10/3"
+        ],
+        "period_rounded": [
+          "10.00",
+          "3.33"
+        ],
+        "rounded_total": "13.33",
+        "calculation_segments": 2,
+        "closing_principal_scaled": "8000000000",
+        "closing_rate_scaled": "3000000"
+      }
+    },
+    {
+      "id": "same-day-events-and-cutoff",
+      "note": "同日本金先增后减不净额重排，截止日减额/新率只审计，不多计一天",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [
+            {
+              "date": "2026-09-02",
+              "direction": "INCREASE",
+              "amount": "2000",
+              "currency": "USD",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-02",
+              "direction": "DECREASE",
+              "amount": "2000",
+              "currency": "USD",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-04",
+              "direction": "DECREASE",
+              "amount": "6",
+              "currency": "USD",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-04",
+              "annual_rate": "0",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-03",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "id": "p2",
+              "start_date": "2026-09-03",
+              "end_date": "2026-09-04",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected": {
+        "raw_fraction": "9/500",
+        "period_fractions": [
+          "3/250",
+          "3/500"
+        ],
+        "period_rounded": [
+          "0.01",
+          "0.01"
+        ],
+        "rounded_total": "0.02",
+        "calculation_segments": 2,
+        "closing_principal_scaled": "0",
+        "closing_rate_scaled": "0"
+      }
+    },
+    {
+      "id": "zero-rate-with-positive-days",
+      "note": "明确零年利率，仍有实际日期及期间",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "50",
+          "annual_rate": "0",
+          "denominator": 360,
+          "start_date": "2024-02-28",
+          "end_date": "2024-03-02",
+          "principal_events": [],
+          "rate_events": []
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2024-02-28",
+              "end_date": "2024-02-29",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "id": "p2",
+              "start_date": "2024-02-29",
+              "end_date": "2024-03-02",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected": {
+        "raw_fraction": "0/1",
+        "period_fractions": [
+          "0/1",
+          "0/1"
+        ],
+        "period_rounded": [
+          "0.00",
+          "0.00"
+        ],
+        "rounded_total": "0.00",
+        "calculation_segments": 1,
+        "closing_principal_scaled": "50000000",
+        "closing_rate_scaled": "0"
+      }
+    },
+    {
+      "id": "leap-days-act365-fixed",
+      "note": "闰年含2月29日，ACT/365F分母保持365；365×100%×3/365=3",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "365",
+          "annual_rate": "100",
+          "denominator": 365,
+          "start_date": "2024-02-28",
+          "end_date": "2024-03-02",
+          "principal_events": [],
+          "rate_events": []
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2024-02-28",
+              "end_date": "2024-02-29",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "id": "p2",
+              "start_date": "2024-02-29",
+              "end_date": "2024-03-02",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected": {
+        "raw_fraction": "3/1",
+        "period_fractions": [
+          "1/1",
+          "2/1"
+        ],
+        "period_rounded": [
+          "1.00",
+          "2.00"
+        ],
+        "rounded_total": "3.00",
+        "calculation_segments": 1,
+        "closing_principal_scaled": "365000000",
+        "closing_rate_scaled": "100000000"
+      }
+    },
+    {
+      "id": "zero-day-explicit-empty",
+      "note": "零天数显式空期间表；当日事件只审计，期末本金8",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-01",
+          "principal_events": [
+            {
+              "date": "2026-09-01",
+              "direction": "INCREASE",
+              "amount": "2",
+              "currency": "USD",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ],
+          "rate_events": []
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": []
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected": {
+        "raw_fraction": "0/1",
+        "period_fractions": [],
+        "period_rounded": [],
+        "rounded_total": "0.00",
+        "calculation_segments": 0,
+        "closing_principal_scaled": "8000000",
+        "closing_rate_scaled": "36000000"
+      }
+    },
+    {
+      "id": "half-even-period-ties",
+      "note": "每期0.005恰半，取偶各0；总额不能再舍入或补尾差",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "5",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-03",
+          "principal_events": [],
+          "rate_events": []
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-02",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "id": "p2",
+              "start_date": "2026-09-02",
+              "end_date": "2026-09-03",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_EVEN",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected": {
+        "raw_fraction": "1/100",
+        "period_fractions": [
+          "1/200",
+          "1/200"
+        ],
+        "period_rounded": [
+          "0.00",
+          "0.00"
+        ],
+        "rounded_total": "0.00",
+        "calculation_segments": 1,
+        "closing_principal_scaled": "5000000",
+        "closing_rate_scaled": "36000000"
+      }
+    },
+    {
+      "id": "half-up-period-ties",
+      "note": "同输入HALF_UP各0.01，两期0.02，原值0.01",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "5",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-03",
+          "principal_events": [],
+          "rate_events": []
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-02",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "id": "p2",
+              "start_date": "2026-09-02",
+              "end_date": "2026-09-03",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected": {
+        "raw_fraction": "1/100",
+        "period_fractions": [
+          "1/200",
+          "1/200"
+        ],
+        "period_rounded": [
+          "0.01",
+          "0.01"
+        ],
+        "rounded_total": "0.02",
+        "calculation_segments": 1,
+        "closing_principal_scaled": "5000000",
+        "closing_rate_scaled": "36000000"
+      }
+    },
+    {
+      "id": "down-periods",
+      "note": "每期0.006向零截断各0，差额可为负",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-02",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "id": "p2",
+              "start_date": "2026-09-02",
+              "end_date": "2026-09-03",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "id": "p3",
+              "start_date": "2026-09-03",
+              "end_date": "2026-09-04",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "DOWN",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected": {
+        "raw_fraction": "9/500",
+        "period_fractions": [
+          "3/500",
+          "3/500",
+          "3/500"
+        ],
+        "period_rounded": [
+          "0.00",
+          "0.00",
+          "0.00"
+        ],
+        "rounded_total": "0.00",
+        "calculation_segments": 3,
+        "closing_principal_scaled": "6000000",
+        "closing_rate_scaled": "36000000"
+      }
+    },
+    {
+      "id": "recurring-fraction-micro-unit",
+      "note": "1×1%×1/360=1/36000，不先舍入循环小数；步长0.00001",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "1",
+          "annual_rate": "1",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-02",
+          "principal_events": [],
+          "rate_events": []
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-02",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.00001",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected": {
+        "raw_fraction": "1/36000",
+        "period_fractions": [
+          "1/36000"
+        ],
+        "period_rounded": [
+          "0.00003"
+        ],
+        "rounded_total": "0.00003",
+        "calculation_segments": 1,
+        "closing_principal_scaled": "1000000",
+        "closing_rate_scaled": "1000000"
+      }
+    },
+    {
+      "id": "principal-segments-cross-period-cut",
+      "note": "原50案例三段，两期按9月16日明示切点；一期20+20/3=80/3，二期20/3+50/3=70/3",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "12000",
+          "annual_rate": "6",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-10-01",
+          "principal_events": [
+            {
+              "date": "2026-09-11",
+              "direction": "DECREASE",
+              "amount": "4000",
+              "currency": "USD",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-21",
+              "direction": "INCREASE",
+              "amount": "2000",
+              "currency": "USD",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ],
+          "rate_events": []
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-16",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "id": "p2",
+              "start_date": "2026-09-16",
+              "end_date": "2026-10-01",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected": {
+        "raw_fraction": "50/1",
+        "period_fractions": [
+          "80/3",
+          "70/3"
+        ],
+        "period_rounded": [
+          "26.67",
+          "23.33"
+        ],
+        "rounded_total": "50.00",
+        "calculation_segments": 3,
+        "closing_principal_scaled": "10000000000",
+        "closing_rate_scaled": "6000000"
+      }
+    },
+    {
+      "id": "gap",
+      "note": "一天未覆盖，不补期间",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-02",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "id": "p2",
+              "start_date": "2026-09-03",
+              "end_date": "2026-09-04",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected_error": "PERIOD_COVERAGE"
+    },
+    {
+      "id": "overlap",
+      "note": "重复覆盖一天，不重复计息",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-03",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "id": "p2",
+              "start_date": "2026-09-02",
+              "end_date": "2026-09-04",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected_error": "PERIOD_COVERAGE"
+    },
+    {
+      "id": "reversed-period",
+      "note": "结束早于开始",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-03",
+              "end_date": "2026-09-02",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected_error": "PERIOD_LENGTH"
+    },
+    {
+      "id": "unsorted-periods",
+      "note": "不得按日期重排用户期间",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p2",
+              "start_date": "2026-09-02",
+              "end_date": "2026-09-04",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-02",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected_error": "PERIOD_COVERAGE"
+    },
+    {
+      "id": "missing-start",
+      "note": "开始日缺失，不自动补首期",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-02",
+              "end_date": "2026-09-04",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected_error": "PERIOD_COVERAGE"
+    },
+    {
+      "id": "missing-final",
+      "note": "截止日缺失，不自动补尾期",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-03",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected_error": "PERIOD_COVERAGE"
+    },
+    {
+      "id": "zero-length-period",
+      "note": "零长度期拒绝；零天数总期间用明确空表",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-01",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected_error": "PERIOD_LENGTH"
+    },
+    {
+      "id": "duplicate-period-id",
+      "note": "重复期ID拒绝",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-02",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "id": "p1",
+              "start_date": "2026-09-02",
+              "end_date": "2026-09-04",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected_error": "PERIOD_ID"
+    },
+    {
+      "id": "unknown-schedule",
+      "note": "未知期间状态不当作就绪",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "UNCONFIRMED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-04",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected_error": "SCHEDULE_STATUS"
+    },
+    {
+      "id": "missing-confirmation",
+      "note": "旧逐区间确认不能替代期间确认",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": false,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-04",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected_error": "SCHEDULE_CONFIRMATION"
+    },
+    {
+      "id": "missing-schedule-reference",
+      "note": "无合同/假设期间依据阻断",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-04",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected_error": "SCHEDULE_REFERENCE"
+    },
+    {
+      "id": "invalid-calendar-date",
+      "note": "9月31日不能日期归一化",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-31",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected_error": "DATE"
+    },
+    {
+      "id": "duplicate-rate-date",
+      "note": "同日两个新利率不能重排取最后",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "30",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-04",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected_error": "RATE_ORDER"
+    },
+    {
+      "id": "negative-intermediate-balance",
+      "note": "同日先超额减后增也阻断，不能净额抵销",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [
+            {
+              "date": "2026-09-02",
+              "direction": "DECREASE",
+              "amount": "7",
+              "currency": "USD",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-02",
+              "direction": "INCREASE",
+              "amount": "7",
+              "currency": "USD",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-04",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected_error": "NEGATIVE_BALANCE"
+    },
+    {
+      "id": "negative-principal-event",
+      "note": "负金额不改作反向事件",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [
+            {
+              "date": "2026-09-02",
+              "direction": "INCREASE",
+              "amount": "-1",
+              "currency": "USD",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-04",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected_error": "NUMBER"
+    },
+    {
+      "id": "mixed-currency",
+      "note": "外币本金事件不自动换算",
+      "input": {
+        "funding": {
+          "kind": "FINANCING",
+          "party": "SELLER",
+          "currency": "USD",
+          "principal": "6",
+          "annual_rate": "36",
+          "denominator": 360,
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "principal_events": [
+            {
+              "date": "2026-09-02",
+              "direction": "INCREASE",
+              "amount": "1",
+              "currency": "CNY",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ],
+          "rate_events": [
+            {
+              "date": "2026-09-02",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            },
+            {
+              "date": "2026-09-03",
+              "annual_rate": "36",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "schedule": {
+          "status": "PROVIDED",
+          "periods_confirmed": true,
+          "reference": "合成设计假设；不是银行合同或实际扣款",
+          "periods": [
+            {
+              "id": "p1",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-04",
+              "reference": "合成设计假设；不是银行合同或实际扣款"
+            }
+          ]
+        },
+        "rounding": {
+          "scope": "PERIODS",
+          "mode": "HALF_UP",
+          "unit": "0.01",
+          "reference": "合成设计假设；不是银行合同或实际扣款"
+        }
+      },
+      "expected_error": "CURRENCY"
+    }
+  ]
+}

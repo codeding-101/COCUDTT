@@ -1,5 +1,5 @@
 import type Decimal from 'decimal.js';
-import { abs, isZero, sub, sum, toDisplay } from '../domain/decimal.js';
+import { abs, add, d, isZero, sub, sum, toDisplay } from '../domain/decimal.js';
 import type { CostItem } from '../domain/cost-item.js';
 import type { Responsibility } from '../domain/enums.js';
 import type { Warning } from '../domain/warning.js';
@@ -28,6 +28,8 @@ export interface InclusionInput {
   included_cost_ids: readonly string[];
   /** 报价金额（核算币种） */
   quote_amount_base: Decimal;
+  /** 未另列商品货值费用项时，将单独录入的货物净价纳入报价勾稽。 */
+  goods_value_base?: Decimal;
   amountBaseOf: (costId: string) => Decimal;
   responsibilityOf: (costId: string) => Responsibility;
 }
@@ -190,9 +192,10 @@ export function applyInclusion(input: InclusionInput): InclusionResult {
   const quotedItems = input.items.filter(
     (item) => isIncluded(item) && item.contained_in_cost_id === undefined,
   );
-  const includedTotal = sum(quotedItems.map((item) => input.amountBaseOf(item.cost_id)));
+  const hasGoodsRow = input.items.some((item) => item.is_goods_value === true);
+  const includedTotal = add(sum(quotedItems.map((item) => input.amountBaseOf(item.cost_id))), hasGoodsRow ? d(0) : input.goods_value_base ?? d(0));
 
-  if (quotedItems.length > 0) {
+  if (quotedItems.length > 0 || input.goods_value_base !== undefined) {
     const diff = abs(sub(includedTotal, input.quote_amount_base));
     if (!isZero(diff) && diff.greaterThan('0.01')) {
       warnings.push({

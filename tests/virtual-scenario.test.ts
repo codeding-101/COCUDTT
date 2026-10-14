@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { toDisplay, toStorage } from '../src/domain/decimal';
 import type { Scenario } from '../src/domain/scenario';
 import { analyze } from '../src/engine/analyze';
-import { compare, scenarioWithDerivedInclusions } from '../src/engine/compare';
+import { compare as runCompare, scenarioWithDerivedInclusions } from '../src/engine/compare';
+import { explicitAgreements } from './helpers/explicit-agreements';
+
+const compare = (input: Parameters<typeof runCompare>[0]) => runCompare(explicitAgreements(input));
 import { INCOTERMS_2020_RULESET } from '../src/engine/responsibility/rules-incoterms2020';
 import { resolveResponsibility } from '../src/engine/responsibility/resolver';
 import {
@@ -106,12 +109,12 @@ describe('虚拟数值测试 · 逐环节核对', () => {
   });
 
   it('卖方利润：报价 − 成本 − 采购 + 退税', () => {
-    expect(toStorage(result.seller.margin_ex_rebate)).toBe('161600.000000');
-    expect(toStorage(result.seller.margin)).toBe('221423.008850');
+    expect(toStorage(result.seller.margin_ex_rebate!)).toBe('161600.000000');
+    expect(toStorage(result.seller.margin!)).toBe('221423.008850');
     // 独立验算：758,280 − 76,680 − 520,000 + 59,823.008850
-    expect(toStorage(result.seller.margin)).toBe(
+    expect(toStorage(result.seller.margin!)).toBe(
       toStorage(
-        result.seller.revenue.minus(result.seller.cost_total).minus(result.seller.goods_cost).plus(result.seller.rebate_total),
+        result.seller.revenue.minus(result.seller.cost_total).minus(result.seller.goods_cost!).plus(result.seller.rebate_total),
       ),
     );
   });
@@ -165,7 +168,7 @@ describe('虚拟数值测试 · 跨术语一致性', () => {
       template: VIRTUAL_SCENARIO,
       anchor: { kind: 'FIXED_MARKET_PRICE', buyer_total: toStorage(landed), currency: 'CNY' },
     });
-    const margins = new Set(comparisonB.columns.map((column) => toStorage(column.seller.margin)));
+    const margins = new Set(comparisonB.columns.map((column) => toStorage(column.seller.margin!)));
     const quotes = new Set(comparisonB.columns.map((column) => toStorage(column.quote_amount)));
     expect(margins.size).toBe(1);
     expect(quotes.size).toBeGreaterThan(2);
@@ -213,10 +216,10 @@ describe('虚拟数值测试 · 结果速览', () => {
     lines.push('── 卖方 ──');
     lines.push(`  报价收入        ${toDisplay(result.seller.revenue).padStart(12)}`);
     lines.push(`  承担费用       -${toDisplay(result.seller.cost_total).padStart(12)}`);
-    lines.push(`  采购含税成本   -${toDisplay(result.seller.goods_cost).padStart(12)}`);
+    lines.push(`  采购含税成本   -${toDisplay(result.seller.goods_cost!).padStart(12)}`);
     lines.push(`  出口退税       +${toDisplay(result.seller.rebate_total).padStart(12)}`);
-    lines.push(`  利润            ${toDisplay(result.seller.margin).padStart(12)}   （不含退税 ${toDisplay(result.seller.margin_ex_rebate)}）`);
-    lines.push(`  利润率          ${pct(result.seller.margin.dividedBy(result.seller.revenue).times(100).toNumber()).padStart(12)}   （退税贡献 ${pct(result.seller.rebate_total.dividedBy(result.seller.margin).times(100).toNumber())}）`);
+    lines.push(`  利润            ${toDisplay(result.seller.margin!).padStart(12)}   （不含退税 ${toDisplay(result.seller.margin_ex_rebate!)}）`);
+    lines.push(`  利润率          ${pct(result.seller.margin!.dividedBy(result.seller.revenue).times(100).toNumber()).padStart(12)}   （退税贡献 ${pct(result.seller.rebate_total.dividedBy(result.seller.margin!).times(100).toNumber())}）`);
     lines.push('');
     lines.push('── 买方 ──');
     lines.push(`  报价金额        ${toDisplay(result.buyer.quote_amount).padStart(12)}`);
@@ -231,7 +234,7 @@ describe('虚拟数值测试 · 结果速览', () => {
     for (const column of comparison.columns) {
       if (!column.feasible) continue;
       lines.push(
-        `${column.incoterm.padEnd(6)}${toDisplay(column.quote_amount).padStart(12)}${toDisplay(column.seller.cost_total).padStart(14)}${toDisplay(column.seller.margin).padStart(14)}${toDisplay(column.buyer.landed_cost_with_tax).padStart(14)}${String(column.seller_cost_nodes).padStart(10)}`,
+        `${column.incoterm.padEnd(6)}${toDisplay(column.quote_amount).padStart(12)}${toDisplay(column.seller.cost_total).padStart(14)}${toDisplay(column.seller.margin!).padStart(14)}${toDisplay(column.buyer.landed_cost_with_tax).padStart(14)}${String(column.seller_cost_nodes).padStart(10)}`,
       );
     }
     lines.push(`最优：卖方利润 ${comparison.best_seller_margin} · 买方总支付最低 ${comparison.best_buyer_landed}`);

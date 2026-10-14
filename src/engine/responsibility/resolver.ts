@@ -11,12 +11,28 @@ import type {
 import type { Scenario } from '../../domain/scenario.js';
 import type { Trade } from '../../domain/trade.js';
 import { isIncotermAvailable } from '../../domain/enums.js';
+import { CARRIAGE_MODE_LABELS, COST_CATEGORY_LABELS, TRADE_NODE_LABELS } from '../../domain/enums.js';
 import { EngineError } from '../errors.js';
 
 /** 无法判定时的固定提示文案（设计文档 6.5） */
 export const CONDITIONAL_MESSAGE = '该费用无法仅依据 Incoterms 自动确定，请根据实际合同及费用产生原因确认。';
 
 export type Confidence = 'HIGH' | 'MEDIUM' | 'LOW';
+
+export interface ResponsibilityTraceStep {
+  stage: ResponsibilitySource;
+  matched: boolean;
+  detail: string;
+  candidates?: RuleCandidateTrace[];
+}
+
+export interface RuleCandidateTrace {
+  id: string;
+  matched: boolean;
+  specificity: number;
+  selected: boolean;
+  checks: string[];
+}
 
 export interface ConditionContext {
   facts?: ScenarioFacts;
@@ -64,17 +80,33 @@ function pickBest<T extends CostResponsibilityRule>(
   rules: readonly T[],
   item: CostItem,
   ctx: ConditionContext,
+  trace?: RuleCandidateTrace[],
 ): T | null {
   let best: T | null = null;
   let bestScore = -1;
+  let bestTraceIndex = -1;
   for (const rule of rules) {
-    if (!ruleMatches(rule, item, ctx)) continue;
+    const matched = ruleMatches(rule, item, ctx);
+    trace?.push({ id: rule.id, matched, specificity: specificity(rule), selected: false,
+      checks: [
+        `节点：${rule.trade_node ? `${TRADE_NODE_LABELS[rule.trade_node]} / 录入 ${TRADE_NODE_LABELS[item.trade_node]}` : '任意节点'}${rule.trade_node !== undefined && rule.trade_node !== item.trade_node ? '（不符）' : '（符合）'}`,
+        `类别：${rule.cost_category ? `${COST_CATEGORY_LABELS[rule.cost_category]} / 录入 ${COST_CATEGORY_LABELS[item.cost_category]}` : '任意类别'}${rule.cost_category !== undefined && rule.cost_category !== item.cost_category ? '（不符）' : '（符合）'}`,
+        ...rule.conditions.map(c => {
+          const facts = ctx.facts;
+          const actual = c.kind === 'DELIVERY_PLACE' ? facts?.delivery_place : c.kind === 'SHIPPING_TERMS' ? facts?.shipping_terms : c.kind === 'CLEARANCE_AGENT' ? facts?.clearance_agent : c.kind === 'LOADING_MODE' ? facts?.loading_mode : ctx.carriage_mode;
+          return `条件 ${c.kind}：要求 ${c.is}，录入 ${actual ?? '缺失'}（${conditionHolds(c, ctx) ? '符合' : '不符'}）`;
+        }),
+      ] });
+    if (!matched) continue;
     const score = specificity(rule);
     if (score > bestScore) {
       best = rule;
       bestScore = score;
+      bestTraceIndex = (trace?.length ?? 0) - 1;
     }
   }
+  const chosen = trace?.[bestTraceIndex];
+  if (chosen) chosen.selected = true;
   return best;
 }
 
@@ -96,6 +128,7 @@ function clauseHasSelector(clause: ContractClause): boolean {
 }
 
 export interface ResponsibilityDecision {
+  trace: ResponsibilityTraceStep[];
   cost_id: string;
   cost_name: string;
   responsibility: Responsibility;
@@ -134,6 +167,22 @@ function nodeFallbackResponsibility(
 export function resolveItemResponsibility(item: CostItem, params: ResolveParams): ResponsibilityDecision {
   const { scenario, ruleSet, trade } = params;
   const ctx: ConditionContext = { facts: scenario.facts, carriage_mode: trade.carriage_mode };
+  const trace: ResponsibilityTraceStep[] = [];
+  const step = (stage: ResponsibilitySource, matched: boolean, detail: string, candidates?: RuleCandidateTrace[]): ResponsibilityTraceStep[] => {
+    trace.push({ stage, matched, detail, ...(candidates ? { candidates } : {}) });
+    return [...trace];
+  };
+  const conditionText = (condition: Condition): string => {
+    switch (condition.kind) {
+      case 'DELIVERY_PLACE': return `交货地点=${condition.is === 'SELLER_PREMISES' ? '卖方场所' : '其他指定地点'}`;
+      case 'LOADING_MODE': return `装载方式=${condition.is === 'FCL' ? '整箱' : '拼箱'}`;
+      case 'CARRIAGE_MODE': return `运输方式=${CARRIAGE_MODE_LABELS[condition.is]}`;
+      case 'CLEARANCE_AGENT': return '卖方代买方办理出口清关';
+      case 'SHIPPING_TERMS': return `运输变形条款=${condition.is}`;
+    }
+  };
+  const describeRule = (rule: CostResponsibilityRule): string =>
+    `命中 ${rule.id}；节点=${rule.trade_node ? TRADE_NODE_LABELS[rule.trade_node] : '任意'}，类别=${rule.cost_category ? COST_CATEGORY_LABELS[rule.cost_category] : '任意'}；${rule.conditions.length ? rule.conditions.map(conditionText).join('，') : '无附加条件'}；条件多者优先，再优先费用类别及节点限定，同等具体度按声明顺序选择。`;
 
   const invalidClause = ruleSet.contract_clauses?.find((clause) => !clauseHasSelector(clause));
   if (invalidClause !== undefined) {
@@ -147,6 +196,7 @@ export function resolveItemResponsibility(item: CostItem, params: ResolveParams)
   const override = scenario.responsibility_overrides?.[item.cost_id];
   if (override !== undefined) {
     return {
+      trace: step('USER_OVERRIDE', true, `本方案逐项指定 ${item.cost_id} → ${override.responsibility}；${override.reason ?? '未填写理由'}。${override.payment_party ? `另记付款方=${override.payment_party}；` : ''}${override.economic_bearer ? `另记经济承担方=${override.economic_bearer}；` : ''}汇总按指定归属计算。后续层级不再执行，人工指定不等于专业认证。`),
       cost_id: item.cost_id,
       cost_name: item.cost_name,
       responsibility: override.responsibility,
@@ -160,9 +210,12 @@ export function resolveItemResponsibility(item: CostItem, params: ResolveParams)
     };
   }
 
+  step('USER_OVERRIDE', false, '本方案没有对该费用的显式指定。');
+
   const clause = ruleSet.contract_clauses?.find((candidate) => clauseMatches(candidate, item));
   if (clause !== undefined) {
     return {
+      trace: step('CONTRACT', true, `命中合同 ${clause.id}：${JSON.stringify({ cost_id: clause.cost_id, cost_category: clause.cost_category, trade_node: clause.trade_node, cost_name_contains: clause.cost_name_contains })}；多条匹配时按合同声明顺序选择，后续层级不再执行。`),
       cost_id: item.cost_id,
       cost_name: item.cost_name,
       responsibility: clause.responsibility,
@@ -176,6 +229,8 @@ export function resolveItemResponsibility(item: CostItem, params: ResolveParams)
     };
   }
 
+  step('CONTRACT', false, '没有匹配该费用的合同条款。');
+
   // 发生原因（过错责任）优先于术语的费用划分：因谁的原因产生的费用由谁承担
   if (item.occurrence_reason !== undefined && item.occurrence_reason !== 'NORMAL_OPERATION') {
     const matches = (ruleSet.reason_rules ?? []).filter(
@@ -186,6 +241,7 @@ export function resolveItemResponsibility(item: CostItem, params: ResolveParams)
     const reasonRule = matches.find((rule) => rule.trade_node !== undefined) ?? matches[0];
     if (reasonRule !== undefined) {
       return {
+        trace: step('OCCURRENCE_REASON', true, `录入发生原因=${item.occurrence_reason}，命中 ${reasonRule.id}（节点=${reasonRule.trade_node ?? '任意'}）；有节点限定的规则优先，后续术语层不再执行。`),
         cost_id: item.cost_id,
         cost_name: item.cost_name,
         responsibility: reasonRule.responsibility,
@@ -200,10 +256,17 @@ export function resolveItemResponsibility(item: CostItem, params: ResolveParams)
     }
   }
 
-  const candidates: IncotermRule[] = ruleSet.rules.filter((rule) => rule.incoterm === scenario.incoterm);
-  const matched = pickBest(candidates, item, ctx);
+  step('OCCURRENCE_REASON', false, item.occurrence_reason === undefined ? '发生原因未录入；不推定为正常作业，未启用原因覆盖层。' : `录入发生原因=${item.occurrence_reason}；未命中非正常原因覆盖规则。`);
+
+  const termRules: IncotermRule[] = ruleSet.rules.filter((rule) => rule.incoterm === scenario.incoterm);
+  // 保险专属规则不能被“该节点的装卸/运输条款”覆盖；人工/合同/原因层仍先执行。
+  const insuranceRules = termRules.filter(rule => rule.cost_category === 'INSURANCE');
+  const candidates = item.cost_category === 'INSURANCE' && insuranceRules.length ? insuranceRules : termRules;
+  const candidateTrace: RuleCandidateTrace[] = [];
+  const matched = pickBest(candidates, item, ctx, candidateTrace);
   if (matched !== null) {
     return {
+      trace: step('INCOTERM_RULE', true, `${scenario.incoterm}：${describeRule(matched)}`, candidateTrace),
       cost_id: item.cost_id,
       cost_name: item.cost_name,
       responsibility: matched.responsibility,
@@ -217,9 +280,13 @@ export function resolveItemResponsibility(item: CostItem, params: ResolveParams)
     };
   }
 
-  const specialFact = pickBest(ruleSet.special_facts ?? [], item, ctx);
+  step('INCOTERM_RULE', false, `${scenario.incoterm} 下没有满足节点、类别与录入条件的术语规则；缺失事实不算条件成立。`, candidateTrace);
+
+  const specialTrace: RuleCandidateTrace[] = [];
+  const specialFact = pickBest(ruleSet.special_facts ?? [], item, ctx, specialTrace);
   if (specialFact !== null) {
     return {
+      trace: step('SPECIAL_CONDITION', true, describeRule(specialFact), specialTrace),
       cost_id: item.cost_id,
       cost_name: item.cost_name,
       responsibility: specialFact.responsibility,
@@ -233,9 +300,12 @@ export function resolveItemResponsibility(item: CostItem, params: ResolveParams)
     };
   }
 
+  step('SPECIAL_CONDITION', false, '没有匹配的特殊事实规则。', specialTrace);
+
   const fallbackResponsibility = nodeFallbackResponsibility(ruleSet, scenario.incoterm, item);
   if (fallbackResponsibility !== null) {
     return {
+      trace: step('TRADE_NODE', true, `${scenario.incoterm} 的节点兜底：${item.trade_node} → ${fallbackResponsibility}；弱推断，仍需核对合同。`),
       cost_id: item.cost_id,
       cost_name: item.cost_name,
       responsibility: fallbackResponsibility,
@@ -249,7 +319,10 @@ export function resolveItemResponsibility(item: CostItem, params: ResolveParams)
     };
   }
 
+  step('TRADE_NODE', false, '没有该术语的节点兜底。');
+
   return {
+    trace: step('UNRESOLVED', true, '归属待确认，不能从缺失资料猜测承担方。'),
     cost_id: item.cost_id,
     cost_name: item.cost_name,
     responsibility: 'CONDITIONAL',

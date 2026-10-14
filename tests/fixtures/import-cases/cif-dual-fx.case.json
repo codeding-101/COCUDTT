@@ -1,0 +1,22 @@
+{
+  "case_id": "cif-dual-fx",
+  "kind": "SYNTHETIC",
+  "project_file": "cif-dual-fx.project.json",
+  "evidence_index": "所有金额、税率、汇率和原产地均为合成数据，仅验证算式",
+  "reviewer": "手工算式对照；尚无业务人员复核",
+  "reviewed_on": "2026-10-11",
+  "calculations": [
+    "(100000+8000+300)*7.08=766764.00",
+    "766764*0.05=38338.20",
+    "(766764+38338.20)*0.13=104663.286 -> 104663.29",
+    "108300*7+38338.20+104663.29=901101.49"
+  ],
+  "expected": {
+    "dutiable_value": "766764.00",
+    "duty": "38338.20",
+    "consumption_tax": "0.00",
+    "vat": "104663.29",
+    "buyer_total": "901101.49",
+    "buyer_ex_deductible": "901101.49"
+  }
+}

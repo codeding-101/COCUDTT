@@ -1,4 +1,5 @@
 import type { Numeric } from './decimal.js';
+import type { SourceEvidence } from './source-evidence.js';
 
 /**
  * 税率口径。同一个 HS 编码在不同口径下税率不同，选哪一个取决于原产国与贸易协定，
@@ -26,6 +27,7 @@ export const DUTY_TYPE_LABELS: Record<DutyType, string> = {
 
 /** 一条 HS 编码的税率记录 */
 export interface HsRateEntry {
+  evidence?: SourceEvidence;
   /** HS 编码，纯数字，通常 6～10 位；可以是 2/4/6 位的上级编码，供下级回退使用 */
   code: string;
   description: string;

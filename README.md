@@ -8,17 +8,16 @@
 
 ## 版本与入口
 
-更新于 **2026-10-13**。本 README 介绍当前开发进展；功能代码仍在开发候选分支，尚未合并到 `main` 或发布到公开网站。下载时请确认所选分支。
+更新于 **2026-10-14**。本 README 介绍已验收并整合至 `main` 的开发功能。公开网站仍为此前发布版本；下载源码与离线工具时请使用 main。
 
 | 入口 | 内容与状态 |
 |---|---|
 | [在线演示](https://codeding-101.github.io/COCUDTT/) | 当前已发布版本，尚未包含下方全部新增能力 |
-| [`main` 分支](https://github.com/codeding-101/COCUDTT/tree/main) | 历史源码；本次只更新 README |
-| [最新开发候选](https://github.com/codeding-101/COCUDTT/tree/codex/ui-error-recovery) | 当前功能源码、单文件工具、文档与测试 |
-| [本轮草稿 PR #17](https://github.com/codeding-101/COCUDTT/pull/17) | 错误恢复与输入修正提示，接续资金占用 PR #16 |
-| [项目说明页源码](https://github.com/codeding-101/COCUDTT/blob/codex/ui-error-recovery/project-introduction.html) | 产品工作流、设计取舍与能力边界，可与工具一起离线打开 |
+| [`main` 分支](https://github.com/codeding-101/COCUDTT/tree/main) | 当前验收源码、离线工具、文档与测试 |
+| [前轮草稿 PR #28](https://github.com/codeding-101/COCUDTT/pull/28) | 独立关联模块的历史审查记录；本轮已贯通0.9、界面、文件与内部审计 |
+| [项目说明页源码](https://github.com/codeding-101/COCUDTT/blob/main/project-introduction.html) | 产品工作流、设计取舍与能力边界，可与工具一起离线打开 |
 
-日常试用可从[候选分支下载源码 ZIP](https://github.com/codeding-101/COCUDTT/archive/refs/heads/codex/ui-error-recovery.zip)，解压后双击根目录的 `trade-cost-engine.html`。运行离线工具无需安装 Node.js；开发与构建时才需要。
+日常试用可从[main下载源码 ZIP](https://github.com/codeding-101/COCUDTT/archive/refs/heads/main.zip)，解压后双击根目录的 `trade-cost-engine.html`。运行离线工具无需安装 Node.js；开发与构建时才需要。
 
 ## 解决什么问题
 
@@ -32,7 +31,7 @@
 
 **稳优先的原则：**未知不补零，付款不推定风险转移，运费终点不代替交货点，软件检查通过不等于专业或真实业务认证。
 
-## 开发候选已实现的能力
+## main开发版已实现的能力
 
 | 能力 | 当前支持范围 |
 |---|---|
@@ -44,10 +43,14 @@
 | 假设分析 | 运费、商业/海关汇率及未决费用承担，显示相对基准变化 |
 | 客户交付 | 公开字段预览，HTML、原生 Excel、可检索 PDF 报价草稿及固定中英文条款摘要 |
 | 内部存档 | HTML/Excel 成本、方案、公式、来源及输入快照；付款和资金假设单独保存 |
-| 付款与资金假设 | TT/L/C/OA 原币分期对账、银行费关联；明确本金、日期、利率及计息基准的单笔单利假设 |
-| 文件与恢复 | 标准 JSON、离线 Schema、四种模板；常见输入错误修正提示及启动/渲染/操作异常恢复界面 |
+| 付款与资金假设 | TT/L/C/OA 原币分期对账、银行费关联；恒定/显式变动本金、日期、固定/显式变动利率及计息基准的单利假设；金额舍入及明确计息归集期独立输入与审计 |
+| 文件与恢复 | 标准 JSON、离线 Schema、四种模板；输入修正及关联面板定位、启动/渲染/操作异常恢复、本地恢复备份只读检查 |
 
 资金假设区分融资利息与机会成本，结果独立于经营利润和合同/银行费用收付。付款主方式不证明已付款、单证相符或保证收款。
+
+本金、舍入及明确期间三套案例分别提供项目、付款、独立手算记录及离线说明；先保存自己的输入再打开配对文件。舍入例题保留0.018原值，合计后0.02 USD、逐区间0.03 USD；期间例题包含本金和利率变化，原始单利0.03 USD，两期归集0.03 USD、四个人为期间0.04 USD。各层级须独立复核确认，不推定银行结息。[本金手算记录](https://github.com/codeding-101/COCUDTT/blob/main/templates/synthetic-funding-example.check.json)和[期间手算记录](https://github.com/codeding-101/COCUDTT/blob/main/templates/synthetic-period-example.check.json)使用固定合成预期，不代表真实业务验收。
+
+资金事件限一个明确主体、单币种及固定计息基准：本金增减按日期及同日列表顺序处理；利率事件填写新的绝对年利率、生效日及依据，同日重复利率阻断。起始日生效，截止日只审计不多计一天；每段本金、实际利率、天数、余额及公式可复查。金额步长、方式和层级需明确填写；原始单利与舍入金额分开，逐区间应用必须确认边界，不能自动当作银行结息日。
 
 ## 使用流程
 
@@ -57,9 +60,11 @@
 4. 修改假设时查看变化；先检查公开预览，再生成客户文件。内部文件包含成本及来源，请按内部资料管理。
 5. 用“保存项目”保存项目 JSON；付款计划另存 JSON。自动草稿不能代替文件备份。
 
-项目格式为 **0.8**，支持读取 0.1–0.7 旧容器。内部付款计划为 **1.1**，旧 1.0 保持原格式，用户显式启用资金字段后才升级；客户公开字段和临时假设不随项目 JSON 自动保存。跨设备需自行传递文件，没有云同步。
+明确计息归集期已接入候选工具，可从1.4单独启用1.5：每期明确录入、独立确认，先汇总原值再舍入一次。归集期末不证明实际银行结息或付款。
 
-异常恢复界面隐藏旧结果，可下载内部恢复备份并保留输入重试。恢复备份包含原始项目、汇率行和本页参数，用于人工复原，不能作为项目 JSON 直接打开。脚本无法加载、浏览器崩溃或内存丢失不在该恢复机制的保障范围。
+新建项目默认 **0.8**；显式启用运输费用关联后为 **0.9**，关联范围、候选核对及来源随项目保存。支持读取0.1–0.8旧容器，同名旧扩展不激活、不覆盖。新建内部付款计划仍为 **1.1**，显式启用变动本金才升级 **1.2** 并重新确认假设；显式启用利率事件才升级 **1.3**，同样重新确认；显式启用金额舍入才升级 **1.4**，原值保留且须重新确认；显式启用明确期间再升级**1.5**，空期表待确认、不自动补日期；旧1.0/1.1/1.2/1.3/1.4读取与另存保持原格式，重名扩展升级时拒绝覆盖。客户公开字段和临时假设不随项目 JSON 自动保存。跨设备需自行传递文件，没有云同步。
+
+异常恢复界面隐藏旧结果，可下载内部恢复备份并保留输入重试。恢复备份包含原始项目、汇率行和本页参数，用于人工复原，不能作为项目 JSON 直接打开。正常页面可检查5 MiB以内恢复文件，分别标出六部分的结构状态；不替换当前交易、转换汇率或自动导入。检查不保证原始数字精度，人工复原仍以原文件为依据。脚本无法加载、浏览器崩溃或内存丢失不在该恢复机制的保障范围。
 
 ## 技术栈与设计
 
@@ -67,10 +72,10 @@
 
 | 模块 | 职责 |
 |---|---|
-| [`src/domain`](https://github.com/codeding-101/COCUDTT/tree/codex/ui-error-recovery/src/domain) | 贸易、费用、规则、来源、付款与资金假设类型 |
-| [`src/engine`](https://github.com/codeding-101/COCUDTT/tree/codex/ui-error-recovery/src/engine) | 依赖、责任解析、计价、税费及方案比较 |
-| [`src/data`](https://github.com/codeding-101/COCUDTT/tree/codex/ui-error-recovery/src/data) | 文件校验、兼容格式、模板、客户投影与工作簿快照 |
-| [`src/ui`](https://github.com/codeding-101/COCUDTT/tree/codex/ui-error-recovery/src/ui) | 输入事件、结果展示、导出及错误恢复 |
+| [`src/domain`](https://github.com/codeding-101/COCUDTT/tree/main/src/domain) | 贸易、费用、规则、来源、付款与资金假设类型 |
+| [`src/engine`](https://github.com/codeding-101/COCUDTT/tree/main/src/engine) | 依赖、责任解析、计价、税费及方案比较 |
+| [`src/data`](https://github.com/codeding-101/COCUDTT/tree/main/src/data) | 文件校验、兼容格式、模板、客户投影与工作簿快照 |
+| [`src/ui`](https://github.com/codeding-101/COCUDTT/tree/main/src/ui) | 输入事件、结果展示、导出及错误恢复 |
 
 ```mermaid
 flowchart LR
@@ -87,22 +92,23 @@ flowchart LR
 
 ## 验证证据与限制
 
-第二十轮本地 **42 个测试文件、983 项测试**通过，其中新增 21 项输入修正及恢复测试。浏览器验收包括 Edge 离线操作、实际文件下载、异常注入、草稿/客户边界及 1440/768/390/320 模拟宽度；远程结果以[本轮 PR 检查](https://github.com/codeding-101/COCUDTT/pull/17/checks)的实际提交为准。
+第三十二轮完整 **54 个测试文件、1418 项测试**通过，新增30项关联接入及候选依据核对。23套浏览器流程、新0.9流程32项检查通过；原生JSON下载、保存/恢复、内部与客户隔离及1440/768/390/320模拟宽度按最终产物核对。独立14手算/16错误另列。Windows/Linux CI按本轮PR和main实际提交核对，专业及真实业务/设备验收不由测试替代。
 
-可复查的记录：[基础概念核验](https://github.com/codeding-101/COCUDTT/blob/codex/ui-error-recovery/docs/foundations-validation.md)、[中国进口验收](https://github.com/codeding-101/COCUDTT/blob/codex/ui-error-recovery/docs/china-import-validation.md)、[客户与内部隔离](https://github.com/codeding-101/COCUDTT/blob/codex/ui-error-recovery/docs/customer-quotes-validation.md)、[资金占用与 Excel](https://github.com/codeding-101/COCUDTT/blob/codex/ui-error-recovery/docs/funding-validation.md)、[错误恢复验收](https://github.com/codeding-101/COCUDTT/blob/codex/ui-error-recovery/docs/recovery-validation.md)。
+可复查的记录：[基础概念核验](https://github.com/codeding-101/COCUDTT/blob/main/docs/foundations-validation.md)、[中国进口验收](https://github.com/codeding-101/COCUDTT/blob/main/docs/china-import-validation.md)、[客户与内部隔离](https://github.com/codeding-101/COCUDTT/blob/main/docs/customer-quotes-validation.md)、[资金占用与 Excel](https://github.com/codeding-101/COCUDTT/blob/main/docs/funding-validation.md)、[错误恢复验收](https://github.com/codeding-101/COCUDTT/blob/main/docs/recovery-validation.md)、[恢复文件与输入定位](https://github.com/codeding-101/COCUDTT/blob/main/docs/recovery-review-validation.md)、[本金事件与分段计息](https://github.com/codeding-101/COCUDTT/blob/main/docs/funding-ledger-validation.md)、[配套合成案例与导出指引](https://github.com/codeding-101/COCUDTT/blob/main/docs/funding-example-validation.md)、[显式利率与区间审计](https://github.com/codeding-101/COCUDTT/blob/main/docs/funding-rates-validation.md)、[金额舍入假设与层级差异](https://github.com/codeding-101/COCUDTT/blob/main/docs/funding-rounding-validation.md)、[舍入配套案例与操作指引](https://github.com/codeding-101/COCUDTT/blob/main/docs/rounding-example-validation.md)、[明确期间的实现前设计及验收门槛](https://github.com/codeding-101/COCUDTT/blob/main/docs/funding-period-design.md)、[独立期间归集函数验收](https://github.com/codeding-101/COCUDTT/blob/main/docs/funding-periods-validation.md)、[明确期间完整接入验收](https://github.com/codeding-101/COCUDTT/blob/main/docs/funding-period-integration-validation.md)、[期间配套案例与离线操作指引](https://github.com/codeding-101/COCUDTT/blob/main/docs/period-example-validation.md)、[运输费用关联独立模块](https://github.com/codeding-101/COCUDTT/blob/main/docs/transport-cost-links-validation.md)、[关联完整接入与main集成](https://github.com/codeding-101/COCUDTT/blob/main/docs/transport-links-integration-validation.md)。
 
 已有自动化和合成对照不能证明全部国家税制、贸易例外或银行实务已经适配。税率、归类、原产地待遇及抵扣资格仍需核对，示例不代表真实报关。真实交易对照资料尚未取得；真实手机和人工专业复核按当前安排暂缓。PDF 字体覆盖有限，无法表示的字符会停止生成并提示使用其他格式。
 
 ## 本地开发
 
-以下命令面向开发候选，建议使用 CI 同款 **Node.js 24**：
+以下命令面向main源码，建议使用 CI 同款 **Node.js 24**：
 
 ```bash
-git clone --branch codex/ui-error-recovery https://github.com/codeding-101/COCUDTT.git cocudtt
+git clone --branch main https://github.com/codeding-101/COCUDTT.git cocudtt
 cd cocudtt
 npm ci
 npm run dev
 npm test
+npm run check:funding-period-design
 npm run typecheck
 npm run audit
 npm audit --audit-level=high
@@ -110,14 +116,25 @@ npm run build:single
 npm run build:catalog
 ```
 
-`npm run audit` 检查界面字段/动作和引擎编码的连接；`npm audit` 检查依赖漏洞。CI 还会重建并比较已提交的单文件 HTML、Schema 和模板，防止交付文件与源码漂移。浏览器脚本位于 [`tools`](https://github.com/codeding-101/COCUDTT/tree/codex/ui-error-recovery/tools)，需要单独准备浏览器调试环境。
+`npm run audit` 检查界面字段/动作和引擎编码的连接；`npm audit` 检查依赖漏洞。CI 还会重建并比较已提交的单文件 HTML、Schema 和模板，防止交付文件与源码漂移。浏览器脚本位于 [`tools`](https://github.com/codeding-101/COCUDTT/tree/main/tools)，需要单独准备浏览器调试环境。
 
 ## 后续方向
 
-先完善错误恢复的人工复原流程和输入定位，再独立设计变动本金、保证金、代付清偿与净额到账。跨运输段费用关联、箱量/免费期账单及双语 PDF/Excel 排版继续按验收结果推进。真实资料取得后补业务对照及专业、设备验收，不用功能数量替代这些证据。
+已交付的付款/资金假设、明确归集期及三套配套案例继续保留。运输费用关联已通过显式0.9接入，核对范围及候选依据独立保存；[详细阶段目标与验收条件](https://github.com/codeding-101/COCUDTT/blob/main/docs/development-stages.md)明确以下顺序：
 
-详见[开发计划](https://github.com/codeding-101/COCUDTT/blob/codex/ui-error-recovery/docs/product-development-plan.md)、[项目展望](https://github.com/codeding-101/COCUDTT/blob/codex/ui-error-recovery/docs/project-outlook.md)和[设计文档](https://github.com/codeding-101/COCUDTT/blob/codex/ui-error-recovery/docs/design.md)。
+| 阶段 | 目标与完成条件 |
+|---|---|
+| 已完成：独立规则与模块 | 明确关联/来源/重叠候选，证明原金额、责任、风险和税费不变 |
+| 已完成：完整接入 | 显式0.9、失效引用、候选核对、保存恢复与内部审计已贯通 |
+| 下一阶段：集装箱账单 | 先设计箱数/免费期/计费日与阶梯，再以固定手算验证；不默认承运人规则 |
+| 报价与移动端操作质量 | 完善既有双视图、双语/长表/PDF及窄屏操作，客户隔离和真实下载验收 |
+| 发布前工程收敛 | 统一候选与证据、CI/离线回归及规则矩阵；准备可审查结果后由用户决定发布 |
+
+真实手机、专业及实际单据验收继续暂缓；多国家税制、实时运价、保证金/代付净额等不作为近期完成承诺。
+
+详见[开发计划](https://github.com/codeding-101/COCUDTT/blob/main/docs/product-development-plan.md)、[项目展望](https://github.com/codeding-101/COCUDTT/blob/main/docs/project-outlook.md)和[设计文档](https://github.com/codeding-101/COCUDTT/blob/main/docs/design.md)。
 
 ## 许可证
 
-[Apache-2.0](https://github.com/codeding-101/COCUDTT/blob/main/LICENSE)。离线中文字体另附[OFL 许可与来源](https://github.com/codeding-101/COCUDTT/tree/codex/ui-error-recovery/src/assets/fonts)，分发时请保留。
+[Apache-2.0](https://github.com/codeding-101/COCUDTT/blob/main/LICENSE)。离线中文字体另附[OFL 许可与来源](https://github.com/codeding-101/COCUDTT/tree/main/src/assets/fonts)，分发时请保留。
+

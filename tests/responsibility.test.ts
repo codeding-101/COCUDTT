@@ -142,7 +142,7 @@ describe('Incoterms 责任判定', () => {
       expect(otherPlace.rule_id).toBe('FCA.CARRIER_HANDOVER.OTHER_PLACE');
     });
 
-    it('FOB：装船费随运输条款变形变化，事实缺失时按基本含义归卖方', () => {
+    it('FOB：含义不充分的费用变形待确认，标准术语和明确卖方含费分支保留', () => {
       const base = decide({ incoterm: 'FOB', node: 'CARRIER_HANDOVER', cost_name: '装船费' });
       expect(base.responsibility).toBe('SELLER');
       expect(base.rule_id).toBe('FOB.CARRIER_HANDOVER.DEFAULT');
@@ -152,7 +152,8 @@ describe('Incoterms 责任判定', () => {
         node: 'CARRIER_HANDOVER',
         facts: { shipping_terms: 'LINER' },
       });
-      expect(liner.responsibility).toBe('BUYER');
+      expect(liner.responsibility).toBe('CONDITIONAL');
+      expect(liner.needs_confirmation).toBe(true);
       expect(liner.rule_id).toBe('FOB.CARRIER_HANDOVER.LINER');
 
       const underTackle = decide({
@@ -160,7 +161,7 @@ describe('Incoterms 责任判定', () => {
         node: 'CARRIER_HANDOVER',
         facts: { shipping_terms: 'UNDER_TACKLE' },
       });
-      expect(underTackle.responsibility).toBe('BUYER');
+      expect(underTackle.responsibility).toBe('CONDITIONAL');
 
       const stowed = decide({
         incoterm: 'FOB',
@@ -171,7 +172,7 @@ describe('Incoterms 责任判定', () => {
       expect(stowed.rule_id).toBe('FOB.CARRIER_HANDOVER.STOWED');
     });
 
-    it('FOB：班轮条件下的起运港港杂费归买方，港杂费与装船费都能被覆盖', () => {
+    it('FOB：班轮条件不足以将全部港杂费转给买方，要求逐项核对', () => {
       const terminalDefault = decide({ incoterm: 'FOB', node: 'ORIGIN_TERMINAL' });
       expect(terminalDefault.responsibility).toBe('SELLER');
 
@@ -180,45 +181,57 @@ describe('Incoterms 责任判定', () => {
         node: 'ORIGIN_TERMINAL',
         facts: { shipping_terms: 'LINER' },
       });
-      expect(terminalLiner.responsibility).toBe('BUYER');
+      expect(terminalLiner.responsibility).toBe('CONDITIONAL');
+      expect(terminalLiner.needs_confirmation).toBe(true);
+      expect(terminalLiner.note).toContain('拆分');
       expect(terminalLiner.rule_id).toBe('FOB.ORIGIN_TERMINAL.LINER');
     });
 
+    it('FOB变形经核对后的逐项覆盖优先，覆盖费用不改变标准风险', () => {
+      const confirmed = decide({
+        incoterm: 'FOB', node: 'ORIGIN_TERMINAL', facts: { shipping_terms: 'LINER' },
+        overrides: { 'item-1': { responsibility: 'BUYER', reason: '合同A第3条明确此项THC含在买方运费中' } },
+      });
+      expect(confirmed.responsibility).toBe('BUYER');
+      expect(confirmed.source).toBe('USER_OVERRIDE');
+      expect(confirmed.note).toContain('合同A第3条');
+      expect(confirmed.needs_confirmation).toBe(false);
+      const other = decide({ incoterm: 'FOB', node: 'ORIGIN_TERMINAL', facts: { shipping_terms: 'LINER' }, cost_id: 'other' });
+      expect(other.needs_confirmation).toBe(true);
+    });
+
     it('CIF 与 CFR 只差保险一项', () => {
+      // 此处比较标准费用规则；保单保障与合同例外仍需独立核对。
       expect(decide({ incoterm: 'CIF', node: 'MAIN_CARRIAGE', category: 'INSURANCE' }).responsibility).toBe('SELLER');
-      expect(decide({ incoterm: 'CFR', node: 'MAIN_CARRIAGE', category: 'INSURANCE' }).responsibility).toBe('BUYER');
+      expect(decide({ incoterm: 'CFR', node: 'MAIN_CARRIAGE', category: 'INSURANCE' }).responsibility).toBe('CONDITIONAL');
       expect(decide({ incoterm: 'CIF', node: 'MAIN_CARRIAGE' }).responsibility).toBe('SELLER');
       expect(decide({ incoterm: 'CFR', node: 'MAIN_CARRIAGE' }).responsibility).toBe('SELLER');
     });
 
-    it('CIF：卸货费随卸货变形变化', () => {
-      expect(decide({ incoterm: 'CIF', node: 'DESTINATION_TERMINAL' }).responsibility).toBe('BUYER');
-      expect(
-        decide({ incoterm: 'CIF', node: 'DESTINATION_TERMINAL', facts: { shipping_terms: 'LINER' } }).responsibility,
-      ).toBe('SELLER');
-      expect(
-        decide({ incoterm: 'CIF', node: 'DESTINATION_TERMINAL', facts: { shipping_terms: 'EX_SHIP_HOLD' } })
-          .responsibility,
-      ).toBe('BUYER');
+    it('CIF：港杂/卸货费须逐项核对，班轮及舱底名称不替代运输合同', () => {
+      for (const facts of [undefined, { shipping_terms: 'LINER' as const }, { shipping_terms: 'EX_SHIP_HOLD' as const }]) {
+        const result = decide({ incoterm: 'CIF', node: 'DESTINATION_TERMINAL', facts });
+        expect(result.responsibility).toBe('CONDITIONAL'); expect(result.needs_confirmation).toBe(true);
+      }
     });
 
-    it('CPT 与 CIP 只差保险一项，且主运费与目的地运输均归卖方', () => {
+    it('CPT/CIP主运费归卖方，目的地短驳须核对合同终点', () => {
       expect(decide({ incoterm: 'CPT', node: 'MAIN_CARRIAGE' }).responsibility).toBe('SELLER');
-      expect(decide({ incoterm: 'CPT', node: 'DESTINATION_TRANSPORT' }).responsibility).toBe('SELLER');
-      expect(decide({ incoterm: 'CPT', node: 'MAIN_CARRIAGE', category: 'INSURANCE' }).responsibility).toBe('BUYER');
+      expect(decide({ incoterm: 'CPT', node: 'DESTINATION_TRANSPORT' }).responsibility).toBe('CONDITIONAL');
+      expect(decide({ incoterm: 'CPT', node: 'MAIN_CARRIAGE', category: 'INSURANCE' }).responsibility).toBe('CONDITIONAL');
       expect(decide({ incoterm: 'CIP', node: 'MAIN_CARRIAGE', category: 'INSURANCE' }).responsibility).toBe('SELLER');
     });
 
     it('DAP 与 DPU 只差目的地卸货一项', () => {
-      expect(decide({ incoterm: 'DAP', node: 'FINAL_DELIVERY' }).responsibility).toBe('BUYER');
+      expect(decide({ incoterm: 'DAP', node: 'FINAL_DELIVERY' }).responsibility).toBe('CONDITIONAL');
       expect(decide({ incoterm: 'DPU', node: 'FINAL_DELIVERY' }).responsibility).toBe('SELLER');
       expect(decide({ incoterm: 'DPU', node: 'IMPORT_CLEARANCE' }).responsibility).toBe('BUYER');
     });
 
-    it('DDP：进口清关与关税归卖方，卸货仍归买方', () => {
+    it('DDP：进口清关与税费归卖方，卸货费用不能仅按作业义务推定', () => {
       expect(decide({ incoterm: 'DDP', node: 'IMPORT_CLEARANCE' }).responsibility).toBe('SELLER');
       expect(decide({ incoterm: 'DDP', node: 'IMPORT_DUTIES' }).responsibility).toBe('SELLER');
-      expect(decide({ incoterm: 'DDP', node: 'FINAL_DELIVERY' }).responsibility).toBe('BUYER');
+      expect(decide({ incoterm: 'DDP', node: 'FINAL_DELIVERY' }).responsibility).toBe('CONDITIONAL');
     });
 
     it('系统不认识的费用名称不影响判定：按节点与类别判定', () => {
@@ -242,14 +255,15 @@ describe('Incoterms 责任判定', () => {
   });
 
   describe('第四级：特殊事实兜底', () => {
-    it('规则表未覆盖时，由明确的事实兜底判定', () => {
+    it('规则表未覆盖时，报关代办人不足以判定费用承担', () => {
       const decision = decide({
         incoterm: 'EXW',
         node: 'EXPORT_CLEARANCE',
         facts: { clearance_agent: 'SELLER_ACTS_FOR_BUYER' },
         ruleSet: onlySpecialFacts,
       });
-      expect(decision.responsibility).toBe('SELLER');
+      expect(decision.responsibility).toBe('CONDITIONAL');
+      expect(decision.needs_confirmation).toBe(true);
       expect(decision.source).toBe('SPECIAL_CONDITION');
       expect(decision.rule_id).toBe('SF.EXPORT_CLEARANCE.SELLER_ACTS_FOR_BUYER');
       expect(decision.confidence).toBe('MEDIUM');
@@ -330,7 +344,7 @@ describe('Incoterms 责任判定', () => {
       const scenario = makeScenario({ incoterm: 'CIF' });
       const decisions = resolveResponsibility({ trade, scenario, ruleSet: INCOTERMS_2020_RULESET });
       expect(decisions.map((decision) => decision.cost_id)).toEqual(['a', 'b', 'c']);
-      expect(decisions.map((decision) => decision.responsibility)).toEqual(['SELLER', 'SELLER', 'BUYER']);
+      expect(decisions.map((decision) => decision.responsibility)).toEqual(['SELLER', 'SELLER', 'CONDITIONAL']);
     });
   });
 });

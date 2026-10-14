@@ -41,6 +41,41 @@ describe('Risk Engine 风险转移', () => {
     expect(resolveRisk('FOB').separation_note).toBeNull();
   });
 
+  it('FCA卖方场所的风险在装货完成时转移，不延至起运港', () => {
+    const risk = resolveRisk('FCA', { delivery_place: 'SELLER_PREMISES' });
+    expect(risk.transfer_node).toBe('SELLER_PREMISES');
+    expect(risk.transfer_point).toContain('装货完成');
+    expect(risk.needs_confirmation).toBe(false);
+    expect(riskRelationForNode(risk.transfer_node, 'INLAND_TRANSPORT')).toBe('AFTER_TRANSFER');
+  });
+
+  it('FCA其他地点交货为准备卸货，不误写成卸货完成或装上船', () => {
+    const risk = resolveRisk('FCA', { delivery_place: 'OTHER' });
+    expect(risk.transfer_point).toContain('仍在卖方运输工具上');
+    expect(risk.transfer_point).toContain('准备卸货');
+    expect(risk.transfer_point).not.toMatch(/卸货完成|装上船/);
+    expect(risk.needs_confirmation).toBe(false);
+  });
+
+  it('未录FCA地点不静默采用其中一个交货分支', () => {
+    const risk = resolveRisk('FCA');
+    expect(risk.needs_confirmation).toBe(true);
+    expect(risk.transfer_point).toContain('未确认');
+    expect(risk.transfer_point).toContain('卖方场所');
+    expect(risk.transfer_point).toContain('其他指定地点');
+  });
+
+  it('FCA事实不会改变其他术语，也不会污染共享规则或传入事实', () => {
+    const facts = { delivery_place: 'SELLER_PREMISES' as const, shipping_terms: 'STOWED' as const };
+    const before = JSON.stringify(INCOTERMS_2020_RISK);
+    expect(resolveRisk('FOB', facts)).toEqual(resolveRisk('FOB'));
+    expect(resolveRisk('FOB', { shipping_terms: 'LINER' }).transfer_point).toContain('装上船');
+    resolveRisk('FCA', facts);
+    expect(resolveRisk('FCA').needs_confirmation).toBe(true);
+    expect(facts).toEqual({ delivery_place: 'SELLER_PREMISES', shipping_terms: 'STOWED' });
+    expect(JSON.stringify(INCOTERMS_2020_RISK)).toBe(before);
+  });
+
   it('交付点及其之前视为风险转移前', () => {
     const cif = resolveRisk('CIF');
     expect(riskRelationForNode(cif.transfer_node, 'SELLER_PREMISES')).toBe('BEFORE_TRANSFER');

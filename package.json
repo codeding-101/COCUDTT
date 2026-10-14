@@ -6,6 +6,8 @@
   "type": "module",
   "description": "国际贸易成本与贸易术语方案分析系统",
   "scripts": {
+    "check:funding-period-design": "node tools/check-funding-period-design.mjs",
+    "build:catalog": "node tools/build-project-catalog.mjs",
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "build:single": "tsc --noEmit && vite build && node tools/build-single.mjs",
@@ -17,10 +19,14 @@
     "audit": "node tools/audit.mjs"
   },
   "dependencies": {
-    "decimal.js": "^10.6.0"
+    "@pdf-lib/fontkit": "1.1.1",
+    "decimal.js": "^10.6.0",
+    "fflate": "0.8.3",
+    "pdf-lib": "1.17.1"
   },
   "devDependencies": {
     "@types/node": "^26.5.1",
+    "ajv": "8.20.0",
     "typescript": "^7.0.2",
     "vite": "^7.3.6",
     "vitest": "^5.0.0"

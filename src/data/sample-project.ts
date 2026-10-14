@@ -2,6 +2,7 @@ import type { ComparisonAnchor } from '../domain/scenario.js';
 import type { ProjectFile, QuoteTemplate } from './project-file.js';
 import { SCHEMA_VERSION } from './project-file.js';
 import { presetToCostItem, customCostItem, COST_PRESETS } from './cost-presets.js';
+import { emptyEligibility, emptyRoute } from '../domain/import-context.js';
 
 function preset(key: string) {
   const found = COST_PRESETS.find((candidate) => candidate.key === key);
@@ -96,9 +97,9 @@ export function newProjectFile(): ProjectFile {
       },
       customsFx: { bookType: 'CUSTOMS', lockPeriod: 'MONTHLY' },
     },
-    quote: DEMO_QUOTE,
+    quote: { ...DEMO_QUOTE },
     incoterm: 'CIF',
-    anchor: DEMO_ANCHOR,
+    anchor: { ...DEMO_ANCHOR },
     facts: {},
   };
 }
@@ -143,5 +144,58 @@ export function sampleProjectFile(): ProjectFile {
         overrides: { cost_name: '保险费', pricing_method: 'ACTUAL' },
       }),
     ],
+  };
+}
+
+/** 中国进口用例：税率、汇率与卖方成本均虚构，用于可复现的公式核对。 */
+export function chinaImportSampleProjectFile(): ProjectFile {
+  const project = sampleProjectFile();
+  project.name = '示例：中国一般贸易进口（虚构税率）';
+  project.route = { export_country: '德国（演示）', import_country: '中国', origin_country: '德国（演示）', customs_regime: 'GENERAL_TRADE' };
+  delete project.export_date;
+  project.goods.name = '演示商品（非真实税则归类）';
+  project.goods.trade_value_basis = 'NET';
+  project.goods.tax_key = 'DEMO-IMPORT';
+  project.tax_profile.import = {
+    ...project.tax_profile.import,
+    calculationMode: 'CN_GENERAL_TRADE', declarationDate: '2026-09-10',
+    dutyRates: { fallback: '0.05' }, hsTable: { basis: 'MFN', entries: [] },
+    dutyExemptionThreshold: '50',
+    vatDeductibleForBuyer: false,
+    eligibility: { ...emptyEligibility(), duty_evidence: { status: 'EXAMPLE', reference: '虚构待遇条件，不对应实际原产地资格', valid_from: '2026-09-01', valid_to: '2026-09-30', checked_on: '' } },
+    rateEvidence: { status: 'EXAMPLE', reference: '内置虚构税率，用于公式演示', valid_from: '2026-09-01', valid_to: '2026-09-30', checked_on: '' },
+  };
+  const customs = project.fx_books.find((book) => book.type === 'CUSTOMS');
+  if (customs !== undefined) {
+    customs.date = '2026-08-19';
+    customs.name = '演示计征汇率（虚构，适用 2026-09）';
+  }
+  for (const book of project.fx_books) {
+    book.evidence = Object.fromEntries(Object.keys(book.rates).map((pair) => [pair, {
+      status: 'EXAMPLE' as const, reference: '内置虚构汇率，用于公式演示',
+      valid_from: '2026-08-01', valid_to: '2026-09-30', checked_on: '',
+    }]));
+  }
+  return project;
+}
+
+/** 空白中国进口交易：只有结构和用户所选模式，不填虚构业务数据。 */
+export function newChinaImportProjectFile(): ProjectFile {
+  return {
+    schema_version: SCHEMA_VERSION, name: '', updated_at: new Date().toISOString(),
+    base_currency: 'CNY', carriage_mode: 'SEA', route: emptyRoute(),
+    goods: { name: '', quantity: '', unit: '', tax_key: '', trade_value_basis: 'UNCONFIRMED',
+      trade_value: { amount: '', currency: 'CNY' }, seller_goods_cost: { amount: '', currency: 'CNY' } },
+    items: [], fx_books: [], quote: { amount: '', currency: 'CNY', fx_type: 'CONTRACT' },
+    incoterm: 'CIF', anchor: { kind: 'FIXED_QUOTE' }, facts: {},
+    tax_profile: {
+      id: 'china-general-trade', version: '1.0',
+      import: { calculationMode: 'CN_GENERAL_TRADE', declarationDate: '', dutiableValueBasis: 'CIF',
+        dutyRates: { fallback: '' }, hsTable: { basis: 'MFN', entries: [] }, vatRate: '',
+        consumptionTax: null, vatDeductibleForBuyer: false, eligibility: emptyEligibility() },
+      export: { dutiableValueBasis: 'FOB', dutyRates: { fallback: '0' },
+        rebate: { entityType: 'TRADING', vatRates: { fallback: '0' }, rebateRates: { fallback: '0' } } },
+      customsFx: { bookType: 'CUSTOMS', lockPeriod: 'MONTHLY' },
+    },
   };
 }

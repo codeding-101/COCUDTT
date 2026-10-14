@@ -46,11 +46,12 @@ const uiText = srcFiles
 const allText = srcFiles.map((file) => ({ file, text: read(file) }));
 
 // ---------- 1. 渲染字段 / 动作 是否都有处理分支 ----------
-const handledFields = matchAll(appTs, /^\s+case '([a-zA-Z_]+)':/gm);
+const handledFields = matchAll(appTs, /^\s+case '([a-zA-Z_-]+)':/gm);
 const renderedFields = new Set([
   ...matchAll(uiText, /data-item-field="([a-z_]+)"/g),
   ...matchAll(uiText, /data-fx-field="([a-z_]+)"/g),
   ...matchAll(uiText, /data-hs-field="([a-z_]+)"/g),
+  ...matchAll(uiText, /itemAttr\([^,]+,\s*'([a-z_-]+)'\)/g),
 ]);
 for (const field of renderedFields) {
   if (!handledFields.has(field)) {
@@ -64,6 +65,36 @@ const handledActions = new Set([
   ...matchAll(appTs, /dataset\.action === '([a-z-]+)'/g),
 ]);
 const renderedActions = matchAll(uiText, /data-action="([a-z-]+)"/g);
+const sensitivityFields = new Set([...matchAll(uiText, /data-sensitivity-field="([a-z_]+)"/g), 'from', 'to', 'step']);
+const sensitivityHandler = appTs.slice(appTs.indexOf('if (target.dataset.sensitivityField !== undefined)'), appTs.indexOf("if (target.dataset.evidenceOwner !== undefined", appTs.indexOf('if (target.dataset.sensitivityField !== undefined)')));
+for (const field of sensitivityFields) {
+  if (!sensitivityHandler.includes(`field === '${field}'`)) problems.push(`[假设字段未处理] ${field} 没有对应处理分支`);
+}
+const contractFields = matchAll(uiText, /data-contract-field="([a-z_]+)"/g);
+const settlementFields = new Set([
+  ...matchAll(uiText, /data-settlement-field="([a-z_]+)"/g),
+  ...matchAll(uiText, /input\('(?:payment|fee)',\s*index,\s*'([a-z_]+)'/g),
+]);
+const settlementHandler = appTs.slice(appTs.indexOf('function onSettlementField('), appTs.indexOf('async function saveSettlement('));
+for (const field of settlementFields) {
+  if (!settlementHandler.includes(`field === '${field}'`)) problems.push(`[付款字段未处理] ${field} 没有对应处理分支`);
+}
+const customerDomain = read(join(root, 'src/domain/customer-quote.ts'));
+const customerFields = new Set([...matchAll(uiText, /data-customer-field="([a-z_]+)"/g), ...matchAll(customerDomain, /^\s+([a-z_]+): string;/gm)]);
+for (const field of customerFields) {
+  if (field === 'reviewed' ? !appTs.includes("field === 'reviewed'") : !customerDomain.includes(`'${field}'`) || !appTs.includes('CUSTOMER_QUOTE_FIELDS.some')) problems.push(`[客户字段未处理] ${field} 没有对应处理分支`);
+}
+const handledContractFields = matchAll(appTs, /field === '([a-z_]+)'/g);
+for (const field of contractFields) {
+  if (!handledContractFields.has(field)) problems.push(`[合同字段未处理] ${field} 没有对应处理分支`);
+}
+const logisticsFields = new Set([
+  ...matchAll(uiText, /data-logistics-field="([a-z_.]+)"/g),
+  ...matchAll(uiText, /textField\('(?:transport|insurance)',\s*'([a-z_.]+)'/g),
+]);
+const logisticsHandler = appTs.slice(appTs.indexOf('function onLogisticsField('), appTs.indexOf('function addTransportSegment('));
+const handledLogisticsFields = matchAll(logisticsHandler, /'([a-z_.]+)'/g);
+for (const field of logisticsFields) if (!handledLogisticsFields.has(field)) problems.push(`[物流字段未处理] ${field} 没有对应处理分支`);
 for (const action of renderedActions) {
   if (!handledActions.has(action)) {
     problems.push(`[动作未处理] 界面渲染了 data-action="${action}"，但 app.ts 中没有对应分支`);
@@ -111,19 +142,30 @@ const projectPaths = new Set([
   'goods.seller_goods_cost.amount',
   'goods.seller_goods_cost.currency',
   'goods.tax_key',
+  'goods.trade_value_basis',
   'quote.amount',
   'quote.currency',
   'quote.fx_type',
   'quote.fx_date',
+  'evaluation_date', '${prefix}.amount', '${prefix}.currency', '${prefix}.fx_type', '${prefix}.fx_date', '${prefix}.named_place',
   'incoterm',
   'anchor.kind',
   'anchor.buyer_total',
   'anchor.currency',
   'anchor.margin_rate',
   'facts.delivery_place',
+  'facts.loading_mode',
   'facts.shipping_terms',
   'facts.clearance_agent',
   'tax_profile.import.hsTable.basis',
+  'tax_profile.import.calculationMode',
+  'tax_profile.import.declarationDate',
+  'tax_profile.import.dutyRates.fallback',
+  'tax_profile.import.vatRate',
+  'tax_profile.import.consumptionTax.rate',
+  'tax_profile.import.vatDeductibleForBuyer',
+  'route.export_country', 'route.import_country', 'route.origin_country', 'route.customs_regime',
+  'tax_profile.import.eligibility.agreement_name', 'tax_profile.import.eligibility.vat_taxpayer', 'tax_profile.import.eligibility.vat_use',
 ]);
 for (const path of matchAll(uiText, /data-path="([^"]+)"/g)) {
   if (!projectPaths.has(path)) problems.push(`[路径可疑] data-path="${path}" 不在已知的项目字段清单里，确认它真的存在`);
@@ -133,6 +175,7 @@ for (const path of matchAll(uiText, /data-path="([^"]+)"/g)) {
 if (problems.length === 0) {
   console.log('静态审查通过：没有发现未处理的字段/动作、未使用的错误码或告警码。');
 } else {
+  process.exitCode = 1;
   console.log(`静态审查发现 ${problems.length} 项：`);
   for (const problem of problems) console.log(`  · ${problem}`);
 }

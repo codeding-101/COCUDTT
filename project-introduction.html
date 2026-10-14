@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="面向外贸业务人员的本地贸易成本测算项目：产品定位、使用流程、技术设计、验证证据与范围边界。">
+  <meta name="color-scheme" content="light">
+  <title>项目介绍 · 国际贸易成本与贸易术语分析</title>
+  <style>
+    :root { color-scheme: light; --ink:#153239; --muted:#52696e; --paper:#f4f6f1; --line:#d8e1dc; --green:#14664d; --ochre:#76531f; font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; scroll-padding-top:24px; }
+    body { margin:0; color:var(--ink); background:var(--paper); font-size:16px; line-height:1.75; }
+    a { color:var(--green); text-underline-offset:4px; overflow-wrap:anywhere; }
+    a:hover { text-decoration-thickness:2px; }
+    a:focus-visible, summary:focus-visible { outline:3px solid #985f0b; outline-offset:5px; border-radius:2px; }
+    .skip { position:absolute; left:16px; top:-100px; padding:10px 16px; z-index:10; background:white; }
+    .skip:focus { top:10px; }
+    .wrap { width:min(1120px,100%); margin-inline:auto; padding-inline:32px; }
+    header { border-bottom:1px solid var(--line); background:#fff; }
+    .nav { display:flex; align-items:center; justify-content:space-between; gap:16px; padding-block:18px; flex-wrap:wrap; }
+    .wordmark { font-size:14px; font-weight:700; letter-spacing:.06em; }
+    nav { display:flex; flex-wrap:wrap; gap:8px 24px; font-size:14px; }
+    nav a { padding-block:6px; }
+    .hero { padding-block:72px 48px; display:grid; grid-template-columns:1.65fr 1fr; gap:48px; align-items:start; }
+    .eyebrow { font-size:12px; font-weight:700; color:var(--green); letter-spacing:.14em; margin:0 0 12px; }
+    h1 { font-size:clamp(30px,4.5vw,48px); line-height:1.3; letter-spacing:-.025em; margin:0 0 24px; max-width:18ch; text-wrap:balance; }
+    h2 { font-size:26px; line-height:1.4; margin:0 0 18px; }
+    h3 { font-size:18px; line-height:1.45; margin:0 0 12px; }
+    p { margin:0 0 16px; }
+    .lead { color:var(--muted); max-width:42ch; font-size:18px; }
+    .actions { display:flex; flex-wrap:wrap; align-items:center; gap:12px 24px; margin-top:28px; }
+    .button { display:inline-block; padding:12px 20px; border-radius:5px; background:var(--green); color:white; text-decoration:none; font-weight:600; }
+    .small { font-size:13px; color:var(--muted); }
+    .hero-note { margin-top:26px; padding:22px 24px; border-top:4px solid var(--green); border-radius:5px; background:#fff; }
+    .hero-note dl { margin:0; }
+    .hero-note dt { font-size:12px; color:var(--muted); margin-top:16px; }
+    .hero-note dt:first-child { margin-top:0; }
+    .hero-note dd { margin:2px 0 0; font-weight:600; }
+    section { padding-block:44px; border-top:1px solid var(--line); }
+    .intro { max-width:70ch; color:var(--muted); }
+    .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; margin-top:24px; }
+    .two { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .card { padding:24px; background:#fff; border:1px solid var(--line); border-radius:6px; }
+    .card p:last-child, .card ul:last-child { margin-bottom:0; }
+    .card p { color:var(--muted); font-size:15px; }
+    .step-number { display:block; font-size:13px; font-weight:700; color:var(--green); margin-bottom:14px; }
+    ul, ol { margin:0 0 16px; padding-left:1.35em; }
+    li { margin-bottom:8px; }
+    li:last-child { margin-bottom:0; }
+    .status { display:inline-block; padding:3px 10px; font-size:12px; line-height:1.6; font-weight:700; border-radius:3px; background:#e5f3e9; color:var(--green); margin-bottom:16px; }
+    .status.pending { color:var(--ochre); background:#f5ebd9; }
+    .stack { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin-top:24px; }
+    .stack article { border-top:3px solid var(--green); padding:16px 0; }
+    .stack h3 { font-size:17px; }
+    .stack p { font-size:14px; color:var(--muted); }
+    code { background:#e8ede8; border-radius:3px; padding:2px 6px; font-size:.9em; overflow-wrap:anywhere; }
+    .boundary { border-left:4px solid #aa772c; padding:20px 24px; background:#fff9ef; margin-top:24px; }
+    .boundary p:last-child { margin-bottom:0; }
+    .roadmap { counter-reset:roadmap; list-style:none; padding:0; margin-top:24px; }
+    .roadmap li { display:grid; grid-template-columns:38px 1fr; gap:16px; padding:18px 0; border-bottom:1px solid var(--line); margin:0; }
+    .roadmap li::before { counter-increment:roadmap; content:counter(roadmap, decimal-leading-zero); color:var(--green); font-weight:700; }
+    .roadmap strong { display:block; }
+    .roadmap span { color:var(--muted); font-size:15px; }
+    footer { padding-block:28px 40px; border-top:1px solid var(--line); color:var(--muted); font-size:13px; }
+    footer p { margin-bottom:8px; }
+    @media (max-width:760px) { .hero { grid-template-columns:1fr; padding-block:42px 36px; gap:16px; } .hero-note { margin-top:0; } .grid, .two { grid-template-columns:1fr; gap:16px; } .stack { grid-template-columns:repeat(2,minmax(0,1fr)); } section { padding-block:32px; } }
+    @media (max-width:400px) { .wrap { padding-inline:18px; } body { font-size:15px; } .lead { font-size:16px; } h2 { font-size:23px; } .card { padding:20px; } .stack { grid-template-columns:1fr; gap:0; } .nav { gap:8px; } nav { gap:4px 18px; } }
+    @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
+    @media print { body { background:white; font-size:11pt; } .wrap { width:100%; padding:0; } header, .actions, .skip { display:none; } .hero { padding-top:0; gap:24px; } section { padding-block:20px; } .card, .boundary, .hero-note { break-inside:avoid; } a { color:inherit; } }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#content">跳到项目介绍</a>
+  <header>
+    <div class="wrap nav">
+      <span class="wordmark">COCUDTT / 贸易成本分析</span>
+      <nav aria-label="项目介绍导航"><a href="#workflow">使用流程</a><a href="#capabilities">能力与边界</a><a href="#engineering">工程设计</a><a href="#evidence">验证证据</a></nav>
+    </div>
+  </header>
+  <main id="content" class="wrap">
+    <div class="hero">
+      <div>
+        <p class="eyebrow">面向外贸业务人员 · 本地测算</p>
+        <h1>把一笔进口报价，拆成可复核的成本方案。</h1>
+        <p class="lead">货物价格、运保费、税款和费用承担放在同一套测算中。每个方案显示已知金额与待确认条件，帮助业务人员准备谈判、交接和内部复核。</p>
+        <div class="actions"><a class="button" href="trade-cost-engine.html">打开离线工具</a><a href="#workflow">了解怎样开始</a></div>
+        <p class="small" style="margin-top:12px">工具与本页放在同一目录即可打开。介绍页不读取项目文件或交易数据。</p>
+      </div>
+      <aside class="hero-note" aria-label="项目定位">
+        <dl><dt>优先业务路线</dt><dd>中国一般贸易进口 · 单商品一票</dd><dt>主要使用者</dt><dd>外贸业务、进口采购与内部复核人员</dd><dt>运行与数据</dt><dd>纯前端本地运行 · JSON 项目文件</dd><dt>当前阶段</dt><dd>迭代开发中，真实交易验收待完成</dd></dl>
+      </aside>
+    </div>
+    <section aria-labelledby="problem-title">
+      <p class="eyebrow">解决的问题</p><h2 id="problem-title">价格相近，不代表落地成本相同。</h2>
+      <p class="intro">同一笔业务，费用是否已含在报价内、运输由谁组织、适用税率和海关汇率，都可能改变买方总支付。工具把这些事实分开录入，保留计算口径与未确认项。</p>
+      <div class="grid">
+        <article class="card"><h3>减少漏项与重复计入</h3><p>费用记录节点、原因、计价方式和“已含于”关系。方案专属费用按术语启用，替代报价组避免同一方案同时计入两份运价。</p></article>
+        <article class="card"><h3>比较可解释的支付</h3><p>逐方案汇总买卖方费用、完税价格和税款。卖方采购成本未知时，利润明确不可评估，仍可测算已知的买方支付。</p></article>
+        <article class="card"><h3>把条件带入复核</h3><p>税率与汇率来源、有效期和人工核对状态随结果保存。不满足业务前提的方案显示原因，避免把输入不完整当成推荐依据。</p></article>
+      </div>
+    </section>
+    <section id="workflow" aria-labelledby="workflow-title">
+      <p class="eyebrow">三步工作流</p><h2 id="workflow-title">从报价到内部测算报告</h2>
+      <div class="grid">
+        <article class="card"><span class="step-number">01 / 建立交易</span><h3>确认价格与路线</h3><p>先用“中国进口示例”了解口径，再新建空白交易。录入单商品、贸易路线、申报日期和货物净价；确认报价是否捆绑运保费。</p></article>
+        <article class="card"><span class="step-number">02 / 补齐成本与依据</span><h3>记录费用和条件</h3><p>填运费、保险及其他费用，选择适用术语。记录税率、商业与海关汇率依据，以及待遇资格、抵扣前提和必要调整。</p></article>
+        <article class="card"><span class="step-number">03 / 比较与交接</span><h3>核对金额与待办</h3><p>比较各方案支付及风险提示，逐项检查未确认条件。保存 JSON 项目继续编辑，或导出带输入快照的内部 HTML 报告。</p></article>
+      </div>
+    </section>
+    <section id="capabilities" aria-labelledby="capabilities-title">
+      <p class="eyebrow">交付状态</p><h2 id="capabilities-title">现有能力和后续工作分别列明</h2>
+      <div class="grid two">
+        <article class="card"><span class="status">现有能力</span><h3>成本比较与本地交接</h3><ul><li>11 种 Incoterms® 2020 术语的费用和风险模型，六种计价方式。</li><li>术语适用费用、互斥运输报价和逐方案税额重算。</li><li>逐术语独立合同报价、指定地点、有效期核对与费用承担约定；保留原三种模拟基准。</li><li>运输分段、唯一交货点与运费终点展示；独立保单保障资料和集装箱费用核对提醒。</li><li>基础概念核对：区分风险、运费终点、投保义务、实际付款和税费资格；缺合同依据待确认。</li><li>客户公开字段预览、独立HTML、Excel及PDF报价草稿，以及固定中英文条款摘要；内部HTML/Excel保留成本、来源及完整输入，支持费用与方案对照。</li><li>运费、商业/海关汇率及未决费用承担假设：独立基准、变化金额、来源待办，内部报告保存参数。</li><li>逐项费用推理链、候选条件与去重依据；真实替值公式、舍入及免征前后值，四张费用/税基图。</li><li>中国一般贸易进口的人民币计税、申报日与海关汇率有效期校验，以及支持范围内的税款舍入。</li><li>独立来源记录、核对状态、业务前提检查和排名排除原因。</li><li>带版本号的标准 JSON、两份离线Schema、旧容器兼容说明及四种下载模板；坏文件保护、本机草稿和独立内部 HTML 报告。</li><li>TT/L/C/OA原币付款计划、日期/分期精确对账及银行费核对；付款与承担分开，独立JSON默认1.1（兼容1.0；显式本金1.2/利率事件1.3/金额舍入1.4/明确期间1.5）、内部HTML/Excel存档，不重复写回成本；显式本金、日期、利率和年基数的单利假设，融资利息与机会成本分别说明；显式本金和新利率按生效日形成区间，内部审计保留利率来源，客户资料隔离；金额步长、方式与层级明确输入，保留原始单利及精确分数审计，逐区间边界须确认；1.5明确归集期独立录入和确认，期内汇总后一次舍入，期末不推定银行已结息或付款。</li></ul></article>
+        <article class="card"><span class="status pending">后续交付与验收</span><h3>更贴近真实报价与审计</h3><ul><li>恢复文件只读检查、人工复原说明及输入定位已纳入main；舍入配套手算例与离线操作指引已纳入main；明确期间已接入1.5、界面、保存/恢复与内部导出；1.5配套例题、固定手算记录及离线指引已纳入main；运输费用关联已贯通0.9、界面、文件/恢复及内部审计；下一步集装箱账单模型设计，复杂代付/净额和保证金继续设边界。</li><li>完善跨运输段费用关联与交互式假设分析；已有解释和图表继续随模型扩展核验。</li><li>自由条款人工英译及双语PDF/Excel排版，继续沿用客户与内部字段隔离。</li><li>运输费用与分段关联、箱量/免费期账单、附加保险及结算资金成本。</li><li>专业规则复核、真实脱敏单据、多浏览器与真实手机验收，以及错误恢复流程复核。</li></ul></article>
+      </div>
+      <div class="boundary"><h3>使用前明确范围</h3><p>当前中国进口主流程针对单商品一票。其他国家的通用税率输入不等于已核验当地税制；多商品同票、复杂消费税和贸易救济税等需独立建模。原产地规则、待遇资格、可抵扣条件和保险合同仍需人工核对。</p><p>示例和自动化测试使用合成数据。尚未完成真实交易单据对照，不能据此宣称业务准确率或全面符合最新法规。</p></div>
+    </section>
+    <section id="engineering" aria-labelledby="engineering-title">
+      <p class="eyebrow">技术与设计</p><h2 id="engineering-title">规则、数据与界面各有职责</h2>
+      <p class="intro">源码以 TypeScript 模块维护，交付为可离线打开的单文件工具。开发便利和交易数据隐私分别由构建工具与本地运行方式保证。</p>
+      <div class="stack" aria-label="模型分层">
+        <article><h3>Domain / 类型与事实</h3><p><code>src/domain</code><br>费用、贸易节点、术语、税务口径、来源和警告类型。</p></article>
+        <article><h3>Data / 文件与预设</h3><p><code>src/data</code><br>版本化项目结构、输入校验、空白与示例项目、费用预设。</p></article>
+        <article><h3>Engine / 规则与计算</h3><p><code>src/engine</code><br>费用选择、依赖图、归属规则、汇率、税款与方案比较。</p></article>
+        <article><h3>UI / 交互与报告</h3><p><code>src/ui</code><br>表单和结果视图、文件操作、应用状态与独立报告生成。</p></article>
+      </div>
+      <div class="grid two">
+        <article class="card"><h3>采用的工程工具</h3><p><strong>TypeScript：</strong>启用 strict 和 noUncheckedIndexedAccess，让未知或缺失输入在类型与运行校验中被识别。<strong>decimal.js：</strong>十进制金额运算，税款按明确规则舍入。<strong>Vite：</strong>开发和构建。<strong>Vitest：</strong>计算、文件安全与业务边界回归。</p></article>
+        <article class="card"><h3>明确的设计取舍</h3><p>本地运行避免将交易输入交给服务器；来源内容仍由使用者查验。规则和计算不依赖界面，文件结构校验与业务可用性判断分开。金额缺失不静默变成零，无法比较的方案保留原因。单文件分发简化使用，模块化源码保留可维护性。</p></article>
+      </div>
+      <p class="small" style="margin-top:20px"><a href="https://github.com/codeding-101/COCUDTT/blob/main/docs/design.md">查看设计文档</a> · <a href="https://github.com/codeding-101/COCUDTT/blob/main/README.md">查看源码分支 README</a>（外部链接需联网）</p>
+    </section>
+    <section id="evidence" aria-labelledby="evidence-title">
+      <p class="eyebrow">可核查的证据</p><h2 id="evidence-title">记录对应提交，测试对应覆盖范围</h2>
+      <div class="grid two">
+        <article class="card"><h3>上一运价提交的 CI</h3><p><a href="https://github.com/codeding-101/COCUDTT/actions/runs/38125155331">Windows / Linux 工作流记录</a>：两套环境各通过 466 项测试，依赖审计为 0 个漏洞，类型检查、静态审查及单文件构建通过。</p><p class="small">该记录对应 PR #3 的上一运价提交（25a7e927…），属于历史工程证据，不能代表本轮介绍页验收、未来提交或公开网站状态。</p></article>
+        <article class="card"><h3>业务与浏览器检查</h3><p>当前第三十二轮：54个测试文件、1418项回归；新增30项关联接入/候选依据核对，23套浏览器流程及新32项检查。<a href="https://github.com/codeding-101/COCUDTT/blob/main/docs/transport-links-integration-validation.md">接入验收</a>记录显式项目0.9、确认失效、保存恢复与内部审计；用户已授权将验收源码及README整合至main，公开网站另行保持。下一阶段集装箱账单设计与固定手算。真实手机、人工专业和实际单据对照仍待完成。以下旧记录仅代表各自历史提交。</p><p><a href="https://github.com/codeding-101/COCUDTT/pull/3">PR #3：方案专属运输费用</a>包含变更及适用范围。<a href="https://github.com/codeding-101/COCUDTT/blob/main/docs/scenario-costs-validation.md">运价验收记录</a>列明合成案例、文件往返、Edge 操作、报告与窄屏检查。</p><p>第九轮本地 549 项回归及四套 Edge 流程通过，见<a href="https://github.com/codeding-101/COCUDTT/blob/main/docs/logistics-validation.md">运输与保险验收记录</a>。实际方案资料缺失时保留参考结果并退出确定排名；文件格式 0.8、费用规则 1.1 与物流资料核对 1.0 分别记录。</p><p>第十轮本地584项回归、13项新增Edge离线流程和1440/768/390/320布局检查通过，见<a href="https://github.com/codeding-101/COCUDTT/blob/main/docs/explanation-validation.md">费用解释与图表验收</a>。解释记录1.0使用实际计算路径；旧金额用例保持通过，项目格式仍为0.8。远程CI以本轮PR实际提交记录为准。</p><p>第十一轮优先基础概念稳定性：修正FCA地点、自愿保险、卸货费用、C类运费终点及报关代办推断，630项回归和六套Edge流程通过，见<a href="https://github.com/codeding-101/COCUDTT/blob/main/docs/foundations-validation.md">基础核验记录</a>。费用规则1.2、格式仍0.8；旧项目缺依据可能退出推荐，参考金额不能当完整成本。</p><p>第十二轮新增47项、完整677项及七套Edge流程通过，见<a href="https://github.com/codeding-101/COCUDTT/blob/main/docs/sensitivity-validation.md">假设分析验收</a>。原项目及确认不被假设编辑，假设始终供参考，参数不写回JSON，可随内部报告存档。</p><p>第十三轮新增40项、完整717项及八套Edge流程通过，见<a href="https://github.com/codeding-101/COCUDTT/blob/main/docs/customer-quotes-validation.md">客户与内部边界验收</a>。客户版逐字段重建，不含内部输入、来源或利润；仅HTML草稿，Excel/PDF仍待交付。</p><p>第十四轮新增41项、完整758项及九套Edge流程通过，见<a href="https://github.com/codeding-101/COCUDTT/blob/main/docs/excel-validation.md">Excel导出验收</a>。客户与内部原生xlsx分别生成，Excel 16.0只读打开与实际下载验收；超精度文本保留，未知利润不补零。实际PDF、LibreOffice及真实手机仍待验收。</p><p>第十五轮新增25项、完整783项与十套Edge流程通过，见<a href="https://github.com/codeding-101/COCUDTT/blob/main/docs/pdf-validation.md">PDF报价验收</a>。原生PDF本地字体、公开白名单、长条款续页及生成时快照；普通2页与长条款4页独立渲染逐页检查，断网导出与实际下载通过。字体覆盖有限，不支持字符保留原文并提示换用HTML/Excel；字体许可与来源随工具保留。核心规则与格式未改，后续中英文摘要及真实设备/专业/业务验收。</p><p>第十六轮新增29项、完整812项与十一套Edge流程通过，见<a href="https://github.com/codeding-101/COCUDTT/blob/main/docs/bilingual-validation.md">中英文摘要验收</a>。固定模板对应11术语及FCA分支，保留公开原文、原币精度、未确认条件，不自动翻译自由条款或指定优先语言；HTML断网实际下载、隐私及失败恢复验收通过。按用户安排暂缓真实手机和专业复核；下一步格式兼容、Schema及模板目录。</p><p>第十七轮新增54项、完整866项，两份离线Schema与四种固定下载模板，见<a href="https://github.com/codeding-101/COCUDTT/blob/main/docs/templates-validation.md">格式与模板验收</a>。旧容器只升级版本号，不补事实、不改变税务模式；坏文件与未来版本不覆盖当前项目。下载不含当前交易，Schema不代表业务可用。下一步确定性付款时间表；真实手机与人工专业复核按用户安排暂缓。</p><p>第十八轮新增50项、完整916项，见<a href="https://github.com/codeding-101/COCUDTT/blob/main/docs/settlement-validation.md">付款计划验收</a>。合同价款精确对账，银行费未知不补零、关联已有费用不重复计入成本；付款方与承担方分开，代付未建模时退出。独立计划JSON 1.0和内部HTML快照，客户文件不自动包含内部付款资料，收付净额不是利润。下一步资金占用假设；候选不合并发布。</p><p>第十九轮新增46项、完整962项，见<a href="https://github.com/codeding-101/COCUDTT/blob/main/docs/funding-validation.md">资金占用及付款Excel验收</a>。单笔恒定本金单利，Actual/365 Fixed与Actual/360由用户选，机会成本不当银行付款；结果独立于利润与原付款汇总。计划1.1与旧1.0显式兼容，内部Excel保存输入、公式、错误及原始计划；十四套Edge流程和Excel16.0只读核对通过，真实手机及人工专业复核继续暂缓。</p><p>第二十轮新增21项、完整983项，见<a href="https://github.com/codeding-101/COCUDTT/blob/main/docs/recovery-validation.md">输入提示与界面恢复验收</a>。意外异常隐藏旧结果，可下载内部原始备份并保留输入重试；十五套Edge流程、离线真实下载及故障注入通过，算法与格式保持。main仅按用户授权更新README，功能继续草稿候选，公开网站未更新。</p><p class="small">自动化回归与浏览器检查不等于真实业务验收；真实手机文件操作和实际打印分页仍需检查。验收源码已整合main，公开网站尚未包含这些新增能力。</p></article>
+      </div>
+    </section>
+    <section aria-labelledby="roadmap-title">
+      <p class="eyebrow">后续路线</p><h2 id="roadmap-title">先复核规则，再提高报价与交接效率</h2>
+      <ol class="roadmap"><li><div><strong>专业规则盘点与边界说明</strong><span>核对费用承担、估价、税种、保险及变形条款，记录官方依据和未覆盖事实。</span></div></li><li><div><strong>真实方案输入与可解释结果</strong><span>完善独立报价、有效期、交货与运输事实，增加图表、公式和假设分析。</span></div></li><li><div><strong>离线导出与设备体验</strong><span>交付客户报价和内部明细，验证导出字段隔离、320px 布局、触控及文件操作。</span></div></li><li><div><strong>专业与业务验收</strong><span>用脱敏真实单据对照金额，邀请目标业务人员试用，以验收证据决定扩展国家和复杂税制。</span></div></li></ol>
+    </section>
+    <section aria-labelledby="author-title">
+      <p class="eyebrow">项目背景</p><h2 id="author-title">国际经济与贸易学习中的工程实践</h2>
+      <p class="intro">项目由国际经济与贸易专业学生发起，使用 AI 辅助讨论需求、编写实现与测试、整理文档。项目维护者负责业务目标和最终取舍；专业规则需要核对依据，AI 生成内容不作为权威来源。展示成果时，使用可追溯提交、案例和验收记录，真实效果数字留待实际验证。</p>
+    </section>
+  </main>
+  <footer><div class="wrap"><p><strong>责任声明：</strong>本工具仅供学习与内部测算参考，不构成法律或专业贸易建议。实际合同请以 Incoterms® 官方文本及当地法规为准。</p><p>项目介绍更新于 2026-10-13。静态离线页面，不加载远程脚本、字体或分析服务。外部证据链接在主动访问时连接 GitHub。</p></div></footer>
+</body>
+</html>

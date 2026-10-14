@@ -1,11 +1,13 @@
 import type { CarriageMode, CurrencyCode, DateStr } from './enums.js';
 import type { CostItem } from './cost-item.js';
 import type { Goods } from './goods.js';
+import type { TradeRoute } from './import-context.js';
 
 /** 交易事实层：与贸易术语无关的客观事实（设计文档第 2 节） */
 export interface Trade {
   id: string;
   name: string;
+  route?: TradeRoute;
   goods: Goods;
   carriage_mode: CarriageMode;
   items: CostItem[];

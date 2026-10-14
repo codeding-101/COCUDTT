@@ -1,0 +1,36 @@
+import {describe,it,expect} from 'vitest';
+import Ajv from 'ajv';
+import {readFileSync} from 'node:fs';
+import {projectJsonSchema} from '../src/data/project-validation';
+import {parseProject,serializeProject,toTrade,toScenario} from '../src/data/project-file';
+import {sampleProjectFile,chinaImportSampleProjectFile,newChinaImportProjectFile} from '../src/data/sample-project';
+import {actualQuotesProject} from './fixtures/actual-quotes';
+import {analyze} from '../src/engine/analyze';
+import {PROJECT_TEMPLATES,createProjectTemplate,projectTemplateText,projectTemplateCatalog} from '../src/data/project-templates';
+
+const ajv=new Ajv({strict:true,allErrors:true});
+const current=ajv.compile(projectJsonSchema()),legacy=ajv.compile(projectJsonSchema(true));
+const clone=()=>{const p=actualQuotesProject();p.fx_books=[{id:'schema-test',name:'结构用合成汇率',type:'CONTRACT',date:'',rates:{'USD/CNY':'7'}}];return JSON.parse(serializeProject(p));};
+const accepts=(raw:unknown):boolean=>{try{parseProject(JSON.stringify(raw));return true;}catch{return false;}};
+describe('标准Schema与文件验证语义',()=>{
+ it.each(['0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8'])('旧容器%s只升级版本，字段、扩展及数值精度不被改写',(version)=>{const raw={...sampleProjectFile(),schema_version:version,extra:{kept:true}};raw.items[0]!.amount='100000.1234567890123456789';delete raw.tax_profile.import.calculationMode;expect(legacy(raw)).toBe(true);expect(current(raw)).toBe(version==='0.8');const parsed=parseProject(JSON.stringify(raw));expect(parsed).toEqual({...raw,schema_version:'0.8'});expect(parsed.tax_profile.import.calculationMode).toBeUndefined();expect(raw.schema_version).toBe(version);});
+ it.each(['1.0','future','',null,8])('未知或缺失版本%s不被兼容Schema或解析器接受',(version)=>{const raw={...sampleProjectFile(),schema_version:version};expect(legacy(raw)).toBe(false);expect(accepts(raw)).toBe(false);});
+ it.each([sampleProjectFile,chinaImportSampleProjectFile,newChinaImportProjectFile,actualQuotesProject])('现有完整或空白项目两套验证均通过',(make)=>{const raw=make();expect(current(raw)).toBe(true);expect(accepts(raw)).toBe(true);});
+ it('空值和业务上无效的数值文本仍可保存，结构通过不等于可计算',()=>{const raw=clone();raw.goods.quantity='';raw.quote.amount='';raw.fx_books=[];raw.items[0].amount='not-yet-entered';expect(current(raw)).toBe(true);expect(accepts(raw)).toBe(true);expect(current.errors).toBeNull();});
+ it.each([
+  ['goods.quantity',false],['quote.amount',123],['tax_profile.import.vatRate',null],['goods',null],['items',{}],['items.0.pricing_method','FAKE'],['items.0.cost_id','  '],['items.0.cost_id','__proto__'],['items.0.applicable_incoterms',['FOB','FOB']],['items.0.applicable_incoterms',['FAKE']],['items.0.calculation_base',{kind:'COST_ITEMS'}],['fx_books.0.rates',{'USD/CNY':7}],['term_scenarios.FOB.quote',null],['term_scenarios.FOB.quote_evidence.status','APPROVED'],['term_scenarios.CIF.insurance.cover','ALL'],['term_scenarios.FOB.responsibility_overrides.insurance.responsibility','UNKNOWN'],['anchor',{kind:'FIXED_MARGIN_RATE'}],['anchor',{kind:'FIXED_MARKET_PRICE',buyer_total:'1'}],
+ ])('%s坏结构两种验证一致拒绝',(path,value)=>{const raw=clone();const keys=path.split('.');let cursor=raw;for(const k of keys.slice(0,-1))cursor=cursor[k];cursor[keys.at(-1)!]=value;expect(current(raw)).toBe(false);expect(accepts(raw)).toBe(false);});
+ it('术语字典只允许11术语，额外已知对象属性仍保留',()=>{const raw=clone();raw.extension={keep:'原文😀'};raw.goods.extra=12;expect(current(raw)).toBe(true);expect(parseProject(JSON.stringify(raw))).toEqual(raw);raw.term_scenarios.FAKE={};expect(current(raw)).toBe(false);expect(accepts(raw)).toBe(false);});
+ it('不同费用对象的同ID仍由应用跨项校验，公开Schema明确这一边界',()=>{const raw=clone();raw.items[1].cost_id=raw.items[0].cost_id;expect(current(raw)).toBe(true);expect(accepts(raw)).toBe(false);expect(String(projectJsonSchema().description)).toContain('unique cost_id');});
+ it('有条件字段仅在相关kind核验，未知扩展不被强制重写',()=>{const raw=clone();raw.anchor={kind:'FIXED_QUOTE',margin_rate:{extension:true}};raw.items[0].calculation_base={kind:'GOODS_VALUE',ids:123};expect(current(raw)).toBe(true);expect(accepts(raw)).toBe(true);});
+ it('Schema验证无默认填充、类型转换或属性删除，元结构可严格编译',()=>{const raw=clone(),before=JSON.stringify(raw);expect(current(raw)).toBe(true);expect(JSON.stringify(raw)).toBe(before);const s=projectJsonSchema();(s as Record<string,unknown>).title='CHANGED';expect(projectJsonSchema().title).not.toBe('CHANGED');});
+ it('提交的两份Schema与源码完全一致',()=>{for(const [name,old]of [['project-0.8.schema.json',false],['project-import-0.1-0.8.schema.json',true]] as const)expect(readFileSync(new URL('../schemas/'+name,import.meta.url),'utf8')).toBe(JSON.stringify(projectJsonSchema(old),null,2)+'\n');});
+});
+describe('项目模板与合成用例',()=>{
+ it.each(PROJECT_TEMPLATES)('$id可独立导入/保存，生成确定且不共享可变输入',(entry)=>{const text=projectTemplateText(entry.id),project=parseProject(text);expect(current(project)).toBe(true);expect(serializeProject(project)).toBe(text);project.goods.name='CHANGED';expect(projectTemplateText(entry.id)).toBe(text);expect(readFileSync(new URL('../templates/'+entry.id+'.json',import.meta.url),'utf8')).toBe(text);});
+ it('三份待填模板没有业务价格、虚构来源确认、资格或日期',()=>{for(const entry of PROJECT_TEMPLATES.filter(t=>t.id!=='china-import-synthetic-example')){const p=createProjectTemplate(entry.id);expect(p.goods.trade_value.amount).toBe('');expect(p.goods.seller_goods_cost.amount).toBe('');expect(p.goods.quantity).toBe('');expect(p.tax_profile.import.declarationDate).toBe('');expect(p.tax_profile.import.vatRate).toBe('');expect(p.tax_profile.import.dutyRates.fallback).toBe('');expect(p.fx_books).toEqual([]);expect(p.route?.customs_regime).toBe('UNCONFIRMED');expect(p.tax_profile.import.eligibility?.vat_taxpayer).toBe('UNCONFIRMED');expect(projectTemplateText(entry.id)).not.toContain('USER_CONFIRMED');}});
+ it('集装箱核对行空金额、待定归属，不自动累计联合和分开D&D',()=>{const p=createProjectTemplate('china-import-container-checklist');expect(p.items).toHaveLength(6);expect(p.items.filter(i=>i.container_charge==='DEMURRAGE')).toHaveLength(1);expect(p.items.filter(i=>i.container_charge==='DETENTION')).toHaveLength(1);expect(p.items.some(i=>i.container_charge==='COMBINED_DD')).toBe(false);for(const item of p.items){expect(item.amount).toBe('');expect(item.responsibility).toBe('CONDITIONAL');expect(item.payment_party).toBeUndefined();expect(item.occurrence_reason).toBeUndefined();expect(item.notes).toContain('不适用可删除');}});
+ it('实际报价模板不补公共报价或缺失的术语记录',()=>{const p=createProjectTemplate('china-import-actual-quotes');expect(p.anchor.kind).toBe('ACTUAL_QUOTES');expect(p.term_scenarios).toEqual({});expect(toScenario(p,'FOB').quote.amount).toBe('');expect(toScenario(p,'CIF').quote.evidence).toBeUndefined();});
+ it('合成模板金额不因保存/旧容器升级改变，来源仍示例',()=>{const p=createProjectTemplate('china-import-synthetic-example'),raw={...p,schema_version:'0.1'},restored=parseProject(JSON.stringify(raw));const run=(v:typeof p)=>analyze({trade:toTrade(v),scenario:toScenario(v),taxProfile:v.tax_profile,fxBooks:v.fx_books});expect(run(restored)).toEqual(run(p));expect(p.tax_profile.import.rateEvidence?.status).toBe('EXAMPLE');expect(p.name).toContain('合成');});
+ it('目录匹配源码，未知模板不被当作默认示例',()=>{expect(JSON.parse(readFileSync(new URL('../templates/catalog.json',import.meta.url),'utf8'))).toEqual(projectTemplateCatalog());expect(()=>createProjectTemplate('untrusted')).toThrow('未知项目模板');});
+});

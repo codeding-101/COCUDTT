@@ -5,12 +5,13 @@ import type { ScenarioFacts } from '../src/domain/rule';
 import { INCOTERMS_2020_RULESET } from '../src/engine/responsibility/rules-incoterms2020';
 import { resolveItemResponsibility } from '../src/engine/responsibility/resolver';
 import { resolveRisk } from '../src/engine/risk';
+import { incotermBasics } from '../src/domain/incoterm-basics';
 import { makeCostItem, makeScenario, makeTrade } from './helpers/factory';
 
 /**
  * 概念检测：把 Incoterms 2020 的术语定义逐条写成断言，核对引擎实现是否与之一致。
  *
- * 这份清单来自业务方给出的权威描述，不是从实现里反推出来的——
+ * 依据ICC Incoterms 2020 A2/A3/A5/A7/A9/B9正文核对，旧教学近似值已修正——
  * 只有这样，测试才能发现"实现与概念不符"，而不只是"实现与上次相同"。
  *
  * 每条断言后面标注了它对应概念里的哪句话。
@@ -48,12 +49,6 @@ function responsibilityOf(
   return decide(incoterm, node, options).responsibility;
 }
 
-/** 该术语下默认由卖方承担的节点数（规则表里的卖方承担范围） */
-function sellerNodeCount(incoterm: Incoterm): number {
-  const fallback = INCOTERMS_2020_RULESET.node_fallbacks?.find((entry) => entry.incoterm === incoterm);
-  return fallback?.seller_nodes.length ?? 0;
-}
-
 describe('概念检测 · 适用运输方式的分类', () => {
   const SEA_ONLY: Incoterm[] = ['FAS', 'FOB', 'CFR', 'CIF'];
   const ANY_MODE: Incoterm[] = ['EXW', 'FCA', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP'];
@@ -82,7 +77,7 @@ describe('概念检测 · 适用运输方式的分类', () => {
 });
 
 describe('概念检测 · 适用于任何运输方式的 7 种', () => {
-  it('EXW：卖方在其所在地交货即完成，"后续的装货、出口清关、运输等所有费用和风险均由买方承担"', () => {
+  it('EXW：指定地点不必为卖方场所，未装货交货；出口清关通常由买方办理', () => {
     // 装货由买方
     expect(responsibilityOf('EXW', 'SELLER_PREMISES', { category: 'CUSTOM' })).toBe('BUYER');
     // 出口清关由买方
@@ -129,10 +124,10 @@ describe('概念检测 · 适用于任何运输方式的 7 种', () => {
   it('CPT：交给承运人即转移风险，但运费由卖方付至指定目的地', () => {
     expect(responsibilityOf('CPT', 'CARRIER_HANDOVER')).toBe('SELLER');
     expect(responsibilityOf('CPT', 'MAIN_CARRIAGE')).toBe('SELLER');
-    expect(responsibilityOf('CPT', 'DESTINATION_TERMINAL')).toBe('SELLER');
-    expect(responsibilityOf('CPT', 'DESTINATION_TRANSPORT')).toBe('SELLER');
+    expect(responsibilityOf('CPT', 'DESTINATION_TERMINAL')).toBe('CONDITIONAL');
+    expect(responsibilityOf('CPT', 'DESTINATION_TRANSPORT')).toBe('CONDITIONAL');
     // 概念中未提到 CPT 卖方有投保义务
-    expect(responsibilityOf('CPT', 'MAIN_CARRIAGE', { category: 'INSURANCE' })).toBe('BUYER');
+    expect(responsibilityOf('CPT', 'MAIN_CARRIAGE', { category: 'INSURANCE' })).toBe('CONDITIONAL');
     // 风险与费用分离：风险在承运人处转移，费用延伸到目的地
     const risk = resolveRisk('CPT');
     expect(risk.transfer_node).toBe('CARRIER_HANDOVER');
@@ -142,7 +137,7 @@ describe('概念检测 · 适用于任何运输方式的 7 种', () => {
   it('CIP：责任划分与 CPT 相同，但卖方须额外投保', () => {
     expect(responsibilityOf('CIP', 'CARRIER_HANDOVER')).toBe('SELLER');
     expect(responsibilityOf('CIP', 'MAIN_CARRIAGE')).toBe('SELLER');
-    expect(responsibilityOf('CIP', 'DESTINATION_TRANSPORT')).toBe('SELLER');
+    expect(responsibilityOf('CIP', 'DESTINATION_TRANSPORT')).toBe('CONDITIONAL');
     // 与 CPT 的差别只在保险
     const insurance = decide('CIP', 'MAIN_CARRIAGE', { category: 'INSURANCE' });
     expect(insurance.responsibility).toBe('SELLER');
@@ -157,7 +152,7 @@ describe('概念检测 · 适用于任何运输方式的 7 种', () => {
     expect(responsibilityOf('DAP', 'DESTINATION_TERMINAL')).toBe('SELLER');
     expect(responsibilityOf('DAP', 'DESTINATION_TRANSPORT')).toBe('SELLER');
     // 不负责卸货
-    expect(responsibilityOf('DAP', 'FINAL_DELIVERY')).toBe('BUYER');
+    expect(responsibilityOf('DAP', 'FINAL_DELIVERY')).toBe('CONDITIONAL');
     // 不负责进口清关与税费
     expect(responsibilityOf('DAP', 'IMPORT_CLEARANCE')).toBe('BUYER');
     expect(responsibilityOf('DAP', 'IMPORT_DUTIES')).toBe('BUYER');
@@ -189,13 +184,9 @@ describe('概念检测 · 适用于任何运输方式的 7 种', () => {
     expect(responsibilityOf('DDP', 'IMPORT_DUTIES')).toBe('SELLER');
     expect(responsibilityOf('DDP', 'MAIN_CARRIAGE')).toBe('SELLER');
     // 仍然是"尚未卸货"交货
-    expect(responsibilityOf('DDP', 'FINAL_DELIVERY')).toBe('BUYER');
+    expect(responsibilityOf('DDP', 'FINAL_DELIVERY')).toBe('CONDITIONAL');
     expect(resolveRisk('DDP').transfer_point).toContain('尚未卸货');
-    // "卖方责任最大"
-    const ddp = sellerNodeCount('DDP');
-    for (const incoterm of INCOTERMS) {
-      expect(sellerNodeCount(incoterm), `${incoterm} 的承担范围不应超过 DDP`).toBeLessThanOrEqual(ddp);
-    }
+    // 费用节点数量不是法定责任大小指标；DDP仍未改变卸货作业义务。
   });
 });
 
@@ -218,16 +209,16 @@ describe('概念检测 · 仅适用于海运和内河水运的 4 种', () => {
     // 基本含义下装船费由卖方承担
     expect(responsibilityOf('FOB', 'CARRIER_HANDOVER')).toBe('SELLER');
     // 买方自行投保
-    expect(responsibilityOf('FOB', 'MAIN_CARRIAGE', { category: 'INSURANCE' })).toBe('BUYER');
+    expect(responsibilityOf('FOB', 'MAIN_CARRIAGE', { category: 'INSURANCE' })).toBe('CONDITIONAL');
     const risk = resolveRisk('FOB');
     expect(risk.transfer_node).toBe('CARRIER_HANDOVER');
     expect(risk.transfer_point).toContain('装上船');
   });
 
-  it('CFR：卖方装船并付至目的港运费，风险在装船时转移，买方自行购买保险', () => {
+  it('CFR：装船交货风险转移，卖方付至目的港运费；双方均无相对投保义务', () => {
     expect(responsibilityOf('CFR', 'CARRIER_HANDOVER')).toBe('SELLER');
     expect(responsibilityOf('CFR', 'MAIN_CARRIAGE')).toBe('SELLER');
-    expect(responsibilityOf('CFR', 'MAIN_CARRIAGE', { category: 'INSURANCE' })).toBe('BUYER');
+    expect(responsibilityOf('CFR', 'MAIN_CARRIAGE', { category: 'INSURANCE' })).toBe('CONDITIONAL');
     const risk = resolveRisk('CFR');
     expect(risk.transfer_node).toBe('CARRIER_HANDOVER');
     expect(risk.separation).toBe(true);
@@ -248,74 +239,17 @@ describe('概念检测 · 仅适用于海运和内河水运的 4 种', () => {
   });
 });
 
-describe('概念检测 · 术语之间的相对关系', () => {
-  it('EXW 是卖方责任最小的术语', () => {
-    const exw = sellerNodeCount('EXW');
-    for (const incoterm of INCOTERMS) {
-      expect(exw, `${incoterm} 的承担范围不应小于 EXW`).toBeLessThanOrEqual(sellerNodeCount(incoterm));
+describe('概念检测 · 义务与费用分别判断', () => {
+  it('只有CIF/CIP要求卖方相对投保；无义务不推出保费必归另一方', () => {
+    for (const term of INCOTERMS) {
+      const required = term === 'CIF' || term === 'CIP';
+      expect(incotermBasics(term).required_seller_insurance !== null).toBe(required);
+      expect(responsibilityOf(term, 'MAIN_CARRIAGE', { category: 'INSURANCE' })).toBe(required ? 'SELLER' : 'CONDITIONAL');
     }
   });
-
-  it('卖方承担范围沿术语单调不减：EXW ≤ FCA ≤ FAS ≤ FOB ≤ CFR = CIF', () => {
-    const order: Incoterm[] = ['EXW', 'FCA', 'FAS', 'FOB', 'CFR', 'CIF'];
-    for (let i = 1; i < order.length; i += 1) {
-      const previous = order[i - 1];
-      const current = order[i];
-      if (previous === undefined || current === undefined) continue;
-      expect(sellerNodeCount(current), `${current} 的承担范围不应小于 ${previous}`).toBeGreaterThanOrEqual(
-        sellerNodeCount(previous),
-      );
-    }
-    expect(sellerNodeCount('EXW')).toBeLessThan(sellerNodeCount('FCA'));
-
-    /*
-     * 注意：节点维度上 CFR 与 CIF 完全相同——两者的差别在"保险"，
-     * 而保险是费用类别而不是贸易节点。因此"卖方承担节点数"这个指标
-     * 天生无法区分这两个术语，必须落到保险类别上看。
-     * 这条断言把这个局限固定下来，避免有人误以为该指标能反映全部差别。
-     */
-    expect(sellerNodeCount('CIF')).toBe(sellerNodeCount('CFR'));
-    expect(responsibilityOf('CIF', 'MAIN_CARRIAGE', { category: 'INSURANCE' })).toBe('SELLER');
-    expect(responsibilityOf('CFR', 'MAIN_CARRIAGE', { category: 'INSURANCE' })).toBe('BUYER');
-  });
-
-  it('CFR 与 CIF 只差保险，CPT 与 CIP 也只差保险', () => {
-    const nodes: TradeNode[] = ['SELLER_PREMISES', 'MAIN_CARRIAGE', 'DESTINATION_TERMINAL'];
-    for (const node of nodes) {
-      expect(responsibilityOf('CIF', node)).toBe(responsibilityOf('CFR', node));
-      expect(responsibilityOf('CIP', node)).toBe(responsibilityOf('CPT', node));
-    }
-    expect(responsibilityOf('CIF', 'MAIN_CARRIAGE', { category: 'INSURANCE' })).toBe('SELLER');
-    expect(responsibilityOf('CFR', 'MAIN_CARRIAGE', { category: 'INSURANCE' })).toBe('BUYER');
-    expect(responsibilityOf('CIP', 'MAIN_CARRIAGE', { category: 'INSURANCE' })).toBe('SELLER');
-    expect(responsibilityOf('CPT', 'MAIN_CARRIAGE', { category: 'INSURANCE' })).toBe('BUYER');
-  });
-
-  it('DAP 与 DPU 只差目的地卸货一项', () => {
-    const nodes: TradeNode[] = ['SELLER_PREMISES', 'MAIN_CARRIAGE', 'DESTINATION_TERMINAL', 'IMPORT_DUTIES'];
-    for (const node of nodes) {
-      expect(responsibilityOf('DPU', node)).toBe(responsibilityOf('DAP', node));
-    }
-    expect(responsibilityOf('DPU', 'FINAL_DELIVERY')).toBe('SELLER');
-    expect(responsibilityOf('DAP', 'FINAL_DELIVERY')).toBe('BUYER');
-  });
-
-  it('所有术语下风险转移点都落在其含义对应的节点上', () => {
-    const expected: Record<Incoterm, TradeNode> = {
-      EXW: 'SELLER_PREMISES',
-      FCA: 'CARRIER_HANDOVER',
-      FAS: 'ORIGIN_TERMINAL',
-      FOB: 'CARRIER_HANDOVER',
-      CFR: 'CARRIER_HANDOVER',
-      CIF: 'CARRIER_HANDOVER',
-      CPT: 'CARRIER_HANDOVER',
-      CIP: 'CARRIER_HANDOVER',
-      DAP: 'FINAL_DELIVERY',
-      DPU: 'FINAL_DELIVERY',
-      DDP: 'FINAL_DELIVERY',
-    };
-    for (const incoterm of INCOTERMS) {
-      expect(resolveRisk(incoterm).transfer_node, `${incoterm} 的风险转移点`).toBe(expected[incoterm]);
-    }
+  it('DPU唯一要求卖方卸货完成后交货，其他术语仍可按运输合同承担卸货费', () => {
+    for (const term of INCOTERMS) expect(incotermBasics(term).delivery_requires_destination_unloading).toBe(term === 'DPU');
+    expect(resolveRisk('DPU').transfer_point).toContain('卸货完成');
+    for (const term of ['DAP','DDP'] as const) expect(resolveRisk(term).transfer_point).toContain('尚未卸货');
   });
 });

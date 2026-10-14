@@ -1,0 +1,64 @@
+{
+  "version": "1.4",
+  "kind": "INTERNAL_SETTLEMENT_PLAN",
+  "binding": {
+    "project_name": "合成案例：金额舍入与层级差异（非真实交易）",
+    "goods_name": "演示商品（非真实税则归类）",
+    "quantity": "1000",
+    "unit": "PCS",
+    "incoterm": "CIF",
+    "named_place": "合成目的港（仅演示）",
+    "amount": "108300",
+    "currency": "USD"
+  },
+  "method": "TT",
+  "bank_status": "NO_FEES",
+  "payments": [
+    {
+      "id": "synthetic-payment",
+      "basis": "PERCENT",
+      "value": "100",
+      "date": "2026-09-04",
+      "trigger": "合成全额价款计划，不是实际付款或融资到账"
+    }
+  ],
+  "bank_fees": [],
+  "notes": "全部为合成输入。本金6 USD与报价独立，刻意用于放大舍入层级差异；同率生效记录用于演示区间拆分，不证明银行结息日。默认合计后舍入，逐区间仅比较，边界未确认。",
+  "funding": {
+    "status": "PROVIDED",
+    "kind": "FINANCING",
+    "party": "SELLER",
+    "principal": "6",
+    "currency": "USD",
+    "start_date": "2026-09-01",
+    "end_date": "2026-09-04",
+    "annual_rate": "36",
+    "day_basis": "ACT_360",
+    "reference": "合成本金6 USD、年利率36%、ACT/360，含起日不含止日；就绪状态仅指例题输入，不是银行合同认证",
+    "balance_model": "EVENTS",
+    "events": [],
+    "rate_model": "EVENTS",
+    "rate_events": [
+      {
+        "id": "synthetic-rate-2",
+        "date": "2026-09-02",
+        "annual_rate": "36",
+        "reference": "合成同率生效记录：仅演示计算区间，不是实际银行结息"
+      },
+      {
+        "id": "synthetic-rate-3",
+        "date": "2026-09-03",
+        "annual_rate": "36",
+        "reference": "合成同率生效记录：仅演示计算区间，不是实际银行结息"
+      }
+    ],
+    "rounding": {
+      "status": "APPLIED",
+      "scope": "TOTAL",
+      "mode": "HALF_UP",
+      "unit": "0.01",
+      "reference": "合成约定：整个期间合计后按0.01 USD步长就近舍入，恰半向上；不是货币或银行默认规则",
+      "intervals_confirmed": false
+    }
+  }
+}

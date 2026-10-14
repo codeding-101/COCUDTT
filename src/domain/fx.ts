@@ -1,5 +1,6 @@
 import type { FxType, CurrencyCode } from './enums.js';
 import type { Numeric } from './decimal.js';
+import type { SourceEvidence } from './source-evidence.js';
 
 /**
  * 一张汇率表。rates 的键为 "FROM/TO"，值为「1 单位 FROM = ? 单位 TO」。
@@ -15,6 +16,8 @@ export interface FxBook {
   valid_from?: string;
   valid_to?: string;
   rates: Record<string, string>;
+  /** 每个币种对分别保留来源，避免合并汇率行时混用记录。 */
+  evidence?: Record<string, SourceEvidence>;
 }
 
 export function rateKey(from: CurrencyCode, to: CurrencyCode): string {

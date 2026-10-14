@@ -1,0 +1,84 @@
+{
+  "schema_version": "0.8",
+  "name": "空白模板：中国进口 · 实际报价比较",
+  "updated_at": "2026-10-12T00:00:00Z",
+  "base_currency": "CNY",
+  "carriage_mode": "SEA",
+  "route": {
+    "export_country": "",
+    "import_country": "",
+    "origin_country": "",
+    "customs_regime": "UNCONFIRMED"
+  },
+  "goods": {
+    "name": "",
+    "quantity": "",
+    "unit": "",
+    "tax_key": "",
+    "trade_value_basis": "UNCONFIRMED",
+    "trade_value": {
+      "amount": "",
+      "currency": "CNY"
+    },
+    "seller_goods_cost": {
+      "amount": "",
+      "currency": "CNY"
+    }
+  },
+  "items": [],
+  "fx_books": [],
+  "quote": {
+    "amount": "",
+    "currency": "CNY",
+    "fx_type": "CONTRACT"
+  },
+  "incoterm": "CIF",
+  "anchor": {
+    "kind": "ACTUAL_QUOTES"
+  },
+  "facts": {},
+  "tax_profile": {
+    "id": "china-general-trade",
+    "version": "1.0",
+    "import": {
+      "calculationMode": "CN_GENERAL_TRADE",
+      "declarationDate": "",
+      "dutiableValueBasis": "CIF",
+      "dutyRates": {
+        "fallback": ""
+      },
+      "hsTable": {
+        "basis": "MFN",
+        "entries": []
+      },
+      "vatRate": "",
+      "consumptionTax": null,
+      "vatDeductibleForBuyer": false,
+      "eligibility": {
+        "agreement_name": "",
+        "vat_taxpayer": "UNCONFIRMED",
+        "vat_use": "UNCONFIRMED"
+      }
+    },
+    "export": {
+      "dutiableValueBasis": "FOB",
+      "dutyRates": {
+        "fallback": "0"
+      },
+      "rebate": {
+        "entityType": "TRADING",
+        "vatRates": {
+          "fallback": "0"
+        },
+        "rebateRates": {
+          "fallback": "0"
+        }
+      }
+    },
+    "customsFx": {
+      "bookType": "CUSTOMS",
+      "lockPeriod": "MONTHLY"
+    }
+  },
+  "term_scenarios": {}
+}

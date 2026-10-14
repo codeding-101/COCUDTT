@@ -1,0 +1,148 @@
+{
+  "schema_version": "0.5",
+  "name": "合成算式案例 specific-duty",
+  "updated_at": "2026-10-11T00:00:00Z",
+  "base_currency": "CNY",
+  "carriage_mode": "SEA",
+  "route": {
+    "export_country": "德国（演示）",
+    "import_country": "中国",
+    "origin_country": "德国（演示）",
+    "customs_regime": "GENERAL_TRADE"
+  },
+  "goods": {
+    "name": "合成商品，非真实归类",
+    "quantity": "100",
+    "unit": "KG",
+    "trade_value_basis": "NET",
+    "tax_key": "12345678",
+    "trade_value": {
+      "amount": "1000",
+      "currency": "CNY"
+    },
+    "seller_goods_cost": {
+      "amount": "",
+      "currency": "CNY"
+    }
+  },
+  "items": [
+    {
+      "cost_id": "freight",
+      "cost_name": "演示运费",
+      "cost_category": "MAIN_CARRIAGE",
+      "trade_node": "MAIN_CARRIAGE",
+      "pricing_method": "ACTUAL",
+      "amount": "0",
+      "currency": "CNY",
+      "fx_type": "CONTRACT",
+      "base_currency": "CNY",
+      "tax_included": false,
+      "responsibility": "CONDITIONAL",
+      "responsibility_source": "UNRESOLVED",
+      "included_in_quoted_price": false,
+      "is_custom": true,
+      "source": "USER"
+    },
+    {
+      "cost_id": "insurance",
+      "cost_name": "演示保险",
+      "cost_category": "INSURANCE",
+      "trade_node": "MAIN_CARRIAGE",
+      "pricing_method": "ACTUAL",
+      "amount": "0",
+      "currency": "CNY",
+      "fx_type": "CONTRACT",
+      "base_currency": "CNY",
+      "tax_included": false,
+      "responsibility": "CONDITIONAL",
+      "responsibility_source": "UNRESOLVED",
+      "included_in_quoted_price": false,
+      "is_custom": true,
+      "source": "USER"
+    }
+  ],
+  "fx_books": [],
+  "tax_profile": {
+    "id": "china-general-trade",
+    "version": "1.0",
+    "import": {
+      "calculationMode": "CN_GENERAL_TRADE",
+      "declarationDate": "2026-09-10",
+      "dutiableValueBasis": "CIF",
+      "dutyRates": {
+        "fallback": "0.05"
+      },
+      "hsTable": {
+        "basis": "MFN",
+        "entries": [
+          {
+            "code": "12345678",
+            "description": "合成从量税，非真实税则条目",
+            "duty_type": "SPECIFIC",
+            "specific_amount": "1.5",
+            "specific_unit": "KG",
+            "evidence": {
+              "reference": "合成用例 从量税条目，不对应真实税率或资格",
+              "valid_from": "2026-09-01",
+              "valid_to": "2026-09-30",
+              "checked_on": "",
+              "status": "EXAMPLE"
+            }
+          }
+        ]
+      },
+      "vatRate": "0.13",
+      "consumptionTax": null,
+      "vatDeductibleForBuyer": false,
+      "rateEvidence": {
+        "reference": "合成用例 税率，不对应真实税率或资格",
+        "valid_from": "2026-09-01",
+        "valid_to": "2026-09-30",
+        "checked_on": "",
+        "status": "EXAMPLE"
+      },
+      "eligibility": {
+        "agreement_name": "",
+        "vat_taxpayer": "UNCONFIRMED",
+        "vat_use": "UNCONFIRMED",
+        "duty_evidence": {
+          "reference": "合成用例 待遇，不对应真实税率或资格",
+          "valid_from": "2026-09-01",
+          "valid_to": "2026-09-30",
+          "checked_on": "",
+          "status": "EXAMPLE"
+        }
+      }
+    },
+    "export": {
+      "dutiableValueBasis": "FOB",
+      "dutyRates": {
+        "fallback": "0"
+      },
+      "rebate": {
+        "entityType": "TRADING",
+        "vatRates": {
+          "fallback": "0"
+        },
+        "rebateRates": {
+          "fallback": "0"
+        }
+      }
+    },
+    "customsFx": {
+      "bookType": "CUSTOMS",
+      "lockPeriod": "MONTHLY"
+    }
+  },
+  "quote": {
+    "amount": "1000",
+    "currency": "CNY",
+    "fx_type": "CONTRACT",
+    "fx_date": "2026-09-10"
+  },
+  "incoterm": "CIF",
+  "anchor": {
+    "kind": "FIXED_QUOTE"
+  },
+  "facts": {}
+}

@@ -10,8 +10,11 @@ import type { Trade } from '../domain/trade.js';
 import type { Warning } from '../domain/warning.js';
 import { DEFAULT_DERIVED_TAX_IDS } from './aggregate.js';
 import { analyze, type AnalysisResult, type EnrichedCostItem } from './analyze.js';
-import { convertAmount, resolveFxRate } from './fx.js';
-import { EngineError } from './errors.js';
+import { convertAmount, resolveFxRate, type FxResolution } from './fx.js';
+import { checkFxSources } from './decision-readiness.js';
+import { costsForTerm } from './scenario-costs.js';
+import { isChinaImport } from './tax/china-import.js';
+import { EngineError, isEngineError } from './errors.js';
 import { INCOTERMS_2020_RULESET } from './responsibility/rules-incoterms2020.js';
 import { resolveResponsibility } from './responsibility/resolver.js';
 import type { BuyerSummary, SellerSummary } from './aggregate.js';
@@ -24,6 +27,8 @@ export interface CompareInput {
   trade: Trade;
   /** 方案模板：提供核算币种、报价币种、汇率选择与方案事实 */
   template: Scenario;
+  /** 每个术语的独立报价与合同费用约定；实际报价模式不允许缺失时回退。 */
+  scenarios?: Partial<Record<Incoterm, Scenario>>;
   /** 比较基准，默认固定报价金额 */
   anchor?: ComparisonAnchor;
   /** 参与比较的术语，默认取当前运输方式下全部可用的术语 */
@@ -41,6 +46,8 @@ export interface ComparisonColumn {
   unavailable_reason?: string;
   /** 在该基准下是否可以解出可行的报价 */
   feasible: boolean;
+  decision_ready: boolean;
+  decision_issues: string[];
   infeasible_reason?: string;
   /** 本次求解使用的报价金额（核算币种） */
   quote_amount: Decimal;
@@ -74,6 +81,7 @@ export interface Comparison {
   /** 买方落地成本最低的术语 */
   best_buyer_landed: Incoterm | null;
   warnings: Warning[];
+  uses_scenario_costs: boolean;
 }
 
 export interface ConditionalSensitivity {
@@ -82,9 +90,9 @@ export interface ConditionalSensitivity {
   /** 该费用的金额（核算币种） */
   amount_base: Decimal;
   /** 归卖方时的卖方利润 */
-  seller_margin_if_seller: Decimal;
+  seller_margin_if_seller: Decimal | null;
   /** 归买方时的卖方利润 */
-  seller_margin_if_buyer: Decimal;
+  seller_margin_if_buyer: Decimal | null;
   /** 归买方时的买方落地成本 */
   buyer_landed_if_buyer: Decimal;
   /** 归自己时的买方落地成本 */
@@ -97,6 +105,8 @@ export interface ConditionalSensitivity {
 
 function anchorLabel(anchor: ComparisonAnchor): string {
   switch (anchor.kind) {
+    case 'ACTUAL_QUOTES':
+      return '各方案实际报价';
     case 'FIXED_QUOTE':
       return '固定报价金额';
     case 'FIXED_MARKET_PRICE':
@@ -112,6 +122,7 @@ function deriveIncludedIds(
   scenario: Scenario,
   ruleSet: IncotermsRuleSet,
 ): string[] {
+  trade = costsForTerm(trade, scenario.incoterm).trade;
   const decisions = resolveResponsibility({ trade, scenario, ruleSet });
   const included = new Set<string>();
   for (const decision of decisions) {
@@ -167,6 +178,8 @@ export function scenarioForTerm(
     incoterm,
     base_currency: baseCurrency,
     quote,
+    logistics_quote: template.logistics_quote ?? template.quote,
+    ...(template.contract_review ? { contract_review: { ...template.contract_review, require_quote: false } } : {}),
   };
   return {
     ...probe,
@@ -199,10 +212,28 @@ function solveQuote(
   targetBuyerTotal: Decimal | null,
   ruleSet: IncotermsRuleSet,
 ): SolveState {
+  const template = input.scenarios?.[incoterm] ?? input.template;
+  if (anchor.kind === 'ACTUAL_QUOTES') {
+    if (!input.scenarios?.[incoterm] || String(template.quote.amount).trim() === '') {
+      throw new EngineError('INPUT_VALUE_MISSING', `${incoterm} 未录入实际报价，本方案不参与计算或排名`);
+    }
+    if (template.incoterm !== incoterm || template.quote.incoterm !== incoterm) {
+      throw new EngineError('INPUT_VALUE_MISSING', `${incoterm} 的实际报价术语与方案不一致`);
+    }
+    if (template.base_currency !== input.template.base_currency) {
+      throw new EngineError('INPUT_VALUE_MISSING', `${incoterm} 的核算币种与比较表不一致`);
+    }
+    const result = analyze({ trade: input.trade,
+      scenario: scenarioWithDerivedInclusions({ ...template,
+        contract_review: { ...template.contract_review, require_quote: true } }, input.trade, ruleSet),
+      ruleSet, taxProfile: input.taxProfile, fxBooks: input.fxBooks,
+      ...(input.today !== undefined ? { today: input.today } : {}) });
+    return { quote: result.buyer.quote_amount, result, iterations: 1, converged: true };
+  }
   const runOnce = (quoteAmount: Decimal): AnalysisResult =>
     analyze({
       trade: input.trade,
-      scenario: scenarioForTerm(input.template, input.trade, incoterm, quoteAmount, ruleSet),
+      scenario: scenarioForTerm(template, input.trade, incoterm, quoteAmount, ruleSet),
       ruleSet,
       taxProfile: input.taxProfile,
       fxBooks: input.fxBooks,
@@ -216,11 +247,15 @@ function solveQuote(
     return { quote, result, iterations: 1, converged: true };
   }
 
+  if (anchor.kind === 'FIXED_MARGIN_RATE' && result.seller.goods_cost === null) {
+    throw new EngineError('INPUT_VALUE_MISSING', '卖方采购成本未知，不能按目标利润率反推报价；请选择固定报价或固定买方总支付');
+  }
+
   for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration += 1) {
     const next =
       anchor.kind === 'FIXED_MARKET_PRICE'
         ? sub(targetBuyerTotal ?? d(0), result.buyer.additional_cost_total)
-        : div(addSafe(result.seller.cost_total, result.seller.goods_cost), sub(1, anchor.margin_rate));
+        : div(addSafe(result.seller.cost_total, result.seller.goods_cost!), sub(1, anchor.margin_rate));
 
     const delta = abs(sub(next, quote));
     const converged = !delta.greaterThan(CONVERGENCE_EPSILON);
@@ -259,8 +294,7 @@ function countSellerItems(items: readonly EnrichedCostItem[]): number {
 /**
  * 11 个术语的横向对比（设计文档第 11 节）。
  *
- * 注意：进口税费总额在 11 个术语下是同一个数——完税价格以货物成交价、运费、保险费为基础，
- * 与贸易术语无关，术语改变的只是"由谁承担"。这是对比表里一个容易被忽略的恒定量。
+ * 计税事实相同时各术语税额相同；按术语启用不同运价时，税基与税额逐方案重新计算。
  */
 export function compare(input: CompareInput): Comparison {
   const ruleSet = input.ruleSet ?? INCOTERMS_2020_RULESET;
@@ -271,22 +305,22 @@ export function compare(input: CompareInput): Comparison {
   const quoteCurrency = input.template.quote.currency;
   const quoteFxType = input.template.quote.fx_type ?? 'MARKET';
   const quoteBookId = input.template.fx_book_ids?.[quoteFxType];
-  const convertToBase = (amount: Decimal, currency: CurrencyCode): Decimal =>
-    currency === base
-      ? q(amount)
-      : convertAmount(
-          amount,
-          resolveFxRate({
+  const comparisonFx: FxResolution[] = [];
+  const convertToBase = (amount: Decimal, currency: CurrencyCode): Decimal => {
+    if (currency === base) return q(amount);
+    const fx = resolveFxRate({
             from: currency,
             to: base,
             fxType: quoteFxType,
             books: input.fxBooks,
             ...(input.template.quote.fx_date !== undefined ? { fxDate: input.template.quote.fx_date } : {}),
             ...(quoteBookId !== undefined ? { designatedBookId: quoteBookId } : {}),
-          }),
-        );
+          });
+    comparisonFx.push(fx);
+    return convertAmount(amount, fx);
+  };
 
-  const initialQuote = convertToBase(d(input.template.quote.amount), quoteCurrency);
+  const initialQuote = anchor.kind === 'ACTUAL_QUOTES' ? d(0) : convertToBase(d(input.template.quote.amount), quoteCurrency);
 
   let targetBuyerTotal: Decimal | null = null;
   if (anchor.kind === 'FIXED_MARKET_PRICE') {
@@ -301,6 +335,9 @@ export function compare(input: CompareInput): Comparison {
   }
 
   const requested = input.incoterms ?? INCOTERMS;
+  const comparisonSourceIssues = isChinaImport(input.taxProfile) ? checkFxSources(comparisonFx, input.taxProfile.import.declarationDate)
+    .filter((source) => source.issues.length > 0)
+    .map((source) => `${source.label}：${source.issues.join('；')}`) : [];
   const columns: ComparisonColumn[] = [];
 
   for (const incoterm of requested) {
@@ -310,6 +347,8 @@ export function compare(input: CompareInput): Comparison {
         available: false,
         unavailable_reason: `${incoterm} 仅适用海运及内河运输，当前运输方式为 ${input.trade.carriage_mode}`,
         feasible: false,
+        decision_ready: false,
+        decision_issues: ['术语与运输方式不兼容'],
         infeasible_reason: '术语与运输方式不兼容',
         quote_amount: d(0),
         iterations: 0,
@@ -328,13 +367,28 @@ export function compare(input: CompareInput): Comparison {
       continue;
     }
 
-    const solved = solveQuote(input, incoterm, anchor, initialQuote, targetBuyerTotal, ruleSet);
+    let solved: SolveState;
+    try {
+      solved = solveQuote(input, incoterm, anchor, initialQuote, targetBuyerTotal, ruleSet);
+    } catch (error) {
+      // 某术语启用的费用未完成时，只阻止该列，不丢失其他可计算方案。
+      if (!isEngineError(error) || !(anchor.kind === 'ACTUAL_QUOTES' || input.scenarios !== undefined || input.trade.items.some(item => item.applicable_incoterms !== undefined || item.alternative_group?.trim()))) throw error;
+      columns.push({ incoterm, available: true, feasible: false, decision_ready: false,
+        decision_issues: [error instanceof Error ? error.message : String(error)],
+        infeasible_reason: error instanceof Error ? error.message : String(error),
+        quote_amount: initialQuote, iterations: 0, seller: emptySeller(), buyer: emptyBuyer(),
+        import_tax_total: d(0), seller_cost_nodes: 0, seller_cost_items: 0, conditional_count: 0,
+        warning_count: 0, transfer_point: '', transfer_node: 'SELLER_PREMISES', risk_separation: false, result: null });
+      continue;
+    }
 
     if (!solved.converged) {
       columns.push({
         incoterm,
         available: true,
         feasible: false,
+        decision_ready: false,
+        decision_issues: ['报价求解不可行'],
         infeasible_reason:
           anchor.kind === 'FIXED_MARKET_PRICE'
             ? `在买方总支付 ${toDisplay(targetBuyerTotal ?? d(0))} 下解不出可行报价（报价为负或不收敛）`
@@ -366,6 +420,8 @@ export function compare(input: CompareInput): Comparison {
       incoterm,
       available: true,
       feasible: true,
+      decision_ready: result.decision.ready && comparisonSourceIssues.length === 0,
+      decision_issues: [...new Set([...result.decision.issues, ...comparisonSourceIssues])],
       quote_amount: solved.quote,
       iterations: solved.iterations,
       seller: result.seller,
@@ -386,11 +442,12 @@ export function compare(input: CompareInput): Comparison {
     });
   }
 
-  const feasible = columns.filter((column) => column.feasible);
+  const feasible = columns.filter((column) => column.feasible && column.decision_ready);
+  const knownSeller = feasible.filter((column) => column.seller.margin !== null);
   const bestSeller =
-    feasible.length === 0
+    knownSeller.length === 0
       ? null
-      : feasible.reduce((best, column) => (column.seller.margin.greaterThan(best.seller.margin) ? column : best)).incoterm;
+      : knownSeller.reduce((best, column) => (column.seller.margin!.greaterThan(best.seller.margin!) ? column : best)).incoterm;
   const bestBuyer =
     feasible.length === 0
       ? null
@@ -402,10 +459,12 @@ export function compare(input: CompareInput): Comparison {
     code: 'COMPARISON_ANCHOR',
     level: 'INFO',
     message: `本次对比采用「${anchorLabel(anchor)}」基准${
-      anchor.kind === 'FIXED_QUOTE'
+      anchor.kind === 'ACTUAL_QUOTES'
+        ? '：使用各方案独立录入的合同报价；缺失报价不计算，未核对或有效期不覆盖比较日期的报价仅供参考'
+        : anchor.kind === 'FIXED_QUOTE'
         ? '：各术语使用同一报价金额，用于观察成本承担如何变化'
         : anchor.kind === 'FIXED_MARKET_PRICE'
-          ? `：买方总支付固定为 ${toDisplay(targetBuyerTotal ?? d(0))}，各术语反解报价，利润最高的术语即最赚钱的术语`
+          ? `：买方总支付固定为 ${toDisplay(targetBuyerTotal ?? d(0))}，各术语反解报价；排名只包含通过当前数据与费用检查的方案`
           : '：各术语按同一毛利率反推报价'
     }`,
   });
@@ -417,6 +476,7 @@ export function compare(input: CompareInput): Comparison {
     best_seller_margin: bestSeller,
     best_buyer_landed: bestBuyer,
     warnings,
+    uses_scenario_costs: input.trade.items.some(item => item.applicable_incoterms !== undefined || item.alternative_group?.trim()),
   };
 }
 
@@ -425,12 +485,12 @@ function emptySeller(): SellerSummary {
     revenue: d(0),
     cost_total: d(0),
     cost_by_category: {},
-    goods_cost: d(0),
+    goods_cost: null,
     rebate_total: d(0),
     non_refundable_vat: d(0),
     rebate_lag_cost: d(0),
-    margin: d(0),
-    margin_ex_rebate: d(0),
+    margin: null,
+    margin_ex_rebate: null,
   };
 }
 
@@ -485,7 +545,10 @@ export function conditionalSensitivity(input: CompareInput, scenario: Scenario):
       seller_margin_if_buyer: asBuyer.seller.margin,
       buyer_landed_if_buyer: asBuyer.buyer.landed_cost_with_tax,
       buyer_landed_if_seller: asSeller.buyer.landed_cost_with_tax,
-      seller_margin_delta: abs(sub(asSeller.seller.margin, asBuyer.seller.margin)),
+      seller_margin_delta: asSeller.seller.margin !== null && asBuyer.seller.margin !== null
+        ? abs(sub(asSeller.seller.margin, asBuyer.seller.margin))
+        // 中国模式采购成本未知时，归属变化的费用差额可比较，绝对利润仍未知。
+        : abs(sub(asSeller.seller.cost_total, asBuyer.seller.cost_total)),
       buyer_landed_delta: abs(sub(asSeller.buyer.landed_cost_with_tax, asBuyer.buyer.landed_cost_with_tax)),
     };
   });
