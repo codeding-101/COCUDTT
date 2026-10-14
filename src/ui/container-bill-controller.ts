@@ -63,7 +63,7 @@ export class ContainerBillController {
  action(action:string,dataset:DOMStringMap={}):void {
   if(this.busy&&['bill-new','bill-example','bill-clear','bill-save','bill-schema','bill-empty-template','bill-example-template'].includes(action))return;
   try{
-   if(action==='bill-new'){this.changed(emptyContainerBillDraft('bill-'+Date.now()),'已新建空账单；请逐项填写，未绑定当前项目。');return;}
+   if(action==='bill-new'){this.changed(emptyContainerBillDraft('bill-'+crypto.randomUUID()),'已新建空账单；请逐项填写，未绑定当前项目。');return;}
    if(action==='bill-example'){this.changed(containerBillTemplate('container-bill-synthetic-example'),'已载入固定合成例题，来源为示例；不是承运人费率。');return;}
    if(action==='bill-clear'){this.changed(null,'账单面板已清空；请保留之前另存的文件。');return;}
    if(action==='bill-save'){if(this.draft)void this.save('internal-container-bill.json',serializeContainerBillDraft(this.draft),'application/json');return;}
@@ -71,7 +71,7 @@ export class ContainerBillController {
    if(action==='bill-empty-template'||action==='bill-example-template'){const id=action==='bill-empty-template'?'container-bill-empty':'container-bill-synthetic-example';void this.save(id+'.json',containerBillTemplateText(id),'application/json');return;}
    if(!this.draft)return;let copy=structuredClone(this.draft);
    if(action==='bill-rebind'){copy=bindContainerBillDraft(copy,this.env.project());this.changed(copy,'已显式绑定当前项目；相关确认撤销，请核对后重新确认。');return;}
-   if(action==='bill-add-line'){if(copy.rows.length>=50)throw Error('limit');let n=1;while(copy.rows.some(r=>r.input.line_id==='bill-'+n))n++;copy.rows.push({input:{line_id:'bill-'+n},evidence:emptyEvidence()});}
+   if(action==='bill-add-line'){if(copy.rows.length>=50)throw Error('limit');const id='bill-'+crypto.randomUUID();if(copy.rows.some(r=>r.input.line_id===id))throw Error('duplicate');copy.rows.push({input:{line_id:id},evidence:emptyEvidence()});}
    else{
     const i=Number(dataset.billRow);if(!Number.isInteger(i)||i<0)return;const row=copy.rows[i];if(!row)return;
     switch(action){
