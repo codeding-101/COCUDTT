@@ -8,7 +8,7 @@
 
 ## 版本与入口
 
-更新于 **2026-10-14**。本 README 介绍已验收并整合至 `main` 的开发功能。公开网站仍为此前发布版本；下载源码与离线工具时请使用 main。
+更新于 **2026-10-15**。本 README 介绍已验收并整合至 `main` 的开发功能。公开网站仍为此前发布版本；下载源码与离线工具时请使用 main。
 
 | 入口 | 内容与状态 |
 |---|---|
@@ -51,6 +51,9 @@
 资金假设区分融资利息与机会成本，结果独立于经营利润和合同/银行费用收付。付款主方式不证明已付款、单证相符或保证收款。
 
 账单草稿与项目、付款文件分别处理。工具“集装箱账单”面板可独立新建、打开/另存和下载[空草稿](https://github.com/codeding-101/COCUDTT/blob/main/templates/container-bill-empty.json)、[合成例题](https://github.com/codeding-101/COCUDTT/blob/main/templates/container-bill-synthetic-example.json)及[独立Schema](https://github.com/codeding-101/COCUDTT/blob/main/schemas/container-bill-1.0.schema.json)，不能通过“打开项目”混用。缺条件/未支持规则保留但不计算；来源用明确按钮核对，EXAMPLE不自动确认。已有费用引用只读，不新增费用或修改成本；来源与绑定快照不能证明真实业务身份或专业认证。计费模式切换不删除旧字段，须明确清理后重新核对；不同币种及联合/分开费用不自动合计。
+
+
+第三十六轮新增只读费用提案 API：人工选择已有或新建费用，核对来源、原币与明确承担/海关处理；超过核心6位小数精度的金额阻断，保留原18位账单文本。包含关系、联合/分开候选及失效提案不能忽略；提案无写入入口、未接入界面、不提升推荐。工具新建账单/行使用随机UUID，删除再添加不复用编号。完整58文件1810项、24套浏览器流程及账单32项检查通过，详见[提案设计](https://github.com/codeding-101/COCUDTT/blob/main/docs/container-cost-proposal-design.md)和[验收记录](https://github.com/codeding-101/COCUDTT/blob/main/docs/container-cost-proposal-validation.md)。
 
 本金、舍入及明确期间三套案例分别提供项目、付款、独立手算记录及离线说明；先保存自己的输入再打开配对文件。舍入例题保留0.018原值，合计后0.02 USD、逐区间0.03 USD；期间例题包含本金和利率变化，原始单利0.03 USD，两期归集0.03 USD、四个人为期间0.04 USD。各层级须独立复核确认，不推定银行结息。[本金手算记录](https://github.com/codeding-101/COCUDTT/blob/main/templates/synthetic-funding-example.check.json)和[期间手算记录](https://github.com/codeding-101/COCUDTT/blob/main/templates/synthetic-period-example.check.json)使用固定合成预期，不代表真实业务验收。
 
@@ -139,7 +142,7 @@ npm run build:catalog
 | 已完成：集装箱独立账单 | 日历日/明确边界/边际阶梯、逐日审计、候选及固定手算；不默认承运人规则 |
 | 已完成：账单文件与只读引用 | 独立1.0草稿、Schema/模板、来源快照及变更失效、已有费用核对；不写成本 |
 | 已完成：账单录入界面 | 打开/另存、箱组/阶梯控件、独立草稿/恢复、内部审计及客户隔离，320px模拟操作通过 |
-| 下一阶段：显式费用接入 | 先提交可复核写入提案；选择已有或新建费用，核对已含/联合与分开范围，防重复点击、重算与复制 |
+| 下一阶段：显式费用接入 | 先验收映射版本、配对保存/失配和候选解决依据，再接明确原子写入，防重复点击、重算与复制 |
 | 报价与移动端操作质量 | 完善既有双视图、双语/长表/PDF及窄屏操作，客户隔离和真实下载验收 |
 | 发布前工程收敛 | 统一候选与证据、CI/离线回归及规则矩阵；准备可审查结果后由用户决定发布 |
 
