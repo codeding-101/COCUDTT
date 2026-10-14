@@ -11,7 +11,7 @@ import {checkSource} from './decision-readiness.js';
 
 function fail(path:string):never {throw Error('CONTAINER_COST_PROPOSAL_INVALID:'+path);}
 /** Validate descriptors before serialization so getters and lossy JSON never enter a lease. */
-function jsonInput(value:unknown):void {
+export function validateContainerCostProposalJson(value:unknown):void {
  let nodes=0;const parents=new Set<object>();
  const visit=(v:unknown,depth:number):void=>{
   if(++nodes>300000||depth>32)fail('JSON_CONTENT');
@@ -37,8 +37,8 @@ function shape(v:unknown,required:string[],optional:string[]=[]):asserts v is Re
 function text(v:unknown,max:number,id=false):asserts v is string {
  if(typeof v!=='string'||Array.from(v).length>max||id&&(!v.trim()||['__proto__','constructor','prototype'].includes(v)))fail('text');
 }
-function inputs(project:ProjectFile,bill:ContainerBillDraft,input:ContainerCostProposalInput):void {
- jsonInput({project,bill,input});validateProjectStructure(project);validateContainerBillDraft(bill);
+export function validateContainerCostProposalInput(project:ProjectFile,bill:ContainerBillDraft,input:ContainerCostProposalInput):void {
+ validateContainerCostProposalJson({project,bill,input});validateProjectStructure(project);validateContainerBillDraft(bill);
  shape(input,['version','intents']);if(input.version!=='0.1'||!Array.isArray(input.intents)||input.intents.length>50)fail('version/intents');
  for(const intent of input.intents){
   if(!intent||typeof intent!=='object'||Array.isArray(intent))fail('intent');
@@ -65,7 +65,7 @@ function sourceValues(project:ProjectFile,bill:ContainerBillDraft,intent:Extract
 }
 /** Explicit caller action records assumptions; no CostItem is inserted. */
 export function confirmContainerCostIntent(project:ProjectFile,bill:ContainerBillDraft,intent:Extract<ContainerCostIntent,{operation:'CREATE_NEW'}>,source:SourceEvidence):Extract<ContainerCostIntent,{operation:'CREATE_NEW'}> {
- inputs(project,bill,{version:'0.1',intents:[intent]});validateContainerBillEvidence(source);
+ validateContainerCostProposalInput(project,bill,{version:'0.1',intents:[intent]});validateContainerBillEvidence(source);
  if(source.status==='EXAMPLE')fail('example_source');
  const evidence={...structuredClone(source),status:'USER_CONFIRMED' as const};evidence.values_key=evidenceKey(sourceValues(project,bill,intent),evidence);
  if(evidence.values_key.length>1048576||checkSource('新费用假设',bill.review_date,evidence,evidence.values_key).issues.length)fail('source');
@@ -73,7 +73,7 @@ export function confirmContainerCostIntent(project:ProjectFile,bill:ContainerBil
 }
 /** Conservative proposals. No aggregate, no FX/tax calculation, no readiness promotion. */
 export function proposeContainerCosts(project:ProjectFile,bill:ContainerBillDraft,input:ContainerCostProposalInput):ContainerCostProposal {
- inputs(project,bill,input);
+ validateContainerCostProposalInput(project,bill,input);
  const review=reviewContainerBillDraft(bill,project),issues=[...review.issues];
  if(!input.intents.length)issues.push('EMPTY_PROPOSAL_SCOPE');
  const active=(()=>{try{return costsForTerm(toTrade(project),project.incoterm).trade.items;}catch{return[];}})();
@@ -116,9 +116,9 @@ export function proposeContainerCosts(project:ProjectFile,bill:ContainerBillDraf
   return{line_id:intent.line_id,operation:intent.operation,cost_id:id,original_amount:amount,proposed_cost:intent.operation==='CREATE_NEW'?structuredClone(intent.new_cost):null,issues:problems,source_issues};
  });
  const proposal:ContainerCostProposal={version:'0.1',scope:'NO_WRITE_PROPOSAL',snapshot_key:evidenceKey({project,bill,input},emptyEvidence()),issues,rows};
- jsonInput(proposal);return proposal;
+ validateContainerCostProposalJson(proposal);return proposal;
 }
 /** Recompute everything; changed inputs or altered output require a new proposal. Not an apply API. */
 export function containerCostProposalIsCurrent(proposal:ContainerCostProposal,project:ProjectFile,bill:ContainerBillDraft,input:ContainerCostProposalInput):boolean {
- try{jsonInput(proposal);return evidenceKey(proposal,emptyEvidence())===evidenceKey(proposeContainerCosts(project,bill,input),emptyEvidence());}catch{return false;}
+ try{validateContainerCostProposalJson(proposal);return evidenceKey(proposal,emptyEvidence())===evidenceKey(proposeContainerCosts(project,bill,input),emptyEvidence());}catch{return false;}
 }

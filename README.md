@@ -55,6 +55,9 @@
 
 第三十六轮新增只读费用提案 API：人工选择已有或新建费用，核对来源、原币与明确承担/海关处理；超过核心6位小数精度的金额阻断，保留原18位账单文本。包含关系、联合/分开候选及失效提案不能忽略；提案无写入入口、未接入界面、不提升推荐。工具新建账单/行使用随机UUID，删除再添加不复用编号。完整58文件1810项、24套浏览器流程及账单32项检查通过，详见[提案设计](https://github.com/codeding-101/COCUDTT/blob/main/docs/container-cost-proposal-design.md)和[验收记录](https://github.com/codeding-101/COCUDTT/blob/main/docs/container-cost-proposal-validation.md)。
 
+
+第三十七轮独立配对文件层已完成：一份内部JSON保存项目0.8/0.9、账单1.0和提案选择，映射0.1保留稳定编号/修订/删除记录；旧快照更新、不同资料拼接和已删除新建目标编号复用均拒绝。新增65项、完整59文件1875项通过，见[配对设计](https://github.com/codeding-101/COCUDTT/blob/main/docs/container-cost-pair-design.md)、[验收](https://github.com/codeding-101/COCUDTT/blob/main/docs/container-cost-pair-validation.md)及[独立Schema](https://github.com/codeding-101/COCUDTT/blob/main/schemas/container-cost-pair-1.0.schema.json)。目前仅独立API，工具尚无配对打开/另存入口，也未实际写入费用；现有离线工具字节保持。
+
 本金、舍入及明确期间三套案例分别提供项目、付款、独立手算记录及离线说明；先保存自己的输入再打开配对文件。舍入例题保留0.018原值，合计后0.02 USD、逐区间0.03 USD；期间例题包含本金和利率变化，原始单利0.03 USD，两期归集0.03 USD、四个人为期间0.04 USD。各层级须独立复核确认，不推定银行结息。[本金手算记录](https://github.com/codeding-101/COCUDTT/blob/main/templates/synthetic-funding-example.check.json)和[期间手算记录](https://github.com/codeding-101/COCUDTT/blob/main/templates/synthetic-period-example.check.json)使用固定合成预期，不代表真实业务验收。
 
 资金事件限一个明确主体、单币种及固定计息基准：本金增减按日期及同日列表顺序处理；利率事件填写新的绝对年利率、生效日及依据，同日重复利率阻断。起始日生效，截止日只审计不多计一天；每段本金、实际利率、天数、余额及公式可复查。金额步长、方式和层级需明确填写；原始单利与舍入金额分开，逐区间应用必须确认边界，不能自动当作银行结息日。
@@ -142,7 +145,8 @@ npm run build:catalog
 | 已完成：集装箱独立账单 | 日历日/明确边界/边际阶梯、逐日审计、候选及固定手算；不默认承运人规则 |
 | 已完成：账单文件与只读引用 | 独立1.0草稿、Schema/模板、来源快照及变更失效、已有费用核对；不写成本 |
 | 已完成：账单录入界面 | 打开/另存、箱组/阶梯控件、独立草稿/恢复、内部审计及客户隔离，320px模拟操作通过 |
-| 下一阶段：显式费用接入 | 先验收映射版本、配对保存/失配和候选解决依据，再接明确原子写入，防重复点击、重算与复制 |
+| 已完成：独立配对文件层 | 版本1.0、稳定映射/修订/删除保留与完整失配核对；无UI或费用写入 |
+| 下一阶段：配对交接与费用接入 | 接打开/另存、实时失配/恢复和复制规则，再验收候选依据及显式写入 |
 | 报价与移动端操作质量 | 完善既有双视图、双语/长表/PDF及窄屏操作，客户隔离和真实下载验收 |
 | 发布前工程收敛 | 统一候选与证据、CI/离线回归及规则矩阵；准备可审查结果后由用户决定发布 |
 

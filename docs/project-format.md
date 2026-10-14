@@ -86,3 +86,7 @@ TransportCostLinkInput只是独立函数参数，审计输出0.1不是项目/付
 ## 第三十二轮：显式项目0.9已启用
 
 0.8新建/模板保持，单独启用后克隆为0.9；term_scenarios[term].transport_cost_links承载目标、关联及可选overlap_resolutions。旧同名扩展不激活且阻断升级，0.9保存不降级，未来1.0拒绝。旧两份Schema原字节保持，新增0.9 Schema可离线下载；恢复1.0识别新结构。候选核对须有原包含关系或不同计费内容说明/来源，保持原候选和金额。见[验收](transport-links-integration-validation.md)。
+
+## 第三十七轮：独立配对容器1.0与映射0.1
+
+INTERNAL_CONTAINER_COST_PAIR 1.0收纳项目0.8/0.9、账单1.0、提案选择0.1及稳定映射/删除记录；独立Schema和完整快照/跨ID检查，修订与UTF-8 10MiB范围保护。项目、账单和付款不能互相误读，旧同名扩展保留，不自动升级项目或执行费用写入。尚无运行工具打开/另存及恢复入口，见[设计](container-cost-pair-design.md)与[验收](container-cost-pair-validation.md)。
