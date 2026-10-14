@@ -76,3 +76,7 @@ kind=INTERNAL_RECOVERY_SNAPSHOT、version=1.0包含异常阶段、原始项目�
 ## 第三十轮：期间例题四资源
 
 新增synthetic-period-example项目0.8与付款1.5，名称和绑定独立；不升级新建付款或已有文件。SYNTHETIC_PERIOD_CHECK_RECORD 1.0是固定手算记录，不可导入为项目/付款；HTML是无脚本离线说明。例题就绪/应用/确认仅为固定合成输入，不是用户银行合同认证。两份Schema、旧项目模板和八份旧配套资源保持原字节。见[验收](period-example-validation.md)。
+
+## 第三十一轮：独立关联API不升级文件
+
+TransportCostLinkInput只是独立函数参数，审计输出0.1不是项目/付款容器。项目仍0.8、付款1.5、恢复1.0；不解释旧transport_cost_links同名扩展，0.9尚未启用。后续拟在term_scenarios中接入0.9字段，须显式升级/重名保护、Schema、文件及恢复同轮验收；见[接入设计](transport-cost-links-design.md)。
