@@ -1,0 +1,86 @@
+{
+  "version": "1.5",
+  "kind": "INTERNAL_SETTLEMENT_PLAN",
+  "binding": {
+    "project_name": "合成案例：计算分段与明确归集期（非真实交易）",
+    "goods_name": "演示商品（非真实税则归类）",
+    "quantity": "1000",
+    "unit": "PCS",
+    "incoterm": "CIF",
+    "named_place": "合成目的港（仅演示）",
+    "amount": "108300",
+    "currency": "USD"
+  },
+  "method": "TT",
+  "bank_status": "NO_FEES",
+  "payments": [
+    {
+      "id": "synthetic-payment",
+      "basis": "PERCENT",
+      "value": "100",
+      "date": "2026-09-05",
+      "trigger": "合成全额价款计划，不是实际付款或银行结息"
+    }
+  ],
+  "bank_fees": [],
+  "notes": "全部为合成输入。本金、利率、归集期及确认仅是例题设定，不是用户交易的事实确认。计算分段、归集期与付款日期分别记录；不生成本金清偿或银行扣款。",
+  "funding": {
+    "status": "PROVIDED",
+    "kind": "FINANCING",
+    "party": "SELLER",
+    "principal": "6",
+    "currency": "USD",
+    "start_date": "2026-09-01",
+    "end_date": "2026-09-05",
+    "annual_rate": "36",
+    "day_basis": "ACT_360",
+    "reference": "合成期初本金6 USD、年利率36%、ACT/360；含起日不含止日，事件当日计息前生效，非银行合同认证",
+    "balance_model": "EVENTS",
+    "events": [
+      {
+        "id": "synthetic-increase",
+        "date": "2026-09-02",
+        "direction": "INCREASE",
+        "amount": "6",
+        "currency": "USD",
+        "reference": "合成9月2日计息前本金增加6 USD，余额12；不证明融资到账"
+      }
+    ],
+    "rate_model": "EVENTS",
+    "rate_events": [
+      {
+        "id": "synthetic-rate",
+        "date": "2026-09-03",
+        "annual_rate": "18",
+        "reference": "合成9月3日计息前年利率改为18%，不是实际重定价通知"
+      }
+    ],
+    "rounding": {
+      "status": "APPLIED",
+      "scope": "PERIODS",
+      "mode": "HALF_UP",
+      "unit": "0.01",
+      "intervals_confirmed": false,
+      "reference": "合成约定：每个明确期间先精确汇总，再按0.01 USD步长HALF_UP一次舍入；不推定实际银行约定"
+    },
+    "period_schedule": {
+      "status": "PROVIDED",
+      "reference": "合成内部应计期间：9月1日至4日、4日至5日，含起不含止；短尾期仅内部应计，不称已结息",
+      "periods_confirmed": true,
+      "periods": [
+        {
+          "id": "synthetic-period-a",
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-04",
+          "reference": "合成首期3天，跨本金/利率变化；9月4日为内部假设边界，不是银行结息事实"
+        },
+        {
+          "id": "synthetic-period-b",
+          "start_date": "2026-09-04",
+          "end_date": "2026-09-05",
+          "reference": "合成短尾期1天，仅内部应计，结束日不代表已结息、扣款或还本"
+        }
+      ]
+    }
+  }
+}

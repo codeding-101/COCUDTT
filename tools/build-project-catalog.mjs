@@ -9,6 +9,8 @@ try {
  const {FUNDING_EXAMPLE_FILES}=await server.ssrLoadModule('/src/data/funding-example.ts');
  const {ROUNDING_EXAMPLE_FILES}=await server.ssrLoadModule('/src/data/rounding-example.ts');
  const {roundingExampleResource}=await server.ssrLoadModule('/src/ui/rounding-example.ts');
+ const {PERIOD_EXAMPLE_FILES}=await server.ssrLoadModule('/src/data/period-example.ts');
+ const {periodExampleResource}=await server.ssrLoadModule('/src/ui/period-example.ts');
  const {fundingExampleResource}=await server.ssrLoadModule('/src/ui/funding-example.ts');
  mkdirSync(join(root,'schemas'),{recursive:true});mkdirSync(join(root,'templates'),{recursive:true});
  writeFileSync(join(root,'schemas/project-0.8.schema.json'),json(projectJsonSchema()));writeFileSync(join(root,'schemas/project-import-0.1-0.8.schema.json'),json(projectJsonSchema(true)));
@@ -18,4 +20,6 @@ try {
  console.log('Generated 4 synthetic funding example resources from source');
  for(const kind of Object.keys(ROUNDING_EXAMPLE_FILES)){const resource=roundingExampleResource(kind);writeFileSync(join(root,'templates',resource.name),resource.text);}
  console.log('Generated 4 synthetic rounding example resources from source');
+ for(const kind of Object.keys(PERIOD_EXAMPLE_FILES)){const resource=periodExampleResource(kind);writeFileSync(join(root,'templates',resource.name),resource.text);}
+ console.log('Generated 4 synthetic period example resources from source');
 }finally{await server.close();}

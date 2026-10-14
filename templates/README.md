@@ -14,3 +14,7 @@
 [catalog.json](catalog.json) 为目录元数据1.0；固定生成时间仅用于可复建。运行 `npm run build:catalog` 更新，字段修改同步通过 Schema/解析器和保存往返测试，CI 核对文件与源码一致。
 
 参见 [格式边界](../docs/project-format.md) 和 [旧项目迁移](../docs/project-migration.md)。真实手机及专业复核按用户安排暂缓；模板/合成测试不等于真实业务验收。
+
+## 明确期间配套合成例
+
+另有[配套项目](synthetic-period-example.project.json)（项目0.8）、[配套付款](synthetic-period-example.plan.json)（付款1.5）、[固定手算记录](synthetic-period-example.check.json)和[无脚本离线说明](synthetic-period-example.guide.html)。先保存自己的项目及付款，再依序打开配套项目/付款，不用重绑定掩盖错配；记录/说明不可导入。三计算段、两归集期及四片交集分别核对，全部为合成内部应计假设，不代表银行结息。旧八份本金/舍入资源保持。
