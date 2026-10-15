@@ -72,11 +72,12 @@ describe('打开、保存项目的失败处理', () => {
   function quickField(kind:string,field:string,value:string,id?:string,lease=quickLease()){
     const input=new InputStub();input.id='';input.dataset={quickCostKind:kind,quickCostField:field,quickCostLease:lease,...(id?{quickCostId:id}:{})};input.value=value;listeners.get('change')!({target:input});
   }
+  // This first app import includes the offline PDF font and full UI graph; allow cold CI startup.
   it('快捷选择不改业务；金额编辑只改变明确选中的原币费用，不联动货值和报价',async()=>{
     await start();const before=JSON.parse(storage.get(key)!);quickField('carriage','choose','freight');expect(JSON.parse(storage.get(key)!)).toEqual(before);
     quickField('carriage','amount','9000.123456','freight');const after=JSON.parse(storage.get(key)!);expect(after.project.items.find((i:any)=>i.cost_id==='freight').amount).toBe('9000.123456');
     before.project.items.find((i:any)=>i.cost_id==='freight').amount='9000.123456';expect(after).toEqual(before);expect(html).toContain('原币金额（USD）');
-  });
+  },15_000);
   it('快捷路径与完整明细的既有金额路径生成相同项目',async()=>{
     await start();quickField('carriage','choose','freight');quickField('carriage','amount','9001','freight');const quick=JSON.parse(storage.get(key)!);
     const original=sampleProjectFile();original.updated_at=quick.project.updated_at;open(async()=>serializeProject(original));await vi.waitFor(()=>expect(JSON.parse(storage.get(key)!).project.items[1].amount).toBe('8000'));
