@@ -69,6 +69,8 @@ const billUi=read(join(root,'src/ui/container-bill.ts')),billController=read(joi
 for(const action of matchAll(billUi,/(?:button|scope)\('([a-z-]+)'/g))renderedActions.add(action);
 const pairUi=read(join(root,'src/ui/container-cost-pair.ts'));
 for(const action of matchAll(pairUi,/\bb\('([a-z-]+)'/g))renderedActions.add(action);
+const editorModel=read(join(root,'src/data/container-cost-editor.ts'));
+for(const field of matchAll(pairUi,/(?:field|choose)\('([a-z_]+)'/g))if(!editorModel.includes(`'${field}'`)||!appTs.includes('target.dataset.pairEditorField!==undefined'))problems.push(`[提案字段未处理] ${field}没有对应白名单/事件分支`);
 const billFields=matchAll(billUi,/(?:field|choose)\('([a-z_.]+)'/g);
 for(const field of billFields){if(field.endsWith('.'))continue;if(['name','notes','review_date'].includes(field)?!billController.includes(`path==='${field}'`):!billController.includes(`'${field}'`))problems.push(`[账单字段未处理] ${field}没有对应白名单/处理分支`);}
 for(const prefix of['source.','cost_source.'])for(const key of['reference','valid_from','valid_to','checked_on'])if(!billController.includes(`'${prefix+key}'`))problems.push(`[账单来源字段未处理] ${prefix+key}`);
