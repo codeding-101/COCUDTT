@@ -68,6 +68,30 @@ describe('打开、保存项目的失败处理', () => {
     const app = await import('../src/ui/app');
     app.start();
   }
+  const quickLease=()=>html.match(/data-quick-cost-lease="(\d+)"/)![1]!;
+  function quickField(kind:string,field:string,value:string,id?:string,lease=quickLease()){
+    const input=new InputStub();input.id='';input.dataset={quickCostKind:kind,quickCostField:field,quickCostLease:lease,...(id?{quickCostId:id}:{})};input.value=value;listeners.get('change')!({target:input});
+  }
+  it('快捷选择不改业务；金额编辑只改变明确选中的原币费用，不联动货值和报价',async()=>{
+    await start();const before=JSON.parse(storage.get(key)!);quickField('carriage','choose','freight');expect(JSON.parse(storage.get(key)!)).toEqual(before);
+    quickField('carriage','amount','9000.123456','freight');const after=JSON.parse(storage.get(key)!);expect(after.project.items.find((i:any)=>i.cost_id==='freight').amount).toBe('9000.123456');
+    before.project.items.find((i:any)=>i.cost_id==='freight').amount='9000.123456';expect(after).toEqual(before);expect(html).toContain('原币金额（USD）');
+  });
+  it('快捷路径与完整明细的既有金额路径生成相同项目',async()=>{
+    await start();quickField('carriage','choose','freight');quickField('carriage','amount','9001','freight');const quick=JSON.parse(storage.get(key)!);
+    const original=sampleProjectFile();original.updated_at=quick.project.updated_at;open(async()=>serializeProject(original));await vi.waitFor(()=>expect(JSON.parse(storage.get(key)!).project.items[1].amount).toBe('8000'));
+    const input=new InputStub();input.id='';input.dataset={item:'freight',itemField:'amount'};input.value='9001';listeners.get('change')!({target:input});expect(JSON.parse(storage.get(key)!)).toEqual(quick);
+  });
+  it('快捷编辑空金额保留原值文本并阻断计算，不默认为零',async()=>{
+    await start();quickField('carriage','choose','freight');quickField('carriage','amount','','freight');expect(JSON.parse(storage.get(key)!).project.items[1].amount).toBe('');expect(html).toContain('无法计算');
+  });
+  it('迟到事件与另一项目复用编号均不能覆盖费用',async()=>{
+    await start();quickField('carriage','choose','freight');const old=quickLease();change('name','NEW_VIEW_46');const before=storage.get(key);quickField('carriage','amount','999999','freight',old);expect(storage.get(key)).toBe(before);
+    const prior=quickLease();action('new');const replaced=storage.get(key);quickField('carriage','amount','999999','freight',prior);expect(storage.get(key)).toBe(replaced);
+  });
+  it('复杂计价在快捷面板只读，伪造金额事件不改项目',async()=>{
+    await start();const p=sampleProjectFile();p.items[1]!.pricing_method='PERCENT';p.items[1]!.rate='0.01';p.items[1]!.calculation_base={kind:'GOODS_VALUE'};open(async()=>serializeProject(p));await vi.waitFor(()=>expect(JSON.parse(storage.get(key)!).project.items[1].pricing_method).toBe('PERCENT'));quickField('carriage','choose','freight');const before=storage.get(key);quickField('carriage','amount','999999','freight');expect(storage.get(key)).toBe(before);expect(html).toContain('非固定或实际金额计价');
+  });
   it('默认新手视图；切换只保存界面偏好，不改草稿、采购成本或当前金额',async()=>{
     await start();expect(html).toContain('data-workspace-mode="beginner"');change('name','MODE_BUSINESS_45');const before=storage.get(key);
     action('mode-professional');expect(html).toContain('data-workspace-mode="professional"');expect(storage.get(key)).toBe(before);expect(html).toContain('80,000.00');expect(storage.get('trade-cost-engine:workspace-mode-v1')).toBe('professional');

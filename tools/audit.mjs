@@ -44,6 +44,10 @@ const uiText = srcFiles
   .map(read)
   .join('\n');
 const allText = srcFiles.map((file) => ({ file, text: read(file) }));
+const quickUi=read(join(root,'src/ui/quick-costs.ts'));
+for(const field of matchAll(quickUi,/data-quick-cost-field="([a-z-]+)"/g)){
+  if(!appTs.includes(`quickCostField==='${field}'`))problems.push(`[快捷费用字段未处理] ${field}`);
+}
 
 // ---------- 1. 渲染字段 / 动作 是否都有处理分支 ----------
 const handledFields = matchAll(appTs, /^\s+case '([a-zA-Z_-]+)':/gm);

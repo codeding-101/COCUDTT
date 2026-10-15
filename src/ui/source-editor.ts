@@ -1,5 +1,6 @@
 import type { SourceEvidence } from '../domain/source-evidence.js';
 import { escapeHtml } from './format.js';
+import {fieldHelpButton} from './field-help.js';
 
 export const SOURCE_STATUS_LABELS: Record<SourceEvidence['status'], string> = {
   EXAMPLE: '示例数据', UNVERIFIED: '尚未核对', USER_CONFIRMED: '用户已核对',
@@ -19,6 +20,6 @@ export function renderSourceEditor(evidence: SourceEvidence | undefined, owner: 
       ${fields.map(([field, label, placeholder]) => `<label class="field${field === 'reference' ? ' wide' : ''}">${label}<input type="text" value="${escapeHtml(evidence?.[field] ?? '')}" placeholder="${placeholder}" ${binding} data-evidence-field="${field}" /></label>`).join('')}
       <label class="field">核对状态<select ${binding} data-evidence-field="status">${Object.entries(SOURCE_STATUS_LABELS).map(([value, label]) => `<option value="${value}"${value === (evidence?.status ?? 'UNVERIFIED') ? ' selected' : ''}>${label}</option>`).join('')}</select></label>
     </div>
-    <p class="hint block">核对记录由你填写，程序不自动认证来源。修改已核对数据或来源记录后，需要重新确认。</p>
+    <p class="hint block">${fieldHelpButton('source',`source:${owner}:${id}`,'来源核对说明')} 核对记录由你填写，程序不自动认证来源。修改已核对数据或来源记录后，需要重新确认。</p>
   </details>`;
 }

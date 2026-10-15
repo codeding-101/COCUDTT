@@ -44,6 +44,8 @@ import { booksToRows, rowsToBooks, type FxRow } from './fx-rows.js';
 import { escapeHtml } from './format.js';
 import { nextCostId, renderFormsRow, renderAdvancedTradeFields, renderFxPanel, renderHsPanel, renderImportTaxPanel, renderItemsPanel, type ItemEnrichment } from './views-input.js';
 import { loadWorkspaceMode, saveWorkspaceMode, renderModeSwitch, renderQuickStart, renderCalculationStatus, renderWorkspaceSummary, workspaceIssues, focusWorkspaceIssue, revealWorkspaceElement, type WorkspaceMode, type WorkspaceResult } from './workspace.js';
+import {QuickCostsController} from './quick-costs.js';
+import {FieldHelpController} from './field-help.js';
 import { createProjectReport } from './project-report.js';
 import { renderKpis, renderOutputColumn } from './views-output.js';
 import { newSensitivityControls, projectSensitivity, renderSensitivityPanel, sensitivityOptions } from './sensitivity.js';
@@ -151,6 +153,8 @@ let workspaceMode: WorkspaceMode = 'beginner';
 let workspaceNote = '当前为 CIF 合成示例：货值、运保费、汇率与税率仅用于演示。';
 let calculatedAt = '';
 let pendingCalculation = false;
+const quickCosts=new QuickCostsController();
+const fieldHelp=new FieldHelpController();
 
 function initialState(): AppState {
   const draft = loadDraft();
@@ -223,6 +227,7 @@ async function writeBillFile(name:string,text:string,mime:string):Promise<'SAVED
 }
 
 function showFatalFailure(stage: FailureStage): void {
+  fieldHelp.dismiss(false);
   projectReadEpoch++;
   recoveryStage = stage;
   containerBill.cancelReads();
@@ -463,6 +468,7 @@ function enrichmentMap(): Map<string, ItemEnrichment> {
 
 function focusKeyOf(element: Element): string | null {
   const dataset = (element as HTMLElement).dataset;
+  if(dataset.quickCostField!==undefined)return `quick-cost:${dataset.quickCostKind}:${dataset.quickCostField}`;
   if(dataset.pairEditorField!==undefined)return `pair-editor:${dataset.pairEditorField}`;
   if(dataset.pairCopyField!==undefined)return `pair-copy:${dataset.pairCopyField}`;
   if(dataset.pairReviewField!==undefined)return `pair-review:${dataset.pairReviewField}`;
@@ -486,7 +492,7 @@ function focusKeyOf(element: Element): string | null {
 
 function restoreFocus(key: string | null): void {
   if (key === null) return;
-  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner],[data-contract-cost],[data-logistics-kind],[data-sensitivity-field],[data-customer-field],[data-bill-field],[data-pair-editor-field],[data-pair-copy-field],[data-pair-review-field]')).find(
+  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner],[data-contract-cost],[data-logistics-kind],[data-sensitivity-field],[data-customer-field],[data-bill-field],[data-pair-editor-field],[data-pair-copy-field],[data-pair-review-field],[data-quick-cost-field]')).find(
     (candidate) => focusKeyOf(candidate) === key,
   );
   element?.focus();
@@ -1321,6 +1327,7 @@ function renderApp(): void {
       <div class="workspace-file-state"><span class="${saveState.className}" role="status" aria-live="polite">${escapeHtml(saveState.text)}</span><span>仅供学习与内部测算。数据仅在本机浏览器；清除存储会丢失草稿，请另存项目 JSON。</span></div>
       ${renderQuickStart(state.project,workspaceNote)}
       ${renderFormsRow(state.project,workspaceMode==='beginner')}
+      ${quickCosts.render(state.project,state.result)}
       ${renderWorkspaceSummary(workspace)}
       <details class="panel workspace-results" data-evidence-section="full-results"${workspaceMode==='professional'&&!collapsedSections.has('full-results')?' open':''}><summary><span class="panel-title">完整计算过程与方案对比</span><span class="hint">公式、费用归属、税基、风险与来源</span></summary><div class="panel-body">
       ${renderOutputColumn({ result: state.result, comparison: state.comparison, error: state.error, inputLocations })}
@@ -1366,6 +1373,7 @@ function renderApp(): void {
         <a href="project-introduction.html">项目说明与开发记录</a>
       </footer>
     </main>
+    ${fieldHelp.render()}
     </div>
   `;
 
@@ -1377,6 +1385,7 @@ function renderApp(): void {
     if (element.dataset.evidenceSection !== undefined && expandedEvidenceSections.has(element.dataset.evidenceSection)) element.open = true;
   });
   restoreFocus(focused);
+  fieldHelp.afterRender();
 }
 
 function commit(): void {
@@ -1428,7 +1437,8 @@ function bind(): void {
   };
 
   const calculationInput = (target: HTMLInputElement): boolean => target.type!=='file' &&
-    ['path','itemField','fxField','hsField','contractField','logisticsField'].some(key=>target.dataset[key]!==undefined);
+    (target.dataset.quickCostField==='amount'||['path','itemField','fxField','hsField','contractField','logisticsField'].some(key=>target.dataset[key]!==undefined));
+  const commitsInput=(action:string):boolean=>['save','toggle-file-menu','show-field-help','show-quick-costs','show-cost-settings','show-full-results'].includes(action)||action.startsWith('mode-');
   listen('input',event=>{
     const target=event.target;if(!(target instanceof HTMLInputElement)||!calculationInput(target))return;
     pendingCalculation=true;
@@ -1440,7 +1450,7 @@ function bind(): void {
   // replaces the clicked DOM node before mouseup, swallowing the first click.
   listen('mousedown',event=>{
     const target=event.target;if(!pendingCalculation||!(target instanceof HTMLElement)||(event as MouseEvent).button!==0)return;
-    const action=target.dataset.action;if(action==='save'||action==='toggle-file-menu'||action?.startsWith('mode-'))event.preventDefault();
+    const action=target.dataset.action;if(action&&commitsInput(action))event.preventDefault();
   });
   listen('keydown',event=>{
     const key=event as KeyboardEvent,target=event.target;
@@ -1483,6 +1493,11 @@ function bind(): void {
     const target = event.target;
     if(target instanceof HTMLInputElement&&target.id==='pair-file-input'){const file=target.files?.[0];if(file)void containerPair.open(file);return;}
     containerPair.cancelReads();
+    if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement)&&target.dataset.quickCostField!==undefined){
+      const {quickCostKind,quickCostField,quickCostLease,quickCostId}=target.dataset;
+      if(quickCostField==='choose'){if(quickCosts.choose(state.project,quickCostKind,target.value,quickCostLease)){expandedEvidenceSections.add('quick-costs');render();}return;}
+      if(quickCostField==='amount'&&target instanceof HTMLInputElement){const id=quickCosts.editTarget(state.project,quickCostKind,quickCostId,quickCostLease);if(id){onItemField(id,'amount',target);commit();}else render();}return;
+    }
     if(target instanceof HTMLInputElement&&target.dataset.pairCopyField!==undefined){containerPair.editCopy(target.dataset,target.value,target.checked);return;}
     if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement||target instanceof HTMLTextAreaElement)&&target.dataset.pairReviewField!==undefined){containerPair.editReview(target.dataset,target.value);return;}
     if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement||target instanceof HTMLTextAreaElement)&&target.dataset.pairEditorField!==undefined){containerPair.edit(target.dataset,target.value);return;}
@@ -1627,13 +1642,20 @@ function bind(): void {
     if (!(target instanceof HTMLElement)) return;
     const action = target.dataset.action;
     if (action === undefined) return;
-    if(pendingCalculation&&(action==='save'||action==='toggle-file-menu'||action.startsWith('mode-'))){
+    if(pendingCalculation&&commitsInput(action)){
       const active=document.activeElement;
       if(active instanceof HTMLInputElement&&calculationInput(active))active.dispatchEvent(new Event('change',{bubbles:true}));
     }
     if(pendingCalculation&&(action==='save'||action.startsWith('export-')||action==='preview-customer-quote'||action.startsWith('mode-')))return;
     if(!action.startsWith('pair-'))containerPair.cancelReads();
     switch (action) {
+      case 'show-field-help':
+        event.preventDefault();fieldHelp.open(target.dataset.helpTopic,target.dataset.helpAnchor);break;
+      case 'close-field-help':fieldHelp.dismiss();break;
+      case 'show-quick-costs': {
+        expandedEvidenceSections.add('quick-costs');render();
+        const select=document.querySelector<HTMLElement>('[data-quick-cost-field="choose"]');if(select)revealWorkspaceElement(select);break;
+      }
       case 'toggle-file-menu':
         event.preventDefault();
         if(expandedEvidenceSections.has('file-menu'))expandedEvidenceSections.delete('file-menu');else expandedEvidenceSections.add('file-menu');
