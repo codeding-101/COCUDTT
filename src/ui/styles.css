@@ -628,5 +628,6 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
 .container-bill-panel button { max-width: 100%; height: auto; min-height: 28px; white-space: normal; overflow-wrap: anywhere; }
 .container-cost-pair-panel { min-width: 0; }
 .container-cost-pair-panel .pair-original { max-width: 100%; white-space: pre-wrap; overflow-wrap: anywhere; }
+.container-cost-pair-panel [data-pair-copy-field="acknowledged"] { width: auto; margin-right: 6px; }
 .container-cost-pair-panel p, .container-cost-pair-panel td, .container-cost-pair-panel th { overflow-wrap: anywhere; }
 .container-cost-pair-panel button { max-width: 100%; height: auto; min-height: 28px; white-space: normal; overflow-wrap: anywhere; }

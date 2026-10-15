@@ -7,6 +7,7 @@ import {emptyEvidence,evidenceKey} from '../domain/source-evidence.js';
 import {confirmContainerCostIntent} from '../engine/container-cost-proposal.js';
 import {reviewContainerBillDraft} from '../engine/container-bill-draft.js';
 import {COST_EDITOR_FIELDS,COST_EDITOR_STORAGE_KEY,validateContainerCostEditor,startContainerCostEditor,copyContainerCostFacts,buildContainerCostIntent,containerCostEditorIsCurrent,type ContainerCostEditor} from '../data/container-cost-editor.js';
+import {copyContainerBusiness} from '../data/container-business-copy.js';
 export const PAIR_STORAGE_KEY='trade-cost-engine:container-cost-pair-v1';
 type PairReview=ReturnType<typeof reviewContainerCostPair>;
 interface Environment {
@@ -23,6 +24,8 @@ export function pairLiveIssues(pair:ContainerCostPair,project:ProjectFile,bill:C
 export class ContainerCostPairController {
  pair:ContainerCostPair|null=null;review:PairReview|null=null;busy=false;message='尚无配对快照；先另存自己的资料，再捕获或打开配对文件。';
  editor:ContainerCostEditor|null=null;
+ copyName='';copyAcknowledged=false;copyCandidate:{pair:ContainerCostPair;text:string;source_pair_id:string;source_revision:number}|null=null;
+ private copyKey:string|null=null;
  private epoch=0;private loaded=false;
  constructor(private readonly env:Environment){}
  cancelReads():void {this.epoch++;if(this.message.startsWith('正在读取'))this.message='配对读取已取消，当前资料保留。';}
@@ -43,14 +46,33 @@ export class ContainerCostPairController {
   this.editor.fields[key]=value;this.message='编辑尚未提交；提交后另存配对，费用仍未应用。修改后的旧来源确认不能沿用。';this.persistEditor();this.env.render();
  }
  private set(pair:ContainerCostPair|null,review:PairReview|null,message:string):void {
-  this.epoch++;this.pair=pair;this.review=review;this.message=message;
+  this.epoch++;this.pair=pair;this.review=review;this.message=message;this.copyAcknowledged=false;this.copyKey=null;
   try{localStorage.setItem(PAIR_STORAGE_KEY,pair?serializeContainerCostPair(pair):'null');}catch{this.message+=' 自动草稿保存失败；内存保留，请另存配对文件。';}
+ }
+ editCopy(dataset:DOMStringMap,value:string,checked=false):void {
+  if(this.busy||this.env.blocked())return;const field=dataset.pairCopyField;
+  if(field!=='name'&&field!=='acknowledged')return;this.cancelReads();
+  if(field==='name'){
+   if(Array.from(value).length>200){this.message='新业务名称超过200字符，原值保留。';this.env.render();return;}
+   this.copyName=value;this.copyAcknowledged=false;this.copyKey=null;
+  }else{this.copyAcknowledged=checked;this.copyKey=checked?this.pair?.content_key??null:null;}
+  this.message='业务复制输入仅保留本页；生成的副本须另存后再打开复核，原资料保留。';this.env.render();
  }
  action(action:string,dataset:DOMStringMap={}):void {
   if(this.busy||this.env.blocked())return;
   try{
    if(action==='pair-editor-discard'){this.editor=null;this.message='已明确放弃未提交编辑；已保存选择保留。';this.cancelReads();this.persistEditor();this.env.render();return;}
    if(this.editor&&!['pair-editor-facts','pair-editor-submit'].includes(action))throw Error('editor_pending');
+   if(action==='pair-copy-discard'){this.copyCandidate=null;this.copyAcknowledged=false;this.copyKey=null;this.cancelReads();this.message='已明确放弃内存副本候选；当前业务资料及已下载文件保留。';this.env.render();return;}
+   if(action==='pair-copy-prepare'){
+    if(!this.pair||this.copyCandidate||this.liveIssues().length||!this.copyAcknowledged||this.copyKey!==this.pair.content_key)throw Error('copy_context');
+    const source=this.pair,copied=copyContainerBusiness(source,this.copyKey,this.copyName,new Date().toISOString()),text=serializeContainerCostPair(copied);
+    this.copyCandidate={pair:copied,text,source_pair_id:source.pair_id,source_revision:source.revision};this.copyAcknowledged=false;this.copyKey=null;this.cancelReads();
+    this.message='新业务副本已生成并冻结在本页内存；请另存后再打开复核。原项目/账单/提案及保存状态未改，未应用费用。';this.env.render();return;
+   }
+   if(action==='pair-copy-save'){
+    if(!this.copyCandidate)throw Error('copy_missing');this.cancelReads();void this.saveCopy(this.copyCandidate.text);return;
+   }
    if(action==='pair-editor-start'){
     if(!this.pair||this.liveIssues().length||!dataset.pairLine)throw Error('editor_context');
     const editor=startContainerCostEditor(this.pair,dataset.pairLine);validateContainerCostEditor(editor);this.editor=editor;this.cancelReads();this.message='已开始未提交编辑；请明确取用账单事实并选择全部业务条件，不会生成实际费用。';this.persistEditor();this.env.render();return;
@@ -93,7 +115,7 @@ export class ContainerCostPairController {
    }else if(action!=='pair-capture')return;
    const pair=action==='pair-new'||!this.pair?createContainerCostPair(project,bill,selection):updateContainerCostPair(this.pair,this.pair.content_key,project,bill,selection);
    this.set(pair,reviewContainerCostPair(pair),'已捕获当前完整修订，提案只读；来源及包含待办保留，费用未写入。');this.env.render();
-  }catch{this.message='操作未完成，资料保留：'+(this.editor?'存在未提交编辑，请补齐明确选择并核对原修订；若失配请先放弃编辑、捕获当前修订后重开。':'')+'请核对来源/示例状态、汇率行、账单、重复/悬空选择、删除目标编号及失配。 '+(this.env.inputIssues?.()??[]).join('；');this.env.render();}
+  }catch{this.message='操作未完成，资料保留：'+(this.editor?'存在未提交编辑，请补齐明确选择并核对原修订；若失配请先放弃编辑、捕获当前修订后重开。':'')+(action.startsWith('pair-copy-')?'请核对新名称和复制范围接受、已有候选、目标编号冲突及已删除目标引用。':'')+'请核对来源/示例状态、汇率行、账单、重复/悬空选择、删除目标编号及失配。 '+(this.env.inputIssues?.()??[]).join('；');this.env.render();}
  }
  async open(file:{text:()=>Promise<string>;size?:number}):Promise<void> {
   if(this.busy||this.env.blocked())return;
@@ -113,6 +135,12 @@ export class ContainerCostPairController {
   this.busy=true;this.message='正在另存点击时完整配对快照；后续编辑不改变本次内容。';this.env.render();
   try{const result=await this.env.write('internal-container-cost-pair.json',text,'application/json');this.message=result==='SAVED'?'已另存点击时完整快照；后续修改须重新捕获并另存，项目保存状态未改变。':'已发起配对文件下载，请确认落盘；后续修改须重新捕获并另存。';}
   catch(error){this.message=error instanceof Error&&error.name==='AbortError'?'已取消配对另存，资料保留。':'配对另存失败，请检查下载/保存权限或空间；资料保留。';}
+  finally{this.busy=false;if(!this.env.blocked())this.env.render();}
+ }
+ private async saveCopy(text:string):Promise<void> {
+  this.busy=true;this.message='正在另存已冻结的新业务副本；原资料及后续修改不会改变本次文件。';this.env.render();
+  try{const result=await this.env.write('new-business-container-cost-pair.json',text,'application/json');this.message=result==='SAVED'?'已另存新业务副本；请单独打开并重新绑定/确认，原业务及保存状态未改。重复另存同一候选保持同一新身份。':'已发起新业务副本下载，请确认落盘后再打开复核；原业务保留，候选身份保持。';}
+  catch(error){this.message=error instanceof Error&&error.name==='AbortError'?'已取消副本另存；同一内存候选保留，可重试。':'副本另存失败，请核对权限或空间；同一内存候选及原资料保留，可重试。';}
   finally{this.busy=false;if(!this.env.blocked())this.env.render();}
  }
 }

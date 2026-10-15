@@ -70,6 +70,8 @@ for(const action of matchAll(billUi,/(?:button|scope)\('([a-z-]+)'/g))renderedAc
 const pairUi=read(join(root,'src/ui/container-cost-pair.ts'));
 for(const action of matchAll(pairUi,/\bb\('([a-z-]+)'/g))renderedActions.add(action);
 const editorModel=read(join(root,'src/data/container-cost-editor.ts'));
+const pairController=read(join(root,'src/ui/container-cost-pair-controller.ts'));
+for(const field of matchAll(pairUi,/data-pair-copy-field="([a-z_]+)"/g))if(!pairController.includes(`field!=='${field}'`)||!appTs.includes('target.dataset.pairCopyField!==undefined'))problems.push(`[业务复制字段未处理] ${field}`);
 for(const field of matchAll(pairUi,/(?:field|choose)\('([a-z_]+)'/g))if(!editorModel.includes(`'${field}'`)||!appTs.includes('target.dataset.pairEditorField!==undefined'))problems.push(`[提案字段未处理] ${field}没有对应白名单/事件分支`);
 const billFields=matchAll(billUi,/(?:field|choose)\('([a-z_.]+)'/g);
 for(const field of billFields){if(field.endsWith('.'))continue;if(['name','notes','review_date'].includes(field)?!billController.includes(`path==='${field}'`):!billController.includes(`'${field}'`))problems.push(`[账单字段未处理] ${field}没有对应白名单/处理分支`);}

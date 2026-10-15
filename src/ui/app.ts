@@ -209,7 +209,7 @@ function installPair(pair:ContainerCostPair):void {
 async function writeBillFile(name:string,text:string,mime:string):Promise<'SAVED'|'DOWNLOAD_STARTED'> {
  const picker=(window as SaveFilePickerWindow).showSaveFilePicker;
  if(!picker){downloadText(name,text);return 'DOWNLOAD_STARTED';}
- const handle=await picker.call(window,{suggestedName:name,types:[{description:name==='internal-container-cost-pair.json'?'项目账单配对文件':'独立账单文件',accept:{[mime]:['.json']}}]});
+ const handle=await picker.call(window,{suggestedName:name,types:[{description:name.endsWith('container-cost-pair.json')?'项目账单配对文件':'独立账单文件',accept:{[mime]:['.json']}}]});
  const writable=await handle.createWritable();await writable.write(text);await writable.close();return 'SAVED';
 }
 
@@ -257,6 +257,7 @@ function backupRecovery(): void {
       settlement_plan:settlementPlan,sensitivity:sensitivityControls,customer_fields:customerFields,
       browser_draft_text:draft,container_bill:containerBill.draft,container_bill_draft_text:billDraftText,container_cost_pair:containerPair.pair,container_cost_pair_draft_text:pairDraftText,
       ...(containerPair.editor?{container_cost_editor:containerPair.editor}:{}),
+      ...(containerPair.copyCandidate?{container_business_copy:containerPair.copyCandidate.pair}:{}),
       ...(editorDraftText&&editorDraftText!=='null'?{container_cost_editor_draft_text:editorDraftText}:{})},null,2) + '\n';
     downloadText('internal-recovery-snapshot.json',text);
     showRecoveryView(recoveryStage,{retry:retryInterface,backup:backupRecovery},'已发起内部恢复备份下载，请确认文件已保存；原项目与草稿未改写');
@@ -448,6 +449,7 @@ function enrichmentMap(): Map<string, ItemEnrichment> {
 function focusKeyOf(element: Element): string | null {
   const dataset = (element as HTMLElement).dataset;
   if(dataset.pairEditorField!==undefined)return `pair-editor:${dataset.pairEditorField}`;
+  if(dataset.pairCopyField!==undefined)return `pair-copy:${dataset.pairCopyField}`;
   if(dataset.billField!==undefined)return `bill:${dataset.billRow??''}:${dataset.billTier??''}:${dataset.billField}`;
   if (dataset.sensitivityField !== undefined) return `sensitivity:${dataset.sensitivityField}`;
   if (dataset.customerField !== undefined) return `customer:${dataset.customerField}`;
@@ -468,7 +470,7 @@ function focusKeyOf(element: Element): string | null {
 
 function restoreFocus(key: string | null): void {
   if (key === null) return;
-  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner],[data-contract-cost],[data-logistics-kind],[data-sensitivity-field],[data-customer-field],[data-bill-field],[data-pair-editor-field]')).find(
+  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner],[data-contract-cost],[data-logistics-kind],[data-sensitivity-field],[data-customer-field],[data-bill-field],[data-pair-editor-field],[data-pair-copy-field]')).find(
     (candidate) => focusKeyOf(candidate) === key,
   );
   element?.focus();
@@ -1423,6 +1425,7 @@ function bind(): void {
     const target = event.target;
     if(target instanceof HTMLInputElement&&target.id==='pair-file-input'){const file=target.files?.[0];if(file)void containerPair.open(file);return;}
     containerPair.cancelReads();
+    if(target instanceof HTMLInputElement&&target.dataset.pairCopyField!==undefined){containerPair.editCopy(target.dataset,target.value,target.checked);return;}
     if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement||target instanceof HTMLTextAreaElement)&&target.dataset.pairEditorField!==undefined){containerPair.edit(target.dataset,target.value);return;}
     if(target instanceof HTMLInputElement&&target.id==='bill-file-input'){
      const file=target.files?.[0];if(file)void containerBill.open(file);return;
@@ -1567,6 +1570,9 @@ function bind(): void {
     if (action === undefined) return;
     if(!action.startsWith('pair-'))containerPair.cancelReads();
     switch (action) {
+      case 'pair-copy-prepare':
+      case 'pair-copy-save':
+      case 'pair-copy-discard':
       case 'pair-editor-start':
       case 'pair-editor-facts':
       case 'pair-editor-submit':

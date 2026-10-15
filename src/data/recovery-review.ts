@@ -10,7 +10,7 @@ export const RECOVERY_REVIEW_MAX_BYTES = 5 * 1024 * 1024;
 export type RecoveryPartStatus = 'STRUCTURE_OK' | 'INVALID' | 'ABSENT' | 'MISSING' | 'UNSUPPORTED';
 export interface RecoveryPartReview { key: string; label: string; status: RecoveryPartStatus }
 export interface RecoveryReview { stage: 'STARTUP' | 'RENDER' | 'INTERACTION'; parts: RecoveryPartReview[]; unknownFields: number }
-const keys = ['kind','version','stage','project','fx_rows','settlement_plan','sensitivity','customer_fields','browser_draft_text','container_bill','container_bill_draft_text','container_cost_pair','container_cost_pair_draft_text','container_cost_editor','container_cost_editor_draft_text'];
+const keys = ['kind','version','stage','project','fx_rows','settlement_plan','sensitivity','customer_fields','browser_draft_text','container_bill','container_bill_draft_text','container_cost_pair','container_cost_pair_draft_text','container_cost_editor','container_cost_editor_draft_text','container_business_copy'];
 const record = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 function projectStatus(value: unknown): RecoveryPartStatus {
   if (!record(value) || typeof value.schema_version !== 'string') return 'INVALID';
@@ -54,5 +54,6 @@ export function inspectRecoveryText(text: string): RecoveryReview {
   if(Object.hasOwn(value,'container_cost_pair_draft_text'))check('container_cost_pair_draft_text','配对浏览器草稿原文',raw=>{if(typeof raw!=='string')return 'INVALID';if(raw==='null')return 'ABSENT';validateContainerCostPair(JSON.parse(raw));return 'STRUCTURE_OK';});
   if(Object.hasOwn(value,'container_cost_editor'))check('container_cost_editor','未提交费用提案编辑',raw=>{validateContainerCostEditor(raw);return 'STRUCTURE_OK';});
   if(Object.hasOwn(value,'container_cost_editor_draft_text'))check('container_cost_editor_draft_text','费用提案编辑草稿原文',raw=>{if(typeof raw!=='string')return 'INVALID';if(raw==='null')return 'ABSENT';validateContainerCostEditor(JSON.parse(raw));return 'STRUCTURE_OK';});
+  if(Object.hasOwn(value,'container_business_copy'))check('container_business_copy','未自动打开的新业务副本候选',raw=>{validateContainerCostPair(raw);return 'STRUCTURE_OK';});
   return {stage:value.stage,parts,unknownFields:Object.keys(value).filter(k => !keys.includes(k)).length};
 }
