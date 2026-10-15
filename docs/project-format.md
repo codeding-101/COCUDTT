@@ -112,3 +112,8 @@ INTERNAL_CONTAINER_COST_EDITOR 0.1仅是浏览器未提交表单：绑定pair_id
 ## 第四十二轮：只读核对输出0.1
 
 READ_ONLY_BOUNDARIES 0.1仅为独立函数的内部结果，绑定完整配对内容键/修订/术语及映射；不是review_plan文件、可导入项目或配对的容器。不启用配对1.1或修改五份Schema，旧同名扩展不激活。人工解释/确认的持久化及复制清除待新版本同轮验收；见[模块验收](container-cost-review-module-validation.md)。
+
+
+## 第四十三轮：独立核对记录0.1
+
+INTERNAL_CONTAINER_COST_REVIEW_PLAN 0.1绑定现有配对1.0完整业务basis，计划revision独立管理记录变化，来源键不包含记录自身确认或其他记录。严格JSON读写与第六份离线Schema，不是项目/配对入口支持的新容器；当前配对1.0继续拒绝1.1及review_plan活动字段，旧扩展不激活。UI/草稿/恢复/内部导出尚未接入，见[格式与验收](container-cost-review-plan-validation.md)。
