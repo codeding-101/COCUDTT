@@ -48,6 +48,7 @@ import {renderCalculationLearning,focusLearningTarget} from './calculation-learn
 import {QuickCostsController} from './quick-costs.js';
 import {FieldHelpController} from './field-help.js';
 import {MobileSettingsController} from './mobile-settings.js';
+import {inputReviews,renderInputReview,inputReviewElement} from './input-review.js';
 import { createProjectReport } from './project-report.js';
 import { renderKpis, renderOutputColumn } from './views-output.js';
 import { newSensitivityControls, projectSensitivity, renderSensitivityPanel, sensitivityOptions } from './sensitivity.js';
@@ -1334,6 +1335,7 @@ function renderApp(): void {
       ${renderQuickStart(state.project,workspaceNote)}
       ${renderFormsRow(state.project,workspaceMode==='beginner')}
       <div class="mobile-settings-entry"><button type="button" data-action="show-mobile-settings">高级设置 · 费用、汇率与税务 →</button></div>
+      ${renderInputReview(inputReviews(currentProject(),state.fxRows))}
       ${quickCosts.render(state.project,state.result)}
       ${renderWorkspaceSummary(workspace)}
       ${renderCalculationLearning(state.result,state.error)}
@@ -1448,7 +1450,7 @@ function bind(): void {
 
   const calculationInput = (target: HTMLInputElement): boolean => target.type!=='file' &&
     (target.dataset.quickCostField==='amount'||['path','itemField','fxField','hsField','contractField','logisticsField'].some(key=>target.dataset[key]!==undefined));
-  const commitsInput=(action:string):boolean=>['save','open','toggle-file-menu','show-field-help','show-quick-costs','show-cost-settings','show-full-results','show-calculation-learning','learning-target','show-mobile-settings','close-mobile-settings','locate-workspace-issue','locate-input'].includes(action)||action.startsWith('mode-');
+  const commitsInput=(action:string):boolean=>['save','open','toggle-file-menu','show-field-help','show-quick-costs','show-cost-settings','show-full-results','show-calculation-learning','learning-target','show-mobile-settings','close-mobile-settings','locate-workspace-issue','locate-input','locate-input-review'].includes(action)||action.startsWith('mode-');
   const flushInput=():void=>{
     const active=document.activeElement;
     if(active instanceof HTMLInputElement&&(pendingCalculation&&calculationInput(active)||editedControl===active))active.dispatchEvent(new Event('change',{bubbles:true}));
@@ -1660,11 +1662,17 @@ function bind(): void {
     if (!(target instanceof HTMLElement)) return;
     const action = target.dataset.action;
     if (action === undefined) return;
-    if(['show-mobile-settings','show-cost-settings','locate-workspace-issue','locate-input'].includes(action))mobileSettings.remember(target);
+    if(['show-mobile-settings','show-cost-settings','locate-workspace-issue','locate-input','locate-input-review'].includes(action))mobileSettings.remember(target);
     if(commitsInput(action))flushInput();
     if(pendingCalculation&&(action==='save'||action.startsWith('export-')||action==='preview-customer-quote'||action.startsWith('mode-')||action==='show-calculation-learning'||action==='learning-target'))return;
     if(!action.startsWith('pair-'))containerPair.cancelReads();
     switch (action) {
+      case 'locate-input-review': {
+        if(pendingCalculation)break;
+        const issue=inputReviews(currentProject(),state.fxRows).find(issue=>issue.key===target.dataset.reviewKey);
+        const element=issue?inputReviewElement(issue):null;
+        if(element){mobileSettings.route(element,target);revealWorkspaceElement(element);}break;
+      }
       case 'show-mobile-settings':
         if(!mobileSettings.open(target)){expandedEvidenceSections.add('advanced-settings');collapsedSections.delete('advanced-settings');render();focusInputSection('items');}break;
       case 'close-mobile-settings':
