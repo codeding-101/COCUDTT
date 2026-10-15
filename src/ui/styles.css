@@ -784,3 +784,24 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
 #field-help-dialog p { margin: 16px 0 0; font-size: 13px; line-height: 1.9; }
 #field-help-dialog button { height: 32px; flex-shrink: 0; }
 @media(max-width:700px){ .quick-cost-grid { grid-template-columns: minmax(0,1fr); gap: 12px; } #field-help-dialog { padding: 18px; } #field-help-dialog h2 { font-size: 16px; } }
+.calculation-learning .learning-scope {font-weight:650;color:#204d40;}
+.learning-steps {padding-left:22px;}
+.learning-steps li {padding:10px 0;border-bottom:1px solid var(--border);}
+.learning-steps p {margin:6px 0;overflow-wrap:anywhere;}
+.learning-equation,.learning-raw {font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}
+.learning-cost-list {display:grid;gap:10px;margin:14px 0;}
+.learning-cost {border:1px solid var(--border);border-radius:8px;overflow:hidden;min-width:0;}
+.learning-cost > summary {padding:12px;cursor:pointer;overflow-wrap:anywhere;}
+.learning-cost > summary small {display:inline;color:var(--muted);font-weight:400;}
+.learning-cost-body {padding:0 14px 14px;}
+.learning-cost-body dl {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+.learning-cost-body dt {font-size:12px;color:var(--muted);}
+.learning-cost-body dd {margin:5px 0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}
+.learning-fx {padding:8px 12px;border-left:3px solid #6e978b;background:#f5f8f6;font-size:12px;overflow-wrap:anywhere;}
+.learning-fx p {margin:5px 0;}
+.learning-destination {font-weight:600;}
+.learning-customs-component {padding:12px 0;border-bottom:1px solid var(--border);overflow-wrap:anywhere;}
+.learning-customs-component h3 {font-size:14px;}
+.workspace[data-calculation-pending="true"] .calculation-learning > .panel-body {display:none;}
+[data-visualization]:focus {outline:2px solid #527f70;outline-offset:3px;}
+@media(max-width:600px){.learning-cost-body dl {grid-template-columns:1fr;gap:4px;}.calculation-learning .panel-actions {align-items:stretch;}.calculation-learning .panel-actions button {white-space:normal;text-align:left;max-width:100%;}.learning-cost-body {padding:0 10px 12px;}}
