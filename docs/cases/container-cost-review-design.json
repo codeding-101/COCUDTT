@@ -1,0 +1,1110 @@
+{
+  "kind": "SYNTHETIC_DESIGN_ONLY",
+  "version": "0.1",
+  "note": "Literal expected results; synthetic arithmetic and bounded coverage only. No statutory rate or production rounding policy.",
+  "cases": [
+    {
+      "id": "precision-0",
+      "family": "PRECISION",
+      "input": {
+        "amount": "0"
+      },
+      "expected": {
+        "exact": "0",
+        "coreExact": true
+      }
+    },
+    {
+      "id": "precision-1.230000000",
+      "family": "PRECISION",
+      "input": {
+        "amount": "1.230000000"
+      },
+      "expected": {
+        "exact": "1.23",
+        "coreExact": true
+      }
+    },
+    {
+      "id": "precision-0.000001",
+      "family": "PRECISION",
+      "input": {
+        "amount": "0.000001"
+      },
+      "expected": {
+        "exact": "0.000001",
+        "coreExact": true
+      }
+    },
+    {
+      "id": "precision-0.0000005",
+      "family": "PRECISION",
+      "input": {
+        "amount": "0.0000005"
+      },
+      "expected": {
+        "exact": "0.0000005",
+        "coreExact": false
+      }
+    },
+    {
+      "id": "precision-0.000000000000000001",
+      "family": "PRECISION",
+      "input": {
+        "amount": "0.000000000000000001"
+      },
+      "expected": {
+        "exact": "0.000000000000000001",
+        "coreExact": false
+      }
+    },
+    {
+      "id": "precision-999999999999999999999999.000000",
+      "family": "PRECISION",
+      "input": {
+        "amount": "999999999999999999999999.000000"
+      },
+      "expected": {
+        "exact": "999999999999999999999999",
+        "coreExact": true
+      }
+    },
+    {
+      "id": "invalid-precision--1",
+      "family": "PRECISION",
+      "input": {
+        "amount": "-1"
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-precision-1e-7",
+      "family": "PRECISION",
+      "input": {
+        "amount": "1e-7"
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-precision-NaN",
+      "family": "PRECISION",
+      "input": {
+        "amount": "NaN"
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-precision-01.0",
+      "family": "PRECISION",
+      "input": {
+        "amount": "01.0"
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-precision-0.0000000000000000001",
+      "family": "PRECISION",
+      "input": {
+        "amount": "0.0000000000000000001"
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-precision-1",
+      "family": "PRECISION",
+      "input": {
+        "amount": 1
+      },
+      "reject": true
+    },
+    {
+      "id": "round-up",
+      "family": "ROUNDING",
+      "input": {
+        "amounts": [
+          "1.005"
+        ],
+        "quantum": "0.01",
+        "method": "HALF_UP",
+        "level": "TOTAL"
+      },
+      "expected": {
+        "original": "1.005",
+        "applied": "1.01",
+        "difference": "0.005"
+      }
+    },
+    {
+      "id": "round-even-down",
+      "family": "ROUNDING",
+      "input": {
+        "amounts": [
+          "1.005"
+        ],
+        "quantum": "0.01",
+        "method": "HALF_EVEN",
+        "level": "TOTAL"
+      },
+      "expected": {
+        "original": "1.005",
+        "applied": "1",
+        "difference": "-0.005"
+      }
+    },
+    {
+      "id": "round-even-up",
+      "family": "ROUNDING",
+      "input": {
+        "amounts": [
+          "1.015"
+        ],
+        "quantum": "0.01",
+        "method": "HALF_EVEN",
+        "level": "TOTAL"
+      },
+      "expected": {
+        "original": "1.015",
+        "applied": "1.02",
+        "difference": "0.005"
+      }
+    },
+    {
+      "id": "round-down",
+      "family": "ROUNDING",
+      "input": {
+        "amounts": [
+          "1.009"
+        ],
+        "quantum": "0.01",
+        "method": "DOWN",
+        "level": "TOTAL"
+      },
+      "expected": {
+        "original": "1.009",
+        "applied": "1",
+        "difference": "-0.009"
+      }
+    },
+    {
+      "id": "round-line",
+      "family": "ROUNDING",
+      "input": {
+        "amounts": [
+          "0.005",
+          "0.005"
+        ],
+        "quantum": "0.01",
+        "method": "HALF_UP",
+        "level": "LINE"
+      },
+      "expected": {
+        "original": "0.01",
+        "applied": "0.02",
+        "difference": "0.01"
+      }
+    },
+    {
+      "id": "round-total",
+      "family": "ROUNDING",
+      "input": {
+        "amounts": [
+          "0.005",
+          "0.005"
+        ],
+        "quantum": "0.01",
+        "method": "HALF_UP",
+        "level": "TOTAL"
+      },
+      "expected": {
+        "original": "0.01",
+        "applied": "0.01",
+        "difference": "0"
+      }
+    },
+    {
+      "id": "round-five-cent",
+      "family": "ROUNDING",
+      "input": {
+        "amounts": [
+          "1.03"
+        ],
+        "quantum": "0.05",
+        "method": "HALF_UP",
+        "level": "TOTAL"
+      },
+      "expected": {
+        "original": "1.03",
+        "applied": "1.05",
+        "difference": "0.02"
+      }
+    },
+    {
+      "id": "round-tiny",
+      "family": "ROUNDING",
+      "input": {
+        "amounts": [
+          "0.0000005"
+        ],
+        "quantum": "0.000001",
+        "method": "HALF_UP",
+        "level": "TOTAL"
+      },
+      "expected": {
+        "original": "0.0000005",
+        "applied": "0.000001",
+        "difference": "0.0000005"
+      }
+    },
+    {
+      "id": "invalid-round-zero",
+      "family": "ROUNDING",
+      "input": {
+        "amounts": [
+          "1"
+        ],
+        "quantum": "0",
+        "method": "HALF_UP",
+        "level": "TOTAL"
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-round-method",
+      "family": "ROUNDING",
+      "input": {
+        "amounts": [
+          "1"
+        ],
+        "quantum": "0.01",
+        "method": "AUTO",
+        "level": "TOTAL"
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-round-level",
+      "family": "ROUNDING",
+      "input": {
+        "amounts": [
+          "1"
+        ],
+        "quantum": "0.01",
+        "method": "HALF_UP",
+        "level": "BOX_DAY"
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-round-missing",
+      "family": "ROUNDING",
+      "input": {
+        "amounts": [
+          "1"
+        ],
+        "method": "HALF_UP",
+        "level": "TOTAL"
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-round-empty",
+      "family": "ROUNDING",
+      "input": {
+        "amounts": [],
+        "quantum": "0.01",
+        "method": "HALF_UP",
+        "level": "TOTAL"
+      },
+      "reject": true
+    },
+    {
+      "id": "coverage-same",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        },
+        "right": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        }
+      },
+      "expected": {
+        "leftCells": 3,
+        "rightCells": 3,
+        "sharedCells": 3
+      }
+    },
+    {
+      "id": "coverage-label",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        },
+        "right": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "OTHER",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        }
+      },
+      "expected": {
+        "leftCells": 3,
+        "rightCells": 3,
+        "sharedCells": 3
+      }
+    },
+    {
+      "id": "coverage-currency",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        },
+        "right": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "CNY",
+          "kind": "DEMURRAGE"
+        }
+      },
+      "expected": {
+        "leftCells": 3,
+        "rightCells": 3,
+        "sharedCells": 3
+      }
+    },
+    {
+      "id": "coverage-combined",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        },
+        "right": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "COMBINED"
+        }
+      },
+      "expected": {
+        "leftCells": 3,
+        "rightCells": 3,
+        "sharedCells": 3
+      }
+    },
+    {
+      "id": "coverage-different-box",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        },
+        "right": {
+          "boxes": [
+            "B"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        }
+      },
+      "expected": {
+        "leftCells": 3,
+        "rightCells": 3,
+        "sharedCells": 0
+      }
+    },
+    {
+      "id": "coverage-boundary-exclusive",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        },
+        "right": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-03",
+          "end": "2026-10-05",
+          "startIncluded": false,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        }
+      },
+      "expected": {
+        "leftCells": 3,
+        "rightCells": 2,
+        "sharedCells": 0
+      }
+    },
+    {
+      "id": "coverage-boundary-inclusive",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        },
+        "right": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-03",
+          "end": "2026-10-05",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        }
+      },
+      "expected": {
+        "leftCells": 3,
+        "rightCells": 3,
+        "sharedCells": 1
+      }
+    },
+    {
+      "id": "coverage-multi-box",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "A",
+            "B"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        },
+        "right": {
+          "boxes": [
+            "B",
+            "C"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-02",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        }
+      },
+      "expected": {
+        "leftCells": 6,
+        "rightCells": 4,
+        "sharedCells": 2
+      }
+    },
+    {
+      "id": "coverage-empty-selected",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-01",
+          "startIncluded": false,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        },
+        "right": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        }
+      },
+      "expected": {
+        "leftCells": 0,
+        "rightCells": 3,
+        "sharedCells": 0
+      }
+    },
+    {
+      "id": "invalid-coverage-invalid-date",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-02-30",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        },
+        "right": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-coverage-reverse",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-09-30",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        },
+        "right": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-coverage-duplicate-box",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "A",
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        },
+        "right": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-coverage-bound",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-12-01",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        },
+        "right": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-coverage-missing-endpoint",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        },
+        "right": {
+          "boxes": [
+            "A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "startIncluded": true,
+          "endIncluded": true,
+          "scope": "P1",
+          "currency": "USD",
+          "kind": "DEMURRAGE"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "channels-no-credit",
+      "family": "CHANNELS",
+      "input": {
+        "gross": "113",
+        "rate": "0.13",
+        "creditEvidence": false,
+        "customsAdjustment": "0"
+      },
+      "expected": {
+        "cash": "113",
+        "net": "100",
+        "tax": "13",
+        "expense": "113",
+        "customs": "0"
+      }
+    },
+    {
+      "id": "channels-credit-assumption",
+      "family": "CHANNELS",
+      "input": {
+        "gross": "113",
+        "rate": "0.13",
+        "creditEvidence": true,
+        "customsAdjustment": "0"
+      },
+      "expected": {
+        "cash": "113",
+        "net": "100",
+        "tax": "13",
+        "expense": "100",
+        "customs": "0"
+      }
+    },
+    {
+      "id": "channels-separate-customs",
+      "family": "CHANNELS",
+      "input": {
+        "gross": "113",
+        "rate": "0.13",
+        "creditEvidence": true,
+        "customsAdjustment": "40"
+      },
+      "expected": {
+        "cash": "113",
+        "net": "100",
+        "tax": "13",
+        "expense": "100",
+        "customs": "40"
+      }
+    },
+    {
+      "id": "channels-zero-rate",
+      "family": "CHANNELS",
+      "input": {
+        "gross": "99.5",
+        "rate": "0",
+        "creditEvidence": false,
+        "customsAdjustment": "99.5"
+      },
+      "expected": {
+        "cash": "99.5",
+        "net": "99.5",
+        "tax": "0",
+        "expense": "99.5",
+        "customs": "99.5"
+      }
+    },
+    {
+      "id": "channels-fraction",
+      "family": "CHANNELS",
+      "input": {
+        "gross": "1.13",
+        "rate": "0.13",
+        "creditEvidence": true,
+        "customsAdjustment": "1"
+      },
+      "expected": {
+        "cash": "1.13",
+        "net": "1",
+        "tax": "0.13",
+        "expense": "1",
+        "customs": "1"
+      }
+    },
+    {
+      "id": "invalid-channels-rate",
+      "family": "CHANNELS",
+      "input": {
+        "gross": "113",
+        "rate": "1",
+        "creditEvidence": false,
+        "customsAdjustment": "0"
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-channels-negative",
+      "family": "CHANNELS",
+      "input": {
+        "gross": "-113",
+        "rate": "0.13",
+        "creditEvidence": false,
+        "customsAdjustment": "0"
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-channels-credit",
+      "family": "CHANNELS",
+      "input": {
+        "gross": "113",
+        "rate": "0.13",
+        "creditEvidence": "yes",
+        "customsAdjustment": "0"
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-channels-missing-customs",
+      "family": "CHANNELS",
+      "input": {
+        "gross": "113",
+        "rate": "0.13",
+        "creditEvidence": false
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-channels-nonfinite-net",
+      "family": "CHANNELS",
+      "input": {
+        "gross": "1",
+        "rate": "0.13",
+        "creditEvidence": false,
+        "customsAdjustment": "0"
+      },
+      "reject": true
+    },
+    {
+      "id": "graph-root",
+      "family": "PARENT_GRAPH",
+      "input": {
+        "nodes": [
+          {
+            "id": "A",
+            "active": true,
+            "parent": null
+          }
+        ]
+      },
+      "expected": {
+        "roots": [
+          "A"
+        ]
+      }
+    },
+    {
+      "id": "graph-chain",
+      "family": "PARENT_GRAPH",
+      "input": {
+        "nodes": [
+          {
+            "id": "A",
+            "active": true,
+            "parent": null
+          },
+          {
+            "id": "B",
+            "active": true,
+            "parent": "A"
+          },
+          {
+            "id": "C",
+            "active": true,
+            "parent": "B"
+          }
+        ]
+      },
+      "expected": {
+        "roots": [
+          "A"
+        ]
+      }
+    },
+    {
+      "id": "graph-inactive-child",
+      "family": "PARENT_GRAPH",
+      "input": {
+        "nodes": [
+          {
+            "id": "A",
+            "active": true,
+            "parent": null
+          },
+          {
+            "id": "B",
+            "active": false,
+            "parent": "missing"
+          }
+        ]
+      },
+      "expected": {
+        "roots": [
+          "A"
+        ]
+      }
+    },
+    {
+      "id": "graph-two-roots",
+      "family": "PARENT_GRAPH",
+      "input": {
+        "nodes": [
+          {
+            "id": "B",
+            "active": true,
+            "parent": null
+          },
+          {
+            "id": "A",
+            "active": true,
+            "parent": null
+          }
+        ]
+      },
+      "expected": {
+        "roots": [
+          "A",
+          "B"
+        ]
+      }
+    },
+    {
+      "id": "invalid-graph-missing",
+      "family": "PARENT_GRAPH",
+      "input": {
+        "nodes": [
+          {
+            "id": "A",
+            "active": true,
+            "parent": "missing"
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-graph-self",
+      "family": "PARENT_GRAPH",
+      "input": {
+        "nodes": [
+          {
+            "id": "A",
+            "active": true,
+            "parent": "A"
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-graph-cycle",
+      "family": "PARENT_GRAPH",
+      "input": {
+        "nodes": [
+          {
+            "id": "A",
+            "active": true,
+            "parent": "B"
+          },
+          {
+            "id": "B",
+            "active": true,
+            "parent": "A"
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-graph-inactive",
+      "family": "PARENT_GRAPH",
+      "input": {
+        "nodes": [
+          {
+            "id": "A",
+            "active": true,
+            "parent": "B"
+          },
+          {
+            "id": "B",
+            "active": false,
+            "parent": null
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-graph-duplicate",
+      "family": "PARENT_GRAPH",
+      "input": {
+        "nodes": [
+          {
+            "id": "A",
+            "active": true,
+            "parent": null
+          },
+          {
+            "id": "A",
+            "active": true,
+            "parent": null
+          }
+        ]
+      },
+      "reject": true
+    }
+  ]
+}
