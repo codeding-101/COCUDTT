@@ -38,6 +38,8 @@ jobs:
         run: npm test
       - name: Check funding period design fixtures
         run: npm run check:funding-period-design
+      - name: Check container cost review design fixtures
+        run: npm run check:container-review-design
       - name: Audit UI bindings and engine codes
         run: npm run audit
       - name: Typecheck and build offline deliverable
