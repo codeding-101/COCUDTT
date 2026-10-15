@@ -8,7 +8,7 @@ import type {ProjectFile} from '../data/project-file.js';
 
 export const BILL_STORAGE_KEY='trade-cost-engine:container-bill-v1';
 export const BILL_ROW_FIELDS=['scope_id','direction','equipment_type','container_ids','currency','reference','charge_kind','mode','rate','period.start_date','period.end_date','period.start_event','period.end_event','period.start_included','period.end_included','daily.free_day_basis','daily.charge_day_basis','daily.free_days','daily.tier_mode','daily.tier_basis','tier.through_day','tier.rate','source.reference','source.valid_from','source.valid_to','source.checked_on','source.status','cost_reference.cost_id','cost_reference.note','cost_source.reference','cost_source.valid_from','cost_source.valid_to','cost_source.checked_on'] as const;
-interface BillUiEnvironment {project:()=>ProjectFile;render:()=>void;write:(name:string,text:string,mime:string)=>Promise<'SAVED'|'DOWNLOAD_STARTED'>;blocked:()=>boolean}
+interface BillUiEnvironment {project:()=>ProjectFile;render:()=>void;write:(name:string,text:string,mime:string)=>Promise<'SAVED'|'DOWNLOAD_STARTED'>;blocked:()=>boolean;onChange?:()=>void}
 /** Independent state and read epochs; project/customer payloads never receive this draft. */
 export class ContainerBillController {
  draft:ContainerBillDraft|null=null;busy=false;message='尚未打开独立账单；新建不会预填业务条件。';
@@ -20,10 +20,16 @@ export class ContainerBillController {
  }
  cancelReads():void {this.epoch++;if(this.message.startsWith('正在本机读取'))this.message='读取已取消，当前输入保留。';}
  private changed(draft:ContainerBillDraft|null,message='账单已修改；来源及费用引用须核对，项目费用未改变。',notify=true):void {
+  this.env.onChange?.();
   this.epoch++;this.draft=draft?invalidateContainerBillConfirmations(draft,this.env.project()):null;
   this.message=message;
   try{if(this.draft)localStorage.setItem(BILL_STORAGE_KEY,serializeContainerBillDraft(this.draft));else localStorage.setItem(BILL_STORAGE_KEY,'null');}catch{this.message+=' 自动草稿保存失败，请另存文件。';}
   if(notify)this.env.render();
+ }
+ /** Caller validates and serializes both pair halves before installing either. */
+ installPrepared(draft:ContainerBillDraft,text:string):void {
+  this.epoch++;this.draft=draft;this.message='已从完整配对资料安装账单；原来源及待办保留。';
+  try{localStorage.setItem(BILL_STORAGE_KEY,text);}catch{this.message+=' 自动草稿保存失败，请另存完整配对文件。';}
  }
  projectChanged():void {
   this.cancelReads();if(this.draft)this.changed(this.draft,'当前项目已变更，账单输入保留；绑定和已有费用引用须重新核对。',false);
@@ -89,6 +95,7 @@ export class ContainerBillController {
   }catch{this.message='操作未完成：请核对条件、来源日期/状态、绑定及费用引用待办；原输入保留。';this.env.render();}
  }
  async open(file:{text:()=>Promise<string>;size?:number}):Promise<void> {
+  this.env.onChange?.();
   const epoch=++this.epoch;this.message='正在本机读取账单；读取期间修改会取消此次载入。';this.env.render();
   try{if((file.size??0)>CONTAINER_BILL_FILE_BYTES)throw Error('size');const text=await file.text();if(epoch!==this.epoch||this.env.blocked())return;const parsed=parseContainerBillDraft(text);this.changed(parsed,'已打开独立账单；保留来源记录，当前绑定及失效确认已重新核对。');}
   catch{if(epoch!==this.epoch||this.env.blocked())return;this.message='账单读取失败或版本/结构/大小不支持；当前输入保留，原文件请另行核对。';this.env.render();}

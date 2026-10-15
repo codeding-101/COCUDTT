@@ -626,3 +626,6 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
 .bill-fields input, .bill-fields select, .bill-fields textarea { width: 100%; min-width: 0; box-sizing: border-box; }
 .bill-fields textarea { min-height: 65px; font: inherit; resize: vertical; }
 .container-bill-panel button { max-width: 100%; height: auto; min-height: 28px; white-space: normal; overflow-wrap: anywhere; }
+.container-cost-pair-panel { min-width: 0; }
+.container-cost-pair-panel p, .container-cost-pair-panel td, .container-cost-pair-panel th { overflow-wrap: anywhere; }
+.container-cost-pair-panel button { max-width: 100%; height: auto; min-height: 28px; white-space: normal; overflow-wrap: anywhere; }
