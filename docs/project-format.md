@@ -107,3 +107,8 @@ INTERNAL_CONTAINER_COST_EDITOR 0.1仅是浏览器未提交表单：绑定pair_id
 ## 第四十一轮：核对格式仍为提案
 
 拟议配对1.1/review_plan 0.1尚未启用，不增加活动字段或Schema。当前配对1.0继续严格拒绝未知活动字段及未来版本；项目0.8/0.9旧同名扩展不激活。未来升级须拒绝覆盖同名扩展，已知核对语义随业务复制清除；下一轮先交付不入文件的只读模块。见[设计](container-cost-review-design.md)。
+
+
+## 第四十二轮：只读核对输出0.1
+
+READ_ONLY_BOUNDARIES 0.1仅为独立函数的内部结果，绑定完整配对内容键/修订/术语及映射；不是review_plan文件、可导入项目或配对的容器。不启用配对1.1或修改五份Schema，旧同名扩展不激活。人工解释/确认的持久化及复制清除待新版本同轮验收；见[模块验收](container-cost-review-module-validation.md)。
