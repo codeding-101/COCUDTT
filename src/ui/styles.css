@@ -806,6 +806,14 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
 [data-visualization]:focus {outline:2px solid #527f70;outline-offset:3px;}
 @media(max-width:600px){.learning-cost-body dl {grid-template-columns:1fr;gap:4px;}.calculation-learning .panel-actions {align-items:stretch;}.calculation-learning .panel-actions button {white-space:normal;text-align:left;max-width:100%;}.learning-cost-body {padding:0 10px 12px;}}
 .mobile-settings-entry {display:none;}
+.input-review > summary {gap:12px;flex-wrap:wrap;}
+.input-review-list {list-style:none;margin:12px 0;padding:0;}
+.input-review-list li {padding:12px 0;border-top:1px solid var(--border);overflow-wrap:anywhere;}
+.input-review-list p {margin:6px 0;}
+.input-review-raw {font-family:var(--font-mono,monospace);font-size:12px;color:var(--muted);}
+.input-review-list button {height:auto;min-height:36px;white-space:normal;max-width:100%;text-align:left;}
+.workspace[data-calculation-pending="true"] .input-review > .panel-body,
+.workspace[data-calculation-pending="true"] .input-review-count {display:none;}
 #mobile-settings-dialog {padding:0;width:100%;max-width:none;height:100dvh;max-height:none;margin:0;border:0;border-radius:0;background:#f5f7f5;color:var(--text);}
 #mobile-settings-dialog[open] {display:flex;flex-direction:column;}
 .mobile-settings-header {flex:none;display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 12px;padding:12px;background:#fff;border-bottom:1px solid var(--border);}
