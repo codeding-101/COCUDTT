@@ -8,6 +8,7 @@ try {
  const {transportProjectSchema}=await server.ssrLoadModule('/src/data/transport-project-schema.ts');
  const {containerBillDraftSchema}=await server.ssrLoadModule('/src/data/container-bill-file.ts');
  const {containerCostPairSchema}=await server.ssrLoadModule('/src/data/container-cost-pair.ts');
+ const {containerCostReviewPlanSchema}=await server.ssrLoadModule('/src/data/container-cost-review-plan.ts');
  const {CONTAINER_BILL_TEMPLATES,containerBillTemplateText}=await server.ssrLoadModule('/src/data/container-bill-templates.ts');
  writeFileSync(join(root,'schemas/project-0.9.schema.json'),json(transportProjectSchema()));
  const {PROJECT_TEMPLATES,projectTemplateText,projectTemplateCatalog}=await server.ssrLoadModule('/src/data/project-templates.ts');
@@ -20,6 +21,8 @@ try {
  mkdirSync(join(root,'schemas'),{recursive:true});mkdirSync(join(root,'templates'),{recursive:true});
  writeFileSync(join(root,'schemas/container-bill-1.0.schema.json'),json(containerBillDraftSchema()));
  writeFileSync(join(root,'schemas/container-cost-pair-1.0.schema.json'),json(containerCostPairSchema()));
+ writeFileSync(join(root,'schemas/container-cost-review-plan-0.1.schema.json'),json(containerCostReviewPlanSchema()));
+ console.log('Generated 1 independent container cost review plan schema');
  console.log('Generated 1 independent container cost pair schema');
  for(const id of CONTAINER_BILL_TEMPLATES)writeFileSync(join(root,'templates',id+'.json'),containerBillTemplateText(id));
  console.log('Generated 1 independent container bill schema and 2 draft templates from source');

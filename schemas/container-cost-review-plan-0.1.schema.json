@@ -1,0 +1,701 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:cocudtt:internal-container-cost-review-plan:0.1",
+  "title": "COCUDTT internal review records 0.1",
+  "description": "Internal assumptions only. Full snapshot, canonical order, duplicate facets, target eligibility and source confirmation require runtime checks. No fees applied.",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "const": "INTERNAL_CONTAINER_COST_REVIEW_PLAN"
+    },
+    "version": {
+      "const": "0.1"
+    },
+    "plan_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "\\S",
+      "not": {
+        "enum": [
+          "__proto__",
+          "constructor",
+          "prototype"
+        ]
+      }
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000000
+    },
+    "basis": {
+      "type": "object",
+      "properties": {
+        "pair_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "\\S",
+          "not": {
+            "enum": [
+              "__proto__",
+              "constructor",
+              "prototype"
+            ]
+          }
+        },
+        "pair_revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000000
+        },
+        "pair_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10485760
+        },
+        "term": {
+          "enum": [
+            "EXW",
+            "FCA",
+            "FAS",
+            "FOB",
+            "CFR",
+            "CIF",
+            "CPT",
+            "CIP",
+            "DAP",
+            "DPU",
+            "DDP"
+          ]
+        },
+        "review_date": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        }
+      },
+      "required": [
+        "pair_id",
+        "pair_revision",
+        "pair_key",
+        "term",
+        "review_date"
+      ],
+      "additionalProperties": false
+    },
+    "records": {
+      "type": "array",
+      "maxItems": 2000,
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "record_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "pattern": "\\S",
+                "not": {
+                  "enum": [
+                    "__proto__",
+                    "constructor",
+                    "prototype"
+                  ]
+                }
+              },
+              "explanation": {
+                "type": "string",
+                "maxLength": 4000,
+                "pattern": "\\S"
+              },
+              "evidence": {
+                "type": "object",
+                "properties": {
+                  "reference": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "valid_from": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "valid_to": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "checked_on": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "status": {
+                    "enum": [
+                      "EXAMPLE",
+                      "UNVERIFIED",
+                      "USER_CONFIRMED"
+                    ]
+                  },
+                  "values_key": {
+                    "type": "string",
+                    "maxLength": 1048576
+                  }
+                },
+                "required": [
+                  "reference",
+                  "valid_from",
+                  "valid_to",
+                  "checked_on",
+                  "status"
+                ],
+                "additionalProperties": false
+              },
+              "decision": {
+                "enum": [
+                  "QUOTE_INCLUDED",
+                  "KEEP_RECORDED_AMOUNT"
+                ]
+              },
+              "target": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "ROW"
+                  },
+                  "mapping_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "pattern": "\\S",
+                    "not": {
+                      "enum": [
+                        "__proto__",
+                        "constructor",
+                        "prototype"
+                      ]
+                    }
+                  },
+                  "line_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "pattern": "\\S",
+                    "not": {
+                      "enum": [
+                        "__proto__",
+                        "constructor",
+                        "prototype"
+                      ]
+                    }
+                  },
+                  "cost_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "pattern": "\\S",
+                    "not": {
+                      "enum": [
+                        "__proto__",
+                        "constructor",
+                        "prototype"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "kind",
+                  "mapping_id",
+                  "line_id",
+                  "cost_id"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "record_id",
+              "explanation",
+              "evidence",
+              "decision",
+              "target"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "record_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "pattern": "\\S",
+                "not": {
+                  "enum": [
+                    "__proto__",
+                    "constructor",
+                    "prototype"
+                  ]
+                }
+              },
+              "explanation": {
+                "type": "string",
+                "maxLength": 4000,
+                "pattern": "\\S"
+              },
+              "evidence": {
+                "type": "object",
+                "properties": {
+                  "reference": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "valid_from": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "valid_to": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "checked_on": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "status": {
+                    "enum": [
+                      "EXAMPLE",
+                      "UNVERIFIED",
+                      "USER_CONFIRMED"
+                    ]
+                  },
+                  "values_key": {
+                    "type": "string",
+                    "maxLength": 1048576
+                  }
+                },
+                "required": [
+                  "reference",
+                  "valid_from",
+                  "valid_to",
+                  "checked_on",
+                  "status"
+                ],
+                "additionalProperties": false
+              },
+              "decision": {
+                "const": "FULL_PARENT_INCLUSION"
+              },
+              "target": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "PARENT"
+                  },
+                  "mapping_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "pattern": "\\S",
+                    "not": {
+                      "enum": [
+                        "__proto__",
+                        "constructor",
+                        "prototype"
+                      ]
+                    }
+                  },
+                  "line_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "pattern": "\\S",
+                    "not": {
+                      "enum": [
+                        "__proto__",
+                        "constructor",
+                        "prototype"
+                      ]
+                    }
+                  },
+                  "cost_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "pattern": "\\S",
+                    "not": {
+                      "enum": [
+                        "__proto__",
+                        "constructor",
+                        "prototype"
+                      ]
+                    }
+                  },
+                  "parent_cost_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "pattern": "\\S",
+                    "not": {
+                      "enum": [
+                        "__proto__",
+                        "constructor",
+                        "prototype"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "kind",
+                  "mapping_id",
+                  "line_id",
+                  "cost_id",
+                  "parent_cost_id"
+                ],
+                "additionalProperties": false
+              },
+              "coverage": {
+                "const": "FULL"
+              }
+            },
+            "required": [
+              "record_id",
+              "explanation",
+              "evidence",
+              "decision",
+              "target",
+              "coverage"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "record_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "pattern": "\\S",
+                "not": {
+                  "enum": [
+                    "__proto__",
+                    "constructor",
+                    "prototype"
+                  ]
+                }
+              },
+              "explanation": {
+                "type": "string",
+                "maxLength": 4000,
+                "pattern": "\\S"
+              },
+              "evidence": {
+                "type": "object",
+                "properties": {
+                  "reference": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "valid_from": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "valid_to": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "checked_on": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "status": {
+                    "enum": [
+                      "EXAMPLE",
+                      "UNVERIFIED",
+                      "USER_CONFIRMED"
+                    ]
+                  },
+                  "values_key": {
+                    "type": "string",
+                    "maxLength": 1048576
+                  }
+                },
+                "required": [
+                  "reference",
+                  "valid_from",
+                  "valid_to",
+                  "checked_on",
+                  "status"
+                ],
+                "additionalProperties": false
+              },
+              "decision": {
+                "const": "DIFFERENT_CHARGE_CONTENT"
+              },
+              "target": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "const": "BILL_PAIR"
+                      },
+                      "line_ids": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "uniqueItems": true,
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200,
+                          "pattern": "\\S",
+                          "not": {
+                            "enum": [
+                              "__proto__",
+                              "constructor",
+                              "prototype"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "line_ids"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "const": "EXISTING_COST"
+                      },
+                      "mapping_id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200,
+                        "pattern": "\\S",
+                        "not": {
+                          "enum": [
+                            "__proto__",
+                            "constructor",
+                            "prototype"
+                          ]
+                        }
+                      },
+                      "line_id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200,
+                        "pattern": "\\S",
+                        "not": {
+                          "enum": [
+                            "__proto__",
+                            "constructor",
+                            "prototype"
+                          ]
+                        }
+                      },
+                      "cost_id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200,
+                        "pattern": "\\S",
+                        "not": {
+                          "enum": [
+                            "__proto__",
+                            "constructor",
+                            "prototype"
+                          ]
+                        }
+                      },
+                      "target_cost_id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200,
+                        "pattern": "\\S",
+                        "not": {
+                          "enum": [
+                            "__proto__",
+                            "constructor",
+                            "prototype"
+                          ]
+                        }
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "mapping_id",
+                      "line_id",
+                      "cost_id",
+                      "target_cost_id"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "left_description": {
+                "type": "string",
+                "maxLength": 4000,
+                "pattern": "\\S"
+              },
+              "right_description": {
+                "type": "string",
+                "maxLength": 4000,
+                "pattern": "\\S"
+              }
+            },
+            "required": [
+              "record_id",
+              "explanation",
+              "evidence",
+              "decision",
+              "target",
+              "left_description",
+              "right_description"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "record_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "pattern": "\\S",
+                "not": {
+                  "enum": [
+                    "__proto__",
+                    "constructor",
+                    "prototype"
+                  ]
+                }
+              },
+              "explanation": {
+                "type": "string",
+                "maxLength": 4000,
+                "pattern": "\\S"
+              },
+              "evidence": {
+                "type": "object",
+                "properties": {
+                  "reference": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "valid_from": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "valid_to": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "checked_on": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "status": {
+                    "enum": [
+                      "EXAMPLE",
+                      "UNVERIFIED",
+                      "USER_CONFIRMED"
+                    ]
+                  },
+                  "values_key": {
+                    "type": "string",
+                    "maxLength": 1048576
+                  }
+                },
+                "required": [
+                  "reference",
+                  "valid_from",
+                  "valid_to",
+                  "checked_on",
+                  "status"
+                ],
+                "additionalProperties": false
+              },
+              "decision": {
+                "const": "DISJOINT_COVERAGE"
+              },
+              "target": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "BILL_PAIR"
+                  },
+                  "line_ids": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200,
+                      "pattern": "\\S",
+                      "not": {
+                        "enum": [
+                          "__proto__",
+                          "constructor",
+                          "prototype"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "kind",
+                  "line_ids"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "record_id",
+              "explanation",
+              "evidence",
+              "decision",
+              "target"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "retired_record_ids": {
+      "type": "array",
+      "maxItems": 2000,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200,
+        "pattern": "\\S",
+        "not": {
+          "enum": [
+            "__proto__",
+            "constructor",
+            "prototype"
+          ]
+        }
+      }
+    },
+    "content_key": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "version",
+    "plan_id",
+    "revision",
+    "basis",
+    "records",
+    "retired_record_ids",
+    "content_key"
+  ],
+  "additionalProperties": false
+}
