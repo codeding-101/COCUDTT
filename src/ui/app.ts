@@ -69,6 +69,7 @@ import { renderFundingExamplePanel, fundingExampleResource } from './funding-exa
 import {ContainerBillController,BILL_STORAGE_KEY} from './container-bill-controller.js';
 import {renderContainerBillPanel} from './container-bill.js';
 import {ContainerCostPairController,PAIR_STORAGE_KEY} from './container-cost-pair-controller.js';
+import {REVIEW_EDITOR_STORAGE_KEY} from '../data/container-review-editor.js';
 import {COST_EDITOR_STORAGE_KEY} from '../data/container-cost-editor.js';
 import {renderContainerCostPairPanel} from './container-cost-pair.js';
 import type {ContainerCostPair} from '../domain/container-cost-pair.js';
@@ -246,10 +247,12 @@ function backupRecovery(): void {
   let billDraftText:string|null=null;
   let pairDraftText:string|null=null;
   let editorDraftText:string|null=null;
+  let reviewDraftText:string|null=null;
   try { draft = localStorage.getItem(DRAFT_KEY); } catch { /* Memory backup remains available. */ }
   try{billDraftText=localStorage.getItem(BILL_STORAGE_KEY);}catch{/* Raw memory bill remains available. */}
   try{pairDraftText=localStorage.getItem(PAIR_STORAGE_KEY);}catch{/* Raw pair remains in memory. */}
   try{editorDraftText=localStorage.getItem(COST_EDITOR_STORAGE_KEY);}catch{/* Raw editor remains in memory. */}
+  try{reviewDraftText=localStorage.getItem(REVIEW_EDITOR_STORAGE_KEY);}catch{/* Raw review editor remains in memory. */}
   try {
     // Raw inputs, including uncommitted FX rows, without running any calculation/validator.
     const text = JSON.stringify({kind:'INTERNAL_RECOVERY_SNAPSHOT',version:'1.0',stage:recoveryStage,
@@ -257,6 +260,8 @@ function backupRecovery(): void {
       settlement_plan:settlementPlan,sensitivity:sensitivityControls,customer_fields:customerFields,
       browser_draft_text:draft,container_bill:containerBill.draft,container_bill_draft_text:billDraftText,container_cost_pair:containerPair.pair,container_cost_pair_draft_text:pairDraftText,
       ...(containerPair.editor?{container_cost_editor:containerPair.editor}:{}),
+      ...(containerPair.reviewEditor?{container_review_editor:containerPair.reviewEditor}:{}),
+      ...(reviewDraftText&&reviewDraftText!=='null'?{container_review_editor_draft_text:reviewDraftText}:{}),
       ...(containerPair.copyCandidate?{container_business_copy:containerPair.copyCandidate.pair}:{}),
       ...(editorDraftText&&editorDraftText!=='null'?{container_cost_editor_draft_text:editorDraftText}:{})},null,2) + '\n';
     downloadText('internal-recovery-snapshot.json',text);
@@ -450,6 +455,7 @@ function focusKeyOf(element: Element): string | null {
   const dataset = (element as HTMLElement).dataset;
   if(dataset.pairEditorField!==undefined)return `pair-editor:${dataset.pairEditorField}`;
   if(dataset.pairCopyField!==undefined)return `pair-copy:${dataset.pairCopyField}`;
+  if(dataset.pairReviewField!==undefined)return `pair-review:${dataset.pairReviewField}`;
   if(dataset.billField!==undefined)return `bill:${dataset.billRow??''}:${dataset.billTier??''}:${dataset.billField}`;
   if (dataset.sensitivityField !== undefined) return `sensitivity:${dataset.sensitivityField}`;
   if (dataset.customerField !== undefined) return `customer:${dataset.customerField}`;
@@ -470,7 +476,7 @@ function focusKeyOf(element: Element): string | null {
 
 function restoreFocus(key: string | null): void {
   if (key === null) return;
-  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner],[data-contract-cost],[data-logistics-kind],[data-sensitivity-field],[data-customer-field],[data-bill-field],[data-pair-editor-field],[data-pair-copy-field]')).find(
+  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner],[data-contract-cost],[data-logistics-kind],[data-sensitivity-field],[data-customer-field],[data-bill-field],[data-pair-editor-field],[data-pair-copy-field],[data-pair-review-field]')).find(
     (candidate) => focusKeyOf(candidate) === key,
   );
   element?.focus();
@@ -1090,7 +1096,7 @@ async function exportProjectResource(templateId?:string,schemaKind?:string,examp
 async function exportReport(): Promise<void> {
   try {
     const project = currentProject();
-    const html = createProjectReport(project, undefined, sensitivityControls.enabled ? sensitivityControls : undefined, settlementPlan ?? undefined,containerBill.draft??undefined);
+    const html = createProjectReport(project, undefined, sensitivityControls.enabled ? sensitivityControls : undefined, settlementPlan ?? undefined,containerBill.draft??undefined,containerPair.pair??undefined);
     const name = safeFileName(`${project.name || 'trade-cost'}-内部测算报告`, 'html');
     const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
     if (picker !== undefined) {
@@ -1119,7 +1125,7 @@ async function exportWorkbook(customer: boolean): Promise<void> {
     if (customer && !customerReviewed) throw new Error('请先检查客户预览中的公开内容');
     const project = currentProject();
     const quote = customer ? projectCustomerQuote(project, customerFields) : null;
-    const bytes = quote ? createCustomerWorkbook(quote) : createInternalWorkbook(project, undefined, sensitivityControls.enabled ? sensitivityControls : undefined, settlementPlan ?? undefined,containerBill.draft??undefined);
+    const bytes = quote ? createCustomerWorkbook(quote) : createInternalWorkbook(project, undefined, sensitivityControls.enabled ? sensitivityControls : undefined, settlementPlan ?? undefined,containerBill.draft??undefined,containerPair.pair??undefined);
     const name = quote ? customerQuoteFileName(quote).replace(/\.html$/, '.xlsx') : safeFileName(`${project.name || 'trade-cost'}-内部成本`, 'xlsx');
     const blob = new Blob([bytes], { type: XLSX_MIME });
     const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
@@ -1426,6 +1432,7 @@ function bind(): void {
     if(target instanceof HTMLInputElement&&target.id==='pair-file-input'){const file=target.files?.[0];if(file)void containerPair.open(file);return;}
     containerPair.cancelReads();
     if(target instanceof HTMLInputElement&&target.dataset.pairCopyField!==undefined){containerPair.editCopy(target.dataset,target.value,target.checked);return;}
+    if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement||target instanceof HTMLTextAreaElement)&&target.dataset.pairReviewField!==undefined){containerPair.editReview(target.dataset,target.value);return;}
     if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement||target instanceof HTMLTextAreaElement)&&target.dataset.pairEditorField!==undefined){containerPair.edit(target.dataset,target.value);return;}
     if(target instanceof HTMLInputElement&&target.id==='bill-file-input'){
      const file=target.files?.[0];if(file)void containerBill.open(file);return;
@@ -1570,6 +1577,16 @@ function bind(): void {
     if (action === undefined) return;
     if(!action.startsWith('pair-'))containerPair.cancelReads();
     switch (action) {
+      case 'pair-review-example':
+      case 'pair-review-enable':
+      case 'pair-review-start':
+      case 'pair-review-edit':
+      case 'pair-review-submit':
+      case 'pair-review-discard':
+      case 'pair-review-confirm':
+      case 'pair-review-remove':
+      case 'pair-review-next':
+      case 'pair-review-prev':
       case 'pair-copy-prepare':
       case 'pair-copy-save':
       case 'pair-copy-discard':

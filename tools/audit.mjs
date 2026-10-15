@@ -69,6 +69,9 @@ const billUi=read(join(root,'src/ui/container-bill.ts')),billController=read(joi
 for(const action of matchAll(billUi,/(?:button|scope)\('([a-z-]+)'/g))renderedActions.add(action);
 const pairUi=read(join(root,'src/ui/container-cost-pair.ts'));
 for(const action of matchAll(pairUi,/\bb\('([a-z-]+)'/g))renderedActions.add(action);
+const reviewUi=read(join(root,'src/ui/container-review.ts')),reviewModel=read(join(root,'src/data/container-review-editor.ts'));
+for(const action of matchAll(reviewUi,/\bbutton\('([a-z-]+)'/g))renderedActions.add(action);
+for(const field of matchAll(reviewUi,/(?:field|data-pair-review-field=)\(?["']([a-z_]+)["']/g))if(!reviewModel.includes(`'${field}'`)||!appTs.includes('target.dataset.pairReviewField!==undefined'))problems.push(`[核对记录字段未处理] ${field}`);
 const editorModel=read(join(root,'src/data/container-cost-editor.ts'));
 const pairController=read(join(root,'src/ui/container-cost-pair-controller.ts'));
 for(const field of matchAll(pairUi,/data-pair-copy-field="([a-z_]+)"/g))if(!pairController.includes(`field!=='${field}'`)||!appTs.includes('target.dataset.pairCopyField!==undefined'))problems.push(`[业务复制字段未处理] ${field}`);

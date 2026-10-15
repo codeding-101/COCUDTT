@@ -8,11 +8,11 @@
 
 ## 版本与入口
 
-更新于 **2026-10-15**。本 README 介绍已验收并整合至 `main` 的开发功能。公开网站仍为此前发布版本；下载源码与离线工具时请使用 main。
+更新于 **2026-10-15**。本 README 介绍已验收并整合至 `main` 的开发功能。公开网站已同步本轮集成体验版；源码、离线工具与验证记录见 main。
 
 | 入口 | 内容与状态 |
 |---|---|
-| [在线演示](https://codeding-101.github.io/COCUDTT/) | 当前已发布版本，尚未包含下方全部新增能力 |
+| [在线演示](https://codeding-101.github.io/COCUDTT/) | 本轮集成体验版，可直接打开合成核对示例 |
 | [`main` 分支](https://github.com/codeding-101/COCUDTT/tree/main) | 当前验收源码、离线工具、文档与测试 |
 | [运输关联集成 PR #29](https://github.com/codeding-101/COCUDTT/pull/29) | 已合并main；贯通0.9、界面、文件与内部审计 |
 | [项目说明页源码](https://github.com/codeding-101/COCUDTT/blob/main/project-introduction.html) | 产品工作流、设计取舍与能力边界，可与工具一起离线打开 |
@@ -41,8 +41,8 @@
 | 集装箱账单 | 独立面板录入箱组/日历日/免费期/阶梯、来源核对及已有费用只读引用；逐日/逐阶审计，联合/分开候选保留 |
 | 配对交接与提案编辑 | 项目/账单完整打开/另存、实时失配、独立快照恢复；明确编辑新建提案、来源确认与失效，不写成本 |
 | 新业务副本 | 明确接受复制范围，生成并另存独立配对；重建资料/提案/映射身份、撤销已知确认，旧输入待复核，原业务保留 |
-| 只读费用核对模块 | 独立API核对完整配对、跨标签箱日覆盖、父项及税务/精度待办；尚未接入界面，不应用费用 |
-| 独立核对记录层 | API保存五类来源假设、编辑/业务变更失效及明确重绑；未接入页面/恢复，不清除原待办 |
+| 费用边界核对 | 页面展示原币金额、跨标签箱日覆盖和税务/精度待办；原提案与费用保持 |
+| 核对记录与交接 | 明确启用配对1.1、五类受限假设、来源确认/失效、编辑草稿/恢复、内部导出及合成体验入口；不清除原待办 |
 | 集装箱账单文件层 | 独立草稿JSON 1.0打开/另存、Schema/两模板下载、独立自动草稿和恢复备份；内部HTML/Excel记录快照，不自动纳入费用 |
 | 中国进口 | 独立申报日期、人民币计税、海关汇率适用期、支持范围内的税基和税款舍入；资格及来源待核对 |
 | 解释与可视化 | 费用推理链、真实替值公式、去重依据、运输风险流程及费用/税基图 |
@@ -60,7 +60,7 @@
 第三十六轮新增只读费用提案 API：人工选择已有或新建费用，核对来源、原币与明确承担/海关处理；超过核心6位小数精度的金额阻断，保留原18位账单文本。包含关系、联合/分开候选及失效提案不能忽略；该轮提案无写入入口且未接入界面，不提升推荐。工具新建账单/行使用随机UUID，删除再添加不复用编号。完整58文件1810项、24套浏览器流程及账单32项检查通过，详见[提案设计](https://github.com/codeding-101/COCUDTT/blob/main/docs/container-cost-proposal-design.md)和[验收记录](https://github.com/codeding-101/COCUDTT/blob/main/docs/container-cost-proposal-validation.md)。
 
 
-第三十七轮独立配对文件层已完成：一份内部JSON保存项目0.8/0.9、账单1.0和提案选择，映射0.1保留稳定编号/修订/删除记录；旧快照更新、不同资料拼接和已删除新建目标编号复用均拒绝。新增65项、完整59文件1875项通过，见[配对设计](https://github.com/codeding-101/COCUDTT/blob/main/docs/container-cost-pair-design.md)、[验收](https://github.com/codeding-101/COCUDTT/blob/main/docs/container-cost-pair-validation.md)及[独立Schema](https://github.com/codeding-101/COCUDTT/blob/main/schemas/container-cost-pair-1.0.schema.json)。该轮仅独立API，入口及费用状态见下方第三十八轮；当时离线工具字节保持。
+第三十七轮独立配对文件层已完成：一份内部JSON保存项目0.8/0.9、账单1.0和提案选择，映射0.1保留稳定编号/修订/删除记录；旧快照更新、不同资料拼接和已删除新建目标编号复用均拒绝。新增66项、完整59文件1875项通过，见[配对设计](https://github.com/codeding-101/COCUDTT/blob/main/docs/container-cost-pair-design.md)、[验收](https://github.com/codeding-101/COCUDTT/blob/main/docs/container-cost-pair-validation.md)及[独立Schema](https://github.com/codeding-101/COCUDTT/blob/main/schemas/container-cost-pair-1.0.schema.json)。该轮仅独立API，入口及费用状态见下方第三十八轮；当时离线工具字节保持。
 
 
 第三十八轮已接入配对交接面板：打开完整项目/账单、捕获当前修订、明确加入/移除已有引用、实时失配和另存JSON；取消/失败/迟到读取保留资料，独立快照恢复及原始异常备份贯通。配对打开在未修改汇率行时保持原簿名/编号/扩展；不完整/重复编辑行阻断交接，避免遗漏或覆盖。新增33项、完整60文件1908项、25套浏览器回归及新31项检查通过，见[界面设计](https://github.com/codeding-101/COCUDTT/blob/main/docs/container-cost-pair-ui-design.md)和[验收](https://github.com/codeding-101/COCUDTT/blob/main/docs/container-cost-pair-ui-validation.md)。该轮未编辑新建提案，实际费用仍未应用。
@@ -78,6 +78,8 @@
 **第四十二轮已完成独立只读核对模块：**完整配对/术语/映射绑定并重算验证结果；保留原提案和原候选，补充跨标签/币种箱日覆盖、免费期交集、已有费用范围不足、父项及含税/精度待办。新增84项，完整64文件2163项、27套浏览器流程通过，详见[模块验收与API](https://github.com/codeding-101/COCUDTT/blob/main/docs/container-cost-review-module-validation.md)。**尚未接入运行工具、保存人工核对记录或应用费用；经济成本与海关加计额未知为null，不默认零或自动拆税。**下一阶段贯通新核对记录、版本和界面。
 
 **第四十三轮已完成独立核对记录层：**报价包含、父项全额包含、不同收费内容、覆盖范围不交及保持录入金额五类假设可通过API严格读写JSON。编辑只撤销本条确认；业务快照变更使整份待复核，显式重绑保留原文和失效目标，新业务不能沿用旧确认。新增90项，完整65文件2253项通过，见[格式/API与验收](https://github.com/codeding-101/COCUDTT/blob/main/docs/container-cost-review-plan-validation.md)和[第六份离线Schema](https://github.com/codeding-101/COCUDTT/blob/main/schemas/container-cost-review-plan-0.1.schema.json)。**记录仍是用户假设，不清除原待办、不写费用；本轮未接入页面、草稿、恢复或配对1.1。**
+
+**第四十四轮已接入核对记录并发布体验版：**在“项目＋账单配对交接”中明确启用1.1，选择核对类型/目标、填写依据、保存后单独确认来源；修改业务后旧确认失效，原待办和费用保持。独立编辑草稿、恢复、完整配对另存/打开、业务复制清空、内部HTML/Excel及客户隔离已贯通。新增66项，完整66文件2319项、28套浏览器流程通过，见[接入与发布验收](https://github.com/codeding-101/COCUDTT/blob/main/docs/container-review-integration-validation.md)。**体验方式：先保存自己的资料，再展开配对交接，点击“打开合成核对示例（替换项目和账单，先另存）”。核对记录仍不会新增实际费用、拆税或舍入。**
 
 ## 使用流程
 
@@ -169,7 +171,8 @@ npm run build:catalog
 | 已完成：包含/候选与含税/精度设计 | 现状核验、32手算/26反例、13现状回归和版本门槛；不启用费用语义 |
 | 已完成：独立只读核对模块 | 完整快照/映射、跨标签覆盖及父项/税务/精度待办；不改变原提案 |
 | 已完成：独立核对记录层 | 五类假设、来源/目标绑定、记录/业务修订隔离、严格JSON及离线Schema；不清除待办 |
-| 下一阶段：配对1.1与完整接入 | 显式启用、来源/确认失效控件、草稿/恢复/复制/内外导出及文件交接；不写费用 |
+| 已完成：配对1.1与完整接入 | 显式启用、核对控件/来源失效、草稿/恢复/复制/内部审计及客户隔离 |
+| 下一阶段：体验反馈与应用前门槛 | 先修正录入/交接体验，再验收税务成分、精度选择、项目费用映射与原子应用 |
 | 后续：新版本与费用应用 | 贯通有依据的核对、精度选择、项目映射及原子应用；完整回归后启用 |
 | 报价与移动端操作质量 | 完善既有双视图、双语/长表/PDF及窄屏操作，客户隔离和真实下载验收 |
 | 发布前工程收敛 | 统一候选与证据、CI/离线回归及规则矩阵；准备可审查结果后由用户决定发布 |

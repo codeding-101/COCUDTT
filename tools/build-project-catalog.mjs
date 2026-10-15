@@ -21,6 +21,7 @@ try {
  mkdirSync(join(root,'schemas'),{recursive:true});mkdirSync(join(root,'templates'),{recursive:true});
  writeFileSync(join(root,'schemas/container-bill-1.0.schema.json'),json(containerBillDraftSchema()));
  writeFileSync(join(root,'schemas/container-cost-pair-1.0.schema.json'),json(containerCostPairSchema()));
+ writeFileSync(join(root,'schemas/container-cost-pair-1.1.schema.json'),json(containerCostPairSchema('1.1')));
  writeFileSync(join(root,'schemas/container-cost-review-plan-0.1.schema.json'),json(containerCostReviewPlanSchema()));
  console.log('Generated 1 independent container cost review plan schema');
  console.log('Generated 1 independent container cost pair schema');

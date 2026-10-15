@@ -4,6 +4,7 @@ import { serializeProject, SCHEMA_VERSION } from '../src/data/project-file';
 import { booksToRows } from '../src/ui/fx-rows';
 import {createContainerCostPair,serializeContainerCostPair} from '../src/data/container-cost-pair';
 import {containerBillTemplate} from '../src/data/container-bill-templates';
+import {containerReviewTargetKey} from '../src/data/container-review-editor';
 
 // 测试真实的界面事件处理与渲染输出；最小 DOM 替身不负责布局或 HTML 解析。
 class ElementStub {
@@ -78,6 +79,9 @@ describe('打开、保存项目的失败处理', () => {
   function pairEditAction(action:string,line:string){const button=new ElementStub();button.dataset={action,pairLine:line};listeners.get('click')!({target:button});}
   const editorKey='trade-cost-engine:container-cost-editor-v1';
   function copyField(field:string,value:string,checked=false){const input=new InputStub();input.id='';input.dataset={pairCopyField:field};input.value=value;input.checked=checked;listeners.get('change')!({target:input});}
+  function reviewField(field:string,value:string){const input=new InputStub();input.id='';input.dataset={pairReviewField:field};input.value=value;listeners.get('change')!({target:input});}
+  function reviewAction(action:string,id:string){const button=new ElementStub();button.dataset={action,reviewRecord:id};listeners.get('click')!({target:button});}
+  function fillReview(){action('pair-review-start');reviewField('decision','KEEP_RECORDED_AMOUNT');const p=JSON.parse(storage.get('trade-cost-engine:container-cost-pair-v1')!),m=p.mapping.entries[0];reviewField('target',containerReviewTargetKey({kind:'ROW',mapping_id:m.mapping_id,line_id:m.line_id,cost_id:m.cost_id}));reviewField('explanation','PRIVATE_APP_REVIEW44');reviewField('reference','PRIVATE_APP_SOURCE44');reviewField('valid_from','2026-10-01');reviewField('valid_to','2026-10-31');reviewField('checked_on','2026-10-14');}
   function prepareBusinessCopy(name='PRIVATE_NEW_BUSINESS_UI40'){copyField('name',name);copyField('acknowledged','',true);action('pair-copy-prepare');}
   async function openCopySource(){const p=pairFixture();p.bill.rows[0]!.evidence={reference:'合成来源40',valid_from:'2026-10-01',valid_to:'2026-10-31',checked_on:'2026-10-14',status:'USER_CONFIRMED',values_key:'OLD_UI40'};const q=createContainerCostPair(p.project,p.bill,p.selection);openPair(async()=>serializeContainerCostPair(q));await vi.waitFor(()=>expect(html).toContain('PAIR_BILL_38'));return q;}
   it('真实复制表单和另存不改原项目/账单/快照/保存状态，副本新身份与未确认来源',async()=>{await start();const p=await openCopySource(),before=storage.get(key),billBefore=storage.get('trade-cost-engine:container-bill-v1'),pairBefore=storage.get('trade-cost-engine:container-cost-pair-v1');prepareBusinessCopy();expect(html).toContain('已冻结副本');let text='';vi.stubGlobal('window',{showSaveFilePicker:async()=>({createWritable:async()=>({write:async(t:string)=>text=t,close:async()=>{}})})});action('pair-copy-save');await vi.waitFor(()=>expect(text).not.toBe(''));const copied=JSON.parse(text);expect(copied.pair_id).not.toBe(p.pair_id);expect(copied.bill.id).not.toBe(p.bill.id);expect(copied.bill.binding).toBeNull();expect(copied.bill.rows[0].evidence.status).toBe('UNVERIFIED');expect(copied.bill.rows[0].evidence).not.toHaveProperty('values_key');expect(storage.get(key)).toBe(before);expect(storage.get('trade-cost-engine:container-bill-v1')).toBe(billBefore);expect(storage.get('trade-cost-engine:container-cost-pair-v1')).toBe(pairBefore);expect(html).not.toContain('已保存到');});
@@ -774,6 +778,18 @@ describe('打开、保存项目的失败处理', () => {
     expect(createElement).not.toHaveBeenCalled();
   });
 
+  it('合成核对入口、真实事件及来源确认贯通，不改变项目草稿',async()=>{
+    await start();action('pair-review-example');expect(html).toContain('费用核对记录 · 配对 1.1');const before=storage.get(key);fillReview();action('pair-review-submit');expect(html).toContain('PRIVATE_APP_REVIEW44');const p=JSON.parse(storage.get('trade-cost-engine:container-cost-pair-v1')!);expect(p.review_plan.records[0].evidence.status).toBe('UNVERIFIED');reviewAction('pair-review-confirm',p.review_plan.records[0].record_id);expect(JSON.parse(storage.get('trade-cost-engine:container-cost-pair-v1')!).review_plan.records[0].evidence.status).toBe('USER_CONFIRMED');expect(storage.get(key)).toBe(before);
+  });
+  it('未提交核对编辑经真实事件保留并阻止配对另存',async()=>{
+    await start();action('pair-review-example');fillReview();const draft=storage.get('trade-cost-engine:container-review-editor-v1');action('pair-save');expect(html).toContain('存在未提交核对编辑');expect(storage.get('trade-cost-engine:container-review-editor-v1')).toBe(draft);action('pair-review-discard');expect(storage.get('trade-cost-engine:container-review-editor-v1')).toBe('null');
+  });
+  it('核对编辑异常备份包含1.1及原始编辑，重试保留',async()=>{
+    await start();action('pair-review-example');fillReview();let blob:Blob|null=null;recoveryElements();vi.spyOn(URL,'createObjectURL').mockImplementation((b)=>{blob=b as Blob;return'blob:review44';});const fault=vi.spyOn(appRoot,'innerHTML','set').mockImplementationOnce(()=>{throw Error('PRIVATE_REVIEW_RENDER44');});reviewField('explanation','RAW_REVIEW44');expect(appRoot.hidden).toBe(true);recoveryPanel!.callbacks.get('#recovery-backup')!();const raw=JSON.parse(await blob!.text());expect(raw.container_cost_pair.version).toBe('1.1');expect(raw.container_review_editor.fields.explanation).toBe('RAW_REVIEW44');expect(raw.container_review_editor_draft_text).toContain('RAW_REVIEW44');fault.mockRestore();recoveryPanel!.callbacks.get('#recovery-retry')!();expect(html).toContain('RAW_REVIEW44');
+  });
+  it('新记录正文只能进入内部报告，客户投影不携带核对数据',async()=>{
+    await start();action('pair-review-example');fillReview();action('pair-review-submit');let data:string|Blob|null=null;vi.stubGlobal('window',{showSaveFilePicker:async()=>({createWritable:async()=>({write:async(t:string|Blob)=>{data=t;},close:async()=>{}})})});action('export-report');await vi.waitFor(()=>expect(data).not.toBeNull());expect(String(data)).toContain('PRIVATE_APP_REVIEW44');data=null;await customerProject();customer('reviewed','',true);action('export-customer-quote');await vi.waitFor(()=>expect(data).not.toBeNull());expect(String(data)).not.toContain('PRIVATE_APP_REVIEW44');expect(String(data)).not.toContain('PRIVATE_APP_SOURCE44');
+  });
   it('写盘失败必须显示失败，不能宣称已经保存', async () => {
     await start();
     vi.stubGlobal('window', { showSaveFilePicker: async () => ({
