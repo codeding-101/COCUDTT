@@ -42,7 +42,8 @@ import { compare, scenarioWithDerivedInclusions, type Comparison } from '../engi
 import { isEngineError } from '../engine/errors.js';
 import { booksToRows, rowsToBooks, type FxRow } from './fx-rows.js';
 import { escapeHtml } from './format.js';
-import { nextCostId, renderFormsRow, renderFxPanel, renderHsPanel, renderImportTaxPanel, renderItemsPanel, type ItemEnrichment } from './views-input.js';
+import { nextCostId, renderFormsRow, renderAdvancedTradeFields, renderFxPanel, renderHsPanel, renderImportTaxPanel, renderItemsPanel, type ItemEnrichment } from './views-input.js';
+import { loadWorkspaceMode, saveWorkspaceMode, renderModeSwitch, renderQuickStart, renderCalculationStatus, renderWorkspaceSummary, workspaceIssues, focusWorkspaceIssue, revealWorkspaceElement, type WorkspaceMode, type WorkspaceResult } from './workspace.js';
 import { createProjectReport } from './project-report.js';
 import { renderKpis, renderOutputColumn } from './views-output.js';
 import { newSensitivityControls, projectSensitivity, renderSensitivityPanel, sensitivityOptions } from './sensitivity.js';
@@ -146,6 +147,10 @@ let restoredFromDraft = false;
 /** 草稿读取失败的说明，启动时展示 */
 let draftFailure: string | null = null;
 let draftStorageUnavailable = false;
+let workspaceMode: WorkspaceMode = 'beginner';
+let workspaceNote = '当前为 CIF 合成示例：货值、运保费、汇率与税率仅用于演示。';
+let calculatedAt = '';
+let pendingCalculation = false;
 
 function initialState(): AppState {
   const draft = loadDraft();
@@ -153,6 +158,8 @@ function initialState(): AppState {
   const fxRows = draft.payload?.fxRows ?? booksToRows(project.fx_books);
   pairFxLease=draft.payload?.pair_fx_row_key===JSON.stringify(fxRows)&&draft.payload.pair_fx_row_key===JSON.stringify(booksToRows(project.fx_books))?{row_key:draft.payload.pair_fx_row_key,books:project.fx_books}:null;
   restoredFromDraft = draft.payload !== null;
+  workspaceMode = loadWorkspaceMode();
+  if (restoredFromDraft) workspaceNote = '已恢复本机草稿；按保存的报价、费用与假设继续核对。';
   draftFailure = draft.failure;
   return {
     project,
@@ -202,6 +209,7 @@ function installPair(pair:ContainerCostPair):void {
  const controls=newSensitivityControls(),publicFields=emptyCustomerQuoteFields();
  projectReadEpoch++;settlementEpoch++;recoveryReviewEpoch++;
  state.project=project;state.fxRows=fxRows;pairFxLease={row_key,books:project.fx_books};
+  workspaceNote='当前来自完整配对文件；账单与核对记录不自动应用为项目费用。';
  containerBill.installPrepared(bill,billText);
  settlementPlan=null;sensitivityControls=controls;customerFields=publicFields;customerReviewed=false;customerPreview=null;
  state.result=null;state.comparison=null;state.fileName=null;state.savedAt=null;state.dirty=true;
@@ -381,6 +389,7 @@ function pairedFxDraftIssues():string[]{
 }
 
 function recompute(persistDraft = true): void {
+  pendingCalculation = false;
   inputLocations = [];
   const project = currentProject();
   try {
@@ -429,6 +438,7 @@ function recompute(persistDraft = true): void {
     state.statusLevel = 'error';
   }
   if (persistDraft) draftStorageUnavailable = !saveDraft(state.project, state.fxRows);
+  calculatedAt = new Date().toLocaleTimeString('zh-CN',{hour12:false});
   recomputeSensitivity();
   recomputeCustomerPreview();
 }
@@ -1220,6 +1230,7 @@ function openProjectFromText(text: string, fileName: string): void {
     const fxRows = booksToRows(project.fx_books);
     pairFxLease=null;containerPair.cancelReads();
     state.project = project;
+    workspaceNote = '已打开本地项目；按文件中保存的费用、报价与适用条件核对。';
     containerBill.projectChanged();
     settlementPlan = null;
     settlementEpoch++;
@@ -1247,6 +1258,7 @@ function newProject(mode: 'sample' | 'china-sample' | 'china-blank' = 'sample'):
   customerFields = emptyCustomerQuoteFields();
   customerReviewed = false;
   state.project = mode === 'china-blank' ? newChinaImportProjectFile() : mode === 'china-sample' ? chinaImportSampleProjectFile() : sampleProjectFile();
+  workspaceNote = mode==='china-blank'?'空白中国进口交易：金额、费用、日期、税率与资格均需填写，不自动补造。':mode==='china-sample'?'中国进口合成示例：虚构税率与汇率，仅用于公式核对。':'CIF 合成示例：货值100,000、运费8,000、保险300 USD；另有虚构汇率及税务假设。';
   state.fxRows = booksToRows(state.project.fx_books);
   containerBill.projectChanged();
   state.fileName = null;
@@ -1284,26 +1296,51 @@ function renderApp(): void {
   if (app === null) return;
   const focused = focusKeyOf(document.activeElement ?? document.body);
   const saveState = saveStateText();
+  const workspace: WorkspaceResult = {project:currentProject(),result:state.result,comparison:state.comparison,error:state.error,
+    issues:state.error===null?[]:workspaceIssues(currentProject(),state.fxRows),calculatedAt,mode:workspaceMode};
 
   app.innerHTML = `
+    <div class="workspace" data-workspace-mode="${workspaceMode}" data-calculation-pending="${pendingCalculation}">
     <header class="app-bar">
-      <div class="brand">国际贸易成本与贸易术语分析<span class="sub">本地运行 · 数据不出本机</span></div>
-      <div class="file-actions">
-        <button data-action="new">载入示例</button>
-        <button data-action="new-china-import">中国进口示例</button>
-        <button data-action="new-china-blank">新建中国进口</button>
-        <button data-action="open">打开项目</button>
+      <div class="brand">国际贸易成本<span class="sub">COCUDTT · 本地工作台</span></div>
+      ${renderModeSwitch(workspaceMode)}
+      <div class="file-actions workspace-file-actions">
         <button class="primary" data-action="save">保存项目</button>
+        <details class="workspace-export" data-evidence-section="file-menu"><summary data-action="toggle-file-menu">项目与导出</summary><div>
+        <button data-action="open">打开项目 JSON</button>
         <button data-action="export-report"${state.result === null || state.comparison === null ? ' disabled' : ''}>导出内部测算报告</button>
         <button data-action="export-internal-xlsx"${state.comparison === null ? ' disabled' : ''}>导出内部成本 Excel</button>
         <button data-action="preview-customer-quote">客户报价预览</button>
+        </div></details>
         <input type="file" id="file-input" accept=".json,application/json" style="display:none" />
       </div>
-      <span class="spacer"></span>
       ${renderKpis({ result: state.result, comparison: state.comparison, error: state.error })}
-      <span class="${saveState.className}" role="status" aria-live="polite">${escapeHtml(saveState.text)}</span>
+      ${renderCalculationStatus(workspace)}
     </header>
     <main class="layout">
+      <div class="workspace-file-state"><span class="${saveState.className}" role="status" aria-live="polite">${escapeHtml(saveState.text)}</span><span>仅供学习与内部测算。数据仅在本机浏览器；清除存储会丢失草稿，请另存项目 JSON。</span></div>
+      ${renderQuickStart(state.project,workspaceNote)}
+      ${renderFormsRow(state.project,workspaceMode==='beginner')}
+      ${renderWorkspaceSummary(workspace)}
+      <details class="panel workspace-results" data-evidence-section="full-results"${workspaceMode==='professional'&&!collapsedSections.has('full-results')?' open':''}><summary><span class="panel-title">完整计算过程与方案对比</span><span class="hint">公式、费用归属、税基、风险与来源</span></summary><div class="panel-body">
+      ${renderOutputColumn({ result: state.result, comparison: state.comparison, error: state.error, inputLocations })}
+      ${renderSensitivityPanel(currentProject(), state.result, sensitivityControls, sensitivityAnalysis, sensitivityError)}
+      </div></details>
+      <details class="panel workspace-advanced" data-evidence-section="advanced-settings"${workspaceMode==='professional'&&!collapsedSections.has('advanced-settings')?' open':''}><summary><span class="panel-title">高级设置</span><span class="hint">运保费、汇率、税务与合同依据</span></summary><div class="panel-body">
+      <p class="hint block">适用场景：录入实际费用、进口计税、商业和海关汇率，或核对合同费用约定。收起只改变显示，原字段仍参与计算；没有录入的费用不会自动视为已核实的零费用。</p>
+      ${workspaceMode==='beginner'?renderAdvancedTradeFields(state.project):''}
+      ${renderItemsPanel(state.project, enrichmentMap())}
+      ${renderFxPanel(state.fxRows)}
+      ${renderImportTaxPanel(state.project)}
+      ${renderHsPanel(state.project)}
+      ${renderTransportLinkControls(state.project)}
+      </div></details>
+      <div class="workspace-section-label"><h2>业务资料与交接</h2><p>按实际需要展开。独立账单、付款计划与核对记录不自动写入交易成本。</p></div>
+      ${renderSettlementPanel(currentProject(), settlementPlan, state.result, settlementBusy)}
+      ${renderContainerBillPanel(containerBill.draft,currentProject(),containerBill.busy,containerBill.message)}
+      ${renderContainerCostPairPanel(containerPair)}
+      ${renderCustomerQuotePanel(currentProject(), customerFields, customerReviewed, customerPreview, customerError, customerPdfBusy,customerSummaryBusy)}
+      <details class="panel" data-evidence-section="workspace-help"${workspaceMode==='professional'&&!collapsedSections.has('workspace-help')?' open':''}><summary><span class="panel-title">帮助、示例与文件模板</span><span class="hint">适用范围、假设说明及恢复检查</span></summary><div class="panel-body">
       <aside class="responsibility-notice" aria-label="责任声明">本工具仅供学习与内部测算参考，不构成法律或专业贸易建议。实际合同请以 Incoterms® 官方文本及当地法规为准。</aside>
       <details class="panel" data-evidence-section="project-introduction">
         <summary><span class="panel-title">项目说明 · 适用范围与使用方法</span></summary>
@@ -1320,25 +1357,16 @@ function renderApp(): void {
       ${renderFundingExamplePanel(projectResourceBusy)}
       ${renderRoundingExamplePanel(projectResourceBusy)}
       ${renderPeriodExamplePanel(projectResourceBusy)}
-      ${renderTransportLinkControls(state.project)}
       ${renderRecoveryReviewPanel(recoveryReview,recoveryReviewBusy,recoveryReviewError)}
-      ${renderFormsRow(state.project)}
-      ${renderImportTaxPanel(state.project)}
-      ${renderFxPanel(state.fxRows)}
-      ${renderHsPanel(state.project)}
-      ${renderItemsPanel(state.project, enrichmentMap())}
-      ${renderOutputColumn({ result: state.result, comparison: state.comparison, error: state.error, inputLocations })}
-      ${renderSensitivityPanel(currentProject(), state.result, sensitivityControls, sensitivityAnalysis, sensitivityError)}
-      ${renderSettlementPanel(currentProject(), settlementPlan, state.result, settlementBusy)}
-      ${renderContainerBillPanel(containerBill.draft,currentProject(),containerBill.busy,containerBill.message)}
-      ${renderContainerCostPairPanel(containerPair)}
-      ${renderCustomerQuotePanel(currentProject(), customerFields, customerReviewed, customerPreview, customerError, customerPdfBusy,customerSummaryBusy)}
+      </div></details>
       <footer class="app-footer">
         <span>费用 ${state.project.items.length} 项 · 11 术语对比 · 核算币种 ${escapeHtml(state.project.base_currency)}</span>
         <span>数据保存在本机，不上传任何服务器</span>
-        <span>计算逻辑、规则表与校验清单见 docs/design.md</span>
+        <span>仅供学习与内部测算，不构成法律或专业贸易建议</span>
+        <a href="project-introduction.html">项目说明与开发记录</a>
       </footer>
     </main>
+    </div>
   `;
 
   document.querySelectorAll<HTMLDetailsElement>('details.panel').forEach((element) => {
@@ -1399,6 +1427,27 @@ function bind(): void {
     boundEvents.add(type);
   };
 
+  const calculationInput = (target: HTMLInputElement): boolean => target.type!=='file' &&
+    ['path','itemField','fxField','hsField','contractField','logisticsField'].some(key=>target.dataset[key]!==undefined);
+  listen('input',event=>{
+    const target=event.target;if(!(target instanceof HTMLInputElement)||!calculationInput(target))return;
+    pendingCalculation=true;
+    const workspace=document.querySelector<HTMLElement>('[data-workspace-mode]');if(workspace)workspace.dataset.calculationPending='true';
+    const status=document.querySelector<HTMLElement>('[data-calculation-status]');if(status)status.textContent='输入已变更 · 待更新';
+    document.querySelectorAll<HTMLButtonElement>('[data-action^="export-"],[data-action="preview-customer-quote"]').forEach(button=>button.disabled=true);
+  });
+  // Keep the active input until a toolbar click can commit it. Otherwise blur
+  // replaces the clicked DOM node before mouseup, swallowing the first click.
+  listen('mousedown',event=>{
+    const target=event.target;if(!pendingCalculation||!(target instanceof HTMLElement)||(event as MouseEvent).button!==0)return;
+    const action=target.dataset.action;if(action==='save'||action==='toggle-file-menu'||action?.startsWith('mode-'))event.preventDefault();
+  });
+  listen('keydown',event=>{
+    const key=event as KeyboardEvent,target=event.target;
+    if(key.key!=='Enter'||key.isComposing||!(target instanceof HTMLInputElement)||!calculationInput(target))return;
+    event.preventDefault();target.dispatchEvent(new Event('change',{bubbles:true}));
+  });
+
   listen('focusin', (event) => {
     const target = event.target;
     if (!(target instanceof HTMLSelectElement)) return;
@@ -1417,6 +1466,9 @@ function bind(): void {
       if (evidenceSection !== undefined) {
         if (target.open) expandedEvidenceSections.add(evidenceSection);
         else expandedEvidenceSections.delete(evidenceSection);
+        if(['advanced-settings','full-results','workspace-help'].includes(evidenceSection)){
+          if(target.open)collapsedSections.delete(evidenceSection);else collapsedSections.add(evidenceSection);
+        }
         return;
       }
       const key = target.dataset.section;
@@ -1575,8 +1627,38 @@ function bind(): void {
     if (!(target instanceof HTMLElement)) return;
     const action = target.dataset.action;
     if (action === undefined) return;
+    if(pendingCalculation&&(action==='save'||action==='toggle-file-menu'||action.startsWith('mode-'))){
+      const active=document.activeElement;
+      if(active instanceof HTMLInputElement&&calculationInput(active))active.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+    if(pendingCalculation&&(action==='save'||action.startsWith('export-')||action==='preview-customer-quote'||action.startsWith('mode-')))return;
     if(!action.startsWith('pair-'))containerPair.cancelReads();
     switch (action) {
+      case 'toggle-file-menu':
+        event.preventDefault();
+        if(expandedEvidenceSections.has('file-menu'))expandedEvidenceSections.delete('file-menu');else expandedEvidenceSections.add('file-menu');
+        render();break;
+      case 'mode-beginner':
+      case 'mode-professional':
+        workspaceMode=action==='mode-professional'?'professional':'beginner';
+        for(const section of ['advanced-settings','full-results','workspace-help']) {
+          if(workspaceMode==='professional'){expandedEvidenceSections.add(section);collapsedSections.delete(section);}
+          else{expandedEvidenceSections.delete(section);collapsedSections.add(section);}
+        }
+        if(!saveWorkspaceMode(workspaceMode)){state.status='本次模式切换有效；浏览器存储不可用，刷新后会回到新手模式';state.statusLevel='warn';}
+        render();break;
+      case 'show-full-results': {
+        expandedEvidenceSections.add('full-results');render();
+        const summary=document.querySelector<HTMLElement>('[data-evidence-section="full-results"] > summary');if(summary)revealWorkspaceElement(summary);
+        break;
+      }
+      case 'show-cost-settings':
+        expandedEvidenceSections.add('advanced-settings');collapsedSections.delete('advanced-settings');render();focusInputSection('items');break;
+      case 'locate-workspace-issue': {
+        const index=Number(target.dataset.issueIndex);
+        const issue=state.error!==null&&Number.isInteger(index)?workspaceIssues(currentProject(),state.fxRows)[index]:undefined;
+        if(issue)focusWorkspaceIssue(issue);break;
+      }
       case 'pair-review-example':
       case 'pair-review-enable':
       case 'pair-review-start':

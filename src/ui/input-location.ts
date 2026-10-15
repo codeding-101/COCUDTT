@@ -19,6 +19,7 @@ export function inputSections(error: unknown): InputSection[] {
 export function focusInputSection(section: InputSection): boolean {
   const panel = [...document.querySelectorAll<HTMLDetailsElement>('details[data-section]')].find(el => el.dataset.section === section);
   if (!panel) return false;
+  for(let parent=panel.parentElement;parent;parent=parent.parentElement)if(parent.tagName==='DETAILS')(parent as HTMLDetailsElement).open=true;
   panel.open = true;
   const summary = panel.querySelector<HTMLElement>('summary');
   if (summary) { summary.tabIndex = -1; summary.focus({preventScroll:true}); }
