@@ -44,6 +44,7 @@ import { booksToRows, rowsToBooks, type FxRow } from './fx-rows.js';
 import { escapeHtml } from './format.js';
 import { nextCostId, renderFormsRow, renderAdvancedTradeFields, renderFxPanel, renderHsPanel, renderImportTaxPanel, renderItemsPanel, type ItemEnrichment } from './views-input.js';
 import { loadWorkspaceMode, saveWorkspaceMode, renderModeSwitch, renderQuickStart, renderCalculationStatus, renderWorkspaceSummary, workspaceIssues, focusWorkspaceIssue, revealWorkspaceElement, type WorkspaceMode, type WorkspaceResult } from './workspace.js';
+import {renderCalculationLearning,focusLearningTarget} from './calculation-learning.js';
 import {QuickCostsController} from './quick-costs.js';
 import {FieldHelpController} from './field-help.js';
 import { createProjectReport } from './project-report.js';
@@ -1329,6 +1330,7 @@ function renderApp(): void {
       ${renderFormsRow(state.project,workspaceMode==='beginner')}
       ${quickCosts.render(state.project,state.result)}
       ${renderWorkspaceSummary(workspace)}
+      ${renderCalculationLearning(state.result,state.error)}
       <details class="panel workspace-results" data-evidence-section="full-results"${workspaceMode==='professional'&&!collapsedSections.has('full-results')?' open':''}><summary><span class="panel-title">完整计算过程与方案对比</span><span class="hint">公式、费用归属、税基、风险与来源</span></summary><div class="panel-body">
       ${renderOutputColumn({ result: state.result, comparison: state.comparison, error: state.error, inputLocations })}
       ${renderSensitivityPanel(currentProject(), state.result, sensitivityControls, sensitivityAnalysis, sensitivityError)}
@@ -1438,7 +1440,7 @@ function bind(): void {
 
   const calculationInput = (target: HTMLInputElement): boolean => target.type!=='file' &&
     (target.dataset.quickCostField==='amount'||['path','itemField','fxField','hsField','contractField','logisticsField'].some(key=>target.dataset[key]!==undefined));
-  const commitsInput=(action:string):boolean=>['save','toggle-file-menu','show-field-help','show-quick-costs','show-cost-settings','show-full-results'].includes(action)||action.startsWith('mode-');
+  const commitsInput=(action:string):boolean=>['save','toggle-file-menu','show-field-help','show-quick-costs','show-cost-settings','show-full-results','show-calculation-learning','learning-target'].includes(action)||action.startsWith('mode-');
   listen('input',event=>{
     const target=event.target;if(!(target instanceof HTMLInputElement)||!calculationInput(target))return;
     pendingCalculation=true;
@@ -1646,9 +1648,15 @@ function bind(): void {
       const active=document.activeElement;
       if(active instanceof HTMLInputElement&&calculationInput(active))active.dispatchEvent(new Event('change',{bubbles:true}));
     }
-    if(pendingCalculation&&(action==='save'||action.startsWith('export-')||action==='preview-customer-quote'||action.startsWith('mode-')))return;
+    if(pendingCalculation&&(action==='save'||action.startsWith('export-')||action==='preview-customer-quote'||action.startsWith('mode-')||action==='show-calculation-learning'||action==='learning-target'))return;
     if(!action.startsWith('pair-'))containerPair.cancelReads();
     switch (action) {
+      case 'show-calculation-learning': {
+        expandedEvidenceSections.add('calculation-learning');render();
+        const summary=document.querySelector<HTMLElement>('[data-evidence-section="calculation-learning"] > summary');if(summary)revealWorkspaceElement(summary);break;
+      }
+      case 'learning-target':
+        if(state.error===null)focusLearningTarget(state.result,target.dataset.learningKind,target.dataset.learningId);break;
       case 'show-field-help':
         event.preventDefault();fieldHelp.open(target.dataset.helpTopic,target.dataset.helpAnchor);break;
       case 'close-field-help':fieldHelp.dismiss();break;

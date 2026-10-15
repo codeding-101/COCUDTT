@@ -93,6 +93,12 @@ describe('打开、保存项目的失败处理', () => {
   it('复杂计价在快捷面板只读，伪造金额事件不改项目',async()=>{
     await start();const p=sampleProjectFile();p.items[1]!.pricing_method='PERCENT';p.items[1]!.rate='0.01';p.items[1]!.calculation_base={kind:'GOODS_VALUE'};open(async()=>serializeProject(p));await vi.waitFor(()=>expect(JSON.parse(storage.get(key)!).project.items[1].pricing_method).toBe('PERCENT'));quickField('carriage','choose','freight');const before=storage.get(key);quickField('carriage','amount','999999','freight');expect(storage.get(key)).toBe(before);expect(html).toContain('非固定或实际金额计价');
   });
+  it('教学面板与原公式跳转不改草稿、金额或文件保存状态',async()=>{
+    await start();const before=storage.get(key),saved=html.match(/workspace-file-state[\s\S]*?<\/div>/)![0];action('show-calculation-learning');expect(storage.get(key)).toBe(before);expect(html).toContain('data-evidence-section="calculation-learning"');expect(html.match(/workspace-file-state[\s\S]*?<\/div>/)![0]).toBe(saved);const button=new ElementStub();button.dataset={action:'learning-target',learningKind:'reason',learningId:'freight'};listeners.get('click')!({target:button});expect(storage.get(key)).toBe(before);
+  });
+  it('输入失效不显示旧教学金额，修正后显示本次新记录',async()=>{
+    await start();change('quote.amount','');expect(html).not.toContain('class="panel calculation-learning"');change('quote.amount','110000.123456');expect(html).toContain('class="panel calculation-learning"');expect(html).toContain('110000.123456 × 7');expect(JSON.parse(storage.get(key)!).project.quote.amount).toBe('110000.123456');
+  });
   it('默认新手视图；切换只保存界面偏好，不改草稿、采购成本或当前金额',async()=>{
     await start();expect(html).toContain('data-workspace-mode="beginner"');change('name','MODE_BUSINESS_45');const before=storage.get(key);
     action('mode-professional');expect(html).toContain('data-workspace-mode="professional"');expect(storage.get(key)).toBe(before);expect(html).toContain('80,000.00');expect(storage.get('trade-cost-engine:workspace-mode-v1')).toBe('professional');
