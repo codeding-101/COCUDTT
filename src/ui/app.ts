@@ -68,6 +68,10 @@ import {transportProjectSchema} from '../data/transport-project-schema.js';
 import { renderFundingExamplePanel, fundingExampleResource } from './funding-example.js';
 import {ContainerBillController,BILL_STORAGE_KEY} from './container-bill-controller.js';
 import {renderContainerBillPanel} from './container-bill.js';
+import {ContainerCostPairController,PAIR_STORAGE_KEY} from './container-cost-pair-controller.js';
+import {renderContainerCostPairPanel} from './container-cost-pair.js';
+import type {ContainerCostPair} from '../domain/container-cost-pair.js';
+import {serializeContainerBillDraft} from '../data/container-bill-file.js';
 
 const DRAFT_KEY = 'trade-cost-engine:draft-v1';
 
@@ -87,7 +91,9 @@ interface AppState {
 interface DraftPayload {
   project: ProjectFile;
   fxRows: FxRow[];
+  pair_fx_row_key?:string;
 }
+let pairFxLease:{row_key:string;books:ProjectFile['fx_books']}|null=null;
 
 /** 折叠的面板；跨渲染保留 */
 const collapsedSections = new Set<string>();
@@ -116,7 +122,8 @@ function loadDraft(): DraftLoad {
   try {
     const parsed = JSON.parse(raw) as DraftPayload;
     validateDraftFxRows(parsed.fxRows);
-    return { payload: { project: parseProject(JSON.stringify(parsed.project)), fxRows: parsed.fxRows }, failure: null };
+    if(parsed.pair_fx_row_key!==undefined&&typeof parsed.pair_fx_row_key!=='string')throw Error('paired FX draft');
+    return { payload: { project: parseProject(JSON.stringify(parsed.project)), fxRows: parsed.fxRows,...(parsed.pair_fx_row_key===undefined?{}:{pair_fx_row_key:parsed.pair_fx_row_key}) }, failure: null };
   } catch (error) {
     const detail = isEngineError(error) ? `（${error.code}）` : '';
     return { payload: null, failure: `上次的草稿无法读取${detail}，已载入示例数据；原草稿暂未覆盖，请先备份浏览器本地存储。继续编辑或打开其他项目将更新草稿` };
@@ -125,7 +132,7 @@ function loadDraft(): DraftLoad {
 
 function saveDraft(project: ProjectFile, fxRows: readonly FxRow[]): boolean {
   try {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({ project, fxRows }));
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ project, fxRows,...(pairFxLease?.row_key===JSON.stringify(fxRows)?{pair_fx_row_key:pairFxLease.row_key}:{}) }));
     return true;
   } catch {
     return false;
@@ -142,6 +149,7 @@ function initialState(): AppState {
   const draft = loadDraft();
   const project = draft.payload?.project ?? sampleProjectFile();
   const fxRows = draft.payload?.fxRows ?? booksToRows(project.fx_books);
+  pairFxLease=draft.payload?.pair_fx_row_key===JSON.stringify(fxRows)&&draft.payload.pair_fx_row_key===JSON.stringify(booksToRows(project.fx_books))?{row_key:draft.payload.pair_fx_row_key,books:project.fx_books}:null;
   restoredFromDraft = draft.payload !== null;
   draftFailure = draft.failure;
   return {
@@ -182,11 +190,25 @@ let recoveryReviewError: string | null = null;
 let recoveryReviewBusy = false;
 let recoveryReviewEpoch = 0;
 let projectReadEpoch=0;
-const containerBill=new ContainerBillController({project:()=>currentProject(),render:()=>render(),blocked:()=>recoveryStage!==null,write:writeBillFile});
+const containerBill=new ContainerBillController({project:()=>currentProject(),render:()=>render(),blocked:()=>recoveryStage!==null,write:writeBillFile,onChange:()=>containerPair.cancelReads()});
+const containerPair=new ContainerCostPairController({project:()=>currentProject(),bill:()=>containerBill.draft,render:()=>runUi('RENDER',()=>render()),blocked:()=>recoveryStage!==null,write:writeBillFile,
+ inputIssues:pairedFxDraftIssues,
+ install:installPair,cancelOtherReads:()=>{projectReadEpoch++;containerBill.cancelReads();settlementEpoch++;},afterInstall:()=>runUi('RENDER',()=>{recompute();render();})});
+function installPair(pair:ContainerCostPair):void {
+ // Prepare every potentially failing conversion before replacing either in-memory half.
+ const project=structuredClone(pair.project),bill=structuredClone(pair.bill),fxRows=booksToRows(project.fx_books),billText=serializeContainerBillDraft(bill),row_key=JSON.stringify(fxRows);
+ const controls=newSensitivityControls(),publicFields=emptyCustomerQuoteFields();
+ projectReadEpoch++;settlementEpoch++;recoveryReviewEpoch++;
+ state.project=project;state.fxRows=fxRows;pairFxLease={row_key,books:project.fx_books};
+ containerBill.installPrepared(bill,billText);
+ settlementPlan=null;sensitivityControls=controls;customerFields=publicFields;customerReviewed=false;customerPreview=null;
+ state.result=null;state.comparison=null;state.fileName=null;state.savedAt=null;state.dirty=true;
+ expandedEvidenceSections.add('container-cost-pair');expandedEvidenceSections.add('container-bill');
+}
 async function writeBillFile(name:string,text:string,mime:string):Promise<'SAVED'|'DOWNLOAD_STARTED'> {
  const picker=(window as SaveFilePickerWindow).showSaveFilePicker;
  if(!picker){downloadText(name,text);return 'DOWNLOAD_STARTED';}
- const handle=await picker.call(window,{suggestedName:name,types:[{description:'独立账单文件',accept:{[mime]:['.json']}}]});
+ const handle=await picker.call(window,{suggestedName:name,types:[{description:name==='internal-container-cost-pair.json'?'项目账单配对文件':'独立账单文件',accept:{[mime]:['.json']}}]});
  const writable=await handle.createWritable();await writable.write(text);await writable.close();return 'SAVED';
 }
 
@@ -194,6 +216,7 @@ function showFatalFailure(stage: FailureStage): void {
   projectReadEpoch++;
   recoveryStage = stage;
   containerBill.cancelReads();
+  containerPair.cancelReads();
   settlementEpoch++;
   recoveryReviewEpoch++; recoveryReviewBusy = false; inputLocations = [];
   if (stateInitialized) { state.result = null; state.comparison = null; }
@@ -210,6 +233,7 @@ function retryInterface(): void {
   runUi('STARTUP',()=>{
     if (!stateInitialized) { state = initialState(); stateInitialized = true; }
     containerBill.loadLocal();
+    containerPair.loadLocal();
     bind(); recompute(false);
     if ((initializing && draftFailure) || startupWarning) { state.status = startupWarning ?? draftFailure!; state.statusLevel = 'warn'; }
     render();
@@ -219,14 +243,16 @@ function backupRecovery(): void {
   if (!recoveryStage) return;
   let draft: string | null = null;
   let billDraftText:string|null=null;
+  let pairDraftText:string|null=null;
   try { draft = localStorage.getItem(DRAFT_KEY); } catch { /* Memory backup remains available. */ }
   try{billDraftText=localStorage.getItem(BILL_STORAGE_KEY);}catch{/* Raw memory bill remains available. */}
+  try{pairDraftText=localStorage.getItem(PAIR_STORAGE_KEY);}catch{/* Raw pair remains in memory. */}
   try {
     // Raw inputs, including uncommitted FX rows, without running any calculation/validator.
     const text = JSON.stringify({kind:'INTERNAL_RECOVERY_SNAPSHOT',version:'1.0',stage:recoveryStage,
       project:stateInitialized ? state.project : null,fx_rows:stateInitialized ? state.fxRows : null,
       settlement_plan:settlementPlan,sensitivity:sensitivityControls,customer_fields:customerFields,
-      browser_draft_text:draft,container_bill:containerBill.draft,container_bill_draft_text:billDraftText},null,2) + '\n';
+      browser_draft_text:draft,container_bill:containerBill.draft,container_bill_draft_text:billDraftText,container_cost_pair:containerPair.pair,container_cost_pair_draft_text:pairDraftText},null,2) + '\n';
     downloadText('internal-recovery-snapshot.json',text);
     showRecoveryView(recoveryStage,{retry:retryInterface,backup:backupRecovery},'已发起内部恢复备份下载，请确认文件已保存；原项目与草稿未改写');
   } catch {
@@ -334,7 +360,13 @@ function recomputeSensitivity(): void {
 }
 
 function currentProject(): ProjectFile {
-  return { ...state.project, fx_books: rowsToBooks(state.fxRows) };
+  return { ...state.project, fx_books: pairFxLease?.row_key===JSON.stringify(state.fxRows)?pairFxLease.books:rowsToBooks(state.fxRows) };
+}
+function pairedFxDraftIssues():string[]{
+ if(pairFxLease?.row_key===JSON.stringify(state.fxRows))return[];
+ if(state.fxRows.some(r=>!r.from.trim()||!r.to.trim()||!r.rate.trim()))return['汇率行尚未填写完整，请先修正再捕获或另存配对；原行仍在草稿和恢复备份中'];
+ const keys=state.fxRows.map(r=>JSON.stringify([r.type,r.date,r.valid_from??'',r.valid_to??'',r.from,r.to]));
+ return new Set(keys).size!==keys.length?['汇率行有重复币种对和适用期，请先核对；配对不会静默覆盖其中一行']:[];
 }
 
 function recompute(persistDraft = true): void {
@@ -963,7 +995,10 @@ interface SaveFilePickerWindow extends Window {
 
 async function saveProject(): Promise<void> {
   let text: string, suggested: string;
+  const saveEpoch=projectReadEpoch;
+  let saveKey:string;
   try {
+    saveKey=JSON.stringify({project:currentProject(),fxRows:state.fxRows});
     const project = touchProject(currentProject());
     text = serializeProject(project); suggested = safeFileName(project.name);
   } catch (error) {
@@ -981,6 +1016,9 @@ async function saveProject(): Promise<void> {
       const writable = await handle.createWritable();
       await writable.write(text);
       await writable.close();
+      if(saveEpoch!==projectReadEpoch||saveKey!==JSON.stringify({project:currentProject(),fxRows:state.fxRows})){
+        state.status='已保存点击时的项目快照；当前资料已变更，本次保存未改变当前文件与保存状态。';state.statusLevel='warn';render();return;
+      }
       state.fileName = handle.name;
       state.savedAt = new Date().toLocaleTimeString();
       state.dirty = false;
@@ -1007,6 +1045,9 @@ async function saveProject(): Promise<void> {
     state.statusLevel = 'error';
     render();
     return;
+  }
+  if(saveEpoch!==projectReadEpoch||saveKey!==JSON.stringify({project:currentProject(),fxRows:state.fxRows})){
+    state.status='已发起点击时项目快照下载；当前资料的文件与保存状态保持。';state.statusLevel='warn';render();return;
   }
   state.savedAt = new Date().toLocaleTimeString();
   state.dirty = false;
@@ -1163,6 +1204,7 @@ function openProjectFromText(text: string, fileName: string): void {
     const project = parseProject(text);
     // 所有可能失败的准备步骤完成后，才替换当前编辑内容。
     const fxRows = booksToRows(project.fx_books);
+    pairFxLease=null;containerPair.cancelReads();
     state.project = project;
     containerBill.projectChanged();
     settlementPlan = null;
@@ -1183,6 +1225,7 @@ function openProjectFromText(text: string, fileName: string): void {
 }
 
 function newProject(mode: 'sample' | 'china-sample' | 'china-blank' = 'sample'): void {
+  pairFxLease=null;containerPair.cancelReads();
   projectReadEpoch++;
   settlementPlan = null;
   settlementEpoch++;
@@ -1274,6 +1317,7 @@ function renderApp(): void {
       ${renderSensitivityPanel(currentProject(), state.result, sensitivityControls, sensitivityAnalysis, sensitivityError)}
       ${renderSettlementPanel(currentProject(), settlementPlan, state.result, settlementBusy)}
       ${renderContainerBillPanel(containerBill.draft,currentProject(),containerBill.busy,containerBill.message)}
+      ${renderContainerCostPairPanel(containerPair)}
       ${renderCustomerQuotePanel(currentProject(), customerFields, customerReviewed, customerPreview, customerError, customerPdfBusy,customerSummaryBusy)}
       <footer class="app-footer">
         <span>费用 ${state.project.items.length} 项 · 11 术语对比 · 核算币种 ${escapeHtml(state.project.base_currency)}</span>
@@ -1294,6 +1338,7 @@ function renderApp(): void {
 }
 
 function commit(): void {
+  containerPair.cancelReads();
   invalidateTransportCostLinks(state.project);
   containerBill.projectChanged();
   projectReadEpoch++;
@@ -1370,6 +1415,8 @@ function bind(): void {
 
   listen('change', (event) => {
     const target = event.target;
+    if(target instanceof HTMLInputElement&&target.id==='pair-file-input'){const file=target.files?.[0];if(file)void containerPair.open(file);return;}
+    containerPair.cancelReads();
     if(target instanceof HTMLInputElement&&target.id==='bill-file-input'){
      const file=target.files?.[0];if(file)void containerBill.open(file);return;
     }
@@ -1413,6 +1460,7 @@ function bind(): void {
     }
 
     if (target instanceof HTMLInputElement && target.id === 'file-input') {
+      containerPair.cancelReads();
       const file = target.files?.[0];
       if (file === undefined) return;
       const epoch=++projectReadEpoch;
@@ -1510,7 +1558,16 @@ function bind(): void {
     if (!(target instanceof HTMLElement)) return;
     const action = target.dataset.action;
     if (action === undefined) return;
+    if(!action.startsWith('pair-'))containerPair.cancelReads();
     switch (action) {
+      case 'pair-new':
+      case 'pair-capture':
+      case 'pair-add-references':
+      case 'pair-remove-selection':
+      case 'pair-clear':
+      case 'pair-save':
+        expandedEvidenceSections.add('container-cost-pair');containerPair.action(action,target.dataset);break;
+      case 'pair-open':containerPair.cancelReads();document.querySelector<HTMLInputElement>('#pair-file-input')?.click();break;
       case 'bill-new':
       case 'bill-example':
       case 'bill-clear':
@@ -1759,6 +1816,7 @@ export function start(): void {
 function startApplication(): void {
   if (!stateInitialized) { state = initialState(); stateInitialized = true; }
   containerBill.loadLocal();
+  containerPair.loadLocal();
   bind();
   recompute(draftFailure === null);
   if (draftFailure !== null) {
