@@ -98,3 +98,7 @@ INTERNAL_CONTAINER_COST_PAIR 1.0收纳项目0.8/0.9、账单1.0、提案选择0.
 ## 第三十九轮：独立编辑草稿0.1
 
 INTERNAL_CONTAINER_COST_EDITOR 0.1仅是浏览器未提交表单：绑定pair_id/revision/pair_key/line_id，original保留完整原选择或null，fields为严格白名单的字符串。字段可以空白，不冒充CostItem；构建完整选择时再次验证项目/账单/选择并沿用配对1.0。独立浏览器键不自动提交，不是项目字段或可导入项目/配对的文件，五份Schema和旧模板保持。异常备份1.0可选container_cost_editor及container_cost_editor_draft_text，普通仍10部分，有两项时12部分；旧6/8/10兼容，5MiB只读上限保持，不自动恢复。见[设计](container-cost-editor-design.md)与[验证](container-cost-editor-validation.md)。
+
+## 第四十轮：新业务副本沿用配对1.0
+
+明确生成独立候选并另存new-business-container-cost-pair.json，仍为INTERNAL_CONTAINER_COST_PAIR 1.0；打开与原配对共用严格校验。新身份/修订及已知引用重建，项目内费用/汇率/段ID局部保留，0.8扩展不解释；五份Schema/旧模板不变。候选不自动保存浏览器或安装，关闭前须另存；异常备份1.0新增可选container_business_copy（完整配对），普通10部分、有候选11部分，与编辑两部分并存可13部分；旧6/8/10/12兼容、5MiB只读上限保持，不自动导入。见[复制设计](container-business-copy-design.md)与[验收](container-business-copy-validation.md)。

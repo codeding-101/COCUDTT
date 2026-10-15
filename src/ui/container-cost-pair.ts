@@ -21,6 +21,12 @@ function renderEditor(controller:ContainerCostPairController):string {
  <p>编辑不自动确认来源；修改后旧确认失效。提交后须另行点击确认当前提案来源；示例不能直接确认，快照不代表专业认证。来源确认也不会消除费用重叠、报价包含及精度待办。</p>
  ${e.original?`<details><summary>编辑前完整选择（内部，仅核对）</summary><pre class="pair-original">${h(JSON.stringify(e.original,null,2))}</pre></details>`:''}</section>`;
 }
+function renderBusinessCopy(controller:ContainerCostPairController):string {
+ const p=controller.pair,c=controller.copyCandidate,disabled=controller.busy?' disabled':'',b=(action:string,label:string,extra='')=>`<button data-action="${action}"${disabled}${extra}>${h(label)}</button>`;
+ return `<section data-business-copy><h3>生成独立新业务副本</h3><p>“另存完整配对”仍是同一业务。这里生成新的本地资料编号，不识别真实订单；原业务保持。副本保留旧金额、费率、日期、箱号、范围、合同文字和扩展，须逐项复核；已知来源确认撤销，账单须重新绑定，保险及运输关联须重新确认。旧扩展和自由文字仍可能含旧编号。</p>
+ ${p?`<div class="bill-fields"><label>新业务名称（须区别原项目）<input data-pair-copy-field="name" maxlength="200" value="${h(controller.copyName)}"${disabled}></label><label><span><input type="checkbox" data-pair-copy-field="acknowledged"${controller.copyAcknowledged?' checked':''}${disabled}>我将旧金额、日期、箱号等作为待复核输入，重新核对来源和范围</span></label></div><div class="panel-actions">${b('pair-copy-prepare','生成新业务副本（原资料保留）',controller.editor||c||controller.liveIssues().length||!controller.copyAcknowledged?' disabled':'')}</div>`:''}
+ ${c?`<p data-copy-candidate>已冻结副本：${h(c.pair.project.name)} · ${h(c.pair.pair_id)} · 修订${c.pair.revision}。取自原配对 ${h(c.source_pair_id)} 修订${c.source_revision}；原资料后续修改不会进入此候选。仅在本页内存保留，关闭或刷新前须另存。再次另存保持同一新身份；另一个副本须先明确放弃现候选。</p><div class="panel-actions">${b('pair-copy-save','另存已生成的新业务副本')}${b('pair-copy-discard','放弃内存副本候选（保留原业务）')}</div>`:'<p>先保存原资料，提交或放弃未完成提案编辑，并核对当前配对修订，再生成副本。生成不会自动打开或写入费用。</p>'}</section>`;
+}
 export function renderContainerCostPairPanel(controller:ContainerCostPairController):string {
  const p=controller.pair,r=controller.review,issues=controller.liveIssues(),disabled=controller.busy?' disabled':'',b=(action:string,label:string,extra='')=>`<button data-action="${action}"${extra}${disabled}>${label}</button>`;
  return `<details class="panel container-cost-pair-panel" data-evidence-section="container-cost-pair"><summary><span class="panel-title">项目＋账单配对交接 · 提案只读</span></summary><div class="panel-body">
@@ -32,5 +38,6 @@ export function renderContainerCostPairPanel(controller:ContainerCostPairControl
  <div class="panel-actions">${p.bill.rows.filter(row=>!p.selection.intents.some(i=>i.line_id===row.input.line_id&&i.operation==='REFERENCE_EXISTING')).map(row=>b('pair-editor-start','编辑新建提案：'+row.input.line_id,` data-pair-line="${h(row.input.line_id)}"${issues.length||controller.editor?' disabled':''}`)).join('')}</div>
  <p>以下为已捕获修订的只读提案待办：${h(r?.proposal.issues.join('；')??'')}</p><table class="grid stackable"><thead><tr><th>账单行/目标</th><th>操作/原金额</th><th>待办</th><th>选择</th></tr></thead><tbody>${r?.proposal.rows.map(row=>`<tr><th>${h(row.line_id)} → ${h(row.cost_id)}</th><td data-label="操作/原金额">${row.operation==='CREATE_NEW'?'待新建（未写费用）':'已有只读引用'} · ${h(row.original_amount??'无金额')}（原币）</td><td data-label="待办">${h([...row.issues,...row.source_issues].join('；')||'本次未发现问题，仍未应用')}</td><td data-label="选择">${b('pair-remove-selection','移除选择（保留历史）',` data-pair-line="${h(row.line_id)}"`)}${row.operation==='CREATE_NEW'?b('pair-confirm-selection','确认当前提案来源（不应用费用）',` data-pair-line="${h(row.line_id)}"${issues.length||controller.editor?' disabled':''}`):''}</td></tr>`).join('')??''}</tbody></table>`:'<p>先录入或打开独立账单，再捕获一份配对快照；未确认条件及未知口径保留待办。</p>'}
  ${renderEditor(controller)}
+ ${renderBusinessCopy(controller)}
  </div></details>`;
 }
