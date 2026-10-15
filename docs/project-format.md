@@ -117,3 +117,8 @@ READ_ONLY_BOUNDARIES 0.1仅为独立函数的内部结果，绑定完整配对�
 ## 第四十三轮：独立核对记录0.1
 
 INTERNAL_CONTAINER_COST_REVIEW_PLAN 0.1绑定现有配对1.0完整业务basis，计划revision独立管理记录变化，来源键不包含记录自身确认或其他记录。严格JSON读写与第六份离线Schema，不是项目/配对入口支持的新容器；当前配对1.0继续拒绝1.1及review_plan活动字段，旧扩展不激活。UI/草稿/恢复/内部导出尚未接入，见[格式与验收](container-cost-review-plan-validation.md)。
+
+
+## 第四十四轮：配对1.1显式启用
+
+1.0读取/保存保持，明确启用后为1.1并增加必需review_plan；其basis绑定完整1.0业务投影，不包含记录自身。记录更新只提高计划revision和整体内容键，业务更新提高业务revision并撤销旧记录确认。第七份Schema同源生成；业务复制保留1.1但新计划/空记录。独立未提交编辑0.1仅浏览器草稿，恢复1.0可选container_review_editor及container_review_editor_draft_text，普通10部分/有编辑12部分，旧文件保持。见[完整验收](container-review-integration-validation.md)。

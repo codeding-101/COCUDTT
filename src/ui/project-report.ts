@@ -9,9 +9,11 @@ import type { SettlementPlan } from '../domain/settlement.js';
 import { renderSettlementSnapshot } from './settlement.js';
 import type {ContainerBillDraft} from '../domain/container-bill-draft.js';
 import {renderContainerBillSnapshot} from './container-bill.js';
+import type {ContainerCostPair} from '../domain/container-cost-pair.js';
+import {containerPairSnapshot} from '../data/container-pair-snapshot.js';
 
 /** 每次重新计算并生成独立HTML字符串，不保留可被后续编辑改变的引用。 */
-export function createProjectReport(project: ProjectFile, generatedAt = new Date().toISOString(), hypothesis?: SensitivityControls, settlement?: SettlementPlan,bill?:ContainerBillDraft): string {
+export function createProjectReport(project: ProjectFile, generatedAt = new Date().toISOString(), hypothesis?: SensitivityControls, settlement?: SettlementPlan,bill?:ContainerBillDraft,pair?:ContainerCostPair): string {
   const trade = toTrade(project);
   const template = toScenario(project);
   const input = { trade, taxProfile: project.tax_profile, fxBooks: project.fx_books,
@@ -59,6 +61,7 @@ ${output}
 ${hypothesisHtml}
 ${settlement ? renderSettlementSnapshot(project, settlement, result) : ''}
 ${bill?renderContainerBillSnapshot(bill,project):''}
+ ${pair?`<section class="panel"><div class="panel-body"><h2>内部配对与核对记录</h2><p>用户来源假设，不清除原待办或写费用；只包含已保存配对，未提交编辑不在报告。当前资料失配时须按历史记录核对。</p><pre class="pair-original">${escapeHtml(JSON.stringify(containerPairSnapshot(pair,project,bill),null,2))}</pre></div></section>`:''}
 <section class="panel"><div class="panel-body"><details class="snapshot"><summary>完整项目输入快照（可另存为项目JSON）</summary><pre>${escapeHtml(snapshot)}</pre></details></div></section>
 </main></body></html>`;
 }

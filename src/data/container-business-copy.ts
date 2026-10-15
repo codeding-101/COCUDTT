@@ -2,7 +2,7 @@ import type {ContainerCostPair} from '../domain/container-cost-pair.js';
 import type {CostItem} from '../domain/cost-item.js';
 import type {SourceEvidence} from '../domain/source-evidence.js';
 import {INCOTERMS} from '../domain/enums.js';
-import {createContainerCostPair,validateContainerCostPair,serializeContainerCostPair} from './container-cost-pair.js';
+import {createContainerCostPair,validateContainerCostPair,serializeContainerCostPair,enableContainerCostReview} from './container-cost-pair.js';
 
 function fail(reason:string):never {throw Error('CONTAINER_BUSINESS_COPY_INVALID:'+reason);}
 /** Known active source records only; unknown extensions must remain inert and unchanged. */
@@ -55,7 +55,8 @@ export function copyContainerBusiness(source:ContainerCostPair,expected_key:stri
   if(intent.operation==='REFERENCE_EXISTING')intent.cost_id=costId(intent.cost_id);
   else{intent.new_cost.cost_id=replacements.get(intent.new_cost.cost_id)!;cost(intent.new_cost);unconfirm(intent.evidence);}
  }
- const result=createContainerCostPair(project,bill,pair.selection);
+ let result=createContainerCostPair(project,bill,pair.selection);
+ if(source.version==='1.1'){result=enableContainerCostReview(result,result.content_key);reserve(result.review_plan!.plan_id);}
  reserve(result.pair_id);for(const entry of result.mapping.entries)reserve(entry.mapping_id);
  serializeContainerCostPair(result);return result;
 }
