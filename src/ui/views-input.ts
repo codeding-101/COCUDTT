@@ -31,6 +31,7 @@ import type { ShippingTerms } from '../domain/rule.js';
 import type { FxRow } from './fx-rows.js';
 import { dec, escapeHtml } from './format.js';
 import { renderSourceEditor } from './source-editor.js';
+import {fieldHelpButton,helpField} from './field-help.js';
 import { renderContractPanel } from './contracts-input.js';
 import { renderLogisticsPanel } from './logistics-input.js';
 import { CONTAINER_CHARGES } from '../domain/logistics.js';
@@ -221,7 +222,7 @@ function responsibilityTag(responsibility: Responsibility | undefined): string {
   return '<span class="tag muted">共担</span>';
 }
 
-function renderItemCard(item: CostItem, allItems: readonly CostItem[], enrichment: ItemEnrichment | undefined, term: Incoterm): string {
+function renderItemCard(item: CostItem, allItems: readonly CostItem[], enrichment: ItemEnrichment | undefined, term: Incoterm, baseCurrency: string): string {
   const needsConfirm = enrichment !== undefined && enrichment.responsibility === 'CONDITIONAL';
   const parent = allItems.find((candidate) => candidate.cost_id === item.contained_in_cost_id);
   return `<div class="item-card${needsConfirm ? ' needs-confirm' : ''}">
@@ -231,7 +232,7 @@ function renderItemCard(item: CostItem, allItems: readonly CostItem[], enrichmen
       ${item.source === 'DERIVED' ? '<span class="tag muted">系统推算</span>' : ''}
       ${item.applicable_incoterms !== undefined && !item.applicable_incoterms.includes(term) ? '<span class="tag muted">本方案未启用</span>' : ''}
       <span class="item-spacer"></span>
-      <span class="item-amount">${enrichment !== undefined ? dec(enrichment.base_amount) : '—'}<small>${escapeHtml(item.currency)}</small></span>
+      <span class="item-amount">${enrichment !== undefined ? dec(enrichment.base_amount) : '—'}<small>${escapeHtml(baseCurrency)}（核算）</small></span>
       ${responsibilityTag(enrichment?.responsibility)}
       <button class="ghost icon danger" data-action="remove-item" data-item="${escapeHtml(item.cost_id)}" title="删除该费用">✕</button>
     </div>
@@ -302,7 +303,7 @@ function renderAdditionalGoodsFields(project: ProjectFile): string { return `
       <label class="field">商品编码（税率表键）<input type="text" list="hs-code-options" value="${escapeHtml(project.goods.tax_key ?? '')}" data-path="goods.tax_key" /></label>
 `; }
 function renderQuoteRateFields(project: ProjectFile): string { return `
-      <label class="field">报价所用汇率类型<select data-path="quote.fx_type">${selectOptions(FX_TYPES, FX_TYPE_LABELS, project.quote.fx_type)}</select></label>
+      ${helpField(`<label class="field">报价所用汇率类型<select data-path="quote.fx_type">${selectOptions(FX_TYPES, FX_TYPE_LABELS, project.quote.fx_type)}</select></label>`,'fx','quote.fx_type')}
       <label class="field">报价汇率日期<input type="text" value="${escapeHtml(project.quote.fx_date ?? '')}" data-path="quote.fx_date" placeholder="YYYY-MM-DD" /></label>
 `; }
 function renderAdditionalQuoteFields(project: ProjectFile): string { return `
@@ -311,10 +312,10 @@ function renderAdditionalQuoteFields(project: ProjectFile): string { return `
         <option value="SELLER_PREMISES"${project.facts?.delivery_place === 'SELLER_PREMISES' ? ' selected' : ''}>卖方场所（装货完成）</option>
         <option value="OTHER"${project.facts?.delivery_place === 'OTHER' ? ' selected' : ''}>其他指定地点（准备卸货）</option>
       </select></label>
-      <label class="field">运输条款变形<select data-path="facts.shipping_terms">
+      ${helpField(`<label class="field">运输条款变形<select data-path="facts.shipping_terms">
         <option value=""${project.facts?.shipping_terms === undefined ? ' selected' : ''}>未指定</option>
         ${SHIPPING_TERMS.map((term) => `<option value="${term}"${project.facts?.shipping_terms === term ? ' selected' : ''}>${SHIPPING_TERM_LABELS[term]}</option>`).join('')}
-      </select></label>
+      </select></label>`,'variant','facts.shipping_terms')}
       <label class="field">出口清关代办<select data-path="facts.clearance_agent">
         <option value=""${project.facts?.clearance_agent === undefined ? ' selected' : ''}>未指定</option>
         <option value="SELLER_ACTS_FOR_BUYER"${project.facts?.clearance_agent === 'SELLER_ACTS_FOR_BUYER' ? ' selected' : ''}>卖方代买方办理</option>
@@ -341,7 +342,7 @@ export function renderFormsRow(project: ProjectFile, compact = false): string {
       ${compact?'':`<label class="field wide">商品名称<input type="text" value="${escapeHtml(project.goods.name)}" data-path="goods.name" /></label>`}
       <label class="field">数量<input type="text" inputmode="decimal" class="num" value="${escapeHtml(String(project.goods.quantity))}" data-path="goods.quantity" /></label>
       <label class="field">单位<input type="text" value="${escapeHtml(project.goods.unit)}" data-path="goods.unit" /></label>
-      <label class="field">${project.tax_profile.import.calculationMode === 'CN_GENERAL_TRADE' ? '货物净价（不含运保费）' : '成交货值'}<input type="text" inputmode="decimal" class="num" value="${escapeHtml(String(project.goods.trade_value.amount))}" data-path="goods.trade_value.amount" /></label>
+      ${helpField(`<label class="field">${project.tax_profile.import.calculationMode === 'CN_GENERAL_TRADE' ? '货物净价（不含运保费）' : '成交货值'}<input type="text" inputmode="decimal" class="num" value="${escapeHtml(String(project.goods.trade_value.amount))}" data-path="goods.trade_value.amount" /></label>`,'value','goods.trade_value.amount')}
       <label class="field">货值币种<input type="text" value="${escapeHtml(project.goods.trade_value.currency)}" data-path="goods.trade_value.currency" /></label>
       ${project.tax_profile.import.calculationMode === 'CN_GENERAL_TRADE' ? `<label class="field">货值录入口径<select data-path="goods.trade_value_basis">
         <option value="UNCONFIRMED"${project.goods.trade_value_basis === undefined || project.goods.trade_value_basis === 'UNCONFIRMED' ? ' selected' : ''}>尚未确认</option>
@@ -363,7 +364,7 @@ export function renderFormsRow(project: ProjectFile, compact = false): string {
 
   const quoteBody = `
     <div class="field-grid">
-      ${project.anchor.kind === 'ACTUAL_QUOTES' ? '' : `<label class="field">报价金额<input type="text" inputmode="decimal" class="num" value="${escapeHtml(project.quote.amount)}" data-path="quote.amount" /></label>
+      ${project.anchor.kind === 'ACTUAL_QUOTES' ? '' : `${helpField(`<label class="field">报价金额<input type="text" inputmode="decimal" class="num" value="${escapeHtml(project.quote.amount)}" data-path="quote.amount" /></label>`,'value','quote.amount')}
       <label class="field">报价币种<input type="text" value="${escapeHtml(project.quote.currency)}" data-path="quote.currency" /></label>
       ${compact?'':renderQuoteRateFields(project)}
 
@@ -374,12 +375,12 @@ export function renderFormsRow(project: ProjectFile, compact = false): string {
             `<option value="${incoterm}"${incoterm === project.incoterm ? ' selected' : ''}${isIncotermAvailable(project.carriage_mode, incoterm) ? '' : ' disabled'}>${incoterm}${isIncotermAvailable(project.carriage_mode, incoterm) ? '' : '（不适用当前运输方式）'}</option>`,
         ).join('')}
       </select></label>
-      <label class="field">比较基准（方案对比）<select data-path="anchor.kind">
+      ${helpField(`<label class="field">比较基准（方案对比）<select data-path="anchor.kind">
         ${!compact||project.anchor.kind==='ACTUAL_QUOTES'?`<option value="ACTUAL_QUOTES"${project.anchor.kind === 'ACTUAL_QUOTES' ? ' selected' : ''}>实际报价：各方案独立录入</option>`:''}
         <option value="FIXED_QUOTE"${project.anchor.kind === 'FIXED_QUOTE' ? ' selected' : ''}>A 固定报价金额</option>
         ${!compact||project.anchor.kind==='FIXED_MARKET_PRICE'?`<option value="FIXED_MARKET_PRICE"${project.anchor.kind === 'FIXED_MARKET_PRICE' ? ' selected' : ''}>B 固定买方总支付</option>`:''}
         <option value="FIXED_MARGIN_RATE"${project.anchor.kind === 'FIXED_MARGIN_RATE' ? ' selected' : ''}>C 固定目标利润率</option>
-      </select></label>
+      </select></label>`,'anchor','anchor.kind')}
       ${
         project.anchor.kind === 'FIXED_MARKET_PRICE'
           ? `<label class="field">买方总支付<input type="text" inputmode="decimal" class="num" value="${escapeHtml(String(project.anchor.buyer_total))}" data-path="anchor.buyer_total" /></label>
@@ -397,7 +398,7 @@ export function renderFormsRow(project: ProjectFile, compact = false): string {
     ${compact?'':renderAdditionalQuoteFields(project)}
     </div>
     <p class="hint block">固定报价会在各术语间沿用同一报价；固定利润率只对比反推报价，不改写当前录入报价。${compact?'更多比较基准请用专业模式。':''}当前运输方式（${CARRIAGE_MODE_LABELS[project.carriage_mode]}）下可用术语：${available.join(' / ')}</p>
-    ${compact?'<button data-action="show-cost-settings">录入主要运费与保险费 →</button>':''}`;
+    ${compact?'<button data-action="show-quick-costs">快捷修改主要运费与保险费 →</button>':''}`;
 
   return `
   ${!compact && project.tax_profile.import.calculationMode === 'CN_GENERAL_TRADE' ? `<section class="panel"><div class="panel-body"><h3 class="panel-heading">中国进口录入提示</h3>
@@ -418,10 +419,10 @@ export function renderImportTaxPanel(project: ProjectFile): string {
   const china = rules.calculationMode === 'CN_GENERAL_TRADE';
   const body = `
     <div class="field-grid">
-      <label class="field">测算口径<select data-path="tax_profile.import.calculationMode">
+      ${helpField(`<label class="field">测算口径<select data-path="tax_profile.import.calculationMode">
         <option value="LEGACY"${china ? '' : ' selected'}>原有交易成本测算</option>
         <option value="CN_GENERAL_TRADE"${china ? ' selected' : ''}>中国一般贸易进口（单商品一票）</option>
-      </select></label>
+      </select></label>`,'tax','tax_profile.import.calculationMode')}
       <label class="field">进口完成申报日期<input type="text" value="${escapeHtml(rules.declarationDate ?? '')}" data-path="tax_profile.import.declarationDate" placeholder="YYYY-MM-DD" /></label>
       <label class="field">兜底关税率<input type="text" inputmode="decimal" value="${escapeHtml(String(rules.dutyRates.fallback))}" data-path="tax_profile.import.dutyRates.fallback" /></label>
       <label class="field">兜底进口增值税率<input type="text" inputmode="decimal" value="${escapeHtml(String(rules.vatRate))}" data-path="tax_profile.import.vatRate" /></label>
@@ -510,7 +511,7 @@ export function renderItemsPanel(
 
   const body = `
     <div class="item-list">
-      ${project.items.map((item) => renderItemCard(item, project.items, enrichment.get(item.cost_id), project.incoterm)).join('')}
+      ${project.items.map((item) => renderItemCard(item, project.items, enrichment.get(item.cost_id), project.incoterm,project.base_currency)).join('')}
     </div>
     <div class="panel-actions">
       <select data-action="add-preset">
@@ -520,7 +521,7 @@ export function renderItemsPanel(
       <button data-action="add-custom">添加自定义费用</button>
       <span class="hint">共 ${project.items.length} 项${conditionalCount > 0 ? ` · ${conditionalCount} 项归属待确认` : ''}</span>
     </div>`;
-  return panel('items', '费用项', '归属不看名称，只看节点、类别、发生原因与术语', body);
+  return panel('items', '费用项', '归属不看名称，只看节点、类别、发生原因与术语', `<p>${fieldHelpButton('responsibility','items-responsibility','费用归属说明')} 费用归属与报价包含说明</p>`+body);
 }
 
 /** HS 税率表：与汇率行同样的行式编辑，编码逐级回退由引擎负责 */

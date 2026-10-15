@@ -764,3 +764,23 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
   .workspace-section-label p { margin-top: 4px; }
 }
 @media (prefers-reduced-motion: reduce) { .workspace * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
+
+.quick-cost-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
+.quick-cost-grid section { min-width: 0; padding: 14px; background: #f6f8f6; border: 1px solid #dfe7e1; border-radius: 6px; }
+.quick-cost-grid h3 { margin: 0 0 10px; font-size: 14px; color: #365a46; }
+.quick-cost-grid select, .quick-cost-grid input { width: 100%; min-width: 0; max-width: 100%; height: 36px; }
+.quick-cost-context, .quick-cost-message, .quick-cost-block { font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.quick-cost-message { border-left: 3px solid #649079; padding-left: 10px; }
+.quick-cost-block { color: #8a5a22; }
+.field-help-trigger { display: inline-grid; place-content: center; flex: 0 0 auto; width: 24px; height: 24px; padding: 0; border: 1px solid #b9c9bf; border-radius: 50%; font-size: 12px; color: #466b57; background: #fff; vertical-align: middle; }
+.field-help-wrap { position: relative; min-width: 0; }
+.workspace .field-help-wrap > label.field { display: grid; grid-template-columns: minmax(0,1fr) 26px; align-content: start; }
+.field-help-wrap > label.field > input, .field-help-wrap > label.field > select { grid-column: 1/-1; width: 100%; }
+.field-help-wrap > .field-help-trigger { position: absolute; top: -4px; right: 0; }
+#field-help-dialog { max-width: min(500px,calc(100vw - 28px)); max-height: min(600px,85dvh); overflow: auto; border: 1px solid #c7d5cc; border-radius: 10px; padding: 22px; color: #263e31; background: #fff; box-shadow: 0 15px 60px #142c2633; }
+#field-help-dialog::backdrop { background: #172f284d; }
+#field-help-dialog header { display: flex; gap: 15px; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #e1e8e3; padding-bottom: 14px; }
+#field-help-dialog h2 { margin: 0; font-size: 18px; }
+#field-help-dialog p { margin: 16px 0 0; font-size: 13px; line-height: 1.9; }
+#field-help-dialog button { height: 32px; flex-shrink: 0; }
+@media(max-width:700px){ .quick-cost-grid { grid-template-columns: minmax(0,1fr); gap: 12px; } #field-help-dialog { padding: 18px; } #field-help-dialog h2 { font-size: 16px; } }
