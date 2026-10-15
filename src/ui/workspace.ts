@@ -77,7 +77,8 @@ export function revealWorkspaceElement(element: HTMLElement): void {
   for(let parent=element.parentElement;parent;parent=parent.parentElement) if(parent.tagName==='DETAILS') (parent as HTMLDetailsElement).open=true;
   element.focus({preventScroll:true});element.scrollIntoView({block:'center',behavior:'smooth'});
 }
+export function workspaceIssueElement(issue:WorkspaceIssue):HTMLElement|null{return [...document.querySelectorAll<HTMLElement>('[data-path],[data-fx-field]')].find(el=>issue.path!==undefined?el.dataset.path===issue.path:issue.fxRow!==undefined&&el.dataset.fx===issue.fxRow&&el.dataset.fxField==='rate')??null;}
 export function focusWorkspaceIssue(issue: WorkspaceIssue): boolean {
-  const element=[...document.querySelectorAll<HTMLElement>('[data-path],[data-fx-field]')].find(el=>issue.path!==undefined?el.dataset.path===issue.path:issue.fxRow!==undefined&&el.dataset.fx===issue.fxRow&&el.dataset.fxField==='rate');
+  const element=workspaceIssueElement(issue);
   if(!element)return false;revealWorkspaceElement(element);return true;
 }

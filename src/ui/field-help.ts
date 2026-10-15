@@ -22,7 +22,7 @@ export class FieldHelpController{
  render():string{return `<dialog id="field-help-dialog" aria-labelledby="field-help-title" aria-describedby="field-help-content">${this.contents()}</dialog>`;}
  afterRender():void{
   const dialog=document.querySelector<HTMLDialogElement>('#field-help-dialog');if(!dialog)return;
-  if(!this.bound.has(dialog)){this.bound.add(dialog);dialog.addEventListener('close',()=>{if(!dialog.isConnected)return;const anchor=this.anchor;this.topic=null;this.anchor='';this.restore(anchor);});dialog.addEventListener('keydown',event=>{if(event.key!=='Tab')return;const buttons=[...dialog.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')];if(!buttons.length)return;const index=buttons.indexOf(document.activeElement as HTMLButtonElement);event.preventDefault();buttons[(index+(event.shiftKey?-1:1)+buttons.length)%buttons.length]?.focus();});}
+  if(!this.bound.has(dialog)){this.bound.add(dialog);dialog.addEventListener('close',()=>{if(!dialog.isConnected||dialog.open)return;const anchor=this.anchor;this.topic=null;this.anchor='';this.restore(anchor);});dialog.addEventListener('keydown',event=>{if(event.key!=='Tab')return;const buttons=[...dialog.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')];if(!buttons.length)return;const index=buttons.indexOf(document.activeElement as HTMLButtonElement);event.preventDefault();buttons[(index+(event.shiftKey?-1:1)+buttons.length)%buttons.length]?.focus();});}
   if(this.topic&&!dialog.open&&typeof dialog.showModal==='function')dialog.showModal();
  }
  open(topic:string|undefined,anchor:string|undefined):boolean{

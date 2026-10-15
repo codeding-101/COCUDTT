@@ -43,10 +43,11 @@ import { isEngineError } from '../engine/errors.js';
 import { booksToRows, rowsToBooks, type FxRow } from './fx-rows.js';
 import { escapeHtml } from './format.js';
 import { nextCostId, renderFormsRow, renderAdvancedTradeFields, renderFxPanel, renderHsPanel, renderImportTaxPanel, renderItemsPanel, type ItemEnrichment } from './views-input.js';
-import { loadWorkspaceMode, saveWorkspaceMode, renderModeSwitch, renderQuickStart, renderCalculationStatus, renderWorkspaceSummary, workspaceIssues, focusWorkspaceIssue, revealWorkspaceElement, type WorkspaceMode, type WorkspaceResult } from './workspace.js';
+import { loadWorkspaceMode, saveWorkspaceMode, renderModeSwitch, renderQuickStart, renderCalculationStatus, renderWorkspaceSummary, workspaceIssues, focusWorkspaceIssue, workspaceIssueElement, revealWorkspaceElement, type WorkspaceMode, type WorkspaceResult } from './workspace.js';
 import {renderCalculationLearning,focusLearningTarget} from './calculation-learning.js';
 import {QuickCostsController} from './quick-costs.js';
 import {FieldHelpController} from './field-help.js';
+import {MobileSettingsController} from './mobile-settings.js';
 import { createProjectReport } from './project-report.js';
 import { renderKpis, renderOutputColumn } from './views-output.js';
 import { newSensitivityControls, projectSensitivity, renderSensitivityPanel, sensitivityOptions } from './sensitivity.js';
@@ -62,7 +63,7 @@ import { inputFailure } from './ui-failure.js';
 import { showRecoveryView, clearRecoveryView, type FailureStage } from './recovery.js';
 import { inspectRecoveryText, RECOVERY_REVIEW_MAX_BYTES, type RecoveryReview } from '../data/recovery-review.js';
 import { renderRecoveryReviewPanel } from './recovery-review.js';
-import { inputSections, focusInputSection, type InputSection } from './input-location.js';
+import { inputSections, focusInputSection, inputSectionElement, type InputSection } from './input-location.js';
 import { renderRoundingExamplePanel, roundingExampleResource } from './rounding-example.js';
 import { renderPeriodExamplePanel, periodExampleResource } from './period-example.js';
 import {enableTransportCostLinks,invalidateTransportCostLinks} from '../data/transport-cost-links.js';
@@ -156,6 +157,8 @@ let calculatedAt = '';
 let pendingCalculation = false;
 const quickCosts=new QuickCostsController();
 const fieldHelp=new FieldHelpController();
+const mobileSettings=new MobileSettingsController();
+let editedControl:HTMLElement|null=null;
 
 function initialState(): AppState {
   const draft = loadDraft();
@@ -229,6 +232,7 @@ async function writeBillFile(name:string,text:string,mime:string):Promise<'SAVED
 
 function showFatalFailure(stage: FailureStage): void {
   fieldHelp.dismiss(false);
+  mobileSettings.dismiss(false);editedControl=null;
   projectReadEpoch++;
   recoveryStage = stage;
   containerBill.cancelReads();
@@ -1302,6 +1306,7 @@ function renderApp(): void {
   const app = document.querySelector<HTMLDivElement>('#app');
   if (app === null) return;
   const focused = focusKeyOf(document.activeElement ?? document.body);
+  const mobileReset=mobileSettings.beforeRender(state.project);
   const saveState = saveStateText();
   const workspace: WorkspaceResult = {project:currentProject(),result:state.result,comparison:state.comparison,error:state.error,
     issues:state.error===null?[]:workspaceIssues(currentProject(),state.fxRows),calculatedAt,mode:workspaceMode};
@@ -1328,6 +1333,7 @@ function renderApp(): void {
       <div class="workspace-file-state"><span class="${saveState.className}" role="status" aria-live="polite">${escapeHtml(saveState.text)}</span><span>仅供学习与内部测算。数据仅在本机浏览器；清除存储会丢失草稿，请另存项目 JSON。</span></div>
       ${renderQuickStart(state.project,workspaceNote)}
       ${renderFormsRow(state.project,workspaceMode==='beginner')}
+      <div class="mobile-settings-entry"><button type="button" data-action="show-mobile-settings">高级设置 · 费用、汇率与税务 →</button></div>
       ${quickCosts.render(state.project,state.result)}
       ${renderWorkspaceSummary(workspace)}
       ${renderCalculationLearning(state.result,state.error)}
@@ -1376,6 +1382,7 @@ function renderApp(): void {
       </footer>
     </main>
     ${fieldHelp.render()}
+    ${mobileSettings.render(saveState.text,state.status)}
     </div>
   `;
 
@@ -1386,7 +1393,8 @@ function renderApp(): void {
   document.querySelectorAll<HTMLDetailsElement>('details[data-evidence-section]').forEach((element) => {
     if (element.dataset.evidenceSection !== undefined && expandedEvidenceSections.has(element.dataset.evidenceSection)) element.open = true;
   });
-  restoreFocus(focused);
+  mobileSettings.afterRender();
+  if(!mobileReset)restoreFocus(focused);
   fieldHelp.afterRender();
 }
 
@@ -1440,9 +1448,16 @@ function bind(): void {
 
   const calculationInput = (target: HTMLInputElement): boolean => target.type!=='file' &&
     (target.dataset.quickCostField==='amount'||['path','itemField','fxField','hsField','contractField','logisticsField'].some(key=>target.dataset[key]!==undefined));
-  const commitsInput=(action:string):boolean=>['save','toggle-file-menu','show-field-help','show-quick-costs','show-cost-settings','show-full-results','show-calculation-learning','learning-target'].includes(action)||action.startsWith('mode-');
+  const commitsInput=(action:string):boolean=>['save','open','toggle-file-menu','show-field-help','show-quick-costs','show-cost-settings','show-full-results','show-calculation-learning','learning-target','show-mobile-settings','close-mobile-settings','locate-workspace-issue','locate-input'].includes(action)||action.startsWith('mode-');
+  const flushInput=():void=>{
+    const active=document.activeElement;
+    if(active instanceof HTMLInputElement&&(pendingCalculation&&calculationInput(active)||editedControl===active))active.dispatchEvent(new Event('change',{bubbles:true}));
+  };
+  mobileSettings.onReturn=()=>runUi('INTERACTION',()=>{flushInput();if(!pendingCalculation)mobileSettings.dismiss();});
+  if(typeof window.addEventListener==='function'&&!boundEvents.has('mobile-resize')){window.addEventListener('resize',()=>runUi('INTERACTION',()=>mobileSettings.resize()));boundEvents.add('mobile-resize');}
   listen('input',event=>{
-    const target=event.target;if(!(target instanceof HTMLInputElement)||!calculationInput(target))return;
+    const target=event.target;if(target instanceof HTMLInputElement&&target.type!=='file')editedControl=target;
+    if(!(target instanceof HTMLInputElement)||!calculationInput(target))return;
     pendingCalculation=true;
     const workspace=document.querySelector<HTMLElement>('[data-workspace-mode]');if(workspace)workspace.dataset.calculationPending='true';
     const status=document.querySelector<HTMLElement>('[data-calculation-status]');if(status)status.textContent='输入已变更 · 待更新';
@@ -1451,7 +1466,7 @@ function bind(): void {
   // Keep the active input until a toolbar click can commit it. Otherwise blur
   // replaces the clicked DOM node before mouseup, swallowing the first click.
   listen('mousedown',event=>{
-    const target=event.target;if(!pendingCalculation||!(target instanceof HTMLElement)||(event as MouseEvent).button!==0)return;
+    const target=event.target;if(!(pendingCalculation||editedControl===document.activeElement)||!(target instanceof HTMLElement)||(event as MouseEvent).button!==0)return;
     const action=target.dataset.action;if(action&&commitsInput(action))event.preventDefault();
   });
   listen('keydown',event=>{
@@ -1493,6 +1508,7 @@ function bind(): void {
 
   listen('change', (event) => {
     const target = event.target;
+    if(editedControl===target)editedControl=null;
     if(target instanceof HTMLInputElement&&target.id==='pair-file-input'){const file=target.files?.[0];if(file)void containerPair.open(file);return;}
     containerPair.cancelReads();
     if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement)&&target.dataset.quickCostField!==undefined){
@@ -1644,23 +1660,27 @@ function bind(): void {
     if (!(target instanceof HTMLElement)) return;
     const action = target.dataset.action;
     if (action === undefined) return;
-    if(pendingCalculation&&commitsInput(action)){
-      const active=document.activeElement;
-      if(active instanceof HTMLInputElement&&calculationInput(active))active.dispatchEvent(new Event('change',{bubbles:true}));
-    }
+    if(['show-mobile-settings','show-cost-settings','locate-workspace-issue','locate-input'].includes(action))mobileSettings.remember(target);
+    if(commitsInput(action))flushInput();
     if(pendingCalculation&&(action==='save'||action.startsWith('export-')||action==='preview-customer-quote'||action.startsWith('mode-')||action==='show-calculation-learning'||action==='learning-target'))return;
     if(!action.startsWith('pair-'))containerPair.cancelReads();
     switch (action) {
+      case 'show-mobile-settings':
+        if(!mobileSettings.open(target)){expandedEvidenceSections.add('advanced-settings');collapsedSections.delete('advanced-settings');render();focusInputSection('items');}break;
+      case 'close-mobile-settings':
+        if(!pendingCalculation)mobileSettings.dismiss();break;
       case 'show-calculation-learning': {
         expandedEvidenceSections.add('calculation-learning');render();
         const summary=document.querySelector<HTMLElement>('[data-evidence-section="calculation-learning"] > summary');if(summary)revealWorkspaceElement(summary);break;
       }
       case 'learning-target':
+        mobileSettings.dismiss(false);
         if(state.error===null)focusLearningTarget(state.result,target.dataset.learningKind,target.dataset.learningId);break;
       case 'show-field-help':
         event.preventDefault();fieldHelp.open(target.dataset.helpTopic,target.dataset.helpAnchor);break;
       case 'close-field-help':fieldHelp.dismiss();break;
       case 'show-quick-costs': {
+        mobileSettings.dismiss(false);
         expandedEvidenceSections.add('quick-costs');render();
         const select=document.querySelector<HTMLElement>('[data-quick-cost-field="choose"]');if(select)revealWorkspaceElement(select);break;
       }
@@ -1670,6 +1690,7 @@ function bind(): void {
         render();break;
       case 'mode-beginner':
       case 'mode-professional':
+        mobileSettings.dismiss(false);
         workspaceMode=action==='mode-professional'?'professional':'beginner';
         for(const section of ['advanced-settings','full-results','workspace-help']) {
           if(workspaceMode==='professional'){expandedEvidenceSections.add(section);collapsedSections.delete(section);}
@@ -1678,16 +1699,17 @@ function bind(): void {
         if(!saveWorkspaceMode(workspaceMode)){state.status='本次模式切换有效；浏览器存储不可用，刷新后会回到新手模式';state.statusLevel='warn';}
         render();break;
       case 'show-full-results': {
+        mobileSettings.dismiss(false);
         expandedEvidenceSections.add('full-results');render();
         const summary=document.querySelector<HTMLElement>('[data-evidence-section="full-results"] > summary');if(summary)revealWorkspaceElement(summary);
         break;
       }
       case 'show-cost-settings':
-        expandedEvidenceSections.add('advanced-settings');collapsedSections.delete('advanced-settings');render();focusInputSection('items');break;
+        expandedEvidenceSections.add('advanced-settings');collapsedSections.delete('advanced-settings');render();mobileSettings.open(target);focusInputSection('items');break;
       case 'locate-workspace-issue': {
         const index=Number(target.dataset.issueIndex);
         const issue=state.error!==null&&Number.isInteger(index)?workspaceIssues(currentProject(),state.fxRows)[index]:undefined;
-        if(issue)focusWorkspaceIssue(issue);break;
+        if(issue){mobileSettings.route(workspaceIssueElement(issue),target);focusWorkspaceIssue(issue);}break;
       }
       case 'pair-review-example':
       case 'pair-review-enable':
@@ -1742,7 +1764,7 @@ function bind(): void {
       case 'locate-input': {
         const section = target.dataset.inputSection;
         const valid = inputLocations.find(key => key === section);
-        if (valid && focusInputSection(valid)) collapsedSections.delete(valid);
+        if(valid){mobileSettings.route(inputSectionElement(valid),target);if(focusInputSection(valid))collapsedSections.delete(valid);}
         break;
       }
       case 'settlement-enable-funding':

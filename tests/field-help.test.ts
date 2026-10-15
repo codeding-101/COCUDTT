@@ -2,6 +2,9 @@ import{describe,it,expect,vi,afterEach}from'vitest';
 import{FIELD_HELP,FieldHelpController,fieldHelpButton}from'../src/ui/field-help';
 describe('field help is local UI state and preserves modal focus',()=>{
  afterEach(()=>vi.unstubAllGlobals());
+ it('queued close from a previous opening cannot clear a reopened topic',()=>{
+  let onClose=()=>{};const dialog={innerHTML:'',isConnected:true,open:false,showModal:()=>{dialog.open=true},close:()=>{dialog.open=false},addEventListener:(name:string,fn:()=>void)=>{if(name==='close')onClose=fn}};vi.stubGlobal('document',{querySelector:()=>dialog,querySelectorAll:()=>[]});const c=new FieldHelpController();c.open('value','first');c.dismiss();c.open('anchor','second');onClose();expect(dialog.open).toBe(true);expect(c.render()).toContain('固定目标毛利率');
+ });
  it('all topics and return identifiers escape markup without reading business data',()=>{expect(Object.keys(FIELD_HELP)).toHaveLength(7);const html=fieldHelpButton('value','"><script>bad</script>','<img>');expect(html).not.toContain('<script>');expect(html).not.toContain('<img>');expect(html).toContain('&lt;script&gt;');});
  it('unknown topics and unavailable dialog never execute arbitrary content',()=>{const c=new FieldHelpController();vi.stubGlobal('document',{querySelector:()=>null});expect(c.open('__proto__','anchor')).toBe(false);expect(c.open('value','anchor')).toBe(false);expect(c.render()).not.toContain('undefined');});
  it('open, Escape-style close, rerender and fatal dismiss retain only a known topic',()=>{
