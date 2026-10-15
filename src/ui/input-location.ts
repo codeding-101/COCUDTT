@@ -16,8 +16,9 @@ export function inputSections(error: unknown): InputSection[] {
   if (code.startsWith('PRICING_') || ['GRAPH_CYCLE','COST_ITEM_NOT_FOUND','DUPLICATE_COST_ID'].includes(code)) return ['items'];
   return [];
 }
+export function inputSectionElement(section:InputSection):HTMLDetailsElement|null{return [...document.querySelectorAll<HTMLDetailsElement>('details[data-section]')].find(el=>el.dataset.section===section)??null;}
 export function focusInputSection(section: InputSection): boolean {
-  const panel = [...document.querySelectorAll<HTMLDetailsElement>('details[data-section]')].find(el => el.dataset.section === section);
+  const panel = inputSectionElement(section);
   if (!panel) return false;
   for(let parent=panel.parentElement;parent;parent=parent.parentElement)if(parent.tagName==='DETAILS')(parent as HTMLDetailsElement).open=true;
   panel.open = true;
