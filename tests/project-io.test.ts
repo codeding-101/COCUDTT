@@ -68,6 +68,18 @@ describe('打开、保存项目的失败处理', () => {
     const app = await import('../src/ui/app');
     app.start();
   }
+  it('默认新手视图；切换只保存界面偏好，不改草稿、采购成本或当前金额',async()=>{
+    await start();expect(html).toContain('data-workspace-mode="beginner"');change('name','MODE_BUSINESS_45');const before=storage.get(key);
+    action('mode-professional');expect(html).toContain('data-workspace-mode="professional"');expect(storage.get(key)).toBe(before);expect(html).toContain('80,000.00');expect(storage.get('trade-cost-engine:workspace-mode-v1')).toBe('professional');
+    action('mode-beginner');expect(storage.get(key)).toBe(before);expect(html).toContain('data-workspace-mode="beginner"');
+  });
+  it('已保存的专业模式偏好可恢复，未知值不启用专业模式',async()=>{
+    storage.set('trade-cost-engine:workspace-mode-v1','professional');await start();expect(html).toContain('data-workspace-mode="professional"');
+  });
+  it('模式偏好写入失败不进入故障页，也不丢失当前项目',async()=>{
+    await start();const before=storage.get(key);vi.stubGlobal('localStorage',{getItem:(name:string)=>storage.get(name)??null,setItem:()=>{throw Error('PRIVATE_MODE_WRITE45')}});action('mode-professional');
+    expect(appRoot.hidden).toBe(false);expect(html).toContain('data-workspace-mode="professional"');expect(html).toContain('本次模式切换有效');expect(html).not.toContain('PRIVATE_MODE_WRITE45');expect(storage.get(key)).toBe(before);
+  });
   function open(text: () => Promise<string>, name = 'test.json') {
     const input = new InputStub();
     input.files = [{ name, text }];
