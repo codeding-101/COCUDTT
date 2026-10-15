@@ -4,6 +4,9 @@ import type {ContainerCostPair} from '../domain/container-cost-pair.js';
 import type {ContainerCostProposalInput} from '../domain/container-cost-proposal.js';
 import {createContainerCostPair,updateContainerCostPair,parseContainerCostPair,serializeContainerCostPair,reviewContainerCostPair,CONTAINER_COST_PAIR_BYTES} from '../data/container-cost-pair.js';
 import {emptyEvidence,evidenceKey} from '../domain/source-evidence.js';
+import {confirmContainerCostIntent} from '../engine/container-cost-proposal.js';
+import {reviewContainerBillDraft} from '../engine/container-bill-draft.js';
+import {COST_EDITOR_FIELDS,COST_EDITOR_STORAGE_KEY,validateContainerCostEditor,startContainerCostEditor,copyContainerCostFacts,buildContainerCostIntent,containerCostEditorIsCurrent,type ContainerCostEditor} from '../data/container-cost-editor.js';
 export const PAIR_STORAGE_KEY='trade-cost-engine:container-cost-pair-v1';
 type PairReview=ReturnType<typeof reviewContainerCostPair>;
 interface Environment {
@@ -19,6 +22,7 @@ export function pairLiveIssues(pair:ContainerCostPair,project:ProjectFile,bill:C
 /** Own draft and read epoch. Opening commits a validated pair before any recompute/render. */
 export class ContainerCostPairController {
  pair:ContainerCostPair|null=null;review:PairReview|null=null;busy=false;message='尚无配对快照；先另存自己的资料，再捕获或打开配对文件。';
+ editor:ContainerCostEditor|null=null;
  private epoch=0;private loaded=false;
  constructor(private readonly env:Environment){}
  cancelReads():void {this.epoch++;if(this.message.startsWith('正在读取'))this.message='配对读取已取消，当前资料保留。';}
@@ -26,6 +30,17 @@ export class ContainerCostPairController {
  loadLocal():void {
   if(this.loaded)return;this.loaded=true;
   try{const raw=localStorage.getItem(PAIR_STORAGE_KEY);if(raw!==null&&raw!=='null'){try{const pair=parseContainerCostPair(raw),review=reviewContainerCostPair(pair);this.pair=pair;this.review=review;this.message='已恢复独立配对快照，仅核对当前资料；未自动替换项目或账单，请另存文件。';}catch{this.message='配对草稿无法读取，原文未覆盖；请备份后再捕获或打开资料。';}}}catch{this.message='配对自动草稿不可用，请另存配对文件。';}
+  try{const raw=localStorage.getItem(COST_EDITOR_STORAGE_KEY);if(raw!==null&&raw!=='null'){const editor:unknown=JSON.parse(raw);validateContainerCostEditor(editor);this.editor=editor;this.message+=' 已恢复未提交编辑，仍绑定原修订；请核对后提交或明确放弃。';}}catch{this.message+=' 编辑草稿无法读取，原文未覆盖；新建编辑前请备份。';}
+ }
+ private persistEditor():void {
+  try{localStorage.setItem(COST_EDITOR_STORAGE_KEY,JSON.stringify(this.editor));}catch{this.message+=' 编辑自动草稿保存失败，内存保留，请勿刷新。';}
+ }
+ edit(dataset:DOMStringMap,value:string):void {
+  if(!this.editor||this.busy||this.env.blocked()||!COST_EDITOR_FIELDS.some(k=>k===dataset.pairEditorField))return;
+  this.cancelReads();const key=dataset.pairEditorField as keyof ContainerCostEditor['fields'];
+  // Bound before changing memory; no truncated replacement for a user's original text.
+  if(Array.from(value).length>4000){this.message='编辑字段超过4000字符，原值保留。';this.env.render();return;}
+  this.editor.fields[key]=value;this.message='编辑尚未提交；提交后另存配对，费用仍未应用。修改后的旧来源确认不能沿用。';this.persistEditor();this.env.render();
  }
  private set(pair:ContainerCostPair|null,review:PairReview|null,message:string):void {
   this.epoch++;this.pair=pair;this.review=review;this.message=message;
@@ -34,6 +49,33 @@ export class ContainerCostPairController {
  action(action:string,dataset:DOMStringMap={}):void {
   if(this.busy||this.env.blocked())return;
   try{
+   if(action==='pair-editor-discard'){this.editor=null;this.message='已明确放弃未提交编辑；已保存选择保留。';this.cancelReads();this.persistEditor();this.env.render();return;}
+   if(this.editor&&!['pair-editor-facts','pair-editor-submit'].includes(action))throw Error('editor_pending');
+   if(action==='pair-editor-start'){
+    if(!this.pair||this.liveIssues().length||!dataset.pairLine)throw Error('editor_context');
+    const editor=startContainerCostEditor(this.pair,dataset.pairLine);validateContainerCostEditor(editor);this.editor=editor;this.cancelReads();this.message='已开始未提交编辑；请明确取用账单事实并选择全部业务条件，不会生成实际费用。';this.persistEditor();this.env.render();return;
+   }
+   if(action==='pair-editor-facts'||action==='pair-editor-submit'){
+    if(!this.pair||!this.editor||this.liveIssues().length||!containerCostEditorIsCurrent(this.editor,this.pair))throw Error('editor_stale');
+    if(action==='pair-editor-facts'){
+     const amount=reviewContainerBillDraft(this.pair.bill,this.pair.project).rows.find(r=>r.line_id===this.editor!.line_id)?.calculation?.amount??null;
+     this.editor=copyContainerCostFacts(this.editor,this.pair,amount);this.cancelReads();this.message='已取用原币账单事实，未推定承担、税务、汇率类型或确认来源。';this.persistEditor();this.env.render();return;
+    }
+    const intent=buildContainerCostIntent(this.editor,this.pair),selection=structuredClone(this.pair.selection);
+    const index=selection.intents.findIndex(i=>i.line_id===intent.line_id);
+    if(index<0)selection.intents.push(intent);else{if(selection.intents[index]!.operation!=='CREATE_NEW')throw Error('reference');selection.intents[index]=intent;}
+    const pair=updateContainerCostPair(this.pair,this.pair.content_key,this.pair.project,this.pair.bill,selection),review=reviewContainerCostPair(pair);
+    this.set(pair,review,'已提交完整提案，请查看待办并另行确认来源；未新增项目费用。');this.editor=null;this.persistEditor();this.env.render();return;
+   }
+   if(action==='pair-confirm-selection'){
+    if(!this.pair||this.liveIssues().length)throw Error('confirm_context');
+    const selection=structuredClone(this.pair.selection),intent=selection.intents.find(i=>i.line_id===dataset.pairLine);
+    if(!intent||intent.operation!=='CREATE_NEW')throw Error('confirm_intent');
+    const confirmed=confirmContainerCostIntent(this.pair.project,this.pair.bill,intent,intent.evidence??emptyEvidence());
+    selection.intents[selection.intents.indexOf(intent)]=confirmed;
+    const pair=updateContainerCostPair(this.pair,this.pair.content_key,this.pair.project,this.pair.bill,selection);
+    this.set(pair,reviewContainerCostPair(pair),'已记录当前完整提案的用户来源确认；业务待办仍保留，未应用费用或进行专业认证。');this.env.render();return;
+   }
    if(action==='pair-clear'){this.set(null,null,'配对快照已清空，项目与账单保留；之前文件请另行保管。');this.env.render();return;}
    if(action==='pair-save'){if(!this.pair||this.liveIssues().length)throw Error('mismatch');this.cancelReads();void this.save(serializeContainerCostPair(this.pair));return;}
    if(action==='pair-remove-selection'){
@@ -51,10 +93,12 @@ export class ContainerCostPairController {
    }else if(action!=='pair-capture')return;
    const pair=action==='pair-new'||!this.pair?createContainerCostPair(project,bill,selection):updateContainerCostPair(this.pair,this.pair.content_key,project,bill,selection);
    this.set(pair,reviewContainerCostPair(pair),'已捕获当前完整修订，提案只读；来源及包含待办保留，费用未写入。');this.env.render();
-  }catch{this.message='操作未完成，资料保留：请核对汇率行、账单、重复/悬空选择、删除目标编号及失配，捕获当前修订后再另存。 '+(this.env.inputIssues?.()??[]).join('；');this.env.render();}
+  }catch{this.message='操作未完成，资料保留：'+(this.editor?'存在未提交编辑，请补齐明确选择并核对原修订；若失配请先放弃编辑、捕获当前修订后重开。':'')+'请核对来源/示例状态、汇率行、账单、重复/悬空选择、删除目标编号及失配。 '+(this.env.inputIssues?.()??[]).join('；');this.env.render();}
  }
  async open(file:{text:()=>Promise<string>;size?:number}):Promise<void> {
-  if(this.busy||this.env.blocked())return;this.env.cancelOtherReads();const epoch=++this.epoch;this.message='正在读取完整配对资料；期间修改或其他读取会取消载入。';this.env.render();
+  if(this.busy||this.env.blocked())return;
+  if(this.editor){this.message='请先提交或明确放弃未提交编辑，再打开配对文件；当前资料保留。';this.env.render();return;}
+  this.env.cancelOtherReads();const epoch=++this.epoch;this.message='正在读取完整配对资料；期间修改或其他读取会取消载入。';this.env.render();
   if(epoch!==this.epoch||this.env.blocked())return;
   let installed=false;
   try{

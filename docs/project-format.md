@@ -94,3 +94,7 @@ INTERNAL_CONTAINER_COST_PAIR 1.0收纳项目0.8/0.9、账单1.0、提案选择0.
 ## 第三十八轮：配对交接入口及可选恢复资料
 
 配对面板使用现有1.0完整打开/另存，项目0.8/0.9和账单1.0不升级。配对快照独立存储，不自动覆盖其他草稿；原簿未编辑时用可核验汇率行键恢复，未完成/重复FX编辑行不可静默转存。异常备份1.0新增可选container_cost_pair及container_cost_pair_draft_text两部分，旧6/8部分保持；新备份10部分，5MiB只读检查上限保持。完整配对可能10MiB，大恢复文件人工核对；不作为项目打开。见[验证](container-cost-pair-ui-validation.md)。
+
+## 第三十九轮：独立编辑草稿0.1
+
+INTERNAL_CONTAINER_COST_EDITOR 0.1仅是浏览器未提交表单：绑定pair_id/revision/pair_key/line_id，original保留完整原选择或null，fields为严格白名单的字符串。字段可以空白，不冒充CostItem；构建完整选择时再次验证项目/账单/选择并沿用配对1.0。独立浏览器键不自动提交，不是项目字段或可导入项目/配对的文件，五份Schema和旧模板保持。异常备份1.0可选container_cost_editor及container_cost_editor_draft_text，普通仍10部分，有两项时12部分；旧6/8/10兼容，5MiB只读上限保持，不自动恢复。见[设计](container-cost-editor-design.md)与[验证](container-cost-editor-validation.md)。

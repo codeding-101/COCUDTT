@@ -69,6 +69,7 @@ import { renderFundingExamplePanel, fundingExampleResource } from './funding-exa
 import {ContainerBillController,BILL_STORAGE_KEY} from './container-bill-controller.js';
 import {renderContainerBillPanel} from './container-bill.js';
 import {ContainerCostPairController,PAIR_STORAGE_KEY} from './container-cost-pair-controller.js';
+import {COST_EDITOR_STORAGE_KEY} from '../data/container-cost-editor.js';
 import {renderContainerCostPairPanel} from './container-cost-pair.js';
 import type {ContainerCostPair} from '../domain/container-cost-pair.js';
 import {serializeContainerBillDraft} from '../data/container-bill-file.js';
@@ -244,15 +245,19 @@ function backupRecovery(): void {
   let draft: string | null = null;
   let billDraftText:string|null=null;
   let pairDraftText:string|null=null;
+  let editorDraftText:string|null=null;
   try { draft = localStorage.getItem(DRAFT_KEY); } catch { /* Memory backup remains available. */ }
   try{billDraftText=localStorage.getItem(BILL_STORAGE_KEY);}catch{/* Raw memory bill remains available. */}
   try{pairDraftText=localStorage.getItem(PAIR_STORAGE_KEY);}catch{/* Raw pair remains in memory. */}
+  try{editorDraftText=localStorage.getItem(COST_EDITOR_STORAGE_KEY);}catch{/* Raw editor remains in memory. */}
   try {
     // Raw inputs, including uncommitted FX rows, without running any calculation/validator.
     const text = JSON.stringify({kind:'INTERNAL_RECOVERY_SNAPSHOT',version:'1.0',stage:recoveryStage,
       project:stateInitialized ? state.project : null,fx_rows:stateInitialized ? state.fxRows : null,
       settlement_plan:settlementPlan,sensitivity:sensitivityControls,customer_fields:customerFields,
-      browser_draft_text:draft,container_bill:containerBill.draft,container_bill_draft_text:billDraftText,container_cost_pair:containerPair.pair,container_cost_pair_draft_text:pairDraftText},null,2) + '\n';
+      browser_draft_text:draft,container_bill:containerBill.draft,container_bill_draft_text:billDraftText,container_cost_pair:containerPair.pair,container_cost_pair_draft_text:pairDraftText,
+      ...(containerPair.editor?{container_cost_editor:containerPair.editor}:{}),
+      ...(editorDraftText&&editorDraftText!=='null'?{container_cost_editor_draft_text:editorDraftText}:{})},null,2) + '\n';
     downloadText('internal-recovery-snapshot.json',text);
     showRecoveryView(recoveryStage,{retry:retryInterface,backup:backupRecovery},'已发起内部恢复备份下载，请确认文件已保存；原项目与草稿未改写');
   } catch {
@@ -442,6 +447,7 @@ function enrichmentMap(): Map<string, ItemEnrichment> {
 
 function focusKeyOf(element: Element): string | null {
   const dataset = (element as HTMLElement).dataset;
+  if(dataset.pairEditorField!==undefined)return `pair-editor:${dataset.pairEditorField}`;
   if(dataset.billField!==undefined)return `bill:${dataset.billRow??''}:${dataset.billTier??''}:${dataset.billField}`;
   if (dataset.sensitivityField !== undefined) return `sensitivity:${dataset.sensitivityField}`;
   if (dataset.customerField !== undefined) return `customer:${dataset.customerField}`;
@@ -462,7 +468,7 @@ function focusKeyOf(element: Element): string | null {
 
 function restoreFocus(key: string | null): void {
   if (key === null) return;
-  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner],[data-contract-cost],[data-logistics-kind],[data-sensitivity-field],[data-customer-field],[data-bill-field]')).find(
+  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner],[data-contract-cost],[data-logistics-kind],[data-sensitivity-field],[data-customer-field],[data-bill-field],[data-pair-editor-field]')).find(
     (candidate) => focusKeyOf(candidate) === key,
   );
   element?.focus();
@@ -1417,6 +1423,7 @@ function bind(): void {
     const target = event.target;
     if(target instanceof HTMLInputElement&&target.id==='pair-file-input'){const file=target.files?.[0];if(file)void containerPair.open(file);return;}
     containerPair.cancelReads();
+    if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement||target instanceof HTMLTextAreaElement)&&target.dataset.pairEditorField!==undefined){containerPair.edit(target.dataset,target.value);return;}
     if(target instanceof HTMLInputElement&&target.id==='bill-file-input'){
      const file=target.files?.[0];if(file)void containerBill.open(file);return;
     }
@@ -1560,6 +1567,11 @@ function bind(): void {
     if (action === undefined) return;
     if(!action.startsWith('pair-'))containerPair.cancelReads();
     switch (action) {
+      case 'pair-editor-start':
+      case 'pair-editor-facts':
+      case 'pair-editor-submit':
+      case 'pair-editor-discard':
+      case 'pair-confirm-selection':
       case 'pair-new':
       case 'pair-capture':
       case 'pair-add-references':
