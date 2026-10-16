@@ -106,7 +106,8 @@ describe('计划格式1.1与内部快照的安全边界',()=>{
   it('内部Excel保留原6张表，付款/假设追加，所有数据是生成时脱离引用的快照',()=>{
     const {plan,project}=fixture(),before=JSON.stringify({plan,project});
     const snapshot=internalWorkbookSnapshot(project,'2026-10-13T00:00:00Z',undefined,plan);
-    expect(snapshot.sheets.slice(0,6)).toEqual(internalWorkbook(project,'2026-10-13T00:00:00Z').sheets);expect(snapshot.sheets.slice(6).map(s=>s.name)).toEqual(['付款计划','资金占用假设']);
+    expect(snapshot.sheets.slice(0,6)).toEqual(internalWorkbook(project,'2026-10-13T00:00:00Z',{settlement:true}).sheets);expect(snapshot.sheets.slice(6).map(s=>s.name)).toEqual(['付款计划','资金占用假设']);
+    expect(JSON.stringify(snapshot.sheets[0])).toContain('独立资金/收付假设，不自动写回利润');
     const raw=JSON.stringify(snapshot);expect(raw).toContain('PRIVATE_FUNDING_736');expect(raw).toContain('12000 × 6');expect(JSON.stringify({plan,project})).toBe(before);
     plan.funding!.principal='99999';plan.notes='AFTER_CHANGE';expect(JSON.stringify(snapshot)).toBe(raw);
   });

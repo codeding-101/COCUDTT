@@ -11,6 +11,8 @@ import type {ContainerBillDraft} from '../domain/container-bill-draft.js';
 import {renderContainerBillSnapshot} from './container-bill.js';
 import type {ContainerCostPair} from '../domain/container-cost-pair.js';
 import {containerPairSnapshot} from '../data/container-pair-snapshot.js';
+import{calculationAssumptions}from'../data/calculation-assumptions.js';
+import{renderCalculationAssumptions}from'./calculation-assumptions.js';
 
 /** 每次重新计算并生成独立HTML字符串，不保留可被后续编辑改变的引用。 */
 export function createProjectReport(project: ProjectFile, generatedAt = new Date().toISOString(), hypothesis?: SensitivityControls, settlement?: SettlementPlan,bill?:ContainerBillDraft,pair?:ContainerCostPair): string {
@@ -45,6 +47,13 @@ export function createProjectReport(project: ProjectFile, generatedAt = new Date
 body { padding: 16px; } .report { margin: 0 auto; max-width: 1600px; }
 .report-header h1 { font-size: 21px; margin: 0 0 10px; } .report-header { margin-bottom: 16px; }
 .report > .panel { margin-bottom: 16px; } .report pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; }
+[data-report-section="calculation-assumptions"] { overflow-wrap: anywhere; }
+[data-report-section="calculation-assumptions"] td { white-space: pre-wrap; }
+@media(max-width:700px) {
+ [data-report-section="calculation-assumptions"] table.stackable td,
+ [data-report-section="calculation-assumptions"] table.stackable tbody tr > th { display: block; text-align: left; }
+ [data-report-section="calculation-assumptions"] td::before { display: none; }
+}
 @media print { @page { size: A4 landscape; margin: 12mm; } body { padding: 0; background: white; }
 .panel { box-shadow: none; } .hero .cell { break-inside: avoid; } table tr { break-inside: avoid; }
 .report-help { display: none; } a { color: inherit; } .result-tables { display: block; }
@@ -55,6 +64,7 @@ body { padding: 16px; } .report { margin: 0 auto; max-width: 1600px; }
 <p class="hint">报告保存生成时的输入和结果。人工记录不等于程序或主管机关认证；比较结论取决于录入事实及模型范围。</p>
 <aside class="responsibility-notice" aria-label="责任声明">本工具仅供学习与内部测算参考，不构成法律或专业贸易建议。实际合同请以 Incoterms® 官方文本及当地法规为准。</aside>
 <p class="report-help">离线打开即可复核；使用浏览器打印功能可保存PDF。需要查看完整输入时，展开文末输入快照。</p></header>
+${renderCalculationAssumptions(calculationAssumptions(project,result,comparison,'CURRENT_INPUT',{sensitivity:!!hypothesis?.enabled,settlement:!!settlement,bill:!!bill,pair:!!pair}))}
 <section class="panel"><div class="panel-body"><h2 class="panel-heading">生成时的交易输入</h2>
 <table class="grid stackable"><tbody>${rows.map(([label = '', value = '']) => `<tr><th>${escapeHtml(label)}</th><td data-label="输入">${escapeHtml(value)}</td></tr>`).join('')}</tbody></table></div></section>
 ${output}
