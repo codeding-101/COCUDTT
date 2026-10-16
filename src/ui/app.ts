@@ -48,6 +48,7 @@ import {renderCalculationLearning,focusLearningTarget} from './calculation-learn
 import {QuickCostsController} from './quick-costs.js';
 import {FieldHelpController} from './field-help.js';
 import {MobileSettingsController} from './mobile-settings.js';
+import{OnboardingController}from'./onboarding.js';
 import {inputReviews,renderInputReview,inputReviewElement} from './input-review.js';
 import { createProjectReport } from './project-report.js';
 import { renderKpis, renderOutputColumn } from './views-output.js';
@@ -158,6 +159,7 @@ let calculatedAt = '';
 let pendingCalculation = false;
 const quickCosts=new QuickCostsController();
 const fieldHelp=new FieldHelpController();
+const onboarding=new OnboardingController();
 const mobileSettings=new MobileSettingsController();
 let editedControl:HTMLElement|null=null;
 
@@ -232,6 +234,7 @@ async function writeBillFile(name:string,text:string,mime:string):Promise<'SAVED
 }
 
 function showFatalFailure(stage: FailureStage): void {
+  onboarding.dismiss(false,false);
   fieldHelp.dismiss(false);
   mobileSettings.dismiss(false);editedControl=null;
   projectReadEpoch++;
@@ -1333,6 +1336,7 @@ function renderApp(): void {
     <main class="layout">
       <div class="workspace-file-state"><span class="${saveState.className}" role="status" aria-live="polite">${escapeHtml(saveState.text)}</span><span>仅供学习与内部测算。数据仅在本机浏览器；清除存储会丢失草稿，请另存项目 JSON。</span></div>
       ${renderQuickStart(state.project,workspaceNote)}
+      ${onboarding.entry()}
       ${renderFormsRow(state.project,workspaceMode==='beginner')}
       <div class="mobile-settings-entry"><button type="button" data-action="show-mobile-settings">高级设置 · 费用、汇率与税务 →</button></div>
       ${renderInputReview(inputReviews(currentProject(),state.fxRows))}
@@ -1384,6 +1388,7 @@ function renderApp(): void {
       </footer>
     </main>
     ${fieldHelp.render()}
+    ${onboarding.render()}
     ${mobileSettings.render(saveState.text,state.status)}
     </div>
   `;
@@ -1398,6 +1403,7 @@ function renderApp(): void {
   mobileSettings.afterRender();
   if(!mobileReset)restoreFocus(focused);
   fieldHelp.afterRender();
+  onboarding.afterRender();
 }
 
 function commit(): void {
@@ -1450,7 +1456,7 @@ function bind(): void {
 
   const calculationInput = (target: HTMLInputElement): boolean => target.type!=='file' &&
     (target.dataset.quickCostField==='amount'||['path','itemField','fxField','hsField','contractField','logisticsField'].some(key=>target.dataset[key]!==undefined));
-  const commitsInput=(action:string):boolean=>['save','open','toggle-file-menu','show-field-help','show-quick-costs','show-cost-settings','show-full-results','show-calculation-learning','learning-target','show-mobile-settings','close-mobile-settings','locate-workspace-issue','locate-input','locate-input-review'].includes(action)||action.startsWith('mode-');
+  const commitsInput=(action:string):boolean=>['save','open','toggle-file-menu','show-field-help','show-quick-costs','show-cost-settings','show-full-results','show-calculation-learning','learning-target','show-mobile-settings','close-mobile-settings','locate-workspace-issue','locate-input','locate-input-review','show-onboarding'].includes(action)||action.startsWith('mode-');
   const flushInput=():void=>{
     const active=document.activeElement;
     if(active instanceof HTMLInputElement&&(pendingCalculation&&calculationInput(active)||editedControl===active))active.dispatchEvent(new Event('change',{bubbles:true}));
@@ -1511,6 +1517,7 @@ function bind(): void {
   listen('change', (event) => {
     const target = event.target;
     if(editedControl===target)editedControl=null;
+    if(target instanceof HTMLInputElement&&target.dataset.onboardingField==='hide'){onboarding.setHidden(target.checked);return;}
     if(target instanceof HTMLInputElement&&target.id==='pair-file-input'){const file=target.files?.[0];if(file)void containerPair.open(file);return;}
     containerPair.cancelReads();
     if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement)&&target.dataset.quickCostField!==undefined){
@@ -1665,8 +1672,12 @@ function bind(): void {
     if(['show-mobile-settings','show-cost-settings','locate-workspace-issue','locate-input','locate-input-review'].includes(action))mobileSettings.remember(target);
     if(commitsInput(action))flushInput();
     if(pendingCalculation&&(action==='save'||action.startsWith('export-')||action==='preview-customer-quote'||action.startsWith('mode-')||action==='show-calculation-learning'||action==='learning-target'))return;
-    if(!action.startsWith('pair-'))containerPair.cancelReads();
+    if(!action.startsWith('pair-')&&!['show-onboarding','close-onboarding','onboarding-next','onboarding-back'].includes(action))containerPair.cancelReads();
     switch (action) {
+      case 'show-onboarding':if(!pendingCalculation)onboarding.open(target);break;
+      case 'close-onboarding':onboarding.dismiss();break;
+      case 'onboarding-next':onboarding.move('next');break;
+      case 'onboarding-back':onboarding.move('back');break;
       case 'locate-input-review': {
         if(pendingCalculation)break;
         const issue=inputReviews(currentProject(),state.fxRows).find(issue=>issue.key===target.dataset.reviewKey);
@@ -2003,4 +2014,5 @@ function startApplication(): void {
     state.status = `已恢复草稿 · ${state.status}`;
   }
   render();
+  if(!recoveryStage)onboarding.start(draftFailure===null&&!restoredFromDraft&&workspaceMode==='beginner');
 }
