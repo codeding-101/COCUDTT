@@ -51,6 +51,7 @@ export function renderQuickStart(project: ProjectFile, note: string): string {
   return `<section class="quick-start" aria-labelledby="quick-start-title"><div class="workspace-heading"><div><p class="eyebrow">TRADE COST WORKSPACE</p><h1 id="quick-start-title">交易成本测算</h1><p>${h(note)}</p></div><span class="workspace-scope">${h(project.incoterm)} · ${project.tax_profile.import.calculationMode==='CN_GENERAL_TRADE'?'中国一般贸易进口':'通用成本口径'}</span></div>
     <div class="start-options"><button data-action="new-china-blank">中国进口 · 开始录入</button><button data-action="new-china-import">中国进口 · 合成示例</button><button data-action="new">CIF · 运保演示</button></div>
     <p class="workspace-footnote">载入会替换当前交易，请先保存。示例使用虚构假设；录入报价与货物净价是两个不同金额，含运保费整价请先拆分。</p>
+    <button class="template-guide-link" data-action="show-project-templates">查看全部模板、预设与录入要求 →</button>
     <ol class="workspace-steps"><li><span>01</span> 填交易与商品</li><li><span>02</span> 选报价与方案</li><li><span>03</span> 看结果、核对依据</li></ol></section>`;
 }
 export interface WorkspaceResult {

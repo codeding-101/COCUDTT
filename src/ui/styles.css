@@ -671,6 +671,13 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
 .start-options { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin-top: 18px; }
 .start-options button { height: 44px; text-align: left; padding: 0 15px; background: #fbfcfb; border-color: #d6e0d9; font-size: 13px; font-weight: 500; }
 .start-options button:hover { border-color: #6b9880; background: #eaf2ed; }
+.template-guide-link { margin: 0 0 6px; font-size: 12px; }
+.template-entry { padding: 16px 0; border-bottom: 1px solid var(--border); min-width: 0; overflow-wrap: anywhere; }
+.template-entry h3 { margin-top: 0; }
+.template-guide { padding: 4px 12px 12px; line-height: 1.7; }
+.template-guide h4 { margin: 14px 0 6px; }
+.template-guide ul { padding-left: 20px; margin: 0; }
+.template-guide li + li { margin-top: 5px; }
 .workspace-footnote { font-size: 11px; color: #78847c; margin: 7px 0; }
 .workspace-steps { display: flex; gap: 26px; padding: 10px 0 0; margin: 12px 0 0; list-style: none; border-top: 1px solid #dce4df; font-size: 11px; color: #5c7064; }
 .workspace-steps span { margin-right: 6px; font-size: 10px; color: #94a298; }

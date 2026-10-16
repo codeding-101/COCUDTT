@@ -1,0 +1,211 @@
+{
+  "schema_version": "0.8",
+  "name": "合成示例：CIF · 运保合成演示",
+  "updated_at": "2026-10-12T00:00:00Z",
+  "base_currency": "CNY",
+  "carriage_mode": "SEA",
+  "route": {
+    "export_country": "",
+    "import_country": "",
+    "origin_country": "",
+    "customs_regime": "UNCONFIRMED"
+  },
+  "goods": {
+    "name": "示例商品",
+    "quantity": "1000",
+    "unit": "PCS",
+    "trade_value": {
+      "amount": "100000",
+      "currency": "USD"
+    },
+    "seller_goods_cost": {
+      "amount": "620000",
+      "currency": "CNY"
+    },
+    "tax_key": "851830"
+  },
+  "items": [
+    {
+      "cost_id": "goods",
+      "cost_name": "商品货值",
+      "cost_category": "GOODS_AND_PACKING",
+      "trade_node": "SELLER_PREMISES",
+      "pricing_method": "ACTUAL",
+      "currency": "USD",
+      "base_currency": "CNY",
+      "fx_type": "CONTRACT",
+      "tax_included": false,
+      "responsibility": "CONDITIONAL",
+      "responsibility_source": "UNRESOLVED",
+      "included_in_quoted_price": false,
+      "is_custom": false,
+      "source": "USER",
+      "is_goods_value": true,
+      "amount": "100000"
+    },
+    {
+      "cost_id": "freight",
+      "cost_name": "国际海运费",
+      "cost_category": "MAIN_CARRIAGE",
+      "trade_node": "MAIN_CARRIAGE",
+      "pricing_method": "ACTUAL",
+      "currency": "USD",
+      "base_currency": "CNY",
+      "fx_type": "CONTRACT",
+      "tax_included": false,
+      "responsibility": "CONDITIONAL",
+      "responsibility_source": "UNRESOLVED",
+      "included_in_quoted_price": false,
+      "is_custom": true,
+      "source": "USER",
+      "amount": "8000"
+    },
+    {
+      "cost_id": "insurance",
+      "cost_name": "保险费",
+      "cost_category": "INSURANCE",
+      "trade_node": "MAIN_CARRIAGE",
+      "pricing_method": "ACTUAL",
+      "currency": "USD",
+      "base_currency": "CNY",
+      "fx_type": "CONTRACT",
+      "tax_included": false,
+      "responsibility": "CONDITIONAL",
+      "responsibility_source": "UNRESOLVED",
+      "included_in_quoted_price": false,
+      "is_custom": false,
+      "source": "USER",
+      "calculation_base": {
+        "kind": "QUOTE_AMOUNT"
+      },
+      "amount": "300"
+    }
+  ],
+  "fx_books": [
+    {
+      "id": "fx-contract",
+      "name": "合同约定汇率",
+      "type": "CONTRACT",
+      "date": "2026-08-15",
+      "rates": {
+        "USD/CNY": "7.0000"
+      },
+      "evidence": {
+        "USD/CNY": {
+          "status": "EXAMPLE",
+          "reference": "内置虚构CIF数据，仅作通用成本演示",
+          "valid_from": "2026-08-01",
+          "valid_to": "2026-09-30",
+          "checked_on": ""
+        }
+      }
+    },
+    {
+      "id": "fx-customs",
+      "name": "海关适用汇率 2026-09",
+      "type": "CUSTOMS",
+      "date": "2026-09-17",
+      "valid_from": "2026-09-01",
+      "valid_to": "2026-09-30",
+      "rates": {
+        "USD/CNY": "7.0800"
+      },
+      "evidence": {
+        "USD/CNY": {
+          "status": "EXAMPLE",
+          "reference": "内置虚构CIF数据，仅作通用成本演示",
+          "valid_from": "2026-08-01",
+          "valid_to": "2026-09-30",
+          "checked_on": ""
+        }
+      }
+    }
+  ],
+  "quote": {
+    "amount": "108300",
+    "currency": "USD",
+    "fx_type": "CONTRACT",
+    "fx_date": "2026-09-01"
+  },
+  "incoterm": "CIF",
+  "anchor": {
+    "kind": "FIXED_QUOTE"
+  },
+  "facts": {},
+  "tax_profile": {
+    "id": "china-customs",
+    "version": "1.0",
+    "import": {
+      "dutiableValueBasis": "CIF",
+      "dutyRates": {
+        "fallback": "0.05"
+      },
+      "hsTable": {
+        "basis": "MFN",
+        "entries": [
+          {
+            "code": "8518",
+            "description": "扬声器、耳机、扩音器",
+            "duty_rates": {
+              "MFN": "0.05"
+            },
+            "evidence": {
+              "status": "EXAMPLE",
+              "reference": "内置虚构CIF数据，仅作通用成本演示",
+              "valid_from": "2026-08-01",
+              "valid_to": "2026-09-30",
+              "checked_on": ""
+            }
+          },
+          {
+            "code": "851830",
+            "description": "耳机、耳塞",
+            "duty_rates": {
+              "MFN": "0.037",
+              "AGREEMENT": "0.02"
+            },
+            "vat_rate": "0.13",
+            "evidence": {
+              "status": "EXAMPLE",
+              "reference": "内置虚构CIF数据，仅作通用成本演示",
+              "valid_from": "2026-08-01",
+              "valid_to": "2026-09-30",
+              "checked_on": ""
+            }
+          }
+        ]
+      },
+      "vatRate": "0.13",
+      "consumptionTax": null,
+      "vatDeductibleForBuyer": true,
+      "calculationMode": "LEGACY",
+      "rateEvidence": {
+        "status": "EXAMPLE",
+        "reference": "内置虚构CIF数据，仅作通用成本演示",
+        "valid_from": "2026-08-01",
+        "valid_to": "2026-09-30",
+        "checked_on": ""
+      }
+    },
+    "export": {
+      "dutiableValueBasis": "FOB",
+      "dutyRates": {
+        "fallback": "0"
+      },
+      "rebate": {
+        "entityType": "TRADING",
+        "vatRates": {
+          "fallback": "0.13"
+        },
+        "rebateRates": {
+          "fallback": "0.13"
+        }
+      }
+    },
+    "customsFx": {
+      "bookType": "CUSTOMS",
+      "lockPeriod": "MONTHLY"
+    }
+  },
+  "export_date": "2026-09-10"
+}

@@ -11,7 +11,7 @@ import {
 import { chinaImportSampleProjectFile, newChinaImportProjectFile, sampleProjectFile } from '../data/sample-project.js';
 import { validateDraftFxRows } from '../data/project-validation.js';
 import { projectJsonSchema } from '../data/project-validation.js';
-import { projectTemplateText, PROJECT_TEMPLATES } from '../data/project-templates.js';
+import { projectTemplateText, PROJECT_TEMPLATES, importedTemplateNote } from '../data/project-templates.js';
 import { renderProjectTemplatePanel } from './project-templates.js';
 import { settlementBinding } from '../data/settlement-context.js';
 import { parseSettlementPlan, serializeSettlementPlan } from '../data/settlement-file.js';
@@ -1248,9 +1248,10 @@ function openProjectFromText(text: string, fileName: string): void {
     const project = parseProject(text);
     // 所有可能失败的准备步骤完成后，才替换当前编辑内容。
     const fxRows = booksToRows(project.fx_books);
+    const templateNote=importedTemplateNote(project);
     pairFxLease=null;containerPair.cancelReads();
     state.project = project;
-    workspaceNote = '已打开本地项目；按文件中保存的费用、报价与适用条件核对。';
+    workspaceNote = templateNote??'已打开本地项目；按文件中保存的费用、报价与适用条件核对。';
     containerBill.projectChanged();
     settlementPlan = null;
     settlementEpoch++;
@@ -1280,7 +1281,7 @@ function newProject(mode: 'sample' | 'china-sample' | 'china-blank' = 'sample'):
   customerView='full';
   customerReviewed = false;
   state.project = mode === 'china-blank' ? newChinaImportProjectFile() : mode === 'china-sample' ? chinaImportSampleProjectFile() : sampleProjectFile();
-  workspaceNote = mode==='china-blank'?'空白中国进口交易：金额、费用、日期、税率与资格均需填写，不自动补造。':mode==='china-sample'?'中国进口合成示例：虚构税率与汇率，仅用于公式核对。':'CIF 合成示例：货值100,000、运费8,000、保险300 USD；另有虚构汇率及税务假设。';
+  workspaceNote = mode==='china-blank'?'空白中国进口交易：金额、费用、日期、税率与资格均需填写；CIF/海运/人民币仅为可修改起点，无费用不代表零成本。':mode==='china-sample'?'中国进口合成示例：净价100,000、运费8,000、保险300 USD；税率、汇率及申报日期均虚构，真实使用须逐项替换。':'CIF 合成示例：净价100,000、运费8,000、保险300 USD；通用成本口径及虚构税务假设，不是完整中国出口税务流程。';
   state.fxRows = booksToRows(state.project.fx_books);
   containerBill.projectChanged();
   state.fileName = null;
@@ -1464,7 +1465,7 @@ function bind(): void {
   const calculationInput = (target: HTMLInputElement): boolean => target.type!=='file' &&
     (target.dataset.quickCostField==='amount'||['path','itemField','fxField','hsField','contractField','logisticsField'].some(key=>target.dataset[key]!==undefined));
   const customerText=(target:unknown):target is HTMLTextAreaElement=>typeof HTMLTextAreaElement!=='undefined'&&target instanceof HTMLTextAreaElement&&CUSTOMER_QUOTE_FIELDS.some(key=>key===target.dataset.customerField);
-  const commitsInput=(action:string):boolean=>['save','open','toggle-file-menu','show-field-help','show-quick-costs','show-cost-settings','show-full-results','show-calculation-learning','learning-target','show-mobile-settings','close-mobile-settings','locate-workspace-issue','locate-input','locate-input-review','show-onboarding','customer-view'].includes(action)||action.startsWith('mode-');
+  const commitsInput=(action:string):boolean=>['save','open','toggle-file-menu','show-field-help','show-quick-costs','show-cost-settings','show-full-results','show-calculation-learning','learning-target','show-mobile-settings','close-mobile-settings','locate-workspace-issue','locate-input','locate-input-review','show-onboarding','customer-view','show-project-templates'].includes(action)||action.startsWith('mode-');
   const flushInput=():void=>{
     const active=document.activeElement;
     if((active instanceof HTMLInputElement||customerText(active))&&(editedControl===active||active instanceof HTMLInputElement&&pendingCalculation&&calculationInput(active)))active.dispatchEvent(new Event('change',{bubbles:true}));
@@ -1681,8 +1682,12 @@ function bind(): void {
     if(['show-mobile-settings','show-cost-settings','locate-workspace-issue','locate-input','locate-input-review'].includes(action))mobileSettings.remember(target);
     if(commitsInput(action))flushInput();
     if(pendingCalculation&&(action==='save'||action.startsWith('export-')||action==='preview-customer-quote'||action.startsWith('mode-')||action==='show-calculation-learning'||action==='learning-target'))return;
-    if(!action.startsWith('pair-')&&!['show-onboarding','close-onboarding','onboarding-next','onboarding-back','customer-view'].includes(action))containerPair.cancelReads();
+    if(!action.startsWith('pair-')&&!['show-onboarding','close-onboarding','onboarding-next','onboarding-back','customer-view','show-project-templates'].includes(action))containerPair.cancelReads();
     switch (action) {
+      case 'show-project-templates': {
+        expandedEvidenceSections.add('project-templates');render();
+        const summary=document.querySelector<HTMLElement>('[data-evidence-section="project-templates"] > summary');if(summary)revealWorkspaceElement(summary);break;
+      }
       case 'customer-view': {
         const view=target.dataset.customerView;if(pendingCalculation||view!=='full'&&view!=='compact')break;
         if(view!==customerView){customerView=view;customerReviewed=false;render();}
