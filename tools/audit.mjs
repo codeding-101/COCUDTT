@@ -69,6 +69,9 @@ const handledActions = new Set([
   ...matchAll(appTs, /dataset\.action === '([a-z-]+)'/g),
 ]);
 const renderedActions = matchAll(uiText, /data-action="([a-z-]+)"/g);
+const recentUi=read(join(root,'src/ui/recent-projects.ts')),recentController=read(join(root,'src/ui/recent-projects-controller.ts'));
+for(const action of matchAll(recentUi,/\bbutton\('([a-z-]+)'/g))renderedActions.add(action);
+for(const field of matchAll(recentUi,/data-recent-field="([a-z]+)"/g))if(!appTs.includes('target.dataset.recentField!==undefined')||!recentController.includes(`field === '${field}'`))problems.push(`[最近项目字段未处理] ${field}`);
 const billUi=read(join(root,'src/ui/container-bill.ts')),billController=read(join(root,'src/ui/container-bill-controller.ts'));
 for(const action of matchAll(billUi,/(?:button|scope)\('([a-z-]+)'/g))renderedActions.add(action);
 const pairUi=read(join(root,'src/ui/container-cost-pair.ts'));
