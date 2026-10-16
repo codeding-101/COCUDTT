@@ -2,7 +2,7 @@ import { strToU8, zipSync } from 'fflate';
 import { d } from '../domain/decimal.js';
 
 export interface WorkbookCell { value: string; kind: 'text'|'decimal' }
-export interface WorkbookSheet { name: string; headers: string[]; rows: WorkbookCell[][]; widths: number[]; freezeColumns?: number }
+export interface WorkbookSheet { name: string; headers: string[]; rows: WorkbookCell[][]; widths: number[]; freezeColumns?: number; rowSpacing?:'compact' }
 export interface WorkbookSnapshot { audience: 'CUSTOMER'|'INTERNAL'; title: string; generatedAt: string; sheets: WorkbookSheet[] }
 export const textCell = (value: string): WorkbookCell => ({ value, kind: 'text' });
 export const decimalCell = (value: string): WorkbookCell => ({ value, kind: 'decimal' });
@@ -45,6 +45,7 @@ function physicalRows(sheet: WorkbookSheet): WorkbookCell[][] {
   return rows;
 }
 function sheetXml(sheet: WorkbookSheet): string {
+  if(sheet.rowSpacing!==undefined&&sheet.rowSpacing!=='compact')throw Error('Excel 行距版式无效');
   const rows = [sheet.headers.map(textCell), ...physicalRows(sheet)];
   if (rows.length > 100000 || !sheet.headers.length || sheet.headers.length > 64 || sheet.widths.length !== sheet.headers.length || sheet.widths.some(w=>!Number.isFinite(w)||w<8||w>120) || rows.some(r => r.length !== sheet.headers.length)) throw new Error('Excel 表格尺寸或列数无效');
   const y = 1, x = sheet.freezeColumns ?? 0;
@@ -53,7 +54,7 @@ function sheetXml(sheet: WorkbookSheet): string {
   for(const row of rows)row.forEach((cell,i)=>{if(cell.kind==='decimal'&&excelDecimal(cell.value).numeric){const whole=cell.value.replace(/^-/, '').split('.')[0]!;widths[i]=Math.max(widths[i]!,cell.value.length+Math.floor(whole.length/3)+5);}});
   return XML_HEADER + `<worksheet xmlns="${NS}"><dimension ref="A1:${column(sheet.headers.length-1)}${rows.length}"/><sheetViews><sheetView workbookViewId="0"><pane xSplit="${x}" ySplit="${y}" topLeftCell="${column(x)}2" activePane="${x ? 'bottomRight':'bottomLeft'}" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="22"/><cols>${widths.map((width,i)=>`<col min="${i+1}" max="${i+1}" width="${width}" customWidth="1"/>`).join('')}</cols><sheetData>${rows.map((r,i)=>{
     const lines = Math.max(1,...r.map((c,j)=>c.value.split('\n').reduce((total,line)=>total+Math.max(1,Math.ceil(Array.from(line).reduce((n,ch)=>n+(ch.charCodeAt(0)>255?2:1),0)/(widths[j]!-2))),0)));
-    const height = i === 0 ? 32 : Math.min(409,Math.max(24,lines*16+8));
+    const height = i === 0 ? (sheet.rowSpacing==='compact'?26:32) : Math.min(409,Math.max(sheet.rowSpacing==='compact'?20:24,lines*16+(sheet.rowSpacing==='compact'?4:8)));
     return `<row r="${i+1}" ht="${height}" customHeight="1">${r.map((c,j)=>cellXml(c,column(j)+(i+1),i===0)).join('')}</row>`;
   }).join('')}</sheetData><pageMargins left="0.3" right="0.3" top="0.5" bottom="0.5" header="0.2" footer="0.2"/></worksheet>`;
 }

@@ -56,6 +56,7 @@ import { newSensitivityControls, projectSensitivity, renderSensitivityPanel, sen
 import type { SensitivityResult } from '../engine/sensitivity.js';
 import { emptyCustomerQuoteFields, CUSTOMER_QUOTE_FIELDS, type CustomerQuote } from '../domain/customer-quote.js';
 import { createCustomerQuoteDocument, customerQuoteFileName, projectCustomerQuote, renderCustomerQuotePanel } from './customer-quote.js';
+import type{CustomerQuoteView}from'../data/customer-quote-view.js';
 import { createBilingualSummaryDocument } from './bilingual-summary.js';
 import { createCustomerWorkbook, createInternalWorkbook } from './workbook-export.js';
 import { XLSX_MIME } from '../data/xlsx-file.js';
@@ -195,6 +196,7 @@ let sensitivityControls = newSensitivityControls();
 let sensitivityAnalysis: SensitivityResult | null = null;
 let sensitivityError: string | null = null;
 let customerFields = emptyCustomerQuoteFields();
+let customerView:CustomerQuoteView='full';
 let customerReviewed = false;
 let projectResourceBusy = false;
 let customerSummaryBusy = false;
@@ -222,7 +224,7 @@ function installPair(pair:ContainerCostPair):void {
  state.project=project;state.fxRows=fxRows;pairFxLease={row_key,books:project.fx_books};
   workspaceNote='当前来自完整配对文件；账单与核对记录不自动应用为项目费用。';
  containerBill.installPrepared(bill,billText);
- settlementPlan=null;sensitivityControls=controls;customerFields=publicFields;customerReviewed=false;customerPreview=null;
+ settlementPlan=null;sensitivityControls=controls;customerFields=publicFields;customerView='full';customerReviewed=false;customerPreview=null;
  state.result=null;state.comparison=null;state.fileName=null;state.savedAt=null;state.dirty=true;
  expandedEvidenceSections.add('container-cost-pair');expandedEvidenceSections.add('container-bill');
 }
@@ -1150,8 +1152,9 @@ async function exportWorkbook(customer: boolean): Promise<void> {
     if (customer && !customerReviewed) throw new Error('请先检查客户预览中的公开内容');
     const project = currentProject();
     const quote = customer ? projectCustomerQuote(project, customerFields) : null;
-    const bytes = quote ? createCustomerWorkbook(quote) : createInternalWorkbook(project, undefined, sensitivityControls.enabled ? sensitivityControls : undefined, settlementPlan ?? undefined,containerBill.draft??undefined,containerPair.pair??undefined);
-    const name = quote ? customerQuoteFileName(quote).replace(/\.html$/, '.xlsx') : safeFileName(`${project.name || 'trade-cost'}-内部成本`, 'xlsx');
+    const view=customerView;
+    const bytes = quote ? createCustomerWorkbook(quote,undefined,view) : createInternalWorkbook(project, undefined, sensitivityControls.enabled ? sensitivityControls : undefined, settlementPlan ?? undefined,containerBill.draft??undefined,containerPair.pair??undefined);
+    const name = quote ? customerQuoteFileName(quote,view).replace(/\.html$/, '.xlsx') : safeFileName(`${project.name || 'trade-cost'}-内部成本`, 'xlsx');
     const blob = new Blob([bytes], { type: XLSX_MIME });
     const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
     if (picker !== undefined) {
@@ -1181,13 +1184,14 @@ async function exportCustomerPdf(): Promise<void> {
     if (!customerReviewed) throw new Error('请先检查客户预览中的公开内容');
     const quote = projectCustomerQuote(currentProject(), customerFields);
     const generatedAt = new Date().toISOString();
-    const name = customerQuoteFileName(quote).replace(/\.html$/, '.pdf').replace(/[\u0000-\u001F]/g, '-');
+    const view=customerView;
+    const name = customerQuoteFileName(quote,view).replace(/\.html$/, '.pdf').replace(/[\u0000-\u001F]/g, '-');
     customerPdfBusy = true; render();
     // Open the picker while the click still has user activation; generation starts only after selection.
     const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
     const handle = picker === undefined ? null : await picker.call(window, { suggestedName: name, types: [{ description: '客户报价 PDF 草稿', accept: { 'application/pdf': ['.pdf'] } }] });
     const { createCustomerPdf } = await import('./customer-pdf.js');
-    const bytes = await createCustomerPdf(quote, generatedAt);
+    const bytes = await createCustomerPdf(quote, generatedAt,view);
     const blob = new Blob([bytes], { type: 'application/pdf' });
     if (handle) {
       const writable = await handle.createWritable(); await writable.write(blob); await writable.close();
@@ -1211,8 +1215,9 @@ async function exportCustomerQuote(bilingual=false): Promise<void> {
   try {
     if (!customerReviewed) throw new Error('请先检查客户预览中的公开内容');
     const quote = projectCustomerQuote(currentProject(), customerFields);
-    const html = bilingual?createBilingualSummaryDocument(quote):createCustomerQuoteDocument(quote);
-    const name = bilingual?customerQuoteFileName(quote).replace('-客户报价草稿.html','-中英文条款摘要草稿.html').replace(/[\u0000-\u001F]/g,'-'):customerQuoteFileName(quote);
+    const view=customerView;
+    const html = bilingual?createBilingualSummaryDocument(quote):createCustomerQuoteDocument(quote,undefined,view);
+    const name = bilingual?customerQuoteFileName(quote).replace('-客户报价草稿.html','-中英文条款摘要草稿.html').replace(/[\u0000-\u001F]/g,'-'):customerQuoteFileName(quote,view);
     if(bilingual){customerSummaryBusy=true;render();}
     const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
     if (picker !== undefined) {
@@ -1251,6 +1256,7 @@ function openProjectFromText(text: string, fileName: string): void {
     settlementEpoch++;
     sensitivityControls = newSensitivityControls();
     customerFields = emptyCustomerQuoteFields();
+    customerView='full';
     customerReviewed = false;
     state.fxRows = fxRows;
     state.fileName = fileName;
@@ -1271,6 +1277,7 @@ function newProject(mode: 'sample' | 'china-sample' | 'china-blank' = 'sample'):
   settlementEpoch++;
   sensitivityControls = newSensitivityControls();
   customerFields = emptyCustomerQuoteFields();
+  customerView='full';
   customerReviewed = false;
   state.project = mode === 'china-blank' ? newChinaImportProjectFile() : mode === 'china-sample' ? chinaImportSampleProjectFile() : sampleProjectFile();
   workspaceNote = mode==='china-blank'?'空白中国进口交易：金额、费用、日期、税率与资格均需填写，不自动补造。':mode==='china-sample'?'中国进口合成示例：虚构税率与汇率，仅用于公式核对。':'CIF 合成示例：货值100,000、运费8,000、保险300 USD；另有虚构汇率及税务假设。';
@@ -1360,7 +1367,7 @@ function renderApp(): void {
       ${renderSettlementPanel(currentProject(), settlementPlan, state.result, settlementBusy)}
       ${renderContainerBillPanel(containerBill.draft,currentProject(),containerBill.busy,containerBill.message)}
       ${renderContainerCostPairPanel(containerPair)}
-      ${renderCustomerQuotePanel(currentProject(), customerFields, customerReviewed, customerPreview, customerError, customerPdfBusy,customerSummaryBusy)}
+      ${renderCustomerQuotePanel(currentProject(), customerFields, customerReviewed, customerPreview, customerError, customerPdfBusy,customerSummaryBusy,customerView)}
       <details class="panel" data-evidence-section="workspace-help"${workspaceMode==='professional'&&!collapsedSections.has('workspace-help')?' open':''}><summary><span class="panel-title">帮助、示例与文件模板</span><span class="hint">适用范围、假设说明及恢复检查</span></summary><div class="panel-body">
       <aside class="responsibility-notice" aria-label="责任声明">本工具仅供学习与内部测算参考，不构成法律或专业贸易建议。实际合同请以 Incoterms® 官方文本及当地法规为准。</aside>
       <details class="panel" data-evidence-section="project-introduction">
@@ -1456,15 +1463,17 @@ function bind(): void {
 
   const calculationInput = (target: HTMLInputElement): boolean => target.type!=='file' &&
     (target.dataset.quickCostField==='amount'||['path','itemField','fxField','hsField','contractField','logisticsField'].some(key=>target.dataset[key]!==undefined));
-  const commitsInput=(action:string):boolean=>['save','open','toggle-file-menu','show-field-help','show-quick-costs','show-cost-settings','show-full-results','show-calculation-learning','learning-target','show-mobile-settings','close-mobile-settings','locate-workspace-issue','locate-input','locate-input-review','show-onboarding'].includes(action)||action.startsWith('mode-');
+  const customerText=(target:unknown):target is HTMLTextAreaElement=>typeof HTMLTextAreaElement!=='undefined'&&target instanceof HTMLTextAreaElement&&CUSTOMER_QUOTE_FIELDS.some(key=>key===target.dataset.customerField);
+  const commitsInput=(action:string):boolean=>['save','open','toggle-file-menu','show-field-help','show-quick-costs','show-cost-settings','show-full-results','show-calculation-learning','learning-target','show-mobile-settings','close-mobile-settings','locate-workspace-issue','locate-input','locate-input-review','show-onboarding','customer-view'].includes(action)||action.startsWith('mode-');
   const flushInput=():void=>{
     const active=document.activeElement;
-    if(active instanceof HTMLInputElement&&(pendingCalculation&&calculationInput(active)||editedControl===active))active.dispatchEvent(new Event('change',{bubbles:true}));
+    if((active instanceof HTMLInputElement||customerText(active))&&(editedControl===active||active instanceof HTMLInputElement&&pendingCalculation&&calculationInput(active)))active.dispatchEvent(new Event('change',{bubbles:true}));
   };
   mobileSettings.onReturn=()=>runUi('INTERACTION',()=>{flushInput();if(!pendingCalculation)mobileSettings.dismiss();});
   if(typeof window.addEventListener==='function'&&!boundEvents.has('mobile-resize')){window.addEventListener('resize',()=>runUi('INTERACTION',()=>mobileSettings.resize()));boundEvents.add('mobile-resize');}
   listen('input',event=>{
-    const target=event.target;if(target instanceof HTMLInputElement&&target.type!=='file')editedControl=target;
+    const target=event.target;if(target instanceof HTMLInputElement&&target.type!=='file'&&target.dataset.customerField!=='reviewed'||customerText(target))editedControl=target;
+    if(customerText(target)){customerReviewed=false;const reviewed=document.querySelector<HTMLInputElement>('[data-customer-field="reviewed"]');if(reviewed)reviewed.checked=false;document.querySelectorAll<HTMLButtonElement>('[data-action="export-customer-quote"],[data-action="export-customer-xlsx"],[data-action="export-customer-pdf"],[data-action="export-bilingual-summary"]').forEach(e=>e.disabled=true);return;}
     if(!(target instanceof HTMLInputElement)||!calculationInput(target))return;
     pendingCalculation=true;
     const workspace=document.querySelector<HTMLElement>('[data-workspace-mode]');if(workspace)workspace.dataset.calculationPending='true';
@@ -1475,7 +1484,7 @@ function bind(): void {
   // replaces the clicked DOM node before mouseup, swallowing the first click.
   listen('mousedown',event=>{
     const target=event.target;if(!(pendingCalculation||editedControl===document.activeElement)||!(target instanceof HTMLElement)||(event as MouseEvent).button!==0)return;
-    const action=target.dataset.action;if(action&&commitsInput(action))event.preventDefault();
+    const action=target.dataset.action;if(action&&commitsInput(action)||target.dataset.customerField==='reviewed'&&customerText(editedControl))event.preventDefault();
   });
   listen('keydown',event=>{
     const key=event as KeyboardEvent,target=event.target;
@@ -1587,7 +1596,7 @@ function bind(): void {
 
     if (target.dataset.customerField !== undefined) {
       const field = target.dataset.customerField;
-      if (field === 'reviewed') customerReviewed = target instanceof HTMLInputElement && target.checked && customerPreview !== null;
+      if (field === 'reviewed') {const checked=target instanceof HTMLInputElement&&target.checked;flushInput();customerReviewed=checked&&customerPreview!==null;}
       else if (CUSTOMER_QUOTE_FIELDS.some(key => key === field)) {
         customerFields[field as keyof typeof customerFields] = target.value;
         customerReviewed = false;
@@ -1672,8 +1681,13 @@ function bind(): void {
     if(['show-mobile-settings','show-cost-settings','locate-workspace-issue','locate-input','locate-input-review'].includes(action))mobileSettings.remember(target);
     if(commitsInput(action))flushInput();
     if(pendingCalculation&&(action==='save'||action.startsWith('export-')||action==='preview-customer-quote'||action.startsWith('mode-')||action==='show-calculation-learning'||action==='learning-target'))return;
-    if(!action.startsWith('pair-')&&!['show-onboarding','close-onboarding','onboarding-next','onboarding-back'].includes(action))containerPair.cancelReads();
+    if(!action.startsWith('pair-')&&!['show-onboarding','close-onboarding','onboarding-next','onboarding-back','customer-view'].includes(action))containerPair.cancelReads();
     switch (action) {
+      case 'customer-view': {
+        const view=target.dataset.customerView;if(pendingCalculation||view!=='full'&&view!=='compact')break;
+        if(view!==customerView){customerView=view;customerReviewed=false;render();}
+        [...document.querySelectorAll<HTMLElement>('[data-action="customer-view"]')].find(e=>e.dataset.customerView===view)?.focus({preventScroll:true});break;
+      }
       case 'show-onboarding':if(!pendingCalculation)onboarding.open(target);break;
       case 'close-onboarding':onboarding.dismiss();break;
       case 'onboarding-next':onboarding.move('next');break;

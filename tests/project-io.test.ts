@@ -603,6 +603,14 @@ describe('打开、保存项目的失败处理', () => {
   function customer(field:string,value:string,checked=false) {
     const input=new InputStub();input.id='';input.dataset.customerField=field;input.value=value;input.checked=checked;listeners.get('change')!({target:input});
   }
+  function customerView(view:string){const e=new ElementStub();e.dataset={action:'customer-view',customerView:view};listeners.get('click')!({target:e});}
+  it('客户版式只改显示且撤销检查，新项目回到完整版；伪造版式不改变当前内容',async()=>{
+    await start();await customerProject();customer('reference','PUBLIC_VIEW_52');customer('reviewed','',true);const before=storage.get(key);customerView('compact');expect(html).toContain('customer-quote--compact');expect(html).toContain('data-customer-field="reviewed">');expect(storage.get(key)).toBe(before);expect(before).not.toContain('customerView');
+    const picker=vi.fn();vi.stubGlobal('window',{showSaveFilePicker:picker});action('export-customer-quote');await vi.waitFor(()=>expect(html).toContain('请先检查客户预览'));expect(picker).not.toHaveBeenCalled();customerView('invalid');expect(html).toContain('customer-quote--compact');action('new-china-blank');expect(html).toContain('data-customer-view="full" aria-pressed="true"');
+  });
+  it('等待另存时切换版式，旧HTML及文件名保持旧版式，新预览仍需复核',async()=>{
+    await start();await customerProject();customer('reference','PUBLIC_FROZEN_52');customerView('compact');customer('reviewed','',true);let finish!:(v:any)=>void,written='',suggested='';vi.stubGlobal('window',{showSaveFilePicker:(o:any)=>{suggested=o.suggestedName;return new Promise(r=>finish=r)}});action('export-customer-quote');customerView('full');finish({name:'old.html',createWritable:async()=>({write:async(t:string)=>{written=t},close:async()=>{}})});await vi.waitFor(()=>expect(written).not.toBe(''));expect(suggested).toBe('PUBLIC_FROZEN_52-客户报价草稿-简洁版.html');expect(written).toContain('data-customer-view="compact"');expect(html).toContain('data-customer-view="full" aria-pressed="true"');expect(html).toContain('data-customer-field="reviewed">');
+  });
   it('中英文摘要必须检查后导出，编辑公开或项目字段撤销检查',async()=>{
     await start();await customerProject();const picker=vi.fn();vi.stubGlobal('window',{showSaveFilePicker:picker});action('export-bilingual-summary');await vi.waitFor(()=>expect(html).toContain('请先检查客户预览'));expect(picker).not.toHaveBeenCalled();customer('reviewed','',true);customer('remarks','变更原文');action('export-bilingual-summary');expect(picker).not.toHaveBeenCalled();customer('reviewed','',true);change('goods.name','变更商品');action('export-bilingual-summary');expect(picker).not.toHaveBeenCalled();
   });

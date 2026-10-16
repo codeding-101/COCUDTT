@@ -7,6 +7,7 @@ import { isIsoDate } from '../engine/tax/china-import.js';
 import { toScenario, toScenarios, toTrade, serializeProject, type ProjectFile } from './project-file.js';
 import { decimalCell as n, textCell as t, type WorkbookCell, type WorkbookSheet, type WorkbookSnapshot } from './xlsx-file.js';
 import{calculationAssumptions,type AssumptionAttachments}from'./calculation-assumptions.js';
+import{requireCustomerQuoteView,type CustomerQuoteView}from'./customer-quote-view.js';
 
 const DISCLAIMER='本工具仅供学习与内部测算参考，不构成法律或专业贸易建议。实际合同请以 Incoterms® 官方文本及当地法规为准。';
 const PRECISION='数值超出 Excel 的15位有效数字/整数位或12位小数展示范围时以文本保留原值；本文件为生成时快照，编辑单元格不会重新运行测算引擎。';
@@ -16,7 +17,8 @@ const pair=(label:string,value:string):WorkbookCell[]=>[t(label),t(value||'待�
 const bearers={SELLER:'卖方',BUYER:'买方',SHARED:'共担（未拆分）',CONDITIONAL:'待确认'};
 
 /** Rebuild only enumerated public cells. Unknown object properties are never copied. */
-export function customerWorkbook(quote:CustomerQuote,generatedAt=new Date().toISOString()):WorkbookSnapshot {
+export function customerWorkbook(quote:CustomerQuote,generatedAt=new Date().toISOString(),view:CustomerQuoteView='full'):WorkbookSnapshot {
+  requireCustomerQuoteView(view);
   const rows:WorkbookCell[][]=[pair('文档性质','客户报价说明草稿，尚不表示已签署合同或确认全部履约条件'),pair('生成时间',generatedAt),
     pair('报价提供方',quote.issuer),pair('客户/接收方',quote.recipient),pair('公开编号',quote.reference),pair('商品',quote.goods.description),[t('数量'),n(quote.goods.quantity)],pair('单位',quote.goods.unit),
     [t('报价总额（原币）'),n(quote.quote.amount)],pair('报价币种',quote.quote.currency),pair('贸易术语',quote.quote.incoterm),pair('指定地点',quote.quote.named_place),pair('术语版本','Incoterms® '+quote.quote.incoterms_version),
@@ -30,7 +32,8 @@ export function customerWorkbook(quote:CustomerQuote,generatedAt=new Date().toIS
   if(quote.quote.valid_from&&quote.quote.valid_to&&isIsoDate(date)&&(date<quote.quote.valid_from||date>quote.quote.valid_to))pending.push('文档生成日期不在所列报价有效期内，需重新确认报价，不能自动延长有效期');
   pending.forEach((item,i)=>rows.push(pair(`待双方确认 ${i+1}`,item)));
   rows.push(pair('金额精度与使用',PRECISION),pair('责任声明',DISCLAIMER));
-  return {audience:'CUSTOMER',title:quote.reference||'客户报价说明',generatedAt,sheets:[sheet('客户报价草稿',['项目','公开内容'],[26,86],rows)]};
+  const page=sheet(view==='compact'?'客户报价简洁草稿':'客户报价草稿',['项目','公开内容'],[26,86],rows);if(view==='compact')page.rowSpacing='compact';
+  return {audience:'CUSTOMER',title:quote.reference||'客户报价说明',generatedAt,sheets:[page]};
 }
 
 export function compareProject(project:ProjectFile):Comparison {

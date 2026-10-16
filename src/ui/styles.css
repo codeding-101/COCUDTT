@@ -806,6 +806,8 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
 [data-visualization]:focus {outline:2px solid #527f70;outline-offset:3px;}
 @media(max-width:600px){.learning-cost-body dl {grid-template-columns:1fr;gap:4px;}.calculation-learning .panel-actions {align-items:stretch;}.calculation-learning .panel-actions button {white-space:normal;text-align:left;max-width:100%;}.learning-cost-body {padding:0 10px 12px;}}
 .mobile-settings-entry {display:none;}
+.customer-view-switch {display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;}
+.customer-view-switch button[aria-pressed="true"] {background:#215e4b;color:#fff;border-color:#215e4b;}
 .onboarding-entry {display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;font-size:12px;color:var(--muted);}
 #onboarding-dialog {width:min(600px,calc(100vw - 24px));max-width:none;max-height:calc(100dvh - 24px);padding:24px;border:1px solid var(--border);border-radius:8px;color:var(--text);background:#fff;overflow:auto;overscroll-behavior:contain;}
 #onboarding-dialog::backdrop {background:#193e3366;}

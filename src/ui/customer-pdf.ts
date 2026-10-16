@@ -4,11 +4,12 @@ import { unzlibSync } from 'fflate';
 import fontData from '../assets/fonts/quote-sans.base64.txt?raw';
 import { customerDocument, type CustomerDocument } from '../data/customer-document.js';
 import type { CustomerQuote } from '../domain/customer-quote.js';
+import{requireCustomerQuoteView,type CustomerQuoteView}from'../data/customer-quote-view.js';
 
 export const PDF_MIME='application/pdf';
 export class CustomerPdfError extends Error {}
 const fail=(message:string):never=>{throw new CustomerPdfError(message);};
-const WIDTH=595.28,HEIGHT=841.89,MARGIN=44,BOTTOM=62,TOP=752,SIZE=10.5,LEADING=17,LABEL_WIDTH=122,PADDING=8;
+const WIDTH=595.28,HEIGHT=841.89,MARGIN=44,BOTTOM=62,TOP=752,SIZE=10.5,LABEL_WIDTH=122;
 const CONTENT_WIDTH=WIDTH-MARGIN*2;
 let decodedFont:Uint8Array|null=null;
 function fontBytes():Uint8Array {
@@ -31,13 +32,14 @@ export interface PdfLayoutPage { texts:PdfText[];boxes:PdfBox[] }
 export interface CustomerPdfLayout { pages:PdfLayoutPage[];width:number;height:number }
 
 /** Pure public-text layout; split long rows with repeated labels/headers, never shrink type. */
-export function layoutCustomerPdf(content:CustomerDocument,measure:(text:string,size:number)=>number):CustomerPdfLayout {
+export function layoutCustomerPdf(content:CustomerDocument,measure:(text:string,size:number)=>number,view:CustomerQuoteView='full'):CustomerPdfLayout {
+  requireCustomerQuoteView(view);const LEADING=view==='compact'?14:17,PADDING=view==='compact'?5:8;
   const pages:PdfLayoutPage[]=[];let page:PdfLayoutPage;let y=TOP;
   const text=(value:string,x:number,baseline:number,size=SIZE,kind:PdfText['kind']='body')=>{if(value)page.texts.push({x,y:baseline,size,text:value,kind});};
   function newPage(table=false):void {
     if(pages.length>=80)return fail('报价说明超过80页，请减少公开文字后再导出');
     page={texts:[],boxes:[]};pages.push(page);y=TOP;
-    text('客户报价说明 · 草稿',MARGIN,HEIGHT-52,17,'header');text('供双方复核；尚不表示已签署合同或确认全部履约条件。',MARGIN,HEIGHT-74,9,'header');
+    text('客户报价说明 · 草稿'+(view==='compact'?' · 简洁版':''),MARGIN,HEIGHT-52,17,'header');text('供双方复核；尚不表示已签署合同或确认全部履约条件。',MARGIN,HEIGHT-74,9,'header');
     if(table)tableHeader();
   }
   function tableHeader():void {page.boxes.push({x:MARGIN,y:y-26,width:CONTENT_WIDTH,height:26,shade:true});text('项目',MARGIN+PADDING,y-18,SIZE,'table-header');text('公开内容',MARGIN+LABEL_WIDTH+PADDING,y-18,SIZE,'table-header');y-=26;}
@@ -74,15 +76,16 @@ function draw(page:PDFPage,layout:PdfLayoutPage,font:PDFFont):void {
   for(const box of layout.boxes)page.drawRectangle({x:box.x,y:box.y,width:box.width,height:box.height,borderColor:rgb(.83,.87,.91),borderWidth:.5,...(box.shade?{color:rgb(.95,.97,.99)}:{})});
   for(const entry of layout.texts)page.drawText(entry.text,{x:entry.x,y:entry.y,font,size:entry.size,color:entry.kind==='header'?rgb(.14,.26,.41):rgb(.09,.14,.22)});
 }
-export async function createCustomerPdf(quote:CustomerQuote,generatedAt=new Date().toISOString()):Promise<Uint8Array<ArrayBuffer>> {
+export async function createCustomerPdf(quote:CustomerQuote,generatedAt=new Date().toISOString(),view:CustomerQuoteView='full'):Promise<Uint8Array<ArrayBuffer>> {
+  requireCustomerQuoteView(view);
   // Build all primitive strings before the first await: edits cannot change this document.
   const content=customerDocument(quote,generatedAt),date=new Date(generatedAt);if(Number.isNaN(date.getTime()))return fail('PDF生成时间无效');
   const doc=await PDFDocument.create();doc.registerFontkit(fontkit);
   // Embed the already reduced, reviewed resource intact: fontkit subsetting caused
   // missing/misnumbered glyphs in independent rendering despite valid text extraction.
   const font=await doc.embedFont(fontBytes(),{subset:false,customName:'COCUDTTQuoteSansSC'});validateGlyphs(content,font);
-  const layout=layoutCustomerPdf(content,(text,size)=>font.widthOfTextAtSize(text,size));
-  doc.setTitle((content.reference||'客户报价说明')+' · 报价草稿');doc.setAuthor('');doc.setCreator('COCUDTT');doc.setProducer('COCUDTT PDF');doc.setSubject('客户公开报价说明草稿');doc.setKeywords([]);doc.setLanguage('zh-CN');doc.setCreationDate(date);doc.setModificationDate(date);
+  const layout=layoutCustomerPdf(content,(text,size)=>font.widthOfTextAtSize(text,size),view);
+  doc.setTitle((content.reference||'客户报价说明')+' · 报价草稿'+(view==='compact'?' · 简洁版':''));doc.setAuthor('');doc.setCreator('COCUDTT');doc.setProducer('COCUDTT PDF');doc.setSubject('客户公开报价说明草稿');doc.setKeywords([]);doc.setLanguage('zh-CN');doc.setCreationDate(date);doc.setModificationDate(date);
   for(const page of layout.pages)draw(doc.addPage([layout.width,layout.height]),page,font);
   return new Uint8Array(await doc.save());
 }

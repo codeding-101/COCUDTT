@@ -9,9 +9,10 @@ import type {ContainerBillDraft} from '../domain/container-bill-draft.js';
 import {containerBillWorkbookSheets} from '../data/container-bill-workbook.js';
 import type {ContainerCostPair} from '../domain/container-cost-pair.js';
 import {containerPairWorkbookSheet} from '../data/container-pair-snapshot.js';
+import type{CustomerQuoteView}from'../data/customer-quote-view.js';
 
-export function createCustomerWorkbook(quote:CustomerQuote,generatedAt=new Date().toISOString()):Uint8Array<ArrayBuffer> {
-  return serializeWorkbook(customerWorkbook(quote,generatedAt));
+export function createCustomerWorkbook(quote:CustomerQuote,generatedAt=new Date().toISOString(),view:CustomerQuoteView='full'):Uint8Array<ArrayBuffer> {
+  return serializeWorkbook(customerWorkbook(quote,generatedAt,view));
 }
 export function internalWorkbookSnapshot(project:ProjectFile,generatedAt=new Date().toISOString(),hypothesis?:SensitivityControls,plan?:SettlementPlan,bill?:ContainerBillDraft,pair?:ContainerCostPair):WorkbookSnapshot {
   const workbook=internalWorkbook(project,generatedAt,{sensitivity:!!hypothesis?.enabled,settlement:!!plan,bill:!!bill,pair:!!pair});
