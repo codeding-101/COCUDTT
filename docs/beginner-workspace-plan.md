@@ -46,6 +46,8 @@
 
 第五十三轮已完成第3项：六模板预设/缺失/真实输入说明及快速入口，新增空白专业和CIF合成JSON；原四份中国进口文件保持，完整模板导入后给出对应顶部说明。空白税率不补零，CIF通用口径不包装为完整出口税务流程。新增22项、完整76文件2551项、36套浏览器及模板43项检查，见[验收](template-guides-validation.md)。下一步第4项先明确手动加入、容量/删除/失败恢复与隐私，再实现最近项目。
 
+第五十四轮完成第4项的设计和独立模块：手动内部副本、3份/256 KiB/总1 MiB、原文目录、增删/去重、注入存储、租约/读回及损坏保护。新增74项、完整78文件2625项，见[设计](recent-projects-design.md)与[验收](recent-projects-validation.md)。尚未启用运行缓存；下一轮界面须验证未提交汇率行、打开替换接受、准备后编辑/迟到读取/storage事件、原文备份与删除及保存状态，再完成本项。
+
 1. 可关闭、可选择不再显示、可再次打开的首次引导；引导状态与业务文件分离，不覆盖已有草稿或强制载入示例。
 2. 内部Excel/HTML的“计算假设说明”更易读，集中列术语、比较基准、商业/海关汇率来源、费用/计税范围和未完成项。客户报价简洁/完整两视图都须通过原公开字段白名单，不能因“完整”带出采购成本、利润或内部来源。
 3. 清楚命名的空白专业、中国进口和CIF运保模板；分别列出预设费用、虚构数据、缺失前提与真实输入要求。真实出口业务不能把现有通用成本示例包装成已完成的出口税务流程。
@@ -56,6 +58,6 @@
 
 ## 验收、发布和后续专业路线
 
-当前验证记录见[工作台验收](beginner-workspace-validation.md)、[快捷录入与帮助验收](quick-costs-validation.md)、[计算教学验收](calculation-learning-validation.md)、[移动设置验收](mobile-settings-validation.md)、[精度提示验收](input-review-validation.md)、[首次引导验收](onboarding-validation.md)、[内部假设摘要验收](calculation-assumptions-validation.md)、[客户版式验收](customer-views-validation.md)及[模板说明验收](template-guides-validation.md)。旧28套业务流程在明确的专业模式下验收，新增流程先清理专用浏览器的偏好再检查新手默认及两模式；前35套明确跳过引导，最后一套移除注入后检查首次引导，不接触用户日常浏览器偏好；原金额、排名、客户隔离、保存和异常断言保留。统一入口 `tools/run-browser-regression.mjs` 不接触用户浏览器。
+当前验证记录见[工作台验收](beginner-workspace-validation.md)、[快捷录入与帮助验收](quick-costs-validation.md)、[计算教学验收](calculation-learning-validation.md)、[移动设置验收](mobile-settings-validation.md)、[精度提示验收](input-review-validation.md)、[首次引导验收](onboarding-validation.md)、[内部假设摘要验收](calculation-assumptions-validation.md)、[客户版式验收](customer-views-validation.md)、[模板说明验收](template-guides-validation.md)及[最近项目独立模块验收](recent-projects-validation.md)。旧28套业务流程在明确的专业模式下验收，新增流程先清理专用浏览器的偏好再检查新手默认及两模式；前35套明确跳过引导，最后一套移除注入后检查首次引导，不接触用户日常浏览器偏好；原金额、排名、客户隔离、保存和异常断言保留。统一入口 `tools/run-browser-regression.mjs` 不接触用户浏览器。
 
 同一构建完成测试、类型、事件绑定、两平台CI和线上哈希/交互核对后才作为公开体验版。先收集新手首笔测算和专业使用反馈，再处理税务成分、精度选择与费用原子应用。多国家税制、真实交易/银行单据、人工专业复核和实际手机验收继续单列；本轮不扩大法规符合性结论。
