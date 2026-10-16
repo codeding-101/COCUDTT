@@ -14,7 +14,7 @@ export function createCustomerWorkbook(quote:CustomerQuote,generatedAt=new Date(
   return serializeWorkbook(customerWorkbook(quote,generatedAt));
 }
 export function internalWorkbookSnapshot(project:ProjectFile,generatedAt=new Date().toISOString(),hypothesis?:SensitivityControls,plan?:SettlementPlan,bill?:ContainerBillDraft,pair?:ContainerCostPair):WorkbookSnapshot {
-  const workbook=internalWorkbook(project,generatedAt);
+  const workbook=internalWorkbook(project,generatedAt,{sensitivity:!!hypothesis?.enabled,settlement:!!plan,bill:!!bill,pair:!!pair});
   if(hypothesis?.enabled){
     const note=(label:string,value:string)=>[t(label),t(value),t(''),t(''),t(''),t(''),t(''),t('')];
     const rows=[note('说明','假设参考，不能作为确定推荐；不写回原项目。'),note('参数快照',JSON.stringify(hypothesis))];

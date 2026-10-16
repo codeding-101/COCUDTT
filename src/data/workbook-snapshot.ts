@@ -6,6 +6,7 @@ import type { AnalysisResult } from '../engine/analyze.js';
 import { isIsoDate } from '../engine/tax/china-import.js';
 import { toScenario, toScenarios, toTrade, serializeProject, type ProjectFile } from './project-file.js';
 import { decimalCell as n, textCell as t, type WorkbookCell, type WorkbookSheet, type WorkbookSnapshot } from './xlsx-file.js';
+import{calculationAssumptions,type AssumptionAttachments}from'./calculation-assumptions.js';
 
 const DISCLAIMER='本工具仅供学习与内部测算参考，不构成法律或专业贸易建议。实际合同请以 Incoterms® 官方文本及当地法规为准。';
 const PRECISION='数值超出 Excel 的15位有效数字/整数位或12位小数展示范围时以文本保留原值；本文件为生成时快照，编辑单元格不会重新运行测算引擎。';
@@ -38,12 +39,14 @@ export function compareProject(project:ProjectFile):Comparison {
 const currentResult=(comparison:Comparison,term:string):AnalysisResult|null=>comparison.columns.find(c=>c.incoterm===term)?.result??null;
 
 /** Uses per-term engine results; failed or inactive rows never get fabricated zero values. */
-export function internalWorkbook(project:ProjectFile,generatedAt=new Date().toISOString()):WorkbookSnapshot {
+export function internalWorkbook(project:ProjectFile,generatedAt=new Date().toISOString(),attachments:AssumptionAttachments={}):WorkbookSnapshot {
   // Engine outputs and all sheet strings are detached before any asynchronous file picker.
   const comparison=compareProject(project),result=currentResult(comparison,project.incoterm),base=comparison.base_currency;
   const actual=project.anchor.kind==='ACTUAL_QUOTES';
   const overview=[pair('文档性质','内部成本与方案比较快照，含采购成本及来源资料，请勿向客户直接发送'),pair('生成时间',generatedAt),pair('项目',project.name),pair('商品',project.goods.name),pair('商品数量',String(project.goods.quantity)),pair('单位',project.goods.unit),pair('运输方式',CARRIAGE_MODE_LABELS[project.carriage_mode]),pair('当前术语',project.incoterm),pair('核算币种',base),pair('比较基准',actual?'各方案实际报价':project.anchor.kind==='FIXED_QUOTE'?'固定报价金额模拟':project.anchor.kind==='FIXED_MARKET_PRICE'?'固定买方总支付模拟':'固定目标利润率模拟'),
     pair('合同比较日期',project.evaluation_date??'未填写'),pair('进口申报日期',project.tax_profile.import.declarationDate??'未填写'),pair('格式/费用规则版本',`输入 ${project.schema_version}；费用规则 ${result?.rule_set.version??'见可计算方案'}`),pair('采购成本（输入原币）',String(project.goods.seller_goods_cost.amount).trim()===''?'未知':`${project.goods.seller_goods_cost.amount} ${project.goods.seller_goods_cost.currency}`),pair('当前方案状态',result?(result.decision.ready?'满足当前排名检查条件':'参考测算，仍有待办'):'当前方案无法计算，见方案对比及原因'),pair('金额与口径',PRECISION),pair('责任声明',DISCLAIMER)];
+  const assumptions=calculationAssumptions(project,result,comparison,'COMPARISON',attachments);
+  overview.splice(3,0,pair('计算假设摘要','内部复核；当前术语的方案对比记录，实际/模拟与当前录入报价分别核对。'),...assumptions.flatMap(s=>[pair(`摘要分组 · ${s.title}`,'以下为生成时记录'),...s.rows.map(r=>pair(r.label,r.value))]));
   const columns=comparison.columns.map(c=>{
     const scenario=project.term_scenarios?.[c.incoterm]?.quote;
     const ok=c.available&&c.feasible&&c.result!==null;
