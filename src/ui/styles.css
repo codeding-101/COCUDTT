@@ -853,3 +853,12 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
 [data-mobile-settings-placeholder] {display:none;}
 #mobile-settings-dialog::backdrop {background:#193e3370;}
 @media(max-width:700px){.mobile-settings-entry {display:block;}.mobile-settings-entry button {width:100%;height:auto;min-height:40px;white-space:normal;text-align:left;}}
+/* Manual local snapshots use the existing disclosure and form vocabulary. */
+.recent-projects .panel-body { overflow-wrap:anywhere; }
+.recent-consent { display:flex; align-items:flex-start; gap:.6rem; margin:1rem 0; }
+.recent-consent input { flex:0 0 auto; width:1.1rem; height:1.1rem; margin-top:.2rem; }
+.recent-project-list { list-style:none; padding:0; display:grid; gap:.75rem; }
+.recent-project-list li,.recent-confirm { border:1px solid var(--line,#d4dce5); border-radius:8px; padding:1rem; }
+.recent-confirm { background:var(--surface-alt,#f4f6f8); }
+.recent-projects button { min-height:44px; }
+@media(max-width:600px) { .recent-projects .panel-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .recent-projects button { white-space:normal; } }

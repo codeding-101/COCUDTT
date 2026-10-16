@@ -58,6 +58,9 @@
 
 ## 验收、发布和后续专业路线
 
-当前验证记录见[工作台验收](beginner-workspace-validation.md)、[快捷录入与帮助验收](quick-costs-validation.md)、[计算教学验收](calculation-learning-validation.md)、[移动设置验收](mobile-settings-validation.md)、[精度提示验收](input-review-validation.md)、[首次引导验收](onboarding-validation.md)、[内部假设摘要验收](calculation-assumptions-validation.md)、[客户版式验收](customer-views-validation.md)、[模板说明验收](template-guides-validation.md)及[最近项目独立模块验收](recent-projects-validation.md)。旧28套业务流程在明确的专业模式下验收，新增流程先清理专用浏览器的偏好再检查新手默认及两模式；前35套明确跳过引导，最后一套移除注入后检查首次引导，不接触用户日常浏览器偏好；原金额、排名、客户隔离、保存和异常断言保留。统一入口 `tools/run-browser-regression.mjs` 不接触用户浏览器。
+当前验证记录见[工作台验收](beginner-workspace-validation.md)、[快捷录入与帮助验收](quick-costs-validation.md)、[计算教学验收](calculation-learning-validation.md)、[移动设置验收](mobile-settings-validation.md)、[精度提示验收](input-review-validation.md)、[首次引导验收](onboarding-validation.md)、[内部假设摘要验收](calculation-assumptions-validation.md)、[客户版式验收](customer-views-validation.md)、[模板说明验收](template-guides-validation.md)及[最近项目独立模块验收](recent-projects-validation.md)。旧28套业务流程在明确的专业模式下验收，新增流程先清理专用浏览器的偏好再检查新手默认及两模式；前36套明确跳过引导，最后一套移除注入后检查首次引导，不接触用户日常浏览器偏好；原金额、排名、客户隔离、保存和异常断言保留。统一入口 `tools/run-browser-regression.mjs` 不接触用户浏览器。
 
 同一构建完成测试、类型、事件绑定、两平台CI和线上哈希/交互核对后才作为公开体验版。先收集新手首笔测算和专业使用反馈，再处理税务成分、精度选择与费用原子应用。多国家税制、真实交易/银行单据、人工专业复核和实际手机验收继续单列；本轮不扩大法规符合性结论。
+
+
+第五十五轮完成[最近项目界面](recent-projects-ui-validation.md)：默认不读取缓存，明确接受后手动加入；打开/删除/清空分别准备和确认。输入/独立资料变化及storage事件撤销旧接受；汇率不完整/重复阻断捕获。完整79文件2660项、37套浏览器流程及最近项目32项检查；下一步整理能力与验证矩阵及复现演示，再独立推进专业规则边界。

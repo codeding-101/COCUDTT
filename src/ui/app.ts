@@ -44,6 +44,9 @@ import { booksToRows, rowsToBooks, type FxRow } from './fx-rows.js';
 import { escapeHtml } from './format.js';
 import { nextCostId, renderFormsRow, renderAdvancedTradeFields, renderFxPanel, renderHsPanel, renderImportTaxPanel, renderItemsPanel, type ItemEnrichment } from './views-input.js';
 import { loadWorkspaceMode, saveWorkspaceMode, renderModeSwitch, renderQuickStart, renderCalculationStatus, renderWorkspaceSummary, workspaceIssues, focusWorkspaceIssue, workspaceIssueElement, revealWorkspaceElement, type WorkspaceMode, type WorkspaceResult } from './workspace.js';
+import { RECENT_PROJECTS_KEY } from '../data/recent-projects.js';
+import { RecentProjectsController } from './recent-projects-controller.js';
+import { renderRecentProjects, renderRecentProjectsBody } from './recent-projects.js';
 import {renderCalculationLearning,focusLearningTarget} from './calculation-learning.js';
 import {QuickCostsController} from './quick-costs.js';
 import {FieldHelpController} from './field-help.js';
@@ -231,11 +234,26 @@ function installPair(pair:ContainerCostPair):void {
 async function writeBillFile(name:string,text:string,mime:string):Promise<'SAVED'|'DOWNLOAD_STARTED'> {
  const picker=(window as SaveFilePickerWindow).showSaveFilePicker;
  if(!picker){downloadText(name,text);return 'DOWNLOAD_STARTED';}
- const handle=await picker.call(window,{suggestedName:name,types:[{description:name.endsWith('container-cost-pair.json')?'项目账单配对文件':'独立账单文件',accept:{[mime]:['.json']}}]});
+ const handle=await picker.call(window,{suggestedName:name,types:[{description:name==='COCUDTT-recent-projects-internal.json'?'内部最近项目缓存原文':name.endsWith('container-cost-pair.json')?'项目账单配对文件':'独立账单文件',accept:{[mime]:['.json']}}]});
  const writable=await handle.createWritable();await writable.write(text);await writable.close();return 'SAVED';
 }
 
+const recentProjects = new RecentProjectsController({
+ storage:{getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value),removeItem:key=>localStorage.removeItem(key)},
+ context:()=>JSON.stringify({project:currentProject(),fxRows:state.fxRows,projectReadEpoch,settlementEpoch,fileName:state.fileName,savedAt:state.savedAt,dirty:state.dirty,
+  settlementPlan,sensitivityControls,customerFields,customerReviewed,customerView,bill:containerBill.draft,billMessage:containerBill.message,
+  pair:containerPair.pair,editor:containerPair.editor,reviewEditor:containerPair.reviewEditor,copyName:containerPair.copyName,copyAcknowledged:containerPair.copyAcknowledged,copyCandidate:containerPair.copyCandidate,pairMessage:containerPair.message}),
+ capture:()=>serializeProject(currentProject()),captureIssues:pairedFxDraftIssues,
+ install:text=>{projectReadEpoch++;return openProjectFromText(text,'',true);},
+ write:writeBillFile,render:()=>render(),blocked:()=>recoveryStage!==null,id:()=>crypto.randomUUID(),now:()=>new Date().toISOString(),
+});
+function invalidateRecentProjects():void {
+ if(!recentProjects.invalidate())return;
+ const host=document.querySelector<HTMLElement>('[data-recent-host]');if(host)host.innerHTML=renderRecentProjectsBody(recentProjects);
+}
+
 function showFatalFailure(stage: FailureStage): void {
+  recentProjects.invalidate();
   onboarding.dismiss(false,false);
   fieldHelp.dismiss(false);
   mobileSettings.dismiss(false);editedControl=null;
@@ -479,6 +497,7 @@ function enrichmentMap(): Map<string, ItemEnrichment> {
 
 function focusKeyOf(element: Element): string | null {
   const dataset = (element as HTMLElement).dataset;
+  if(dataset.recentField!==undefined)return `recent:${dataset.recentField}`;
   if(dataset.quickCostField!==undefined)return `quick-cost:${dataset.quickCostKind}:${dataset.quickCostField}`;
   if(dataset.pairEditorField!==undefined)return `pair-editor:${dataset.pairEditorField}`;
   if(dataset.pairCopyField!==undefined)return `pair-copy:${dataset.pairCopyField}`;
@@ -503,7 +522,7 @@ function focusKeyOf(element: Element): string | null {
 
 function restoreFocus(key: string | null): void {
   if (key === null) return;
-  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner],[data-contract-cost],[data-logistics-kind],[data-sensitivity-field],[data-customer-field],[data-bill-field],[data-pair-editor-field],[data-pair-copy-field],[data-pair-review-field],[data-quick-cost-field]')).find(
+  const element = Array.from(document.querySelectorAll<HTMLElement>('[data-path],[data-item],[data-fx],[data-evidence-owner],[data-contract-cost],[data-logistics-kind],[data-sensitivity-field],[data-customer-field],[data-bill-field],[data-pair-editor-field],[data-pair-copy-field],[data-pair-review-field],[data-quick-cost-field],[data-recent-field]')).find(
     (candidate) => focusKeyOf(candidate) === key,
   );
   element?.focus();
@@ -1243,7 +1262,7 @@ function showFileError(error: unknown): void {
   render();
 }
 
-function openProjectFromText(text: string, fileName: string): void {
+function openProjectFromText(text: string, fileName: string, fromRecent=false): boolean {
   try {
     const project = parseProject(text);
     // 所有可能失败的准备步骤完成后，才替换当前编辑内容。
@@ -1251,7 +1270,7 @@ function openProjectFromText(text: string, fileName: string): void {
     const templateNote=importedTemplateNote(project);
     pairFxLease=null;containerPair.cancelReads();
     state.project = project;
-    workspaceNote = templateNote??'已打开本地项目；按文件中保存的费用、报价与适用条件核对。';
+    workspaceNote = fromRecent?'已打开本机项目快照；独立付款、账单、配对与客户资料未由快照恢复，请另存项目 JSON。':templateNote??'已打开本地项目；按文件中保存的费用、报价与适用条件核对。';
     containerBill.projectChanged();
     settlementPlan = null;
     settlementEpoch++;
@@ -1260,15 +1279,16 @@ function openProjectFromText(text: string, fileName: string): void {
     customerView='full';
     customerReviewed = false;
     state.fxRows = fxRows;
-    state.fileName = fileName;
+    state.fileName = fromRecent?null:fileName;
     state.savedAt = null;
-    state.dirty = false;
+    state.dirty = fromRecent;
   } catch (error) {
     showFileError(error);
-    return;
+    return false;
   }
   recompute();
   render();
+  return true;
 }
 
 function newProject(mode: 'sample' | 'china-sample' | 'china-blank' = 'sample'): void {
@@ -1345,6 +1365,7 @@ function renderApp(): void {
       <div class="workspace-file-state"><span class="${saveState.className}" role="status" aria-live="polite">${escapeHtml(saveState.text)}</span><span>仅供学习与内部测算。数据仅在本机浏览器；清除存储会丢失草稿，请另存项目 JSON。</span></div>
       ${renderQuickStart(state.project,workspaceNote)}
       ${onboarding.entry()}
+      ${renderRecentProjects(recentProjects,expandedEvidenceSections.has('recent-projects'))}
       ${renderFormsRow(state.project,workspaceMode==='beginner')}
       <div class="mobile-settings-entry"><button type="button" data-action="show-mobile-settings">高级设置 · 费用、汇率与税务 →</button></div>
       ${renderInputReview(inputReviews(currentProject(),state.fxRows))}
@@ -1465,15 +1486,22 @@ function bind(): void {
   const calculationInput = (target: HTMLInputElement): boolean => target.type!=='file' &&
     (target.dataset.quickCostField==='amount'||['path','itemField','fxField','hsField','contractField','logisticsField'].some(key=>target.dataset[key]!==undefined));
   const customerText=(target:unknown):target is HTMLTextAreaElement=>typeof HTMLTextAreaElement!=='undefined'&&target instanceof HTMLTextAreaElement&&CUSTOMER_QUOTE_FIELDS.some(key=>key===target.dataset.customerField);
-  const commitsInput=(action:string):boolean=>['save','open','toggle-file-menu','show-field-help','show-quick-costs','show-cost-settings','show-full-results','show-calculation-learning','learning-target','show-mobile-settings','close-mobile-settings','locate-workspace-issue','locate-input','locate-input-review','show-onboarding','customer-view','show-project-templates'].includes(action)||action.startsWith('mode-');
+  const commitsInput=(action:string):boolean=>['save','open','toggle-file-menu','show-field-help','show-quick-costs','show-cost-settings','show-full-results','show-calculation-learning','learning-target','show-mobile-settings','close-mobile-settings','locate-workspace-issue','locate-input','locate-input-review','show-onboarding','customer-view','show-project-templates'].includes(action)||action.startsWith('mode-')||action.startsWith('recent-');
   const flushInput=():void=>{
     const active=document.activeElement;
     if((active instanceof HTMLInputElement||customerText(active))&&(editedControl===active||active instanceof HTMLInputElement&&pendingCalculation&&calculationInput(active)))active.dispatchEvent(new Event('change',{bubbles:true}));
   };
   mobileSettings.onReturn=()=>runUi('INTERACTION',()=>{flushInput();if(!pendingCalculation)mobileSettings.dismiss();});
   if(typeof window.addEventListener==='function'&&!boundEvents.has('mobile-resize')){window.addEventListener('resize',()=>runUi('INTERACTION',()=>mobileSettings.resize()));boundEvents.add('mobile-resize');}
+  if(typeof window.addEventListener==='function'&&!boundEvents.has('recent-storage')){
+    window.addEventListener('storage',event=>runUi('INTERACTION',()=>{
+      if((event.key===RECENT_PROJECTS_KEY||event.key===null)&&(!event.storageArea||event.storageArea===localStorage))recentProjects.externalChange();
+    }));boundEvents.add('recent-storage');
+  }
   listen('input',event=>{
-    const target=event.target;if(target instanceof HTMLInputElement&&target.type!=='file'&&target.dataset.customerField!=='reviewed'||customerText(target))editedControl=target;
+    const target=event.target;if(target instanceof HTMLElement&&target.dataset.recentField!==undefined)return;
+    invalidateRecentProjects();
+    if(target instanceof HTMLInputElement&&target.type!=='file'&&target.dataset.customerField!=='reviewed'||customerText(target))editedControl=target;
     if(customerText(target)){customerReviewed=false;const reviewed=document.querySelector<HTMLInputElement>('[data-customer-field="reviewed"]');if(reviewed)reviewed.checked=false;document.querySelectorAll<HTMLButtonElement>('[data-action="export-customer-quote"],[data-action="export-customer-xlsx"],[data-action="export-customer-pdf"],[data-action="export-bilingual-summary"]').forEach(e=>e.disabled=true);return;}
     if(!(target instanceof HTMLInputElement)||!calculationInput(target))return;
     pendingCalculation=true;
@@ -1485,7 +1513,7 @@ function bind(): void {
   // replaces the clicked DOM node before mouseup, swallowing the first click.
   listen('mousedown',event=>{
     const target=event.target;if(!(pendingCalculation||editedControl===document.activeElement)||!(target instanceof HTMLElement)||(event as MouseEvent).button!==0)return;
-    const action=target.dataset.action;if(action&&commitsInput(action)||target.dataset.customerField==='reviewed'&&customerText(editedControl))event.preventDefault();
+    const action=target.dataset.action;if(action&&commitsInput(action)||target.dataset.recentField!==undefined||target.dataset.customerField==='reviewed'&&customerText(editedControl))event.preventDefault();
   });
   listen('keydown',event=>{
     const key=event as KeyboardEvent,target=event.target;
@@ -1526,6 +1554,11 @@ function bind(): void {
 
   listen('change', (event) => {
     const target = event.target;
+    if(target instanceof HTMLInputElement&&target.dataset.recentField!==undefined){
+      const {recentField,recentGeneration}=target.dataset,checked=target.checked;
+      flushInput();recentProjects.accept(recentField,checked,recentGeneration);return;
+    }
+    invalidateRecentProjects();
     if(editedControl===target)editedControl=null;
     if(target instanceof HTMLInputElement&&target.dataset.onboardingField==='hide'){onboarding.setHidden(target.checked);return;}
     if(target instanceof HTMLInputElement&&target.id==='pair-file-input'){const file=target.files?.[0];if(file)void containerPair.open(file);return;}
@@ -1682,8 +1715,17 @@ function bind(): void {
     if(['show-mobile-settings','show-cost-settings','locate-workspace-issue','locate-input','locate-input-review'].includes(action))mobileSettings.remember(target);
     if(commitsInput(action))flushInput();
     if(pendingCalculation&&(action==='save'||action.startsWith('export-')||action==='preview-customer-quote'||action.startsWith('mode-')||action==='show-calculation-learning'||action==='learning-target'))return;
-    if(!action.startsWith('pair-')&&!['show-onboarding','close-onboarding','onboarding-next','onboarding-back','customer-view','show-project-templates'].includes(action))containerPair.cancelReads();
+    if(!action.startsWith('pair-')&&!action.startsWith('recent-')&&!['show-onboarding','close-onboarding','onboarding-next','onboarding-back','customer-view','show-project-templates'].includes(action))containerPair.cancelReads();
     switch (action) {
+      case 'recent-refresh':
+      case 'recent-add':
+      case 'recent-backup':
+      case 'recent-prepare-open':
+      case 'recent-prepare-delete':
+      case 'recent-prepare-clear':
+      case 'recent-execute':
+      case 'recent-cancel':
+        expandedEvidenceSections.add('recent-projects');recentProjects.action(action,target.dataset.recentGeneration,target.dataset.recentId);break;
       case 'show-project-templates': {
         expandedEvidenceSections.add('project-templates');render();
         const summary=document.querySelector<HTMLElement>('[data-evidence-section="project-templates"] > summary');if(summary)revealWorkspaceElement(summary);break;

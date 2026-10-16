@@ -59,6 +59,7 @@ describe('打开、保存项目的失败处理', () => {
     vi.stubGlobal('localStorage', {
       getItem: (name: string) => storage.get(name) ?? null,
       setItem: (name: string, value: string) => storage.set(name, value),
+      removeItem: (name:string) => storage.delete(name),
     });
     vi.stubGlobal('window', {});
   });
@@ -68,6 +69,34 @@ describe('打开、保存项目的失败处理', () => {
     const app = await import('../src/ui/app');
     app.start();
   }
+  const recentKey='trade-cost-engine:recent-projects-v1';
+  const recentGeneration=()=>html.match(/data-recent-generation="(\d+)"/)![1]!;
+  function recent(action:string,id?:string,g=recentGeneration()) {const button=new ElementStub();button.dataset={action:`recent-${action}`,recentGeneration:g,...(id?{recentId:id}:{})};listeners.get('click')!({target:button});}
+  function recentAccept(field='copy') {const input=new InputStub();input.id='';input.checked=true;input.dataset={recentField:field,recentGeneration:recentGeneration()};listeners.get('change')!({target:input});}
+  it('启动和展开最近面板不读写最近缓存，列表读取不改交易或保存状态',async()=>{
+    const get=vi.fn((name:string)=>storage.get(name)??null);vi.stubGlobal('localStorage',{getItem:get,setItem:(k:string,v:string)=>storage.set(k,v)});await start();expect(get).not.toHaveBeenCalledWith(recentKey);const before=storage.get(key);recent('refresh');expect(get).toHaveBeenCalledWith(recentKey);expect(storage.get(key)).toBe(before);expect(storage.has(recentKey)).toBe(false);expect(html).toContain('暂无手动快照');
+  },15_000);
+  it('手动加入只写独立键；未授权不写；保存状态和当前项目保持',async()=>{
+    await start();change('name','CACHE_APP_55');recent('refresh');const before=storage.get(key),status=html.match(/workspace-file-state[\s\S]*?<\/div>/)![0];recent('add');expect(storage.has(recentKey)).toBe(false);recentAccept();recent('add');expect(JSON.parse(storage.get(recentKey)!).entries[0].project_text).toContain('CACHE_APP_55');expect(storage.get(key)).toBe(before);expect(html.match(/workspace-file-state[\s\S]*?<\/div>/)![0]).toBe(status);
+  });
+  it('实际打开快照重算，保留原日期且明确未保存为文件',async()=>{
+    await start();change('name','ORIGINAL_55');recent('refresh');recentAccept();recent('add');const catalog=storage.get(recentKey)!,id=JSON.parse(catalog).entries[0].id;change('name','EDIT_55');recent('prepare-open',id);recentAccept('action');recent('execute');expect(JSON.parse(storage.get(key)!).project.name).toBe('ORIGINAL_55');expect(storage.get(recentKey)).toBe(catalog);expect(html).toContain('尚未保存为文件 · 有未保存改动');expect(html).toContain('独立付款、账单、配对与客户资料未由快照恢复');
+  });
+  it('准备后核心编辑撤销确认，旧DOM执行不覆盖新交易',async()=>{
+    await start();recent('refresh');recentAccept();recent('add');const id=JSON.parse(storage.get(recentKey)!).entries[0].id;recent('prepare-open',id);recentAccept('action');const g=recentGeneration();change('name','KEEP_NEW_INPUT_55');recent('execute',undefined,g);expect(JSON.parse(storage.get(key)!).project.name).toBe('KEEP_NEW_INPUT_55');expect(html).not.toContain('data-recent-field="action"');
+  });
+  it('未完成或重复汇率经真实加入事件阻断，原始草稿不丢行',async()=>{
+    await start();action('add-fx');recent('refresh');recentAccept();const before=storage.get(key);recent('add');expect(storage.has(recentKey)).toBe(false);expect(storage.get(key)).toBe(before);expect(html).toContain('汇率行尚未填写完整');
+  });
+  it('缓存原文备份使用独立文件且不改保存状态，失败不泄露异常',async()=>{
+    await start();storage.set(recentKey,'FUTURE_RAW_55');recent('refresh');let data='';vi.stubGlobal('window',{showSaveFilePicker:async()=>({createWritable:async()=>({write:async(t:string)=>{data=t},close:async()=>{}})})});const before=storage.get(key);recent('backup');await vi.waitFor(()=>expect(data).toBe('FUTURE_RAW_55'));await vi.waitFor(()=>expect(html).toContain('缓存原文已保存'));expect(storage.get(key)).toBe(before);expect(storage.get(recentKey)).toBe('FUTURE_RAW_55');
+  });
+  it('清空仅最近键，独立账单与配对缓存不变',async()=>{
+    await start();storage.set(recentKey,'MALFORMED_55');storage.set('trade-cost-engine:container-cost-pair-v1','PAIR_KEEP55');recent('refresh');const before=storage.get(key);recent('prepare-clear');recentAccept('action');recent('execute');expect(storage.has(recentKey)).toBe(false);expect(storage.get('trade-cost-engine:container-cost-pair-v1')).toBe('PAIR_KEEP55');expect(storage.get(key)).toBe(before);
+  });
+  it('缓存打开使更早的迟到项目读取失效',async()=>{
+    await start();recent('refresh');recentAccept();recent('add');const id=JSON.parse(storage.get(recentKey)!).entries[0].id;let resolve!:(text:string)=>void;open(()=>new Promise(r=>{resolve=r}));recent('prepare-open',id);recentAccept('action');recent('execute');const after=storage.get(key);const p=sampleProjectFile();p.name='LATE_SHOULD_NOT_INSTALL_55';resolve(serializeProject(p));await new Promise(r=>setTimeout(r,20));expect(storage.get(key)).toBe(after);
+  });
   const quickLease=()=>html.match(/data-quick-cost-lease="(\d+)"/)![1]!;
   function quickField(kind:string,field:string,value:string,id?:string,lease=quickLease()){
     const input=new InputStub();input.id='';input.dataset={quickCostKind:kind,quickCostField:field,quickCostLease:lease,...(id?{quickCostId:id}:{})};input.value=value;listeners.get('change')!({target:input});
