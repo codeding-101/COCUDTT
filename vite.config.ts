@@ -8,6 +8,8 @@ export default defineConfig({
     generateBundle() {
       const source = readFileSync(new URL('./project-introduction.html', import.meta.url), 'utf8');
       this.emitFile({ type: 'asset', fileName: 'project-introduction.html', source: source.replace('href="trade-cost-engine.html"', 'href="index.html"') });
+      const walkthrough = readFileSync(new URL('./china-import-walkthrough.html', import.meta.url), 'utf8');
+      this.emitFile({ type: 'asset', fileName: 'china-import-walkthrough.html', source: walkthrough.replace('href="trade-cost-engine.html"','href="index.html"') });
     },
   }],
   // 相对路径：构建产物既能放在子目录，也能直接双击打开

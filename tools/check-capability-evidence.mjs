@@ -1,0 +1,8 @@
+import{readFileSync,existsSync}from'node:fs';import{resolve,dirname,relative,isAbsolute}from'node:path';
+const root=resolve(import.meta.dirname,'..'),files=['docs/capability-evidence-matrix.md','docs/china-import-walkthrough.md','docs/capability-walkthrough-validation.md'];let checked=0;
+for(const file of files){const text=readFileSync(resolve(root,file),'utf8');for(const match of text.matchAll(/\]\(([^)]+)\)/g)){
+ const target=match[1];if(/^(https?:|#)/.test(target))continue;
+ const full=resolve(dirname(resolve(root,file)),target.split('#')[0]),path=relative(root,full);
+ if(path.startsWith('..')||isAbsolute(path)||!existsSync(full))throw Error('Missing/invalid local evidence: '+file+' -> '+target);checked++;
+}}
+console.log('Capability evidence: '+checked+' local document/source/test links exist; no professional or real-business certification implied');
