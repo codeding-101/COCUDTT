@@ -1,0 +1,40 @@
+{
+  "kind": "SYNTHETIC_IMPORT_WALKTHROUGH",
+  "version": "1.0",
+  "case_id": "china-import-dual-fx-buyer-unknown-seller",
+  "prepared_on": "2026-10-17",
+  "professional_review": "NOT_PERFORMED",
+  "real_documents": "NOT_AVAILABLE",
+  "currency": "CNY",
+  "scenarios": [
+    {
+      "id": "baseline",
+      "label": "基准：卖方采购成本未知",
+      "changes": [],
+      "formulae": ["(100000 + 8000 + 300) × 7.08 = 766764.00", "766764.00 × 0.05 = 38338.20", "(766764.00 + 38338.20) × 0.13 = 104663.286 → 104663.29", "108300 × 7.00 + 38338.20 + 104663.29 = 901101.49"],
+      "expected": {"dutiable_value":"766764.00","duty":"38338.20","consumption_tax":"0.00","vat":"104663.29","buyer_total":"901101.49","buyer_ex_deductible":"901101.49","delta_buyer":"0.00","seller_margin":null}
+    },
+    {
+      "id": "commercial-fx",
+      "label": "仅商业汇率改为7.20",
+      "changes": [{"target":"CONTRACT_USD_CNY","value":"7.20"}],
+      "formulae": ["海关汇率仍为7.08，完税价格和税款保持基准值", "108300 × 7.20 + 38338.20 + 104663.29 = 922761.49", "922761.49 − 901101.49 = 21660.00"],
+      "expected": {"dutiable_value":"766764.00","duty":"38338.20","consumption_tax":"0.00","vat":"104663.29","buyer_total":"922761.49","buyer_ex_deductible":"922761.49","delta_buyer":"21660.00","seller_margin":null}
+    },
+    {
+      "id": "customs-fx",
+      "label": "仅海关汇率改为7.18",
+      "changes": [{"target":"CUSTOMS_USD_CNY","value":"7.18"}],
+      "formulae": ["108300 × 7.18 = 777594.00", "777594.00 × 0.05 = 38879.70", "(777594.00 + 38879.70) × 0.13 = 106141.581 → 106141.58", "108300 × 7.00 + 38879.70 + 106141.58 = 903121.28", "903121.28 − 901101.49 = 2019.79"],
+      "expected": {"dutiable_value":"777594.00","duty":"38879.70","consumption_tax":"0.00","vat":"106141.58","buyer_total":"903121.28","buyer_ex_deductible":"903121.28","delta_buyer":"2019.79","seller_margin":null}
+    },
+    {
+      "id": "requoted-freight",
+      "label": "运费改为9000，并明确把CIF报价改为109300",
+      "changes": [{"target":"FREIGHT_USD","value":"9000"},{"target":"QUOTE_USD","value":"109300"}],
+      "formulae": ["这一步同时修改运费和合同报价；不由术语自动改报价", "(100000 + 9000 + 300) × 7.08 = 773844.00", "773844.00 × 0.05 = 38692.20", "(773844.00 + 38692.20) × 0.13 = 105629.706 → 105629.71", "109300 × 7.00 + 38692.20 + 105629.71 = 909421.91", "909421.91 − 901101.49 = 8320.42"],
+      "expected": {"dutiable_value":"773844.00","duty":"38692.20","consumption_tax":"0.00","vat":"105629.71","buyer_total":"909421.91","buyer_ex_deductible":"909421.91","delta_buyer":"8320.42","seller_margin":null}
+    }
+  ],
+  "limitations": ["所有商品、税率、汇率、日期及费用均虚构，不是税则或真实报价", "进口增值税按不可抵扣测算；未确认纳税人、用途或凭证资格", "消费税为无；不代表任意商品免征", "卖方采购成本未知，利润不得填零或展示为已知利润", "未列目的港、国内运输、代理、查验等费用，结果不是完整实际落地成本", "来源保持EXAMPLE，结果为参考测算，不进入确定推荐", "CIF海运风险与费用边界沿用当前工具；此例不证明保险险别、保额或交货事实成立", "实验每次重新打开基准文件，不累计上次改动，不更新来源确认"]
+}
