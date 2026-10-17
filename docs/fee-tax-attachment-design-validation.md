@@ -1,5 +1,7 @@
 # 第五十九轮：费用税务成分附件接入前验收
 
+> 本文记录第五十九轮设计基线。第六十轮已实现[独立附件文件模块](fee-tax-attachment-file-validation.md)，页面/草稿/恢复与费用应用仍未接入；以下“下一轮”按原设计阶段理解。
+
 2026-10-17。交付[附件契约设计](fee-tax-attachment-design.md)、[固定合成状态向量](cases/fee-tax-attachment-design.json)与[独立状态检查器](../tools/check-fee-tax-attachment-design.mjs)。本轮没有生产代码、Schema、业务文件或界面变更，不把设计向量当成真实文件存取、浏览器竞态或税务认证。
 
 ## 新增设计证据

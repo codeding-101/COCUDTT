@@ -1,0 +1,560 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:cocudtt:internal-fee-tax-attachment:1.0",
+  "title": "COCUDTT internal fee tax attachment 1.0",
+  "description": "Read-only assumptions only. Runtime additionally checks complete pair JSON, duplicate keys, SHA-256, exact amounts, UTF-8 and UTF-16 limits, calendar dates, identities and references. No fee application or tax eligibility certification.",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "const": "INTERNAL_FEE_TAX_ATTACHMENT"
+    },
+    "version": {
+      "const": "1.0"
+    },
+    "attachment_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000000
+    },
+    "pair_snapshot_json": {
+      "type": "string"
+    },
+    "pair_snapshot_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "records": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "mapping_id": {
+                "type": "string",
+                "maxLength": 200,
+                "pattern": "\\S",
+                "not": {
+                  "enum": [
+                    "__proto__",
+                    "constructor",
+                    "prototype"
+                  ]
+                }
+              },
+              "bill_id": {
+                "type": "string",
+                "maxLength": 200,
+                "pattern": "\\S",
+                "not": {
+                  "enum": [
+                    "__proto__",
+                    "constructor",
+                    "prototype"
+                  ]
+                }
+              },
+              "line_id": {
+                "type": "string",
+                "maxLength": 200,
+                "pattern": "\\S",
+                "not": {
+                  "enum": [
+                    "__proto__",
+                    "constructor",
+                    "prototype"
+                  ]
+                }
+              },
+              "cost_id": {
+                "type": "string",
+                "maxLength": 200,
+                "pattern": "\\S",
+                "not": {
+                  "enum": [
+                    "__proto__",
+                    "constructor",
+                    "prototype"
+                  ]
+                }
+              },
+              "operation": {
+                "enum": [
+                  "CREATE_NEW",
+                  "REFERENCE_EXISTING"
+                ]
+              }
+            },
+            "required": [
+              "mapping_id",
+              "bill_id",
+              "line_id",
+              "cost_id",
+              "operation"
+            ],
+            "additionalProperties": false
+          },
+          "input": {
+            "type": "object",
+            "properties": {
+              "line_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+              },
+              "currency": {
+                "type": "string",
+                "pattern": "^[A-Z]{3}$"
+              },
+              "gross": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^(0|[1-9][0-9]{0,23})(\\.[0-9]{1,18})?$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "tax": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "const": "UNKNOWN"
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "const": "NO_SEPARATION"
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "const": "EXPLICIT"
+                      },
+                      "net": {
+                        "type": "string",
+                        "pattern": "^(0|[1-9][0-9]{0,23})(\\.[0-9]{1,18})?$"
+                      },
+                      "tax": {
+                        "type": "string",
+                        "pattern": "^(0|[1-9][0-9]{0,23})(\\.[0-9]{1,18})?$"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "net",
+                      "tax"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "const": "GROSS_RATE"
+                      },
+                      "rate": {
+                        "type": "string",
+                        "pattern": "^(0|[1-9][0-9]{0,23})(\\.[0-9]{1,18})?$"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "rate"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "credit": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "const": "UNKNOWN"
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "const": "NONE"
+                      },
+                      "basis": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "pattern": "\\S"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "basis"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "const": "ASSUMED"
+                      },
+                      "amount": {
+                        "type": "string",
+                        "pattern": "^(0|[1-9][0-9]{0,23})(\\.[0-9]{1,18})?$"
+                      },
+                      "basis": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "pattern": "\\S"
+                      },
+                      "document_ref": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "pattern": "\\S"
+                      },
+                      "eligibility_ref": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "pattern": "\\S"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "amount",
+                      "basis",
+                      "document_ref",
+                      "eligibility_ref"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "customs": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "const": "UNKNOWN"
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "const": "NOT_ADDED"
+                      },
+                      "basis": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "pattern": "\\S"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "basis"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "const": "ADD_COMPONENT"
+                      },
+                      "amount": {
+                        "type": "string",
+                        "pattern": "^(0|[1-9][0-9]{0,23})(\\.[0-9]{1,18})?$"
+                      },
+                      "basis": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "pattern": "\\S"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "amount",
+                      "basis"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "required": [
+              "line_id",
+              "currency",
+              "gross",
+              "tax",
+              "credit",
+              "customs"
+            ],
+            "additionalProperties": false
+          },
+          "sources": {
+            "type": "object",
+            "properties": {
+              "tax": {
+                "type": "object",
+                "properties": {
+                  "provenance": {
+                    "enum": [
+                      "UNSPECIFIED",
+                      "EXAMPLE",
+                      "USER_SUPPLIED"
+                    ]
+                  },
+                  "reference": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "valid_from": {
+                    "type": "string",
+                    "pattern": "^(|[0-9]{4}-[0-9]{2}-[0-9]{2})$"
+                  },
+                  "valid_to": {
+                    "type": "string",
+                    "pattern": "^(|[0-9]{4}-[0-9]{2}-[0-9]{2})$"
+                  },
+                  "checked_on": {
+                    "type": "string",
+                    "pattern": "^(|[0-9]{4}-[0-9]{2}-[0-9]{2})$"
+                  }
+                },
+                "required": [
+                  "provenance",
+                  "reference",
+                  "valid_from",
+                  "valid_to",
+                  "checked_on"
+                ],
+                "additionalProperties": false
+              },
+              "credit": {
+                "type": "object",
+                "properties": {
+                  "provenance": {
+                    "enum": [
+                      "UNSPECIFIED",
+                      "EXAMPLE",
+                      "USER_SUPPLIED"
+                    ]
+                  },
+                  "reference": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "valid_from": {
+                    "type": "string",
+                    "pattern": "^(|[0-9]{4}-[0-9]{2}-[0-9]{2})$"
+                  },
+                  "valid_to": {
+                    "type": "string",
+                    "pattern": "^(|[0-9]{4}-[0-9]{2}-[0-9]{2})$"
+                  },
+                  "checked_on": {
+                    "type": "string",
+                    "pattern": "^(|[0-9]{4}-[0-9]{2}-[0-9]{2})$"
+                  }
+                },
+                "required": [
+                  "provenance",
+                  "reference",
+                  "valid_from",
+                  "valid_to",
+                  "checked_on"
+                ],
+                "additionalProperties": false
+              },
+              "customs": {
+                "type": "object",
+                "properties": {
+                  "provenance": {
+                    "enum": [
+                      "UNSPECIFIED",
+                      "EXAMPLE",
+                      "USER_SUPPLIED"
+                    ]
+                  },
+                  "reference": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "valid_from": {
+                    "type": "string",
+                    "pattern": "^(|[0-9]{4}-[0-9]{2}-[0-9]{2})$"
+                  },
+                  "valid_to": {
+                    "type": "string",
+                    "pattern": "^(|[0-9]{4}-[0-9]{2}-[0-9]{2})$"
+                  },
+                  "checked_on": {
+                    "type": "string",
+                    "pattern": "^(|[0-9]{4}-[0-9]{2}-[0-9]{2})$"
+                  }
+                },
+                "required": [
+                  "provenance",
+                  "reference",
+                  "valid_from",
+                  "valid_to",
+                  "checked_on"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "tax",
+              "credit",
+              "customs"
+            ],
+            "additionalProperties": false
+          },
+          "acknowledgements": {
+            "type": "object",
+            "properties": {
+              "tax": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "basis_sha256": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      }
+                    },
+                    "required": [
+                      "basis_sha256"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "credit": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "basis_sha256": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      }
+                    },
+                    "required": [
+                      "basis_sha256"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "customs": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "basis_sha256": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      }
+                    },
+                    "required": [
+                      "basis_sha256"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "required": [
+              "tax",
+              "credit",
+              "customs"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "record_id",
+          "target",
+          "input",
+          "sources",
+          "acknowledgements"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "retired_record_ids": {
+      "type": "array",
+      "maxItems": 200,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+      }
+    },
+    "content_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "kind",
+    "version",
+    "attachment_id",
+    "revision",
+    "pair_snapshot_json",
+    "pair_snapshot_sha256",
+    "records",
+    "retired_record_ids",
+    "content_sha256"
+  ],
+  "additionalProperties": false
+}

@@ -67,7 +67,7 @@ for(const rate of[0n,3n,6n,9n,13n])for(let k=1n;k<=20n;k++)for(const partial of[
  const input={line_id:'inverse',currency:'CNY',gross:String(gross),tax:{kind:'GROSS_RATE',rate:'0.'+String(rate).padStart(2,'0')},credit:partial?{kind:'ASSUMED',amount:tax%2n===0n?String(tax/2n):String(tax/2n)+'.5',basis:'SYNTHETIC',document_ref:'SYNTHETIC',eligibility_ref:'SYNTHETIC'}:{kind:'NONE',basis:'SYNTHETIC'},customs:{kind:'UNKNOWN'}};
  const r=line(input);for(const[key,value]of Object.entries({cash:q(gross),net:q(net),tax:q(tax),credit,economic:minus(q(gross),credit),customs:null}))if(!isDeepStrictEqual(r.values[key],value))throw Error('Inverse construction mismatch '+key);constructed++;
 }
-const independentModules=new Set(['domain/fee-tax-components.ts','domain/fee-tax-components-validation.ts','engine/fee-tax-components.ts']);
+const independentModules=new Set(['domain/fee-tax-components.ts','domain/fee-tax-components-validation.ts','engine/fee-tax-components.ts','domain/fee-tax-attachment.ts','data/fee-tax-attachment.ts']);
 function checkInactive(directory,prefix=''){for(const entry of readdirSync(directory,{withFileTypes:true})){const path=prefix+entry.name,url=new URL(entry.name+(entry.isDirectory()?'/':''),directory);if(entry.isDirectory())checkInactive(url,path+'/');else if(entry.name.endsWith('.ts')&&!independentModules.has(path)&&readFileSync(url,'utf8').includes('fee-tax-components'))throw Error('Independent fee tax module must not be integrated into the running app or old calculation paths');}}
 checkInactive(new URL('../src/',import.meta.url));
 console.log(JSON.stringify({kind:'FEE_TAX_COMPONENTS_DESIGN',fixedHandCases:counts.valid,rejectedCases:counts.rejected,inverseConstructedCases:constructed,runtimeIntegrated:false}));
