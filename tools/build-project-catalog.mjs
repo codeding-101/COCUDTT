@@ -9,6 +9,7 @@ try {
  const {containerBillDraftSchema}=await server.ssrLoadModule('/src/data/container-bill-file.ts');
  const {containerCostPairSchema}=await server.ssrLoadModule('/src/data/container-cost-pair.ts');
  const {containerCostReviewPlanSchema}=await server.ssrLoadModule('/src/data/container-cost-review-plan.ts');
+ const {feeTaxAttachmentSchema}=await server.ssrLoadModule('/src/data/fee-tax-attachment.ts');
  const {CONTAINER_BILL_TEMPLATES,containerBillTemplateText}=await server.ssrLoadModule('/src/data/container-bill-templates.ts');
  writeFileSync(join(root,'schemas/project-0.9.schema.json'),json(transportProjectSchema()));
  const {PROJECT_TEMPLATES,projectTemplateText,projectTemplateCatalog}=await server.ssrLoadModule('/src/data/project-templates.ts');
@@ -19,6 +20,8 @@ try {
  const {periodExampleResource}=await server.ssrLoadModule('/src/ui/period-example.ts');
  const {fundingExampleResource}=await server.ssrLoadModule('/src/ui/funding-example.ts');
  mkdirSync(join(root,'schemas'),{recursive:true});mkdirSync(join(root,'templates'),{recursive:true});
+ writeFileSync(join(root,'schemas/fee-tax-attachment-1.0.schema.json'),json(feeTaxAttachmentSchema()));
+ console.log('Generated 1 independent fee tax attachment schema');
  writeFileSync(join(root,'schemas/container-bill-1.0.schema.json'),json(containerBillDraftSchema()));
  writeFileSync(join(root,'schemas/container-cost-pair-1.0.schema.json'),json(containerCostPairSchema()));
  writeFileSync(join(root,'schemas/container-cost-pair-1.1.schema.json'),json(containerCostPairSchema('1.1')));
