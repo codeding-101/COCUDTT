@@ -5,7 +5,17 @@ ws.onmessage=e=>{const r=JSON.parse(e.data);if(r.method==='Runtime.exceptionThro
 const call=(method,params={})=>new Promise((resolve,reject)=>{const i=++id;pending.set(i,{resolve,reject});ws.send(JSON.stringify({id:i,method,params}))}),evaluate=async expression=>{const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value};
 async function until(expression){for(let n=0;n<200;n++){if(await evaluate(expression))return;await new Promise(r=>setTimeout(r,100))}throw Error(expression)}
 const click=action=>evaluate(`document.querySelector('[data-action="${action}"]').click()`),draft=()=>evaluate("localStorage.getItem('trade-cost-engine:draft-v1')"),openState="document.querySelector('#mobile-settings-dialog').open";
-async function nativeClick(selector,bookmark=false){const p=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.scrollIntoView({block:'center'});${bookmark?'window.mobileReturnY=scrollY;':''}const r=e.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()`);for(const type of['mousePressed','mouseReleased'])await call('Input.dispatchMouseEvent',{type,button:'left',clickCount:1,...p});}
+async function nativeClick(selector,bookmark=false){
+ let point;
+ // A rebuilt modal can have layout bounds before Chromium updates its hit-test tree.
+ // Wait for the actual target rather than sending a click to the dialog backdrop.
+ for(let i=0;i<100;i++){
+  point=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)return null;e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2,hit=document.elementFromPoint(x,y);if(!r.width||!r.height||!hit||!e.contains(hit))return null;${bookmark?'window.mobileReturnY=scrollY;':''}return{x,y}})()`);
+  if(point)break;await new Promise(r=>setTimeout(r,20));
+ }
+ if(!point)throw Error('Native click target is not hittable: '+selector);
+ for(const type of['mousePressed','mouseReleased'])await call('Input.dispatchMouseEvent',{type,button:'left',clickCount:1,...point});
+}
 async function type(selector,value){await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});for(let p=e.parentElement;p;p=p.parentElement)if(p.tagName==='DETAILS')p.open=true;e.scrollIntoView({block:'center'});e.focus();e.select()})()`);await call('Input.insertText',{text:value});}
 async function key(key,code,n,shift=false){for(const type of['keyDown','keyUp'])await call('Input.dispatchKeyEvent',{type,key,code,windowsVirtualKeyCode:n,modifiers:shift?8:0});}
 async function chooseFile(files){const count=choosers.length;await nativeClick('#mobile-settings-dialog [data-action=open]');for(let n=0;n<100&&choosers.length===count;n++)await new Promise(r=>setTimeout(r,50));if(choosers.length===count)throw Error('No native file chooser');await call('DOM.setFileInputFiles',{files,backendNodeId:choosers.at(-1).backendNodeId});}

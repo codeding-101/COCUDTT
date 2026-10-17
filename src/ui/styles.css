@@ -862,3 +862,13 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
 .recent-confirm { background:var(--surface-alt,#f4f6f8); }
 .recent-projects button { min-height:44px; }
 @media(max-width:600px) { .recent-projects .panel-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .recent-projects button { white-space:normal; } }
+.fee-tax-workspace { min-width:0; overflow-wrap:anywhere; }
+.fee-tax-workspace button { min-height:44px; white-space:normal; }
+.fee-tax-workspace input,.fee-tax-workspace select { min-width:0; max-width:100%; }
+.fee-tax-workspace fieldset { min-width:0; margin:1rem 0; border:1px solid var(--line,#d4dce5); padding:1rem; border-radius:6px; }
+.fee-tax-record,.fee-tax-confirm { border:1px solid var(--line,#d4dce5); border-radius:6px; padding:1rem; margin:1rem 0; }
+.fee-tax-confirm { background:var(--surface-alt,#f4f6f8); }
+.fee-tax-channels { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.75rem; }
+.fee-tax-channels dd { margin:0; font-size:1.15rem; font-variant-numeric:tabular-nums; }
+.fee-tax-channels dt { font-size:.85rem; color:var(--muted,#526070); }
+@media(max-width:600px) { .fee-tax-channels,.fee-tax-workspace .panel-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .fee-tax-workspace fieldset { padding:.65rem; } }
