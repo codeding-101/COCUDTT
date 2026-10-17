@@ -46,6 +46,8 @@ jobs:
         run: npm run check:container-review-design
       - name: Check fee tax component design fixtures
         run: node tools/check-fee-tax-components-design.mjs
+      - name: Check fee tax attachment lifecycle design
+        run: node tools/check-fee-tax-attachment-design.mjs
       - name: Audit UI bindings and engine codes
         run: npm run audit
       - name: Typecheck and build offline deliverable

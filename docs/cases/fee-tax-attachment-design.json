@@ -1,0 +1,1480 @@
+{
+  "kind": "SYNTHETIC_ATTACHMENT_DESIGN_ONLY",
+  "version": "0.1",
+  "runtime_enabled": false,
+  "notes": [
+    "Reduced source/state protocol only; not a valid complete pair or importable attachment",
+    "Fixed outcome tables authored independently from checker; no production imports",
+    "No tax eligibility, fee write, actual asynchronous UI or file parser verification"
+  ],
+  "digest_vectors": [
+    {
+      "text": "",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "text": "abc",
+      "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    }
+  ],
+  "baseline": {
+    "attachment_id": "attachment-old",
+    "revision": 1,
+    "pair_snapshot_json": "{\"kind\":\"SYNTHETIC_PAIR_STATE_VECTOR\",\"version\":\"1.1\",\"pair_id\":\"pair-old\",\"revision\":1,\"project\":{\"term\":\"CIF\",\"quantity\":\"1\",\"quote\":\"113\",\"commercial_fx\":\"7\",\"customs_fx\":\"6.9\",\"tax_profile\":\"synthetic\",\"extension\":{\"fee_tax_components\":{\"confirmed\":true}}},\"bill\":{\"id\":\"bill-old\",\"review_date\":\"2026-10-17\",\"currency\":\"CNY\",\"original_amount\":\"113\",\"period\":\"2026-10-01/2026-10-02\",\"evidence\":\"USER_SUPPLIED\"},\"mapping\":{\"mapping_id\":\"map-old\",\"bill_id\":\"bill-old\",\"line_id\":\"bill-line-old\",\"cost_id\":\"cost-old\",\"operation\":\"CREATE_NEW\"},\"retired\":[],\"selection\":{\"description\":\"原提案\"},\"review_plan\":{\"revision\":1,\"note\":\"原核对假设\"},\"item_kind\":\"SERVICE_FEE\",\"target_currency\":\"CNY\"}",
+    "pair_snapshot_sha256": "97c6f177619c00d70c7aea8e0f00b437f96137e98e485649def2e44173b1f246",
+    "row": {
+      "record_id": "record-old",
+      "target": {
+        "mapping_id": "map-old",
+        "bill_id": "bill-old",
+        "line_id": "bill-line-old",
+        "cost_id": "cost-old",
+        "operation": "CREATE_NEW"
+      },
+      "input": {
+        "line_id": "component1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成假设",
+          "document_ref": "合成凭证",
+          "eligibility_ref": "合成资格"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "独立假设"
+        }
+      },
+      "sources": {
+        "tax": {
+          "provenance": "USER_SUPPLIED",
+          "reference": "合成来源，不是真实凭证",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "checked_on": "2026-10-17"
+        },
+        "credit": {
+          "provenance": "USER_SUPPLIED",
+          "reference": "合成来源，不是真实凭证",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "checked_on": "2026-10-17"
+        },
+        "customs": {
+          "provenance": "USER_SUPPLIED",
+          "reference": "合成来源，不是真实凭证",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "checked_on": "2026-10-17"
+        }
+      },
+      "acknowledgements": {
+        "tax": {
+          "basis_sha256": "009623d41b8f2ba259281375207d05e3cb293680c7be2aaa33f63ceed0bfd110"
+        },
+        "credit": {
+          "basis_sha256": "009623d41b8f2ba259281375207d05e3cb293680c7be2aaa33f63ceed0bfd110"
+        },
+        "customs": {
+          "basis_sha256": "009623d41b8f2ba259281375207d05e3cb293680c7be2aaa33f63ceed0bfd110"
+        }
+      }
+    },
+    "expected_basis_sha256": "009623d41b8f2ba259281375207d05e3cb293680c7be2aaa33f63ceed0bfd110"
+  },
+  "cases": [
+    {
+      "id": "all-receipts-current",
+      "family": "STATE",
+      "input": {
+        "event": "UNCHANGED"
+      },
+      "expected": {
+        "binding": "CURRENT_SOURCE",
+        "accepted": [
+          "tax",
+          "credit",
+          "customs"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "raw-source-WHITESPACE",
+      "family": "SOURCE_TEXT",
+      "input": {
+        "style": "WHITESPACE"
+      },
+      "expected": {
+        "binding": "STALE_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "raw-source-KEY_ORDER",
+      "family": "SOURCE_TEXT",
+      "input": {
+        "style": "KEY_ORDER"
+      },
+      "expected": {
+        "binding": "STALE_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "source-change-project.term",
+      "family": "SOURCE",
+      "input": {
+        "path": "project.term",
+        "value": "CIP",
+        "rebind": false
+      },
+      "expected": {
+        "binding": "STALE_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "source-change-project.quantity",
+      "family": "SOURCE",
+      "input": {
+        "path": "project.quantity",
+        "value": "2",
+        "rebind": false
+      },
+      "expected": {
+        "binding": "STALE_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "source-change-project.quote",
+      "family": "SOURCE",
+      "input": {
+        "path": "project.quote",
+        "value": "114",
+        "rebind": false
+      },
+      "expected": {
+        "binding": "STALE_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "source-change-project.commercial_fx",
+      "family": "SOURCE",
+      "input": {
+        "path": "project.commercial_fx",
+        "value": "7.1",
+        "rebind": false
+      },
+      "expected": {
+        "binding": "STALE_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "source-change-project.customs_fx",
+      "family": "SOURCE",
+      "input": {
+        "path": "project.customs_fx",
+        "value": "7",
+        "rebind": false
+      },
+      "expected": {
+        "binding": "STALE_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "source-change-project.tax_profile",
+      "family": "SOURCE",
+      "input": {
+        "path": "project.tax_profile",
+        "value": "changed",
+        "rebind": false
+      },
+      "expected": {
+        "binding": "STALE_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "source-change-project.extension.fee_tax_components.confirmed",
+      "family": "SOURCE",
+      "input": {
+        "path": "project.extension.fee_tax_components.confirmed",
+        "value": false,
+        "rebind": false
+      },
+      "expected": {
+        "binding": "STALE_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "source-change-bill.review_date",
+      "family": "SOURCE",
+      "input": {
+        "path": "bill.review_date",
+        "value": "2026-10-18",
+        "rebind": false
+      },
+      "expected": {
+        "binding": "STALE_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "source-change-bill.period",
+      "family": "SOURCE",
+      "input": {
+        "path": "bill.period",
+        "value": "changed",
+        "rebind": false
+      },
+      "expected": {
+        "binding": "STALE_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "source-change-bill.evidence",
+      "family": "SOURCE",
+      "input": {
+        "path": "bill.evidence",
+        "value": "changed",
+        "rebind": false
+      },
+      "expected": {
+        "binding": "STALE_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "source-change-mapping.mapping_id",
+      "family": "SOURCE",
+      "input": {
+        "path": "mapping.mapping_id",
+        "value": "map-new",
+        "rebind": false
+      },
+      "expected": {
+        "binding": "STALE_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "source-change-mapping.line_id",
+      "family": "SOURCE",
+      "input": {
+        "path": "mapping.line_id",
+        "value": "line-new",
+        "rebind": false
+      },
+      "expected": {
+        "binding": "STALE_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "source-change-mapping.cost_id",
+      "family": "SOURCE",
+      "input": {
+        "path": "mapping.cost_id",
+        "value": "cost-new",
+        "rebind": false
+      },
+      "expected": {
+        "binding": "STALE_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "source-change-mapping.operation",
+      "family": "SOURCE",
+      "input": {
+        "path": "mapping.operation",
+        "value": "REFERENCE_EXISTING",
+        "rebind": false
+      },
+      "expected": {
+        "binding": "STALE_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "source-change-review_plan.note",
+      "family": "SOURCE",
+      "input": {
+        "path": "review_plan.note",
+        "value": "changed",
+        "rebind": false
+      },
+      "expected": {
+        "binding": "STALE_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "source-change-selection.description",
+      "family": "SOURCE",
+      "input": {
+        "path": "selection.description",
+        "value": "changed",
+        "rebind": false
+      },
+      "expected": {
+        "binding": "STALE_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "rebind-same-target-clears-all",
+      "family": "SOURCE",
+      "input": {
+        "path": "project.quote",
+        "value": "114",
+        "rebind": true
+      },
+      "expected": {
+        "binding": "CURRENT_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "rebind-deleted-mapping-orphan",
+      "family": "SOURCE",
+      "input": {
+        "path": "mapping.mapping_id",
+        "value": "map-new",
+        "rebind": true
+      },
+      "expected": {
+        "binding": "ORPHAN_TARGET",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "rebind-retired-mapping-orphan",
+      "family": "SOURCE",
+      "input": {
+        "path": "retired",
+        "value": [
+          "map-old"
+        ],
+        "rebind": true
+      },
+      "expected": {
+        "binding": "ORPHAN_TARGET",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "unsupported-IMPORT_VAT",
+      "family": "SOURCE",
+      "input": {
+        "path": "item_kind",
+        "value": "IMPORT_VAT",
+        "rebind": true
+      },
+      "expected": {
+        "binding": "UNSUPPORTED_TARGET",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "unsupported-DUTY",
+      "family": "SOURCE",
+      "input": {
+        "path": "item_kind",
+        "value": "DUTY",
+        "rebind": true
+      },
+      "expected": {
+        "binding": "UNSUPPORTED_TARGET",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "unsupported-CONSUMPTION_TAX",
+      "family": "SOURCE",
+      "input": {
+        "path": "item_kind",
+        "value": "CONSUMPTION_TAX",
+        "rebind": true
+      },
+      "expected": {
+        "binding": "UNSUPPORTED_TARGET",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "unsupported-REFUND",
+      "family": "SOURCE",
+      "input": {
+        "path": "item_kind",
+        "value": "REFUND",
+        "rebind": true
+      },
+      "expected": {
+        "binding": "UNSUPPORTED_TARGET",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "rebind-other-bill-currency",
+      "family": "SOURCE",
+      "input": {
+        "path": "bill.currency",
+        "value": "USD",
+        "rebind": true
+      },
+      "expected": {
+        "binding": "CURRENCY_MISMATCH",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "rebind-other-target-currency",
+      "family": "SOURCE",
+      "input": {
+        "path": "target_currency",
+        "value": "USD",
+        "rebind": true
+      },
+      "expected": {
+        "binding": "CURRENCY_MISMATCH",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "rebind-different-unrounded-amount",
+      "family": "SOURCE",
+      "input": {
+        "path": "bill.original_amount",
+        "value": "113.000000000000000001",
+        "rebind": true
+      },
+      "expected": {
+        "binding": "AMOUNT_NEEDS_REVIEW",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "inputsPreserved": true
+      }
+    },
+    {
+      "id": "edit-clears-input.gross",
+      "family": "EDIT",
+      "input": {
+        "path": "input.gross",
+        "value": null,
+        "expected_revision": 1
+      },
+      "expected": {
+        "binding": "AMOUNT_NEEDS_REVIEW",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2
+      }
+    },
+    {
+      "id": "edit-clears-input.currency",
+      "family": "EDIT",
+      "input": {
+        "path": "input.currency",
+        "value": "USD",
+        "expected_revision": 1
+      },
+      "expected": {
+        "binding": "CURRENCY_MISMATCH",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2
+      }
+    },
+    {
+      "id": "edit-clears-input.tax.net",
+      "family": "EDIT",
+      "input": {
+        "path": "input.tax.net",
+        "value": "100.0",
+        "expected_revision": 1
+      },
+      "expected": {
+        "binding": "CURRENT_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2
+      }
+    },
+    {
+      "id": "edit-clears-input.credit.document_ref",
+      "family": "EDIT",
+      "input": {
+        "path": "input.credit.document_ref",
+        "value": "新凭证",
+        "expected_revision": 1
+      },
+      "expected": {
+        "binding": "CURRENT_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2
+      }
+    },
+    {
+      "id": "edit-clears-input.credit.eligibility_ref",
+      "family": "EDIT",
+      "input": {
+        "path": "input.credit.eligibility_ref",
+        "value": "新资格假设",
+        "expected_revision": 1
+      },
+      "expected": {
+        "binding": "CURRENT_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2
+      }
+    },
+    {
+      "id": "edit-clears-input.customs.basis",
+      "family": "EDIT",
+      "input": {
+        "path": "input.customs.basis",
+        "value": "新海关依据",
+        "expected_revision": 1
+      },
+      "expected": {
+        "binding": "CURRENT_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2
+      }
+    },
+    {
+      "id": "edit-clears-sources.tax.reference",
+      "family": "EDIT",
+      "input": {
+        "path": "sources.tax.reference",
+        "value": "新引用",
+        "expected_revision": 1
+      },
+      "expected": {
+        "binding": "CURRENT_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2
+      }
+    },
+    {
+      "id": "edit-clears-sources.credit.checked_on",
+      "family": "EDIT",
+      "input": {
+        "path": "sources.credit.checked_on",
+        "value": "2026-10-16",
+        "expected_revision": 1
+      },
+      "expected": {
+        "binding": "CURRENT_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2
+      }
+    },
+    {
+      "id": "edit-clears-sources.customs.valid_to",
+      "family": "EDIT",
+      "input": {
+        "path": "sources.customs.valid_to",
+        "value": "2026-10-30",
+        "expected_revision": 1
+      },
+      "expected": {
+        "binding": "CURRENT_SOURCE",
+        "accepted": [],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2
+      }
+    },
+    {
+      "id": "ack-only-tax-no-global-ready",
+      "family": "ACK",
+      "input": {
+        "facet": "tax",
+        "kind": "NO_SEPARATION",
+        "provenance": "USER_SUPPLIED",
+        "valid_from": "2026-10-01",
+        "valid_to": "2026-10-31",
+        "checked_on": "2026-10-17",
+        "prior": []
+      },
+      "expected": {
+        "binding": "CURRENT_SOURCE",
+        "accepted": [
+          "tax"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "ack-credit-preserves-tax-receipt",
+      "family": "ACK",
+      "input": {
+        "facet": "credit",
+        "kind": "NONE",
+        "provenance": "USER_SUPPLIED",
+        "valid_from": "2026-10-01",
+        "valid_to": "2026-10-31",
+        "checked_on": "2026-10-17",
+        "prior": [
+          "tax"
+        ]
+      },
+      "expected": {
+        "binding": "CURRENT_SOURCE",
+        "accepted": [
+          "tax",
+          "credit"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "ack-customs-preserves-other-receipts",
+      "family": "ACK",
+      "input": {
+        "facet": "customs",
+        "kind": "NOT_ADDED",
+        "provenance": "USER_SUPPLIED",
+        "valid_from": "2026-10-01",
+        "valid_to": "2026-10-31",
+        "checked_on": "2026-10-17",
+        "prior": [
+          "tax",
+          "credit"
+        ]
+      },
+      "expected": {
+        "binding": "CURRENT_SOURCE",
+        "accepted": [
+          "tax",
+          "credit",
+          "customs"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "unknown-cannot-ack-tax",
+      "family": "ACK",
+      "input": {
+        "facet": "tax",
+        "kind": "UNKNOWN",
+        "provenance": "USER_SUPPLIED",
+        "valid_from": "2026-10-01",
+        "valid_to": "2026-10-31",
+        "checked_on": "2026-10-17",
+        "prior": []
+      },
+      "reject": true
+    },
+    {
+      "id": "unknown-cannot-ack-credit",
+      "family": "ACK",
+      "input": {
+        "facet": "credit",
+        "kind": "UNKNOWN",
+        "provenance": "USER_SUPPLIED",
+        "valid_from": "2026-10-01",
+        "valid_to": "2026-10-31",
+        "checked_on": "2026-10-17",
+        "prior": []
+      },
+      "reject": true
+    },
+    {
+      "id": "unknown-cannot-ack-customs",
+      "family": "ACK",
+      "input": {
+        "facet": "customs",
+        "kind": "UNKNOWN",
+        "provenance": "USER_SUPPLIED",
+        "valid_from": "2026-10-01",
+        "valid_to": "2026-10-31",
+        "checked_on": "2026-10-17",
+        "prior": []
+      },
+      "reject": true
+    },
+    {
+      "id": "example-cannot-ack",
+      "family": "ACK",
+      "input": {
+        "facet": "credit",
+        "kind": "NONE",
+        "provenance": "EXAMPLE",
+        "valid_from": "2026-10-01",
+        "valid_to": "2026-10-31",
+        "checked_on": "2026-10-17",
+        "prior": []
+      },
+      "reject": true
+    },
+    {
+      "id": "unspecified-cannot-ack",
+      "family": "ACK",
+      "input": {
+        "facet": "credit",
+        "kind": "NONE",
+        "provenance": "UNSPECIFIED",
+        "valid_from": "2026-10-01",
+        "valid_to": "2026-10-31",
+        "checked_on": "2026-10-17",
+        "prior": []
+      },
+      "reject": true
+    },
+    {
+      "id": "missing-date-cannot-ack",
+      "family": "ACK",
+      "input": {
+        "facet": "credit",
+        "kind": "NONE",
+        "provenance": "USER_SUPPLIED",
+        "valid_from": "2026-10-01",
+        "valid_to": "2026-10-31",
+        "checked_on": "",
+        "prior": []
+      },
+      "reject": true
+    },
+    {
+      "id": "future-source-cannot-ack",
+      "family": "ACK",
+      "input": {
+        "facet": "credit",
+        "kind": "NONE",
+        "provenance": "USER_SUPPLIED",
+        "valid_from": "2026-10-18",
+        "valid_to": "2026-10-31",
+        "checked_on": "2026-10-17",
+        "prior": []
+      },
+      "reject": true
+    },
+    {
+      "id": "expired-source-cannot-ack",
+      "family": "ACK",
+      "input": {
+        "facet": "credit",
+        "kind": "NONE",
+        "provenance": "USER_SUPPLIED",
+        "valid_from": "2026-10-01",
+        "valid_to": "2026-10-16",
+        "checked_on": "2026-10-17",
+        "prior": []
+      },
+      "reject": true
+    },
+    {
+      "id": "future-check-cannot-ack",
+      "family": "ACK",
+      "input": {
+        "facet": "credit",
+        "kind": "NONE",
+        "provenance": "USER_SUPPLIED",
+        "valid_from": "2026-10-01",
+        "valid_to": "2026-10-31",
+        "checked_on": "2026-10-18",
+        "prior": []
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-calendar-date",
+      "family": "ACK",
+      "input": {
+        "facet": "credit",
+        "kind": "NONE",
+        "provenance": "USER_SUPPLIED",
+        "valid_from": "2026-10-01",
+        "valid_to": "2026-02-30",
+        "checked_on": "2026-10-17",
+        "prior": []
+      },
+      "reject": true
+    },
+    {
+      "id": "invalid-provenance",
+      "family": "ACK",
+      "input": {
+        "facet": "credit",
+        "kind": "NONE",
+        "provenance": "CERTIFIED",
+        "valid_from": "2026-10-01",
+        "valid_to": "2026-10-31",
+        "checked_on": "2026-10-17",
+        "prior": []
+      },
+      "reject": true
+    },
+    {
+      "id": "unknown-facet",
+      "family": "ACK",
+      "input": {
+        "facet": "all",
+        "kind": "NONE",
+        "provenance": "USER_SUPPLIED",
+        "valid_from": "2026-10-01",
+        "valid_to": "2026-10-31",
+        "checked_on": "2026-10-17",
+        "prior": []
+      },
+      "reject": true
+    },
+    {
+      "id": "mixed-facet-branch",
+      "family": "ACK",
+      "input": {
+        "facet": "tax",
+        "kind": "NONE",
+        "provenance": "USER_SUPPLIED",
+        "valid_from": "2026-10-01",
+        "valid_to": "2026-10-31",
+        "checked_on": "2026-10-17",
+        "prior": []
+      },
+      "reject": true
+    },
+    {
+      "id": "stale-edit-lease",
+      "family": "EDIT",
+      "input": {
+        "path": "input.gross",
+        "value": "114",
+        "expected_revision": 0
+      },
+      "reject": true
+    },
+    {
+      "id": "unknown-edit-field",
+      "family": "EDIT",
+      "input": {
+        "path": "input.hidden",
+        "value": "1",
+        "expected_revision": 1
+      },
+      "reject": true
+    },
+    {
+      "id": "prototype-path",
+      "family": "EDIT",
+      "input": {
+        "path": "__proto__.polluted",
+        "value": true,
+        "expected_revision": 1
+      },
+      "reject": true
+    },
+    {
+      "id": "cannot-edit-record-identity",
+      "family": "EDIT",
+      "input": {
+        "path": "record_id",
+        "value": "record-new",
+        "expected_revision": 1
+      },
+      "reject": true
+    },
+    {
+      "id": "forged-hex-receipt-not-accepted",
+      "family": "RECEIPT",
+      "input": {
+        "facet": "credit",
+        "digest": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "expected": {
+        "binding": "CURRENT_SOURCE",
+        "accepted": [
+          "tax",
+          "customs"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "invalid-receipt-format",
+      "family": "RECEIPT",
+      "input": {
+        "facet": "credit",
+        "digest": "not-a-digest"
+      },
+      "reject": true
+    },
+    {
+      "id": "save-as-is-same-business",
+      "family": "TRANSFER",
+      "input": {
+        "action": "SAVE_AS"
+      },
+      "expected": {
+        "attachment_id": "attachment-old",
+        "revision": 1,
+        "records": 1,
+        "accepted": [
+          "tax",
+          "credit",
+          "customs"
+        ]
+      }
+    },
+    {
+      "id": "new-business-has-no-old-records",
+      "family": "TRANSFER",
+      "input": {
+        "action": "NEW_BUSINESS"
+      },
+      "expected": {
+        "attachment_id": "attachment-new",
+        "revision": 1,
+        "records": 0,
+        "accepted": [],
+        "retired": 0,
+        "originalUnchanged": true
+      }
+    },
+    {
+      "id": "save-SAVED-false",
+      "family": "SAVE",
+      "input": {
+        "outcome": "SAVED",
+        "changed_while_waiting": false
+      },
+      "expected": {
+        "saved_revision": 1,
+        "current_revision": 1,
+        "clean": true,
+        "inputRetained": true
+      }
+    },
+    {
+      "id": "save-SAVED-true",
+      "family": "SAVE",
+      "input": {
+        "outcome": "SAVED",
+        "changed_while_waiting": true
+      },
+      "expected": {
+        "saved_revision": 1,
+        "current_revision": 2,
+        "clean": false,
+        "inputRetained": true
+      }
+    },
+    {
+      "id": "save-CANCELLED-false",
+      "family": "SAVE",
+      "input": {
+        "outcome": "CANCELLED",
+        "changed_while_waiting": false
+      },
+      "expected": {
+        "saved_revision": null,
+        "current_revision": 1,
+        "clean": false,
+        "inputRetained": true
+      }
+    },
+    {
+      "id": "save-CANCELLED-true",
+      "family": "SAVE",
+      "input": {
+        "outcome": "CANCELLED",
+        "changed_while_waiting": true
+      },
+      "expected": {
+        "saved_revision": null,
+        "current_revision": 2,
+        "clean": false,
+        "inputRetained": true
+      }
+    },
+    {
+      "id": "save-FAILED-false",
+      "family": "SAVE",
+      "input": {
+        "outcome": "FAILED",
+        "changed_while_waiting": false
+      },
+      "expected": {
+        "saved_revision": null,
+        "current_revision": 1,
+        "clean": false,
+        "inputRetained": true
+      }
+    },
+    {
+      "id": "save-FAILED-true",
+      "family": "SAVE",
+      "input": {
+        "outcome": "FAILED",
+        "changed_while_waiting": true
+      },
+      "expected": {
+        "saved_revision": null,
+        "current_revision": 2,
+        "clean": false,
+        "inputRetained": true
+      }
+    },
+    {
+      "id": "valid-open-preview",
+      "family": "OPEN",
+      "input": {
+        "version": "1.0",
+        "valid_file": true,
+        "late": false,
+        "edited": false
+      },
+      "expected": {
+        "candidate": "PREVIEW_ONLY",
+        "workspacePreserved": true,
+        "autoConfirm": false,
+        "rawBackup": true
+      }
+    },
+    {
+      "id": "future-version",
+      "family": "OPEN",
+      "input": {
+        "version": "2.0",
+        "valid_file": true,
+        "late": false,
+        "edited": false
+      },
+      "expected": {
+        "candidate": "NOT_INSTALLED",
+        "workspacePreserved": true,
+        "autoConfirm": false,
+        "rawBackup": true
+      }
+    },
+    {
+      "id": "old-project-kind",
+      "family": "OPEN",
+      "input": {
+        "version": "0.9",
+        "valid_file": true,
+        "late": false,
+        "edited": false
+      },
+      "expected": {
+        "candidate": "NOT_INSTALLED",
+        "workspacePreserved": true,
+        "autoConfirm": false,
+        "rawBackup": true
+      }
+    },
+    {
+      "id": "invalid-file",
+      "family": "OPEN",
+      "input": {
+        "version": "1.0",
+        "valid_file": false,
+        "late": false,
+        "edited": false
+      },
+      "expected": {
+        "candidate": "NOT_INSTALLED",
+        "workspacePreserved": true,
+        "autoConfirm": false,
+        "rawBackup": true
+      }
+    },
+    {
+      "id": "late-read",
+      "family": "OPEN",
+      "input": {
+        "version": "1.0",
+        "valid_file": true,
+        "late": true,
+        "edited": false
+      },
+      "expected": {
+        "candidate": "NOT_INSTALLED",
+        "workspacePreserved": true,
+        "autoConfirm": false,
+        "rawBackup": true
+      }
+    },
+    {
+      "id": "edited-during-read",
+      "family": "OPEN",
+      "input": {
+        "version": "1.0",
+        "valid_file": true,
+        "late": false,
+        "edited": true
+      },
+      "expected": {
+        "candidate": "NOT_INSTALLED",
+        "workspacePreserved": true,
+        "autoConfirm": false,
+        "rawBackup": true
+      }
+    },
+    {
+      "id": "inert-extension-project",
+      "family": "EXTENSION",
+      "input": {
+        "location": "project"
+      },
+      "expected": {
+        "preserved": true,
+        "activated": false,
+        "location": "project"
+      }
+    },
+    {
+      "id": "inert-extension-bill",
+      "family": "EXTENSION",
+      "input": {
+        "location": "bill"
+      },
+      "expected": {
+        "preserved": true,
+        "activated": false,
+        "location": "bill"
+      }
+    },
+    {
+      "id": "inert-extension-pair",
+      "family": "EXTENSION",
+      "input": {
+        "location": "pair"
+      },
+      "expected": {
+        "preserved": true,
+        "activated": false,
+        "location": "pair"
+      }
+    },
+    {
+      "id": "customer-excludes-fee_tax_components",
+      "family": "CUSTOMER",
+      "input": {
+        "internal": {
+          "fee_tax_components": {
+            "secret": "SYNTHETIC_PRIVATE"
+          }
+        }
+      },
+      "expected": {
+        "public_reference": "Q-SYNTHETIC",
+        "quote_amount": "113"
+      }
+    },
+    {
+      "id": "customer-excludes-pair_snapshot_json",
+      "family": "CUSTOMER",
+      "input": {
+        "internal": {
+          "pair_snapshot_json": {
+            "secret": "SYNTHETIC_PRIVATE"
+          }
+        }
+      },
+      "expected": {
+        "public_reference": "Q-SYNTHETIC",
+        "quote_amount": "113"
+      }
+    },
+    {
+      "id": "customer-excludes-document_ref",
+      "family": "CUSTOMER",
+      "input": {
+        "internal": {
+          "document_ref": {
+            "secret": "SYNTHETIC_PRIVATE"
+          }
+        }
+      },
+      "expected": {
+        "public_reference": "Q-SYNTHETIC",
+        "quote_amount": "113"
+      }
+    },
+    {
+      "id": "customer-excludes-eligibility_ref",
+      "family": "CUSTOMER",
+      "input": {
+        "internal": {
+          "eligibility_ref": {
+            "secret": "SYNTHETIC_PRIVATE"
+          }
+        }
+      },
+      "expected": {
+        "public_reference": "Q-SYNTHETIC",
+        "quote_amount": "113"
+      }
+    },
+    {
+      "id": "customer-excludes-acknowledgements",
+      "family": "CUSTOMER",
+      "input": {
+        "internal": {
+          "acknowledgements": {
+            "secret": "SYNTHETIC_PRIVATE"
+          }
+        }
+      },
+      "expected": {
+        "public_reference": "Q-SYNTHETIC",
+        "quote_amount": "113"
+      }
+    },
+    {
+      "id": "customer-excludes-internal_cost",
+      "family": "CUSTOMER",
+      "input": {
+        "internal": {
+          "internal_cost": {
+            "secret": "SYNTHETIC_PRIVATE"
+          }
+        }
+      },
+      "expected": {
+        "public_reference": "Q-SYNTHETIC",
+        "quote_amount": "113"
+      }
+    },
+    {
+      "id": "customer-excludes-__proto__",
+      "family": "CUSTOMER",
+      "input": {
+        "internal": {
+          "__proto__": {
+            "secret": "SYNTHETIC_PRIVATE"
+          }
+        }
+      },
+      "expected": {
+        "public_reference": "Q-SYNTHETIC",
+        "quote_amount": "113"
+      }
+    },
+    {
+      "id": "inclusive-limits",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "file_bytes": 25165824,
+        "rows": 8,
+        "retired": 200,
+        "revision": 1000000000
+      },
+      "expected": {
+        "withinDesignLimits": true
+      }
+    },
+    {
+      "id": "empty-new-attachment",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "file_bytes": 25165824,
+        "rows": 0,
+        "retired": 0,
+        "revision": 1
+      },
+      "expected": {
+        "withinDesignLimits": true
+      }
+    },
+    {
+      "id": "bad-limit-pair_bytes-10485761",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485761,
+        "file_bytes": 25165824,
+        "rows": 8,
+        "retired": 200,
+        "revision": 1000000000
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-limit-file_bytes-25165825",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "file_bytes": 25165825,
+        "rows": 8,
+        "retired": 200,
+        "revision": 1000000000
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-limit-rows-9",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "file_bytes": 25165824,
+        "rows": 9,
+        "retired": 200,
+        "revision": 1000000000
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-limit-retired-201",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "file_bytes": 25165824,
+        "rows": 8,
+        "retired": 201,
+        "revision": 1000000000
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-limit-revision-1000000001",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "file_bytes": 25165824,
+        "rows": 8,
+        "retired": 200,
+        "revision": 1000000001
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-limit-revision-0",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "file_bytes": 25165824,
+        "rows": 8,
+        "retired": 200,
+        "revision": 0
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-limit-rows--1",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "file_bytes": 25165824,
+        "rows": -1,
+        "retired": 200,
+        "revision": 1000000000
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-limit-rows-1.5",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "file_bytes": 25165824,
+        "rows": 1.5,
+        "retired": 200,
+        "revision": 1000000000
+      },
+      "reject": true
+    }
+  ]
+}
