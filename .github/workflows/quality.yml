@@ -44,6 +44,8 @@ jobs:
           node tools/check-capability-evidence.mjs
       - name: Check container cost review design fixtures
         run: npm run check:container-review-design
+      - name: Check fee tax component design fixtures
+        run: node tools/check-fee-tax-components-design.mjs
       - name: Audit UI bindings and engine codes
         run: npm run audit
       - name: Typecheck and build offline deliverable
