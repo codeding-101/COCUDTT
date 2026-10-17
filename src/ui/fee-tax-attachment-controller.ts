@@ -17,7 +17,7 @@ type Preview={token:number;epoch:number;attachment:FeeTaxAttachment};
 const slots:Slot[]=['committed','editor'];
 const lease=(a:FeeTaxAttachment)=>({revision:a.revision,content_sha256:a.content_sha256});
 const abort=(error:unknown)=>error instanceof Error&&error.name==='AbortError';
-/** Standalone orchestrator. No app registration, global storage or project installation. */
+/** Injectable attachment orchestrator. No global storage or project installation. */
 export class FeeTaxAttachmentController {
  private attachment:FeeTaxAttachment|null=null;
  private editor:FeeTaxAttachmentEditor|null=null;

@@ -1,3 +1,5 @@
+> 本文记录第六十一轮模块基线。第六十二轮已接入[只读附件工作区](fee-tax-attachment-workspace-validation.md)，下文“尚未注册”描述当轮状态。
+
 # 第六十一轮：附件交接控制器、草稿与内部快照验收
 
 2026-10-17。承接[文件模块](fee-tax-attachment-file-validation.md)，新增[独立控制器](../src/ui/fee-tax-attachment-controller.ts)、[编辑草稿契约](../src/data/fee-tax-attachment-editor.ts)和[内部快照](../src/data/fee-tax-attachment-snapshot.ts)。**尚未注册到工作台，没有新的附件页面、文件对话框或自动草稿入口。**本轮是可注入环境的交接模块，未改现有计算、项目安装、旧文件或客户导出路径。
