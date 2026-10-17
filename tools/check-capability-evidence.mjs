@@ -1,5 +1,5 @@
 import{readFileSync,existsSync}from'node:fs';import{resolve,dirname,relative,isAbsolute}from'node:path';
-const root=resolve(import.meta.dirname,'..'),files=['docs/capability-evidence-matrix.md','docs/china-import-walkthrough.md','docs/capability-walkthrough-validation.md'];let checked=0;
+const root=resolve(import.meta.dirname,'..'),files=['docs/capability-evidence-matrix.md','docs/china-import-walkthrough.md','docs/capability-walkthrough-validation.md','docs/fee-tax-components-design.md','docs/fee-tax-components-design-validation.md'];let checked=0;
 for(const file of files){const text=readFileSync(resolve(root,file),'utf8');for(const match of text.matchAll(/\]\(([^)]+)\)/g)){
  const target=match[1];if(/^(https?:|#)/.test(target))continue;
  const full=resolve(dirname(resolve(root,file)),target.split('#')[0]),path=relative(root,full);

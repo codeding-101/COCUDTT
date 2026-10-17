@@ -67,3 +67,6 @@
 
 
 第五十六轮完成[能力证据矩阵](capability-evidence-matrix.md)和[中国进口合成复现](china-import-walkthrough.md)：卖方成本未知、四组固定金额、独立整数手算与原引擎对照，静态页下载不读当前交易。新增18项、完整80文件2678项；工具字节保持，既有浏览器证据明确沿用，见[验收](capability-walkthrough-validation.md)。下一阶段独立设计费用税务成分和未知值传播，再分别推进精度与应用事务。
+
+
+第五十七轮完成[费用税务成分设计](fee-tax-components-design.md)：三通道、null传播和精确分数，31固定手算/45拒绝/200反向构造对照。仅设计检查，生产及工具未变，应用仍80文件2678项；下一轮先实现独立只读模块，再另行设计接入、精度与应用事务，见[验收](fee-tax-components-design-validation.md)。

@@ -1,0 +1,3205 @@
+{
+  "kind": "SYNTHETIC_DESIGN_ONLY",
+  "version": "0.1",
+  "production_enabled": false,
+  "notes": [
+    "Fixed answers authored separately from the oracle; no production imports or fee writes",
+    "Rates are illustrative arithmetic inputs, not statutory defaults",
+    "NONE is a scenario choice not a legal eligibility result",
+    "Exact reduced fractions only; no invented rounding"
+  ],
+  "cases": [
+    {
+      "id": "explicit-full-credit",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "100",
+            "denominator": "1"
+          }
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "explicit-no-credit",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "NONE",
+          "basis": "本次不作抵扣调整，非资格结论"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "100",
+            "denominator": "1"
+          }
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "explicit-unknown-credit",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "UNKNOWN"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "credit": null,
+          "economic": null,
+          "customs": {
+            "numerator": "100",
+            "denominator": "1"
+          }
+        },
+        "issues": [
+          "CREDIT_UNDETERMINED"
+        ]
+      }
+    },
+    {
+      "id": "partial-credit",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "6.5",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "13",
+            "denominator": "2"
+          },
+          "economic": {
+            "numerator": "213",
+            "denominator": "2"
+          },
+          "customs": {
+            "numerator": "100",
+            "denominator": "1"
+          }
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "customs-unknown",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "UNKNOWN"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "customs": null
+        },
+        "issues": [
+          "CUSTOMS_COMPONENT_UNDETERMINED"
+        ]
+      }
+    },
+    {
+      "id": "customs-not-added",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "NOT_ADDED",
+          "basis": "本次不额外加计，非从商品价格倒扣"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "0",
+            "denominator": "1"
+          }
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "customs-gross-not-net",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "113",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "113",
+            "denominator": "1"
+          }
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "customs-partial-independent",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "80",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "80",
+            "denominator": "1"
+          }
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "gross-rate13",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "GROSS_RATE",
+          "rate": "0.13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "100",
+            "denominator": "1"
+          }
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "gross-rate6",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "106",
+        "tax": {
+          "kind": "GROSS_RATE",
+          "rate": "0.06"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "6",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "106",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "6",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "6",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "100",
+            "denominator": "1"
+          }
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "gross-rate9",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "109",
+        "tax": {
+          "kind": "GROSS_RATE",
+          "rate": "0.09"
+        },
+        "credit": {
+          "kind": "NONE",
+          "basis": "本次不作抵扣调整，非资格结论"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "109",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "9",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "109",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "100",
+            "denominator": "1"
+          }
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "arithmetic-zero-rate-not-exemption",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "100",
+        "tax": {
+          "kind": "GROSS_RATE",
+          "rate": "0"
+        },
+        "credit": {
+          "kind": "NONE",
+          "basis": "本次不作抵扣调整，非资格结论"
+        },
+        "customs": {
+          "kind": "NOT_ADDED",
+          "basis": "本次不额外加计，非从商品价格倒扣"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "0",
+            "denominator": "1"
+          }
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "repeating-rational-no-rounding",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "1",
+        "tax": {
+          "kind": "GROSS_RATE",
+          "rate": "0.13"
+        },
+        "credit": {
+          "kind": "UNKNOWN"
+        },
+        "customs": {
+          "kind": "NOT_ADDED",
+          "basis": "本次不额外加计，非从商品价格倒扣"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "100",
+            "denominator": "113"
+          },
+          "tax": {
+            "numerator": "13",
+            "denominator": "113"
+          },
+          "credit": null,
+          "economic": null,
+          "customs": {
+            "numerator": "0",
+            "denominator": "1"
+          }
+        },
+        "issues": [
+          "CREDIT_UNDETERMINED"
+        ]
+      }
+    },
+    {
+      "id": "explicit-split-can-differ-from-unrounded-rate",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "1",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "0.88",
+          "tax": "0.12"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "0.12",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "NOT_ADDED",
+          "basis": "本次不额外加计，非从商品价格倒扣"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "22",
+            "denominator": "25"
+          },
+          "tax": {
+            "numerator": "3",
+            "denominator": "25"
+          },
+          "credit": {
+            "numerator": "3",
+            "denominator": "25"
+          },
+          "economic": {
+            "numerator": "22",
+            "denominator": "25"
+          },
+          "customs": {
+            "numerator": "0",
+            "denominator": "1"
+          }
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "unknown-tax-no-credit",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "UNKNOWN"
+        },
+        "credit": {
+          "kind": "NONE",
+          "basis": "本次不作抵扣调整，非资格结论"
+        },
+        "customs": {
+          "kind": "NOT_ADDED",
+          "basis": "本次不额外加计，非从商品价格倒扣"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "net": null,
+          "tax": null,
+          "credit": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "0",
+            "denominator": "1"
+          }
+        },
+        "issues": [
+          "TAX_COMPONENT_UNKNOWN"
+        ]
+      }
+    },
+    {
+      "id": "no-separation-is-not-zero-tax",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "NO_SEPARATION"
+        },
+        "credit": {
+          "kind": "NONE",
+          "basis": "本次不作抵扣调整，非资格结论"
+        },
+        "customs": {
+          "kind": "NOT_ADDED",
+          "basis": "本次不额外加计，非从商品价格倒扣"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "net": null,
+          "tax": null,
+          "credit": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "0",
+            "denominator": "1"
+          }
+        },
+        "issues": [
+          "TAX_NOT_SEPARATED"
+        ]
+      }
+    },
+    {
+      "id": "unknown-tax-independent-customs",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "UNKNOWN"
+        },
+        "credit": {
+          "kind": "NONE",
+          "basis": "本次不作抵扣调整，非资格结论"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "net": null,
+          "tax": null,
+          "credit": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "100",
+            "denominator": "1"
+          }
+        },
+        "issues": [
+          "TAX_COMPONENT_UNKNOWN"
+        ]
+      }
+    },
+    {
+      "id": "all-assumptions-unknown",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "UNKNOWN"
+        },
+        "credit": {
+          "kind": "UNKNOWN"
+        },
+        "customs": {
+          "kind": "UNKNOWN"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "net": null,
+          "tax": null,
+          "credit": null,
+          "economic": null,
+          "customs": null
+        },
+        "issues": [
+          "TAX_COMPONENT_UNKNOWN",
+          "CREDIT_UNDETERMINED",
+          "CUSTOMS_COMPONENT_UNDETERMINED"
+        ]
+      }
+    },
+    {
+      "id": "unknown-cash-not-inferred",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": null,
+        "tax": {
+          "kind": "UNKNOWN"
+        },
+        "credit": {
+          "kind": "NONE",
+          "basis": "本次不作抵扣调整，非资格结论"
+        },
+        "customs": {
+          "kind": "NOT_ADDED",
+          "basis": "本次不额外加计，非从商品价格倒扣"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": null,
+          "net": null,
+          "tax": null,
+          "credit": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "economic": null,
+          "customs": {
+            "numerator": "0",
+            "denominator": "1"
+          }
+        },
+        "issues": [
+          "CASH_AMOUNT_UNKNOWN",
+          "TAX_COMPONENT_UNKNOWN"
+        ]
+      }
+    },
+    {
+      "id": "unknown-cash-and-all-channels",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": null,
+        "tax": {
+          "kind": "UNKNOWN"
+        },
+        "credit": {
+          "kind": "UNKNOWN"
+        },
+        "customs": {
+          "kind": "UNKNOWN"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": null,
+          "net": null,
+          "tax": null,
+          "credit": null,
+          "economic": null,
+          "customs": null
+        },
+        "issues": [
+          "CASH_AMOUNT_UNKNOWN",
+          "TAX_COMPONENT_UNKNOWN",
+          "CREDIT_UNDETERMINED",
+          "CUSTOMS_COMPONENT_UNDETERMINED"
+        ]
+      }
+    },
+    {
+      "id": "zero-is-explicit",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "0",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "0",
+          "tax": "0"
+        },
+        "credit": {
+          "kind": "NONE",
+          "basis": "本次不作抵扣调整，非资格结论"
+        },
+        "customs": {
+          "kind": "NOT_ADDED",
+          "basis": "本次不额外加计，非从商品价格倒扣"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "0",
+            "denominator": "1"
+          }
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "zero-does-not-confirm-unknown-decision",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "0",
+        "tax": {
+          "kind": "UNKNOWN"
+        },
+        "credit": {
+          "kind": "UNKNOWN"
+        },
+        "customs": {
+          "kind": "UNKNOWN"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "net": null,
+          "tax": null,
+          "credit": null,
+          "economic": null,
+          "customs": null
+        },
+        "issues": [
+          "TAX_COMPONENT_UNKNOWN",
+          "CREDIT_UNDETERMINED",
+          "CUSTOMS_COMPONENT_UNDETERMINED"
+        ]
+      }
+    },
+    {
+      "id": "max24-integer-digits",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "999999999999999999999999",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "999999999999999999999999",
+          "tax": "0"
+        },
+        "credit": {
+          "kind": "NONE",
+          "basis": "本次不作抵扣调整，非资格结论"
+        },
+        "customs": {
+          "kind": "NOT_ADDED",
+          "basis": "本次不额外加计，非从商品价格倒扣"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "999999999999999999999999",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "999999999999999999999999",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "999999999999999999999999",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "0",
+            "denominator": "1"
+          }
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "18-place-original-preserved",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "1.000000000000000001",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "1",
+          "tax": "0.000000000000000001"
+        },
+        "credit": {
+          "kind": "NONE",
+          "basis": "本次不作抵扣调整，非资格结论"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "1",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "1000000000000000001",
+            "denominator": "1000000000000000000"
+          },
+          "net": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "1",
+            "denominator": "1000000000000000000"
+          },
+          "credit": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "1000000000000000001",
+            "denominator": "1000000000000000000"
+          },
+          "customs": {
+            "numerator": "1",
+            "denominator": "1"
+          }
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "amount-trailing-zero-canonical-result",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113.000",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100.00",
+          "tax": "13.000"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13.0",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100.0",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "100",
+            "denominator": "1"
+          }
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "same-arithmetic-other-currency-no-conversion",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "USD",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "expected": {
+        "channels": {
+          "cash": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "100",
+            "denominator": "1"
+          }
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "two-known-rows",
+      "family": "TOTAL",
+      "input": {
+        "currency": "CNY",
+        "rows": [
+          {
+            "line_id": "fee1",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          },
+          {
+            "line_id": "fee2",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "totals": {
+          "cash": {
+            "numerator": "226",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "200",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "26",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "26",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "200",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "200",
+            "denominator": "1"
+          }
+        },
+        "known_subtotals": {
+          "cash": {
+            "numerator": "226",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "200",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "26",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "26",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "200",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "200",
+            "denominator": "1"
+          }
+        },
+        "unknown_counts": {
+          "cash": 0,
+          "net": 0,
+          "tax": 0,
+          "credit": 0,
+          "economic": 0,
+          "customs": 0
+        }
+      }
+    },
+    {
+      "id": "unknown-credit-taints-only-corresponding-totals",
+      "family": "TOTAL",
+      "input": {
+        "currency": "CNY",
+        "rows": [
+          {
+            "line_id": "fee1",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          },
+          {
+            "line_id": "fee2",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "UNKNOWN"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "totals": {
+          "cash": {
+            "numerator": "226",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "200",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "26",
+            "denominator": "1"
+          },
+          "credit": null,
+          "economic": null,
+          "customs": {
+            "numerator": "200",
+            "denominator": "1"
+          }
+        },
+        "known_subtotals": {
+          "cash": {
+            "numerator": "226",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "200",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "26",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "200",
+            "denominator": "1"
+          }
+        },
+        "unknown_counts": {
+          "cash": 0,
+          "net": 0,
+          "tax": 0,
+          "credit": 1,
+          "economic": 1,
+          "customs": 0
+        }
+      }
+    },
+    {
+      "id": "unknown-customs-does-not-taint-economic",
+      "family": "TOTAL",
+      "input": {
+        "currency": "CNY",
+        "rows": [
+          {
+            "line_id": "fee1",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          },
+          {
+            "line_id": "fee2",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "UNKNOWN"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "totals": {
+          "cash": {
+            "numerator": "226",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "200",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "26",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "26",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "200",
+            "denominator": "1"
+          },
+          "customs": null
+        },
+        "known_subtotals": {
+          "cash": {
+            "numerator": "226",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "200",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "26",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "26",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "200",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "100",
+            "denominator": "1"
+          }
+        },
+        "unknown_counts": {
+          "cash": 0,
+          "net": 0,
+          "tax": 0,
+          "credit": 0,
+          "economic": 0,
+          "customs": 1
+        }
+      }
+    },
+    {
+      "id": "partial-known-is-not-complete-total",
+      "family": "TOTAL",
+      "input": {
+        "currency": "CNY",
+        "rows": [
+          {
+            "line_id": "fee1",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          },
+          {
+            "line_id": "fee2",
+            "currency": "CNY",
+            "gross": null,
+            "tax": {
+              "kind": "UNKNOWN"
+            },
+            "credit": {
+              "kind": "UNKNOWN"
+            },
+            "customs": {
+              "kind": "UNKNOWN"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "totals": {
+          "cash": null,
+          "net": null,
+          "tax": null,
+          "credit": null,
+          "economic": null,
+          "customs": null
+        },
+        "known_subtotals": {
+          "cash": {
+            "numerator": "113",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "100",
+            "denominator": "1"
+          }
+        },
+        "unknown_counts": {
+          "cash": 1,
+          "net": 1,
+          "tax": 1,
+          "credit": 1,
+          "economic": 1,
+          "customs": 1
+        }
+      }
+    },
+    {
+      "id": "known-no-credit-without-tax-separation",
+      "family": "TOTAL",
+      "input": {
+        "currency": "CNY",
+        "rows": [
+          {
+            "line_id": "fee1",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          },
+          {
+            "line_id": "fee2",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "UNKNOWN"
+            },
+            "credit": {
+              "kind": "NONE",
+              "basis": "本次不作抵扣调整，非资格结论"
+            },
+            "customs": {
+              "kind": "NOT_ADDED",
+              "basis": "本次不额外加计，非从商品价格倒扣"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "totals": {
+          "cash": {
+            "numerator": "226",
+            "denominator": "1"
+          },
+          "net": null,
+          "tax": null,
+          "credit": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "213",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "100",
+            "denominator": "1"
+          }
+        },
+        "known_subtotals": {
+          "cash": {
+            "numerator": "226",
+            "denominator": "1"
+          },
+          "net": {
+            "numerator": "100",
+            "denominator": "1"
+          },
+          "tax": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "credit": {
+            "numerator": "13",
+            "denominator": "1"
+          },
+          "economic": {
+            "numerator": "213",
+            "denominator": "1"
+          },
+          "customs": {
+            "numerator": "100",
+            "denominator": "1"
+          }
+        },
+        "unknown_counts": {
+          "cash": 0,
+          "net": 1,
+          "tax": 1,
+          "credit": 0,
+          "economic": 0,
+          "customs": 0
+        }
+      }
+    },
+    {
+      "id": "negative-gross",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "-1",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "number-instead-of-decimal",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": 113,
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "empty-amount-is-not-unknown",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "exponent-amount",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "1e2",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "nan",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "NaN",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "leading-zero",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "0113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "too-many-digits",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "1111111111111111111111111",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "too-many-fractions",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "0.1111111111111111111",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "split-sum-mismatch",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "12.99"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "split-no-tolerance",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13.000000000000000001"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "negative-net",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "-1",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "known-split-with-unknown-gross",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": null,
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "negative-rate",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "GROSS_RATE",
+          "rate": "-0.13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "out-of-scope-rate-one",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "GROSS_RATE",
+          "rate": "1"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "rate-with-unknown-gross",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": null,
+        "tax": {
+          "kind": "GROSS_RATE",
+          "rate": "0.13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "no-default-rate",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "GROSS_RATE"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "mixed-tax-input-modes",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13",
+          "rate": "0.13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "credit-over-tax",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13.01",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "credit-with-unknown-tax",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "UNKNOWN"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "credit-no-split",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "NO_SEPARATION"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "credit-missing-document",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "credit-missing-eligibility",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": ""
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "credit-missing-basis",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": " ",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "none-is-not-auto-eligibility",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "NONE"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "boolean-credit-is-not-permission",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": true,
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "customs-over-recorded-amount",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "113.01",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "customs-no-reference",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": ""
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "customs-negative",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "-1",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "customs-add-unknown-cash",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": null,
+        "tax": {
+          "kind": "UNKNOWN"
+        },
+        "credit": {
+          "kind": "UNKNOWN"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "unknown-with-hidden-amount",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "UNKNOWN",
+          "amount": "100"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "zero-with-no-reason",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "NOT_ADDED"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "legacy-tax-flag-not-active",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        },
+        "tax_included": true
+      },
+      "reject": true
+    },
+    {
+      "id": "legacy-tax-rate-ref-not-active",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        },
+        "tax_rate_ref": "VAT13"
+      },
+      "reject": true
+    },
+    {
+      "id": "import-tax-not-a-service-invoice",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "IMPORT_VAT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "unknown-top-field",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        },
+        "ready": true
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-line-id",
+      "family": "LINE",
+      "input": {
+        "line_id": "../fee",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-currency",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "cny",
+        "gross": "113",
+        "tax": {
+          "kind": "EXPLICIT",
+          "net": "100",
+          "tax": "13"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "missing-tax-object",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "future-tax-mode",
+      "family": "LINE",
+      "input": {
+        "line_id": "fee1",
+        "currency": "CNY",
+        "gross": "113",
+        "tax": {
+          "kind": "FUTURE"
+        },
+        "credit": {
+          "kind": "ASSUMED",
+          "amount": "13",
+          "basis": "合成抵扣金额假设",
+          "document_ref": "合成凭证，不是真实发票",
+          "eligibility_ref": "合成资格，不是已核验事实"
+        },
+        "customs": {
+          "kind": "ADD_COMPONENT",
+          "amount": "100",
+          "basis": "合成单独成分假设，非按费名推断"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "duplicate-lines",
+      "family": "TOTAL",
+      "input": {
+        "currency": "CNY",
+        "rows": [
+          {
+            "line_id": "fee1",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          },
+          {
+            "line_id": "fee1",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "mixed-currency-not-summed",
+      "family": "TOTAL",
+      "input": {
+        "currency": "CNY",
+        "rows": [
+          {
+            "line_id": "fee1",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          },
+          {
+            "line_id": "fee2",
+            "currency": "USD",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "empty-total",
+      "family": "TOTAL",
+      "input": {
+        "currency": "CNY",
+        "rows": []
+      },
+      "reject": true
+    },
+    {
+      "id": "over8-lines",
+      "family": "TOTAL",
+      "input": {
+        "currency": "CNY",
+        "rows": [
+          {
+            "line_id": "fee0",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          },
+          {
+            "line_id": "fee1",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          },
+          {
+            "line_id": "fee2",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          },
+          {
+            "line_id": "fee3",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          },
+          {
+            "line_id": "fee4",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          },
+          {
+            "line_id": "fee5",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          },
+          {
+            "line_id": "fee6",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          },
+          {
+            "line_id": "fee7",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          },
+          {
+            "line_id": "fee8",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "null-row",
+      "family": "TOTAL",
+      "input": {
+        "currency": "CNY",
+        "rows": [
+          null
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "hidden-total-field",
+      "family": "TOTAL",
+      "input": {
+        "currency": "CNY",
+        "rows": [
+          {
+            "line_id": "fee1",
+            "currency": "CNY",
+            "gross": "113",
+            "tax": {
+              "kind": "EXPLICIT",
+              "net": "100",
+              "tax": "13"
+            },
+            "credit": {
+              "kind": "ASSUMED",
+              "amount": "13",
+              "basis": "合成抵扣金额假设",
+              "document_ref": "合成凭证，不是真实发票",
+              "eligibility_ref": "合成资格，不是已核验事实"
+            },
+            "customs": {
+              "kind": "ADD_COMPONENT",
+              "amount": "100",
+              "basis": "合成单独成分假设，非按费名推断"
+            }
+          }
+        ],
+        "rounding": "DOWN"
+      },
+      "reject": true
+    }
+  ]
+}
