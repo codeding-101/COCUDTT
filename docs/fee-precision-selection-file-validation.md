@@ -1,3 +1,5 @@
+> 本文保留第六十六轮文件模块验收基线。第六十七轮已实现[独立交接控制器、编辑/草稿与内部审计](fee-precision-selection-controller-validation.md)，尚未注册工作台；下文未实现/下一阶段表述按当轮阶段理解。
+
 # 第六十六轮：精度选择独立文件模块验收
 
 2026-10-18。依照[上一轮设计](fee-precision-selection-design.md)，实现[领域类型](../src/domain/fee-precision-selection.ts)、[严格JSON边界](../src/data/fee-precision-selection-json.ts)和[文件/核对API](../src/data/fee-precision-selection.ts)。独立`INTERNAL_FEE_PRECISION_SELECTION / 1.0`已可由开发API读写；没有注册工作台、自动草稿、恢复控制器、内部HTML/Excel输出或费用应用。
