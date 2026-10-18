@@ -1,0 +1,4512 @@
+{
+  "kind": "SYNTHETIC_FEE_APPLICATION_DESIGN_ONLY",
+  "version": "0.1",
+  "runtime_enabled": false,
+  "notice": "Reduced design facts only. Not a production application file, source proof or storage/UI implementation.",
+  "row": {
+    "business_id": "business-1",
+    "bill_id": "bill-1",
+    "line_id": "line-1",
+    "mapping_id": "mapping-1",
+    "component_id": "component-1",
+    "precision_id": "precision-1",
+    "cost_id": "cost-1",
+    "term": "CIF",
+    "operation": "CREATE_NEW",
+    "currency": "CNY",
+    "target_currency": "CNY",
+    "original": "113",
+    "candidate": "113",
+    "proposed_amount": "113",
+    "customs_value": "EXCLUDE",
+    "components": {
+      "cash": "113",
+      "net": "100",
+      "tax": "13",
+      "credit": "0",
+      "economic": "113",
+      "customs": "0"
+    },
+    "choice": {
+      "kind": "ROUND",
+      "unit": "0.01",
+      "mode": "HALF_UP",
+      "basis": "SYNTHETIC_POLICY_ONLY"
+    },
+    "parties": {
+      "responsibility": "BUYER",
+      "payer": "BUYER",
+      "bearer": "BUYER"
+    },
+    "facets": {
+      "tax": "RECORDED",
+      "credit": "RECORDED",
+      "customs": "RECORDED"
+    },
+    "policy_receipt": "RECORDED",
+    "target_flags": [],
+    "issues": [],
+    "diagnostics": [
+      "CASH_PAYMENT_NOT_VERIFIED",
+      "ECONOMIC_COST_NOT_DETERMINED",
+      "CUSTOMS_COMPONENT_NOT_DETERMINED"
+    ]
+  },
+  "sources": {
+    "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+    "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+    "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+    "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+    "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+    "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+  },
+  "digest_vectors": [
+    {
+      "text": "",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "text": "abc",
+      "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    }
+  ],
+  "cases": [
+    {
+      "id": "map-original-gross",
+      "family": "MAPPING",
+      "input": {
+        "patches": []
+      },
+      "expected": {
+        "projection": "UNCHANGED_ORIGINAL_CASH",
+        "issues": [],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-explicit-zero",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "original",
+            "value": "0"
+          },
+          {
+            "path": "candidate",
+            "value": "0"
+          },
+          {
+            "path": "proposed_amount",
+            "value": "0"
+          },
+          {
+            "path": "components.cash",
+            "value": "0"
+          },
+          {
+            "path": "components.net",
+            "value": "0"
+          },
+          {
+            "path": "components.tax",
+            "value": "0"
+          },
+          {
+            "path": "components.economic",
+            "value": "0"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "UNCHANGED_ORIGINAL_CASH",
+        "issues": [],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-whole-customs",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "components.customs",
+            "value": "113"
+          },
+          {
+            "path": "customs_value",
+            "value": "ADD"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "UNCHANGED_ORIGINAL_CASH",
+        "issues": [],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-zero-customs-wrong-flag",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "customs_value",
+            "value": "ADD"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "CUSTOMS_FLAG_MISMATCH"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-whole-customs-wrong-flag",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "components.customs",
+            "value": "113"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "CUSTOMS_FLAG_MISMATCH"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-customs-flag-unknown",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "customs_value",
+            "value": "UNRESOLVED"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "CUSTOMS_TREATMENT_UNRESOLVED"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-reference-only",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "operation",
+            "value": "REFERENCE_EXISTING"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "REFERENCE_ONLY",
+        "issues": [],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-no-separation",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "components.net",
+            "value": null
+          },
+          {
+            "path": "components.tax",
+            "value": null
+          }
+        ]
+      },
+      "expected": {
+        "projection": "UNCHANGED_ORIGINAL_CASH",
+        "issues": [],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-unknown-original",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "original",
+            "value": null
+          },
+          {
+            "path": "components.cash",
+            "value": null
+          },
+          {
+            "path": "candidate",
+            "value": null
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "ORIGINAL_UNKNOWN"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-n-is-not-e",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "components.credit",
+            "value": "13"
+          },
+          {
+            "path": "components.economic",
+            "value": "100"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "SEPARATE_ECONOMIC_MODEL_REQUIRED"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-unknown-credit",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "components.credit",
+            "value": null
+          },
+          {
+            "path": "components.economic",
+            "value": null
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "ECONOMIC_COMPONENT_UNKNOWN"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-partial-customs",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "components.customs",
+            "value": "40"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "PARTIAL_CUSTOMS_MODEL_REQUIRED"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-customs-unknown",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "components.customs",
+            "value": null
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "CUSTOMS_COMPONENT_UNKNOWN"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-not-tax-net",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "proposed_amount",
+            "value": "100"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "TARGET_NOT_ORIGINAL_CASH"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-source-original-mismatch",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "original",
+            "value": "112"
+          },
+          {
+            "path": "candidate",
+            "value": "112"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "ORIGINAL_SOURCE_MISMATCH"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-fx-not-rate-field",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "choice",
+            "value": {
+              "kind": "FX"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "FX_APPLICATION_UNSUPPORTED"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-currency-change",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "target_currency",
+            "value": "USD"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "CURRENCY_CHANGE_UNSUPPORTED"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-unresolved",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "choice",
+            "value": {
+              "kind": "UNRESOLVED"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "POLICY_UNRESOLVED"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-tampered-candidate",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "candidate",
+            "value": "112"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "CANDIDATE_RECOMPUTATION_MISMATCH",
+          "ROUNDING_CHANGE_REQUIRES_AMOUNT_MODEL"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-rounding-does-not-cure-core",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "original",
+            "value": "0.0000001"
+          },
+          {
+            "path": "proposed_amount",
+            "value": "0.0000001"
+          },
+          {
+            "path": "components.cash",
+            "value": "0.0000001"
+          },
+          {
+            "path": "components.net",
+            "value": "0.0000001"
+          },
+          {
+            "path": "components.economic",
+            "value": "0.0000001"
+          },
+          {
+            "path": "components.tax",
+            "value": "0"
+          },
+          {
+            "path": "candidate",
+            "value": "0"
+          },
+          {
+            "path": "choice.unit",
+            "value": "0.000001"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "ROUNDING_CHANGE_REQUIRES_AMOUNT_MODEL",
+          "CORE_PRECISION_LOSS"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-n-t-gap",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "components.net",
+            "value": "99"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "SOURCE_CHANNELS_INCONSISTENT"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-single-unknown-tax",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "components.tax",
+            "value": null
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "INCOMPLETE_TAX_SPLIT"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-e-not-g-minus-x",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "components.economic",
+            "value": "112"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "SEPARATE_ECONOMIC_MODEL_REQUIRED",
+          "SOURCE_CHANNELS_INCONSISTENT"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-cross-payer",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "parties.payer",
+            "value": "SELLER"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "ADVANCE_OR_REIMBURSEMENT_UNSUPPORTED"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-cross-bearer",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "parties.bearer",
+            "value": "SELLER"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "ADVANCE_OR_REIMBURSEMENT_UNSUPPORTED"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-party-unknown",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "parties.responsibility",
+            "value": "UNRESOLVED"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "PARTIES_UNRESOLVED"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-source-tax",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "facets.tax",
+            "value": "EXAMPLE"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "COMPONENT_SOURCE_REVIEW_REQUIRED"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-source-credit",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "facets.credit",
+            "value": "EXAMPLE"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "COMPONENT_SOURCE_REVIEW_REQUIRED"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-source-customs",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "facets.customs",
+            "value": "EXAMPLE"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "COMPONENT_SOURCE_REVIEW_REQUIRED"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-stale-policy",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "policy_receipt",
+            "value": "STALE"
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "POLICY_RECEIPT_REQUIRED"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-flag-tax_inclusive",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "target_flags",
+            "value": [
+              "TAX_INCLUSIVE"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "TARGET_REVIEW:TAX_INCLUSIVE"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-flag-service_tax_ref",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "target_flags",
+            "value": [
+              "SERVICE_TAX_REF"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "TARGET_REVIEW:SERVICE_TAX_REF"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-flag-goods",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "target_flags",
+            "value": [
+              "GOODS"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "TARGET_REVIEW:GOODS"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-flag-derived",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "target_flags",
+            "value": [
+              "DERIVED"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "TARGET_REVIEW:DERIVED"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-flag-included_quote",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "target_flags",
+            "value": [
+              "INCLUDED_QUOTE"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "TARGET_REVIEW:INCLUDED_QUOTE"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-flag-contained",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "target_flags",
+            "value": [
+              "CONTAINED"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "TARGET_REVIEW:CONTAINED"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-flag-alternative",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "target_flags",
+            "value": [
+              "ALTERNATIVE"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "TARGET_REVIEW:ALTERNATIVE"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-flag-dedup",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "target_flags",
+            "value": [
+              "DEDUP"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "TARGET_REVIEW:DEDUP"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-flag-percent",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "target_flags",
+            "value": [
+              "PERCENT"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "TARGET_REVIEW:PERCENT"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-flag-inactive",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "target_flags",
+            "value": [
+              "INACTIVE"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "TARGET_REVIEW:INACTIVE"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-flag-overlap",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "target_flags",
+            "value": [
+              "OVERLAP"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "TARGET_REVIEW:OVERLAP"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-flag-future_unknown",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "target_flags",
+            "value": [
+              "FUTURE_UNKNOWN"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "TARGET_REVIEW:FUTURE_UNKNOWN"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-core-issue-retained",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "issues",
+            "value": [
+              "CORE_PRECISION_LOSS"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "UPSTREAM_REVIEW:CORE_PRECISION_LOSS"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "map-unknown-issue-retained",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "issues",
+            "value": [
+              "FUTURE_RULE"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "projection": "NONE",
+        "issues": [
+          "UPSTREAM_REVIEW:FUTURE_RULE"
+        ],
+        "retained_diagnostics": [
+          "CASH_PAYMENT_NOT_VERIFIED",
+          "ECONOMIC_COST_NOT_DETERMINED",
+          "CUSTOMS_COMPONENT_NOT_DETERMINED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "reject-map-original-44",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "original",
+            "value": 113
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-map-original-45",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "original",
+            "value": "-1"
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-map-original-46",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "original",
+            "value": "1e2"
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-map-original-47",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "original",
+            "value": "NaN"
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-map-original-48",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "original",
+            "value": {
+              "numerator": "2",
+              "denominator": "2"
+            }
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-map-choice-unit-49",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "choice.unit",
+            "value": "0"
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-map-choice-unit-50",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "choice.unit",
+            "value": "0.0000001"
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-map-choice-mode-51",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "choice.mode",
+            "value": "CEILING"
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-map-choice-basis-52",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "choice.basis",
+            "value": " "
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-map-facets-tax-53",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "facets.tax",
+            "value": "CERTIFIED"
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-map-parties-payer-54",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "parties.payer",
+            "value": "THIRD_PARTY"
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-map-currency-55",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "currency",
+            "value": "cny"
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-map-unknown-path",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "apply",
+            "value": true
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-map-prototype",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "__proto__.x",
+            "value": "1"
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-map-duplicate-issues",
+      "family": "MAPPING",
+      "input": {
+        "patches": [
+          {
+            "path": "issues",
+            "value": [
+              "X",
+              "X"
+            ]
+          }
+        ]
+      },
+      "reject": true
+    },
+    {
+      "id": "lease-identical",
+      "family": "LEASE",
+      "input": {
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        }
+      },
+      "expected": {
+        "current": true,
+        "stale": [],
+        "writes": 0
+      }
+    },
+    {
+      "id": "lease-full-project",
+      "family": "LEASE",
+      "input": {
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}\n",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        }
+      },
+      "expected": {
+        "current": false,
+        "stale": [
+          "project"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "lease-full-bill",
+      "family": "LEASE",
+      "input": {
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}\n",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        }
+      },
+      "expected": {
+        "current": false,
+        "stale": [
+          "bill"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "lease-full-pair",
+      "family": "LEASE",
+      "input": {
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}\n",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        }
+      },
+      "expected": {
+        "current": false,
+        "stale": [
+          "pair"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "lease-full-attachment",
+      "family": "LEASE",
+      "input": {
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}\n",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        }
+      },
+      "expected": {
+        "current": false,
+        "stale": [
+          "attachment"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "lease-full-precision",
+      "family": "LEASE",
+      "input": {
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}\n",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        }
+      },
+      "expected": {
+        "current": false,
+        "stale": [
+          "precision"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "lease-full-ledger",
+      "family": "LEASE",
+      "input": {
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}\n"
+        }
+      },
+      "expected": {
+        "current": false,
+        "stale": [
+          "ledger"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "lease-all",
+      "family": "LEASE",
+      "input": {
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1} ",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1} ",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1} ",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1} ",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1} ",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1} "
+        }
+      },
+      "expected": {
+        "current": false,
+        "stale": [
+          "project",
+          "bill",
+          "pair",
+          "attachment",
+          "precision",
+          "ledger"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "reject-lease-missing",
+      "family": "LEASE",
+      "input": {
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-lease-number",
+      "family": "LEASE",
+      "input": {
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": 1,
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-lease-empty",
+      "family": "LEASE",
+      "input": {
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-lease-extra",
+      "family": "LEASE",
+      "input": {
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}",
+          "filename": "same.json"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "dedup-first",
+      "family": "DEDUP",
+      "input": {
+        "requested": [
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          }
+        ],
+        "existing": [],
+        "existing_cost_ids": [],
+        "retired_cost_ids": []
+      },
+      "expected": {
+        "issues": [],
+        "writes": 0
+      }
+    },
+    {
+      "id": "dedup-same-source-new-name",
+      "family": "DEDUP",
+      "input": {
+        "requested": [
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "renamed",
+            "mapping_id": "new-mapping",
+            "term": "FOB",
+            "operation": "CREATE_NEW"
+          }
+        ],
+        "existing": [
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          }
+        ],
+        "existing_cost_ids": [
+          "cost-1"
+        ],
+        "retired_cost_ids": []
+      },
+      "expected": {
+        "issues": [
+          "SOURCE_ALREADY_RECORDED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "dedup-same-source-new-transaction",
+      "family": "DEDUP",
+      "input": {
+        "requested": [
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          }
+        ],
+        "existing": [
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "old-mapping",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          }
+        ],
+        "existing_cost_ids": [],
+        "retired_cost_ids": []
+      },
+      "expected": {
+        "issues": [
+          "SOURCE_ALREADY_RECORDED"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "dedup-source-twice",
+      "family": "DEDUP",
+      "input": {
+        "requested": [
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "other",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          }
+        ],
+        "existing": [],
+        "existing_cost_ids": [],
+        "retired_cost_ids": []
+      },
+      "expected": {
+        "issues": [
+          "DUPLICATE_SOURCE_IN_BATCH"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "dedup-target-twice",
+      "family": "DEDUP",
+      "input": {
+        "requested": [
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "other",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          }
+        ],
+        "existing": [],
+        "existing_cost_ids": [],
+        "retired_cost_ids": []
+      },
+      "expected": {
+        "issues": [
+          "DUPLICATE_TARGET_IN_BATCH"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "dedup-existing-cost-no-inference",
+      "family": "DEDUP",
+      "input": {
+        "requested": [
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "other",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          }
+        ],
+        "existing": [],
+        "existing_cost_ids": [
+          "cost-1"
+        ],
+        "retired_cost_ids": []
+      },
+      "expected": {
+        "issues": [
+          "TARGET_ALREADY_EXISTS"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "dedup-retired",
+      "family": "DEDUP",
+      "input": {
+        "requested": [
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          }
+        ],
+        "existing": [],
+        "existing_cost_ids": [],
+        "retired_cost_ids": [
+          "cost-1"
+        ]
+      },
+      "expected": {
+        "issues": [
+          "RETIRED_TARGET"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "dedup-reference-only",
+      "family": "DEDUP",
+      "input": {
+        "requested": [
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "REFERENCE_EXISTING"
+          }
+        ],
+        "existing": [],
+        "existing_cost_ids": [
+          "cost-1"
+        ],
+        "retired_cost_ids": []
+      },
+      "expected": {
+        "issues": [],
+        "writes": 0
+      }
+    },
+    {
+      "id": "dedup-reference-missing",
+      "family": "DEDUP",
+      "input": {
+        "requested": [
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "REFERENCE_EXISTING"
+          }
+        ],
+        "existing": [],
+        "existing_cost_ids": [],
+        "retired_cost_ids": []
+      },
+      "expected": {
+        "issues": [
+          "REFERENCE_TARGET_MISSING"
+        ],
+        "writes": 0
+      }
+    },
+    {
+      "id": "dedup-explicit-new-business",
+      "family": "DEDUP",
+      "input": {
+        "requested": [
+          {
+            "business_id": "business-2",
+            "bill_id": "bill-2",
+            "line_id": "line-2",
+            "cost_id": "cost-2",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          }
+        ],
+        "existing": [
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          }
+        ],
+        "existing_cost_ids": [
+          "cost-1"
+        ],
+        "retired_cost_ids": []
+      },
+      "expected": {
+        "issues": [],
+        "writes": 0
+      }
+    },
+    {
+      "id": "reject-dedup-empty",
+      "family": "DEDUP",
+      "input": {
+        "requested": [],
+        "existing": [],
+        "existing_cost_ids": [],
+        "retired_cost_ids": []
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-dedup-operation",
+      "family": "DEDUP",
+      "input": {
+        "requested": [
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "UPDATE"
+          }
+        ],
+        "existing": [],
+        "existing_cost_ids": [],
+        "retired_cost_ids": []
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-dedup-missing-ledger",
+      "family": "DEDUP",
+      "input": {
+        "requested": [
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          }
+        ],
+        "existing": null,
+        "existing_cost_ids": [],
+        "retired_cost_ids": []
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-dedup-excess",
+      "family": "DEDUP",
+      "input": {
+        "requested": [
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          },
+          {
+            "business_id": "business-1",
+            "bill_id": "bill-1",
+            "line_id": "line-1",
+            "cost_id": "cost-1",
+            "mapping_id": "mapping-1",
+            "term": "CIF",
+            "operation": "CREATE_NEW"
+          }
+        ],
+        "existing": [],
+        "existing_cost_ids": [],
+        "retired_cost_ids": []
+      },
+      "reject": true
+    },
+    {
+      "id": "replay-exact",
+      "family": "REPLAY",
+      "input": {
+        "transaction_id": "txn-1",
+        "requested_id": "txn-1",
+        "saved_plan": "{\"reduced_plan\":1}",
+        "requested_plan": "{\"reduced_plan\":1}",
+        "post_payload": "{\"reduced_after\":1}",
+        "live_payload": "{\"reduced_after\":1}",
+        "receipt_plan_sha256": "7985c2c04e9c675fb61612ae12d3756a7b29c0c3163ab8dd93e62d4d950103f6",
+        "receipt_post_sha256": "243e7e4d2e9bb7532b7784eaedbf0c540a1d5ed42e091435e09b60612c747d60"
+      },
+      "expected": {
+        "status": "ALREADY_RECORDED_NO_WRITE",
+        "writes": 0
+      }
+    },
+    {
+      "id": "replay-changed-plan",
+      "family": "REPLAY",
+      "input": {
+        "transaction_id": "txn-1",
+        "requested_id": "txn-1",
+        "saved_plan": "{\"reduced_plan\":1}",
+        "requested_plan": "{\"reduced_plan\":2}",
+        "post_payload": "{\"reduced_after\":1}",
+        "live_payload": "{\"reduced_after\":1}",
+        "receipt_plan_sha256": "7985c2c04e9c675fb61612ae12d3756a7b29c0c3163ab8dd93e62d4d950103f6",
+        "receipt_post_sha256": "243e7e4d2e9bb7532b7784eaedbf0c540a1d5ed42e091435e09b60612c747d60"
+      },
+      "expected": {
+        "status": "TRANSACTION_ID_COLLISION",
+        "writes": 0
+      }
+    },
+    {
+      "id": "replay-changed-post",
+      "family": "REPLAY",
+      "input": {
+        "transaction_id": "txn-1",
+        "requested_id": "txn-1",
+        "saved_plan": "{\"reduced_plan\":1}",
+        "requested_plan": "{\"reduced_plan\":1}",
+        "post_payload": "{\"reduced_after\":1}",
+        "live_payload": "{\"reduced_after\":2}",
+        "receipt_plan_sha256": "7985c2c04e9c675fb61612ae12d3756a7b29c0c3163ab8dd93e62d4d950103f6",
+        "receipt_post_sha256": "243e7e4d2e9bb7532b7784eaedbf0c540a1d5ed42e091435e09b60612c747d60"
+      },
+      "expected": {
+        "status": "RECORDED_HISTORY_REQUIRES_REVIEW",
+        "writes": 0
+      }
+    },
+    {
+      "id": "replay-different-transaction",
+      "family": "REPLAY",
+      "input": {
+        "transaction_id": "txn-1",
+        "requested_id": "txn-2",
+        "saved_plan": "{\"reduced_plan\":1}",
+        "requested_plan": "{\"reduced_plan\":1}",
+        "post_payload": "{\"reduced_after\":1}",
+        "live_payload": "{\"reduced_after\":1}",
+        "receipt_plan_sha256": "7985c2c04e9c675fb61612ae12d3756a7b29c0c3163ab8dd93e62d4d950103f6",
+        "receipt_post_sha256": "243e7e4d2e9bb7532b7784eaedbf0c540a1d5ed42e091435e09b60612c747d60"
+      },
+      "expected": {
+        "status": "NEW_TRANSACTION_REQUIRES_PREFLIGHT",
+        "writes": 0
+      }
+    },
+    {
+      "id": "replay-bad-receipt",
+      "family": "REPLAY",
+      "input": {
+        "transaction_id": "txn-1",
+        "requested_id": "txn-1",
+        "saved_plan": "{\"reduced_plan\":1}",
+        "requested_plan": "{\"reduced_plan\":1}",
+        "post_payload": "{\"reduced_after\":1}",
+        "live_payload": "{\"reduced_after\":1}",
+        "receipt_plan_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "receipt_post_sha256": "243e7e4d2e9bb7532b7784eaedbf0c540a1d5ed42e091435e09b60612c747d60"
+      },
+      "expected": {
+        "status": "RECEIPT_INVALID",
+        "writes": 0
+      }
+    },
+    {
+      "id": "reject-replay-version-extension",
+      "family": "REPLAY",
+      "input": {
+        "transaction_id": "txn-1",
+        "requested_id": "txn-1",
+        "saved_plan": "{\"reduced_plan\":1}",
+        "requested_plan": "{\"reduced_plan\":1}",
+        "post_payload": "{\"reduced_after\":1}",
+        "live_payload": "{\"reduced_after\":1}",
+        "receipt_plan_sha256": "7985c2c04e9c675fb61612ae12d3756a7b29c0c3163ab8dd93e62d4d950103f6",
+        "receipt_post_sha256": "243e7e4d2e9bb7532b7784eaedbf0c540a1d5ed42e091435e09b60612c747d60",
+        "version": "future"
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-replay-hash",
+      "family": "REPLAY",
+      "input": {
+        "transaction_id": "txn-1",
+        "requested_id": "txn-1",
+        "saved_plan": "{\"reduced_plan\":1}",
+        "requested_plan": "{\"reduced_plan\":1}",
+        "post_payload": "{\"reduced_after\":1}",
+        "live_payload": "{\"reduced_after\":1}",
+        "receipt_plan_sha256": "7985c2c04e9c675fb61612ae12d3756a7b29c0c3163ab8dd93e62d4d950103f6",
+        "receipt_post_sha256": "wrong"
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-replay-empty",
+      "family": "REPLAY",
+      "input": {
+        "transaction_id": "txn-1",
+        "requested_id": "txn-1",
+        "saved_plan": "{\"reduced_plan\":1}",
+        "requested_plan": "",
+        "post_payload": "{\"reduced_after\":1}",
+        "live_payload": "{\"reduced_after\":1}",
+        "receipt_plan_sha256": "7985c2c04e9c675fb61612ae12d3756a7b29c0c3163ab8dd93e62d4d950103f6",
+        "receipt_post_sha256": "243e7e4d2e9bb7532b7784eaedbf0c540a1d5ed42e091435e09b60612c747d60"
+      },
+      "reject": true
+    },
+    {
+      "id": "coverage-same",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        },
+        "right": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        }
+      },
+      "expected": {
+        "status": "INTERSECTION_CANDIDATE",
+        "financialAuthority": false,
+        "writes": 0
+      }
+    },
+    {
+      "id": "coverage-other-label",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        },
+        "right": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-B",
+          "currency": "USD"
+        }
+      },
+      "expected": {
+        "status": "INTERSECTION_CANDIDATE",
+        "financialAuthority": false,
+        "writes": 0
+      }
+    },
+    {
+      "id": "coverage-other-currency",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        },
+        "right": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "CNY"
+        }
+      },
+      "expected": {
+        "status": "INTERSECTION_CANDIDATE",
+        "financialAuthority": false,
+        "writes": 0
+      }
+    },
+    {
+      "id": "coverage-combined",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        },
+        "right": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "COMBINED_DD",
+          "scope": "label-A",
+          "currency": "USD"
+        }
+      },
+      "expected": {
+        "status": "INTERSECTION_CANDIDATE",
+        "financialAuthority": false,
+        "writes": 0
+      }
+    },
+    {
+      "id": "coverage-boundary",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        },
+        "right": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-03",
+          "end": "2026-10-04",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        }
+      },
+      "expected": {
+        "status": "INTERSECTION_CANDIDATE",
+        "financialAuthority": false,
+        "writes": 0
+      }
+    },
+    {
+      "id": "coverage-after",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        },
+        "right": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-04",
+          "end": "2026-10-05",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        }
+      },
+      "expected": {
+        "status": "NO_INTERSECTION_IN_REDUCED_SCOPE",
+        "financialAuthority": false,
+        "writes": 0
+      }
+    },
+    {
+      "id": "coverage-other-box",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        },
+        "right": {
+          "boxes": [
+            "BOX-B"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        }
+      },
+      "expected": {
+        "status": "NO_INTERSECTION_IN_REDUCED_SCOPE",
+        "financialAuthority": false,
+        "writes": 0
+      }
+    },
+    {
+      "id": "coverage-unknown-box",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        },
+        "right": {
+          "boxes": null,
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        }
+      },
+      "expected": {
+        "status": "INCOMPLETE_SCOPE",
+        "financialAuthority": false,
+        "writes": 0
+      }
+    },
+    {
+      "id": "coverage-empty-box",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        },
+        "right": {
+          "boxes": [],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        }
+      },
+      "expected": {
+        "status": "INCOMPLETE_SCOPE",
+        "financialAuthority": false,
+        "writes": 0
+      }
+    },
+    {
+      "id": "coverage-unknown-date",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        },
+        "right": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": null,
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        }
+      },
+      "expected": {
+        "status": "INCOMPLETE_SCOPE",
+        "financialAuthority": false,
+        "writes": 0
+      }
+    },
+    {
+      "id": "reject-coverage-date",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        },
+        "right": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-02-30",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-coverage-order",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        },
+        "right": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-04",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-coverage-duplicates",
+      "family": "COVERAGE",
+      "input": {
+        "left": {
+          "boxes": [
+            "BOX-A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        },
+        "right": {
+          "boxes": [
+            "BOX-A",
+            "BOX-A"
+          ],
+          "start": "2026-10-01",
+          "end": "2026-10-03",
+          "kind": "DEMURRAGE",
+          "scope": "label-A",
+          "currency": "USD"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "atomic-commit",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "NONE"
+      },
+      "expected": {
+        "status": "APPLIED_IN_DESIGN_MODEL",
+        "memory": "CANDIDATE",
+        "cache": "CANDIDATE",
+        "costsAdded": 1,
+        "receiptsAdded": 1,
+        "sourceStatus": "HISTORICAL"
+      }
+    },
+    {
+      "id": "atomic-reference",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          [
+            {
+              "path": "operation",
+              "value": "REFERENCE_EXISTING"
+            }
+          ]
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "NONE"
+      },
+      "expected": {
+        "status": "APPLIED_IN_DESIGN_MODEL",
+        "memory": "CANDIDATE",
+        "cache": "CANDIDATE",
+        "costsAdded": 0,
+        "receiptsAdded": 1,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-preview",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": false,
+        "format": "DESIGN_BUNDLE",
+        "fault": "NONE"
+      },
+      "expected": {
+        "status": "PREVIEW_ONLY",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-fail-project",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "PROJECT"
+      },
+      "expected": {
+        "status": "STAGING_FAILED",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-fail-bill",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "BILL"
+      },
+      "expected": {
+        "status": "STAGING_FAILED",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-fail-pair",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "PAIR"
+      },
+      "expected": {
+        "status": "STAGING_FAILED",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-fail-attachment",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "ATTACHMENT"
+      },
+      "expected": {
+        "status": "STAGING_FAILED",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-fail-precision",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "PRECISION"
+      },
+      "expected": {
+        "status": "STAGING_FAILED",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-fail-ledger",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "LEDGER"
+      },
+      "expected": {
+        "status": "STAGING_FAILED",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-fail-validation",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "VALIDATION"
+      },
+      "expected": {
+        "status": "STAGING_FAILED",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-fail-recalculation",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "RECALCULATION"
+      },
+      "expected": {
+        "status": "STAGING_FAILED",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-fail-serialization",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "SERIALIZATION"
+      },
+      "expected": {
+        "status": "STAGING_FAILED",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-fail-before_publish",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "BEFORE_PUBLISH"
+      },
+      "expected": {
+        "status": "STAGING_FAILED",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-cache-precheck",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "CACHE_PRECHECK"
+      },
+      "expected": {
+        "status": "CACHE_CONFLICT_BEFORE_COMMIT",
+        "memory": "BEFORE",
+        "cache": "FOREIGN",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-cache-write",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "CACHE_WRITE"
+      },
+      "expected": {
+        "status": "APPLIED_MEMORY_ONLY",
+        "memory": "CANDIDATE",
+        "cache": "BEFORE",
+        "costsAdded": 1,
+        "receiptsAdded": 1,
+        "sourceStatus": "HISTORICAL"
+      }
+    },
+    {
+      "id": "atomic-cache-readback",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "CACHE_READBACK"
+      },
+      "expected": {
+        "status": "APPLIED_CACHE_CONFLICT",
+        "memory": "CANDIDATE",
+        "cache": "FOREIGN",
+        "costsAdded": 1,
+        "receiptsAdded": 1,
+        "sourceStatus": "HISTORICAL"
+      }
+    },
+    {
+      "id": "atomic-render",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "RENDER"
+      },
+      "expected": {
+        "status": "APPLIED_RENDER_FAILED",
+        "memory": "CANDIDATE",
+        "cache": "CANDIDATE",
+        "costsAdded": 1,
+        "receiptsAdded": 1,
+        "sourceStatus": "HISTORICAL"
+      }
+    },
+    {
+      "id": "atomic-file-save",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "FILE_SAVE"
+      },
+      "expected": {
+        "status": "APPLIED_FILE_NOT_SAVED",
+        "memory": "CANDIDATE",
+        "cache": "CANDIDATE",
+        "costsAdded": 1,
+        "receiptsAdded": 1,
+        "sourceStatus": "HISTORICAL"
+      }
+    },
+    {
+      "id": "atomic-stale-revision",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 2,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "NONE"
+      },
+      "expected": {
+        "status": "STALE_CONTEXT",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-stale-source",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}\n",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "NONE"
+      },
+      "expected": {
+        "status": "STALE_CONTEXT",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-duplicate-batch",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          [],
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "NONE"
+      },
+      "expected": {
+        "status": "DUPLICATE_BATCH",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-one-bad-row",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          [],
+          [
+            {
+              "path": "components.customs",
+              "value": null
+            }
+          ]
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "NONE"
+      },
+      "expected": {
+        "status": "BLOCKED_BATCH",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-revision-ceiling",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1000000000,
+        "current_revision": 1000000000,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "NONE"
+      },
+      "expected": {
+        "status": "REVISION_LIMIT",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-two-rows",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          [],
+          [
+            {
+              "path": "line_id",
+              "value": "line-2"
+            },
+            {
+              "path": "cost_id",
+              "value": "cost-2"
+            },
+            {
+              "path": "mapping_id",
+              "value": "mapping-2"
+            }
+          ]
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "NONE"
+      },
+      "expected": {
+        "status": "APPLIED_IN_DESIGN_MODEL",
+        "memory": "CANDIDATE",
+        "cache": "CANDIDATE",
+        "costsAdded": 2,
+        "receiptsAdded": 1,
+        "sourceStatus": "HISTORICAL"
+      }
+    },
+    {
+      "id": "atomic-no-implicit-project_0_8",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "PROJECT_0_8",
+        "fault": "NONE"
+      },
+      "expected": {
+        "status": "EXPLICIT_MIGRATION_REQUIRED",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-no-implicit-project_0_9",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "PROJECT_0_9",
+        "fault": "NONE"
+      },
+      "expected": {
+        "status": "EXPLICIT_MIGRATION_REQUIRED",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-no-implicit-pair_1_0",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "PAIR_1_0",
+        "fault": "NONE"
+      },
+      "expected": {
+        "status": "EXPLICIT_MIGRATION_REQUIRED",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-no-implicit-pair_1_1",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "PAIR_1_1",
+        "fault": "NONE"
+      },
+      "expected": {
+        "status": "EXPLICIT_MIGRATION_REQUIRED",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "atomic-no-implicit-memory_backup",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "MEMORY_BACKUP",
+        "fault": "NONE"
+      },
+      "expected": {
+        "status": "EXPLICIT_MIGRATION_REQUIRED",
+        "memory": "BEFORE",
+        "cache": "BEFORE",
+        "costsAdded": 0,
+        "receiptsAdded": 0,
+        "sourceStatus": "UNCHANGED"
+      }
+    },
+    {
+      "id": "reject-atomic-no-confirmation-type",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": "yes",
+        "format": "DESIGN_BUNDLE",
+        "fault": "NONE"
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-atomic-negative-revision",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 0,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "NONE"
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-atomic-overflow-revision",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1000000001,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "NONE"
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-atomic-future-format",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "NEXT",
+        "fault": "NONE"
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-atomic-unknown-phase",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "RECOVER_AUTOMATICALLY"
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-atomic-no-rows",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "NONE"
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-atomic-too-many-rows",
+      "family": "ATOMIC",
+      "input": {
+        "rows": [
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          []
+        ],
+        "expected": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "current": {
+          "project": "{\"reduced_design_only\":\"project\",\"revision\":1}",
+          "bill": "{\"reduced_design_only\":\"bill\",\"revision\":1}",
+          "pair": "{\"reduced_design_only\":\"pair\",\"revision\":1}",
+          "attachment": "{\"reduced_design_only\":\"attachment\",\"revision\":1}",
+          "precision": "{\"reduced_design_only\":\"precision\",\"revision\":1}",
+          "ledger": "{\"reduced_design_only\":\"ledger\",\"revision\":1}"
+        },
+        "expected_revision": 1,
+        "current_revision": 1,
+        "confirmed": true,
+        "format": "DESIGN_BUNDLE",
+        "fault": "NONE"
+      },
+      "reject": true
+    }
+  ]
+}
