@@ -1,3 +1,5 @@
+> 本文记录第六十三轮设计基线。第六十四轮已实现[独立纯数值模块](fee-precision-module-validation.md)，尚无工作台精度选择；下文下一轮及未实现描述保留当轮含义。
+
 # 第六十三轮：精度选择与差额审计实现前验收
 
 2026-10-18。交付[精度设计](fee-precision-design.md)、[固定合成案例](cases/fee-precision-design.json)及[独立检查器](../tools/check-fee-precision-design.mjs)，加入Windows/Linux CI。没有新增生产计算、项目/账单/配对/附件字段、精度控件或费用应用。

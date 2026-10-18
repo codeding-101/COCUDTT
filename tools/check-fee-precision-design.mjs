@@ -80,6 +80,7 @@ for(const denominator of[2n,3n,7n,10n,113n])for(let integer=0n;integer<12n;integ
 }
 // Integer cross multiplication for exact direct/inverse conversions; no pre-rounded inverse rate.
 let inverseChecks=0;for(let a=0n;a<=30n;a++)for(const rate of[3n,7n,113n,1000000000001n]){const original=fraction(a,7n),converted=times(original,fraction(rate,100n)),restored=times(converted,fraction(100n,rate));if(!isDeepStrictEqual(restored,original))throw Error('Exact FX mismatch');inverseChecks++;}
-function inactive(directory){for(const e of readdirSync(directory,{withFileTypes:true})){const u=new URL(e.name+(e.isDirectory()?'/':''),directory);if(e.isDirectory())inactive(u);else if(e.name.endsWith('.ts')&&/fee-precision|FEE_PRECISION/.test(readFileSync(u,'utf8')))throw Error('Precision design must not enter production paths');}}
+const modules=new Set(['domain/fee-precision.ts','domain/fee-precision-validation.ts','engine/fee-precision.ts']);
+function inactive(directory,prefix=''){for(const e of readdirSync(directory,{withFileTypes:true})){const path=prefix+e.name,u=new URL(e.name+(e.isDirectory()?'/':''),directory);if(e.isDirectory())inactive(u,path+'/');else if(e.name.endsWith('.ts')&&!modules.has(path)&&/fee-precision|FEE_PRECISION/.test(readFileSync(u,'utf8')))throw Error('Precision module must not enter running UI or old calculations');}}
 inactive(new URL('../src/',import.meta.url));
-console.log(JSON.stringify({kind:fixture.kind,validCases:valid,rejectedCases:rejected,constructedRoundingCases:constructed,inverseFxChecks:inverseChecks,runtimeIntegrated:false,productionImports:false}));
+console.log(JSON.stringify({kind:fixture.kind,validCases:valid,rejectedCases:rejected,constructedRoundingCases:constructed,inverseFxChecks:inverseChecks,runtimeIntegrated:false,numericModuleImplemented:true,independentOracleImportsProduction:false}));
