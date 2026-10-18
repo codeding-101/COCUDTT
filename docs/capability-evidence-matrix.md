@@ -1,6 +1,6 @@
 # 能力与验证证据矩阵
 
-2026-10-18，第六十八轮。面向中国一般贸易进口、单商品一票的本地内部测算工具。本文说明程序做了什么、用什么验证，以及没有证明什么；不以测试数量代替法规、真实业务或专业认证。
+2026-10-18，第六十九轮。面向中国一般贸易进口、单商品一票的本地内部测算工具。本文说明程序做了什么、用什么验证，以及没有证明什么；不以测试数量代替法规、真实业务或专业认证。
 
 ## 五条验收轴
 
@@ -29,6 +29,7 @@
 | 项目文件、恢复与快照：已启用 | [文件测试](../tests/project-file.test.ts)、[真实事件](../tests/project-io.test.ts)、[快照测试](../tests/recent-projects-ui.test.ts)、[快照接入](recent-projects-ui-validation.md) | 版本/扩展保护、异常原文、独立资料、手动3份快照；本机缓存非备份，不承诺跨标签原子事务 |
 | 新手、专业与移动界面：已启用 | [工作台测试](../tests/workspace.test.ts)、[移动设置测试](../tests/mobile-settings.test.ts)、[引导验收](onboarding-validation.md) | 核心输入/具体修错/待更新、键盘和模拟窄屏；真实手机、系统文件分享、辅助技术全面验收未完成 |
 | 成分假设与精度选择工作台已接入；费用应用未启用 | [只读核对测试](../tests/container-cost-review.test.ts)、[设计反例](container-cost-review-design.md)、[阶段目标](development-stages.md) | 已有只读待办不等于经济成本、海关金额或税额已确定；[成分设计](fee-tax-components-design.md)已通过31手算/45拒绝/200对照，独立成分模块和内部工作区已实现；[精度设计](fee-precision-design.md)、[固定合成向量](cases/fee-precision-design.json)与[独立检查器](../tools/check-fee-precision-design.mjs)核对原值/差额/守恒/换算边界，[纯数值模块](../src/engine/fee-precision.ts)、[计算测试](../tests/fee-precision.test.ts)和[边界测试](../tests/fee-precision-boundaries.test.ts)已完成，[精度工作台](fee-precision-selection-workspace-validation.md)已接入，完整双来源、原值/候选/差额及原待办分别核对，尚无费用应用事务 |
+| 费用应用事务：实现前设计，未启用生产应用 | [设计](fee-application-design.md)、[固定向量](cases/fee-application-design.json)、[独立检查器](../tools/check-fee-application-design.mjs)、[现状测试](../tests/fee-application-foundations.test.ts) | 数值投影兼容不等于可应用；G/E/部分C无法由旧单金额同时表达，提交后的持久化/渲染故障不等于财务未发生；尚无真实回滚实现 |
 
 ## 工程边界与可复现入口
 
@@ -50,3 +51,6 @@ flowchart LR
 
 
 第六十八轮完成[工作台精度政策与交接](fee-precision-selection-workspace-validation.md)：高级设置中的原成分/通道选择、ROUND/FX明确政策、原值/候选/带符号差额，完整双来源失配与原业务待办分别呈现；明确采用/恢复、两份草稿、冲突备份和内部HTML/Excel贯通。新增41项、完整98文件3793项；39套浏览器流程及精度40项检查，离线原生下载、故障恢复与320px指针输入验证。政策不应用费用或清除CORE精度/税务待办，原计算、文件1.0、Schema和模板保持。 下一阶段先设计费用应用事务：明确成分/通道到费用字段的映射、包含及重叠、防重复、稳定ID、来源失效、旧格式与整批失败回滚；固定合成反例和独立检查器通过后，再实现独立应用提案，最后接明确预览及原子写入。
+
+
+第六十九轮完成[费用应用前的模型边界与事务设计](fee-application-design-validation.md)：真实旧路径新增11项、完整99文件3804项；独立106个有效设计场景/36个拒绝输入、303组构造/6份来源变更/2个指纹向量纳入双平台CI。明确G/N/T/X/E/C不混写、部分海关/抵扣/舍入变化与FX的受限边界，稳定来源消费键和提交前整批保持、提交后缓存/渲染/保存失败状态。没有生产应用模块、新格式或费用按钮，原工具及旧计算字节保持。下一阶段实现独立只读应用提案模块：真实完整来源解析/重算、目标与原金额映射、消费历史/完整上下文核对及可解释阻断。之后设计正式新封套、账本与保存/恢复/内外交接，最后接聚合提交协调器；不能把政策回执或数值投影兼容当成应用资格。
