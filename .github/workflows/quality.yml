@@ -54,6 +54,8 @@ jobs:
         run: node tools/check-fee-precision-selection-design.mjs
       - name: Check fee application transaction design
         run: node tools/check-fee-application-design.mjs
+      - name: Check fee envelope and history design
+        run: node tools/check-fee-envelope-design.mjs
       - name: Audit UI bindings and engine codes
         run: npm run audit
       - name: Typecheck and build offline deliverable
