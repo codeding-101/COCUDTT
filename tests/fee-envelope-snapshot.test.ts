@@ -88,7 +88,7 @@ describe('真实HTML与XLSX完整证据和转义', {timeout: 30000}, () => {
     expect(html).toContain('&lt;script&gt;'); expect(html).toContain('&#13;&#10;');
     expect(html).not.toMatch(/<script|<iframe|<form|<a |<img|<link|<object|<embed/i);
     expect(html).toContain(hash(original)); expect(html).toContain('历史未知'); expect(html).toContain('指纹不是签名');
-    const raw = html.match(/<h2>完整封套原文（含全部历史与来源）<\/h2><pre>([\s\S]*)<\/pre><\/html>$/)![1]!;
+    const raw = html.match(/<h2>完整封套原文（含全部历史与来源）<\/h2><pre><span aria-hidden="true"><\/span>([\s\S]*)<\/pre><\/html>$/)![1]!;
     const decoded = raw.replace(/&#13;/g, '\r').replace(/&#10;/g, '\n').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
     expect(decoded).toBe(original);
   });

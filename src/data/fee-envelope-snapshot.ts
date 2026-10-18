@@ -79,7 +79,8 @@ export async function feeEnvelopeInternalHtml(raw: unknown): Promise<string> {
     + '<table><thead><tr><th>字段</th><th>核对结果</th></tr></thead><tbody>'
     + summary(s).map(row => '<tr>' + row.map(c => '<td>' + escaped(c) + '</td>').join('') + '</tr>').join('')
     + '</tbody></table><h2>完整来源、回执、消费及当前失配审计</h2><pre>' + escaped(JSON.stringify(s.review, null, 2))
-    + '</pre><h2>完整封套原文（含全部历史与来源）</h2><pre>' + escaped(s.raw_file_json) + '</pre></html>';
+    // A first LF after <pre> is removed even when expressed as a character reference.
+    + '</pre><h2>完整封套原文（含全部历史与来源）</h2><pre><span aria-hidden="true"></span>' + escaped(s.raw_file_json) + '</pre></html>';
   return within(html, reason);
 }
 
