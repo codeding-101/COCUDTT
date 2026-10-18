@@ -12,6 +12,7 @@ try {
  const {containerCostReviewPlanSchema}=await server.ssrLoadModule('/src/data/container-cost-review-plan.ts');
  const {feeTaxAttachmentSchema}=await server.ssrLoadModule('/src/data/fee-tax-attachment.ts');
  const {feePrecisionSelectionSchema}=await server.ssrLoadModule('/src/data/fee-precision-selection.ts');
+ const {feeEnvelopeSchema}=await server.ssrLoadModule('/src/data/fee-envelope-schema.ts');
  const {CONTAINER_BILL_TEMPLATES,containerBillTemplateText}=await server.ssrLoadModule('/src/data/container-bill-templates.ts');
  writeFileSync(join(root,'schemas/project-0.9.schema.json'),json(transportProjectSchema()));
  const {PROJECT_TEMPLATES,projectTemplateText,projectTemplateCatalog}=await server.ssrLoadModule('/src/data/project-templates.ts');
@@ -23,6 +24,7 @@ try {
  const {fundingExampleResource}=await server.ssrLoadModule('/src/ui/funding-example.ts');
  mkdirSync(join(root,'schemas'),{recursive:true});mkdirSync(join(root,'templates'),{recursive:true});
  writeFileSync(join(root,'schemas/fee-precision-selection-1.0.schema.json'),json(feePrecisionSelectionSchema()));
+ writeFileSync(join(root,'schemas/fee-envelope-1.0.schema.json'),json(feeEnvelopeSchema()));
  await buildFeePrecisionSelectionTemplates(server,root);
  writeFileSync(join(root,'schemas/fee-tax-attachment-1.0.schema.json'),json(feeTaxAttachmentSchema()));
  console.log('Generated 1 independent fee tax attachment schema');

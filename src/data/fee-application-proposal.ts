@@ -3,7 +3,7 @@ import type {PrecisionFraction} from '../domain/fee-precision.js';
 import {copyFeePrecisionSelectionJson as copy,parseFeePrecisionSelectionJson as json,canonicalFeePrecisionSelectionJson as canonical,feePrecisionSelectionSha256 as sha} from './fee-precision-selection-json.js';
 import {parseProject} from './project-file.js';
 import {parseContainerBillDraft} from './container-bill-file.js';
-import {parseContainerCostPair,reviewContainerCostPair} from './container-cost-pair.js';
+import {parseContainerCostPair,reviewContainerCostPair,containerCostPairBusiness} from './container-cost-pair.js';
 import {parseFeeTaxAttachment,reviewFeeTaxAttachment} from './fee-tax-attachment.js';
 import {parseFeePrecisionSelection,reviewFeePrecisionSelection} from './fee-precision-selection.js';
 import {reviewContainerCostBoundaries} from '../engine/container-cost-review.js';
@@ -37,7 +37,7 @@ export async function proposeFeeApplication(value:unknown){
  if(pair.mapping.entries.length>50)fail('ROW_LIMIT');
  const attachment=await parseFeeTaxAttachment(sources.attachment_json),precision=await parseFeePrecisionSelection(sources.precision_json);
  const pair_review=reviewContainerCostPair(pair,project,bill),boundary_review=reviewContainerCostBoundaries(pair,pair.content_key);
- const review_plan=pair.version==='1.1'?reviewContainerCostReviewPlan(pair.review_plan!,pair):null;
+ const review_plan=pair.version==='1.1'?reviewContainerCostReviewPlan(pair.review_plan!,containerCostPairBusiness(pair)):null;
  const attachment_review=await reviewFeeTaxAttachment(attachment,sources.pair_json);
  const precision_review=await reviewFeePrecisionSelection(precision,sources.pair_json,sources.attachment_json);
  const issues=['NO_FEE_APPLICATION','NO_GLOBAL_DUPLICATE_PROOF','BUSINESS_IDENTITY_NOT_ESTABLISHED',sources.history_json===null?'HISTORY_NOT_ESTABLISHED':'HISTORY_FORMAT_UNSUPPORTED',...pair_review.issues];
