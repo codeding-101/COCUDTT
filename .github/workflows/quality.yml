@@ -48,6 +48,8 @@ jobs:
         run: node tools/check-fee-tax-components-design.mjs
       - name: Check fee tax attachment lifecycle design
         run: node tools/check-fee-tax-attachment-design.mjs
+      - name: Check fee precision and adjustment design
+        run: node tools/check-fee-precision-design.mjs
       - name: Audit UI bindings and engine codes
         run: npm run audit
       - name: Typecheck and build offline deliverable

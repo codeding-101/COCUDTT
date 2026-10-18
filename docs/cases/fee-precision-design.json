@@ -1,0 +1,3552 @@
+{
+  "kind": "SYNTHETIC_PRECISION_DESIGN_ONLY",
+  "version": "0.1",
+  "runtime_enabled": false,
+  "notice": "Fixed synthetic hand answers only; not real invoices, legal tax calculations, production APIs or importable files.",
+  "cases": [
+    {
+      "id": "half-up-zero-tie",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "0.005",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "1",
+          "denominator": "100"
+        },
+        "delta": {
+          "numerator": "1",
+          "denominator": "200"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "half-even-zero-tie",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "0.005",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_EVEN",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "delta": {
+          "numerator": "-1",
+          "denominator": "200"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "half-even-odd-tie",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "0.015",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_EVEN",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "1",
+          "denominator": "50"
+        },
+        "delta": {
+          "numerator": "1",
+          "denominator": "200"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "half-even-even-tie",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "0.025",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_EVEN",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "1",
+          "denominator": "50"
+        },
+        "delta": {
+          "numerator": "-1",
+          "denominator": "200"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "down-tie",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "0.005",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "DOWN",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "delta": {
+          "numerator": "-1",
+          "denominator": "200"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "step-five-cents",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1.03",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.05",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "21",
+          "denominator": "20"
+        },
+        "delta": {
+          "numerator": "1",
+          "denominator": "50"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "step-even-lower",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1.025",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.05",
+          "mode": "HALF_EVEN",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "1",
+          "denominator": "1"
+        },
+        "delta": {
+          "numerator": "-1",
+          "denominator": "40"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "step-even-upper",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1.075",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.05",
+          "mode": "HALF_EVEN",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "11",
+          "denominator": "10"
+        },
+        "delta": {
+          "numerator": "1",
+          "denominator": "40"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "micro-tie",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "0.0000005",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.000001",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "1",
+          "denominator": "1000000"
+        },
+        "delta": {
+          "numerator": "1",
+          "denominator": "2000000"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "micro-even",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "0.0000005",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.000001",
+          "mode": "HALF_EVEN",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "delta": {
+          "numerator": "-1",
+          "denominator": "2000000"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "recurring-net",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": {
+          "numerator": "100",
+          "denominator": "113"
+        },
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "22",
+          "denominator": "25"
+        },
+        "delta": {
+          "numerator": "-14",
+          "denominator": "2825"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "recurring-tax",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": {
+          "numerator": "13",
+          "denominator": "113"
+        },
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "3",
+          "denominator": "25"
+        },
+        "delta": {
+          "numerator": "14",
+          "denominator": "2825"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "tail-zeros",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "113.000000000000000000",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "113",
+          "denominator": "1"
+        },
+        "delta": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "zero-unresolved",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "0",
+        "policy": {
+          "kind": "UNRESOLVED"
+        }
+      },
+      "expected": {
+        "rounded": null,
+        "delta": null,
+        "issues": [
+          "POLICY_UNRESOLVED"
+        ]
+      }
+    },
+    {
+      "id": "unknown-value",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": null,
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": null,
+        "delta": null,
+        "issues": [
+          "AMOUNT_UNKNOWN"
+        ]
+      }
+    },
+    {
+      "id": "both-unresolved",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": null,
+        "policy": {
+          "kind": "UNRESOLVED"
+        }
+      },
+      "expected": {
+        "rounded": null,
+        "delta": null,
+        "issues": [
+          "AMOUNT_UNKNOWN",
+          "POLICY_UNRESOLVED"
+        ]
+      }
+    },
+    {
+      "id": "known-unresolved",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1",
+        "policy": {
+          "kind": "UNRESOLVED"
+        }
+      },
+      "expected": {
+        "rounded": null,
+        "delta": null,
+        "issues": [
+          "POLICY_UNRESOLVED"
+        ]
+      }
+    },
+    {
+      "id": "carry-largest-input",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "999999999999999999999999.999999999999999999",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "1000000000000000000000000",
+          "denominator": "1"
+        },
+        "delta": {
+          "numerator": "1",
+          "denominator": "1000000000000000000"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "unit-trailing-zeros",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1.005",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.010000000000000000",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "101",
+          "denominator": "100"
+        },
+        "delta": {
+          "numerator": "1",
+          "denominator": "200"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "below-exact-half",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "0.004999999999999999",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "delta": {
+          "numerator": "-4999999999999999",
+          "denominator": "1000000000000000000"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "above-exact-half",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "0.005000000000000001",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "1",
+          "denominator": "100"
+        },
+        "delta": {
+          "numerator": "4999999999999999",
+          "denominator": "1000000000000000000"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "no-currency-default",
+      "family": "ROUND",
+      "input": {
+        "currency": "ZZZ",
+        "amount": "1.5",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "3",
+          "denominator": "2"
+        },
+        "delta": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "whole-even-lower",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "2.5",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "1",
+          "mode": "HALF_EVEN",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "2",
+          "denominator": "1"
+        },
+        "delta": {
+          "numerator": "-1",
+          "denominator": "2"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "whole-even-upper",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "3.5",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "1",
+          "mode": "HALF_EVEN",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "4",
+          "denominator": "1"
+        },
+        "delta": {
+          "numerator": "1",
+          "denominator": "2"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "smallest-input-down",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "0.000000000000000001",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "DOWN",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "rounded": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "delta": {
+          "numerator": "-1",
+          "denominator": "1000000000000000000"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "per-line-two-halves",
+      "family": "GROUP",
+      "input": {
+        "currency": "USD",
+        "rows": [
+          {
+            "line_id": "line-0",
+            "currency": "USD",
+            "amount": "0.005"
+          },
+          {
+            "line_id": "line-1",
+            "currency": "USD",
+            "amount": "0.005"
+          }
+        ],
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "scope": "PER_LINE"
+      },
+      "expected": {
+        "line_total": {
+          "numerator": "1",
+          "denominator": "50"
+        },
+        "aggregate_total": {
+          "numerator": "1",
+          "denominator": "100"
+        },
+        "selected": {
+          "numerator": "1",
+          "denominator": "50"
+        },
+        "delta": {
+          "numerator": "1",
+          "denominator": "100"
+        },
+        "scope_difference": {
+          "numerator": "1",
+          "denominator": "100"
+        },
+        "known_line_subtotal": {
+          "numerator": "1",
+          "denominator": "50"
+        },
+        "unknown_rows": 0
+      }
+    },
+    {
+      "id": "total-two-halves",
+      "family": "GROUP",
+      "input": {
+        "currency": "USD",
+        "rows": [
+          {
+            "line_id": "line-0",
+            "currency": "USD",
+            "amount": "0.005"
+          },
+          {
+            "line_id": "line-1",
+            "currency": "USD",
+            "amount": "0.005"
+          }
+        ],
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "scope": "TOTAL"
+      },
+      "expected": {
+        "line_total": {
+          "numerator": "1",
+          "denominator": "50"
+        },
+        "aggregate_total": {
+          "numerator": "1",
+          "denominator": "100"
+        },
+        "selected": {
+          "numerator": "1",
+          "denominator": "100"
+        },
+        "delta": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "scope_difference": {
+          "numerator": "1",
+          "denominator": "100"
+        },
+        "known_line_subtotal": {
+          "numerator": "1",
+          "denominator": "50"
+        },
+        "unknown_rows": 0
+      }
+    },
+    {
+      "id": "even-line-vs-total",
+      "family": "GROUP",
+      "input": {
+        "currency": "USD",
+        "rows": [
+          {
+            "line_id": "line-0",
+            "currency": "USD",
+            "amount": "0.005"
+          },
+          {
+            "line_id": "line-1",
+            "currency": "USD",
+            "amount": "0.005"
+          }
+        ],
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_EVEN",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "scope": "PER_LINE"
+      },
+      "expected": {
+        "line_total": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "aggregate_total": {
+          "numerator": "1",
+          "denominator": "100"
+        },
+        "selected": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "delta": {
+          "numerator": "-1",
+          "denominator": "100"
+        },
+        "scope_difference": {
+          "numerator": "-1",
+          "denominator": "100"
+        },
+        "known_line_subtotal": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "unknown_rows": 0
+      }
+    },
+    {
+      "id": "sum-below-halves",
+      "family": "GROUP",
+      "input": {
+        "currency": "USD",
+        "rows": [
+          {
+            "line_id": "line-0",
+            "currency": "USD",
+            "amount": "0.004"
+          },
+          {
+            "line_id": "line-1",
+            "currency": "USD",
+            "amount": "0.004"
+          },
+          {
+            "line_id": "line-2",
+            "currency": "USD",
+            "amount": "0.004"
+          }
+        ],
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "scope": "PER_LINE"
+      },
+      "expected": {
+        "line_total": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "aggregate_total": {
+          "numerator": "1",
+          "denominator": "100"
+        },
+        "selected": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "delta": {
+          "numerator": "-3",
+          "denominator": "250"
+        },
+        "scope_difference": {
+          "numerator": "-1",
+          "denominator": "100"
+        },
+        "known_line_subtotal": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "unknown_rows": 0
+      }
+    },
+    {
+      "id": "unknown-total-not-subtotal",
+      "family": "GROUP",
+      "input": {
+        "currency": "USD",
+        "rows": [
+          {
+            "line_id": "line-0",
+            "currency": "USD",
+            "amount": "0.005"
+          },
+          {
+            "line_id": "line-1",
+            "currency": "USD",
+            "amount": null
+          }
+        ],
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "scope": "PER_LINE"
+      },
+      "expected": {
+        "line_total": null,
+        "aggregate_total": null,
+        "selected": null,
+        "delta": null,
+        "scope_difference": null,
+        "known_line_subtotal": {
+          "numerator": "1",
+          "denominator": "100"
+        },
+        "unknown_rows": 1
+      }
+    },
+    {
+      "id": "zero-plus-unknown",
+      "family": "GROUP",
+      "input": {
+        "currency": "USD",
+        "rows": [
+          {
+            "line_id": "line-0",
+            "currency": "USD",
+            "amount": "0"
+          },
+          {
+            "line_id": "line-1",
+            "currency": "USD",
+            "amount": null
+          }
+        ],
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "scope": "PER_LINE"
+      },
+      "expected": {
+        "line_total": null,
+        "aggregate_total": null,
+        "selected": null,
+        "delta": null,
+        "scope_difference": null,
+        "known_line_subtotal": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "unknown_rows": 1
+      }
+    },
+    {
+      "id": "eight-lines",
+      "family": "GROUP",
+      "input": {
+        "currency": "USD",
+        "rows": [
+          {
+            "line_id": "line-0",
+            "currency": "USD",
+            "amount": "0.005"
+          },
+          {
+            "line_id": "line-1",
+            "currency": "USD",
+            "amount": "0.005"
+          },
+          {
+            "line_id": "line-2",
+            "currency": "USD",
+            "amount": "0.005"
+          },
+          {
+            "line_id": "line-3",
+            "currency": "USD",
+            "amount": "0.005"
+          },
+          {
+            "line_id": "line-4",
+            "currency": "USD",
+            "amount": "0.005"
+          },
+          {
+            "line_id": "line-5",
+            "currency": "USD",
+            "amount": "0.005"
+          },
+          {
+            "line_id": "line-6",
+            "currency": "USD",
+            "amount": "0.005"
+          },
+          {
+            "line_id": "line-7",
+            "currency": "USD",
+            "amount": "0.005"
+          }
+        ],
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "scope": "PER_LINE"
+      },
+      "expected": {
+        "line_total": {
+          "numerator": "2",
+          "denominator": "25"
+        },
+        "aggregate_total": {
+          "numerator": "1",
+          "denominator": "25"
+        },
+        "selected": {
+          "numerator": "2",
+          "denominator": "25"
+        },
+        "delta": {
+          "numerator": "1",
+          "denominator": "25"
+        },
+        "scope_difference": {
+          "numerator": "1",
+          "denominator": "25"
+        },
+        "known_line_subtotal": {
+          "numerator": "2",
+          "denominator": "25"
+        },
+        "unknown_rows": 0
+      }
+    },
+    {
+      "id": "five-cent-scope",
+      "family": "GROUP",
+      "input": {
+        "currency": "USD",
+        "rows": [
+          {
+            "line_id": "line-0",
+            "currency": "USD",
+            "amount": "0.025"
+          },
+          {
+            "line_id": "line-1",
+            "currency": "USD",
+            "amount": "0.025"
+          }
+        ],
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.05",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "scope": "TOTAL"
+      },
+      "expected": {
+        "line_total": {
+          "numerator": "1",
+          "denominator": "10"
+        },
+        "aggregate_total": {
+          "numerator": "1",
+          "denominator": "20"
+        },
+        "selected": {
+          "numerator": "1",
+          "denominator": "20"
+        },
+        "delta": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "scope_difference": {
+          "numerator": "1",
+          "denominator": "20"
+        },
+        "known_line_subtotal": {
+          "numerator": "1",
+          "denominator": "10"
+        },
+        "unknown_rows": 0
+      }
+    },
+    {
+      "id": "price-tax-negative-gap",
+      "family": "SPLIT_AUDIT",
+      "input": {
+        "currency": "USD",
+        "gross": "0.05",
+        "net": "0.025",
+        "tax": "0.025",
+        "credit": null,
+        "customs": null,
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "channels": [
+          {
+            "numerator": "1",
+            "denominator": "20"
+          },
+          {
+            "numerator": "3",
+            "denominator": "100"
+          },
+          {
+            "numerator": "3",
+            "denominator": "100"
+          },
+          null,
+          null,
+          null
+        ],
+        "price_tax_gap": {
+          "numerator": "-1",
+          "denominator": "100"
+        },
+        "economic_gap": null,
+        "issues": [
+          "PRICE_TAX_ROUNDING_DIFFERENCE"
+        ]
+      }
+    },
+    {
+      "id": "two-different-gaps",
+      "family": "SPLIT_AUDIT",
+      "input": {
+        "currency": "USD",
+        "gross": "0.05",
+        "net": "0.025",
+        "tax": "0.025",
+        "credit": "0.025",
+        "customs": "0",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "channels": [
+          {
+            "numerator": "1",
+            "denominator": "20"
+          },
+          {
+            "numerator": "3",
+            "denominator": "100"
+          },
+          {
+            "numerator": "3",
+            "denominator": "100"
+          },
+          {
+            "numerator": "3",
+            "denominator": "100"
+          },
+          {
+            "numerator": "3",
+            "denominator": "100"
+          },
+          {
+            "numerator": "0",
+            "denominator": "1"
+          }
+        ],
+        "price_tax_gap": {
+          "numerator": "-1",
+          "denominator": "100"
+        },
+        "economic_gap": {
+          "numerator": "1",
+          "denominator": "100"
+        },
+        "issues": [
+          "PRICE_TAX_ROUNDING_DIFFERENCE",
+          "ECONOMIC_ROUNDING_DIFFERENCE"
+        ]
+      }
+    },
+    {
+      "id": "recurring-split-kept",
+      "family": "SPLIT_AUDIT",
+      "input": {
+        "currency": "USD",
+        "gross": "1",
+        "net": {
+          "numerator": "100",
+          "denominator": "113"
+        },
+        "tax": {
+          "numerator": "13",
+          "denominator": "113"
+        },
+        "credit": "0",
+        "customs": "1",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "channels": [
+          {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          {
+            "numerator": "22",
+            "denominator": "25"
+          },
+          {
+            "numerator": "3",
+            "denominator": "25"
+          },
+          {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          {
+            "numerator": "1",
+            "denominator": "1"
+          }
+        ],
+        "price_tax_gap": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "economic_gap": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "explicit-document-split",
+      "family": "SPLIT_AUDIT",
+      "input": {
+        "currency": "USD",
+        "gross": "1",
+        "net": "0.88",
+        "tax": "0.12",
+        "credit": "0.12",
+        "customs": null,
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "channels": [
+          {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          {
+            "numerator": "22",
+            "denominator": "25"
+          },
+          {
+            "numerator": "3",
+            "denominator": "25"
+          },
+          {
+            "numerator": "3",
+            "denominator": "25"
+          },
+          {
+            "numerator": "22",
+            "denominator": "25"
+          },
+          null
+        ],
+        "price_tax_gap": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "economic_gap": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "explicit-zero-split",
+      "family": "SPLIT_AUDIT",
+      "input": {
+        "currency": "USD",
+        "gross": "0",
+        "net": "0",
+        "tax": "0",
+        "credit": "0",
+        "customs": "0",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "channels": [
+          {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          {
+            "numerator": "0",
+            "denominator": "1"
+          }
+        ],
+        "price_tax_gap": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "economic_gap": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "even-two-gaps",
+      "family": "SPLIT_AUDIT",
+      "input": {
+        "currency": "USD",
+        "gross": "0.05",
+        "net": "0.025",
+        "tax": "0.025",
+        "credit": "0.025",
+        "customs": "0.025",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_EVEN",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "channels": [
+          {
+            "numerator": "1",
+            "denominator": "20"
+          },
+          {
+            "numerator": "1",
+            "denominator": "50"
+          },
+          {
+            "numerator": "1",
+            "denominator": "50"
+          },
+          {
+            "numerator": "1",
+            "denominator": "50"
+          },
+          {
+            "numerator": "1",
+            "denominator": "50"
+          },
+          {
+            "numerator": "1",
+            "denominator": "50"
+          }
+        ],
+        "price_tax_gap": {
+          "numerator": "1",
+          "denominator": "100"
+        },
+        "economic_gap": {
+          "numerator": "-1",
+          "denominator": "100"
+        },
+        "issues": [
+          "PRICE_TAX_ROUNDING_DIFFERENCE",
+          "ECONOMIC_ROUNDING_DIFFERENCE"
+        ]
+      }
+    },
+    {
+      "id": "commercial-direct",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "expected": {
+        "direction": "DIRECT",
+        "unrounded": {
+          "numerator": "1407",
+          "denominator": "200"
+        },
+        "rounded": {
+          "numerator": "176",
+          "denominator": "25"
+        },
+        "delta": {
+          "numerator": "1",
+          "denominator": "200"
+        },
+        "scope": "DESIGN_FX_REVIEW_ONLY"
+      }
+    },
+    {
+      "id": "commercial-inverse",
+      "family": "FX",
+      "input": {
+        "amount": "7",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "CNY",
+          "quote": "USD",
+          "rate": "3",
+          "type": "MARKET",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "expected": {
+        "direction": "INVERSE",
+        "unrounded": {
+          "numerator": "7",
+          "denominator": "3"
+        },
+        "rounded": {
+          "numerator": "233",
+          "denominator": "100"
+        },
+        "delta": {
+          "numerator": "-1",
+          "denominator": "300"
+        },
+        "scope": "DESIGN_FX_REVIEW_ONLY"
+      }
+    },
+    {
+      "id": "customs-direct-diagnostic",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "CUSTOMS_COMPONENT_REVIEW",
+        "channel": "customs",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CUSTOMS",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "expected": {
+        "direction": "DIRECT",
+        "unrounded": {
+          "numerator": "1407",
+          "denominator": "200"
+        },
+        "rounded": {
+          "numerator": "176",
+          "denominator": "25"
+        },
+        "delta": {
+          "numerator": "1",
+          "denominator": "200"
+        },
+        "scope": "DESIGN_FX_REVIEW_ONLY"
+      }
+    },
+    {
+      "id": "fx-unknown-amount",
+      "family": "FX",
+      "input": {
+        "amount": null,
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "expected": {
+        "direction": "DIRECT",
+        "unrounded": null,
+        "rounded": null,
+        "delta": null,
+        "scope": "DESIGN_FX_REVIEW_ONLY"
+      }
+    },
+    {
+      "id": "inverse-finite",
+      "family": "FX",
+      "input": {
+        "amount": "1",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "CNY",
+          "quote": "USD",
+          "rate": "0.125",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "expected": {
+        "direction": "INVERSE",
+        "unrounded": {
+          "numerator": "8",
+          "denominator": "1"
+        },
+        "rounded": {
+          "numerator": "8",
+          "denominator": "1"
+        },
+        "delta": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "scope": "DESIGN_FX_REVIEW_ONLY"
+      }
+    },
+    {
+      "id": "fx-tiny-exact",
+      "family": "FX",
+      "input": {
+        "amount": "0.000000000000000001",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.000001",
+          "mode": "DOWN",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "0.000000000000000001",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "expected": {
+        "direction": "DIRECT",
+        "unrounded": {
+          "numerator": "1",
+          "denominator": "1000000000000000000000000000000000000"
+        },
+        "rounded": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "delta": {
+          "numerator": "-1",
+          "denominator": "1000000000000000000000000000000000000"
+        },
+        "scope": "DESIGN_FX_REVIEW_ONLY"
+      }
+    },
+    {
+      "id": "customs-inverse-no-pre-round",
+      "family": "FX",
+      "input": {
+        "amount": "1",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "CUSTOMS_COMPONENT_REVIEW",
+        "channel": "customs",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "CNY",
+          "quote": "USD",
+          "rate": "3",
+          "type": "CUSTOMS",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "expected": {
+        "direction": "INVERSE",
+        "unrounded": {
+          "numerator": "1",
+          "denominator": "3"
+        },
+        "rounded": {
+          "numerator": "33",
+          "denominator": "100"
+        },
+        "delta": {
+          "numerator": "-1",
+          "denominator": "300"
+        },
+        "scope": "DESIGN_FX_REVIEW_ONLY"
+      }
+    },
+    {
+      "id": "inclusive-period-end",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-31",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "expected": {
+        "direction": "DIRECT",
+        "unrounded": {
+          "numerator": "1407",
+          "denominator": "200"
+        },
+        "rounded": {
+          "numerator": "176",
+          "denominator": "25"
+        },
+        "delta": {
+          "numerator": "1",
+          "denominator": "200"
+        },
+        "scope": "DESIGN_FX_REVIEW_ONLY"
+      }
+    },
+    {
+      "id": "first-supported-customs-date",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "CUSTOMS_COMPONENT_REVIEW",
+        "channel": "customs",
+        "as_of": "2024-12-01",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CUSTOMS",
+          "rate_date": "2024-11-20",
+          "valid_from": "2024-12-01",
+          "valid_to": "2024-12-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "expected": {
+        "direction": "DIRECT",
+        "unrounded": {
+          "numerator": "1407",
+          "denominator": "200"
+        },
+        "rounded": {
+          "numerator": "176",
+          "denominator": "25"
+        },
+        "delta": {
+          "numerator": "1",
+          "denominator": "200"
+        },
+        "scope": "DESIGN_FX_REVIEW_ONLY"
+      }
+    },
+    {
+      "id": "double-round-boundary",
+      "family": "STAGE_ORDER",
+      "input": {
+        "amount": "1.0049995",
+        "rate": "1",
+        "intermediate": {
+          "kind": "EXPLICIT",
+          "unit": "0.000001",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "final": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "exact_then_target": {
+          "numerator": "1",
+          "denominator": "1"
+        },
+        "intermediate_then_target": {
+          "numerator": "101",
+          "denominator": "100"
+        },
+        "gap": {
+          "numerator": "1",
+          "denominator": "100"
+        }
+      }
+    },
+    {
+      "id": "double-round-exact-tie",
+      "family": "STAGE_ORDER",
+      "input": {
+        "amount": "1.005",
+        "rate": "1",
+        "intermediate": {
+          "kind": "EXPLICIT",
+          "unit": "0.000001",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "final": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "exact_then_target": {
+          "numerator": "101",
+          "denominator": "100"
+        },
+        "intermediate_then_target": {
+          "numerator": "101",
+          "denominator": "100"
+        },
+        "gap": {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      }
+    },
+    {
+      "id": "source-before-fx",
+      "family": "STAGE_ORDER",
+      "input": {
+        "amount": "0.005",
+        "rate": "0.5",
+        "intermediate": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "final": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "exact_then_target": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "intermediate_then_target": {
+          "numerator": "1",
+          "denominator": "100"
+        },
+        "gap": {
+          "numerator": "1",
+          "denominator": "100"
+        }
+      }
+    },
+    {
+      "id": "negative-stage-gap",
+      "family": "STAGE_ORDER",
+      "input": {
+        "amount": "1.025",
+        "rate": "1",
+        "intermediate": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_EVEN",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "final": {
+          "kind": "EXPLICIT",
+          "unit": "0.05",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "exact_then_target": {
+          "numerator": "21",
+          "denominator": "20"
+        },
+        "intermediate_then_target": {
+          "numerator": "1",
+          "denominator": "1"
+        },
+        "gap": {
+          "numerator": "-1",
+          "denominator": "20"
+        }
+      }
+    },
+    {
+      "id": "fx-amplifies-double-round",
+      "family": "STAGE_ORDER",
+      "input": {
+        "amount": "1.0049995",
+        "rate": "3",
+        "intermediate": {
+          "kind": "EXPLICIT",
+          "unit": "0.000001",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "final": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "expected": {
+        "exact_then_target": {
+          "numerator": "301",
+          "denominator": "100"
+        },
+        "intermediate_then_target": {
+          "numerator": "151",
+          "denominator": "50"
+        },
+        "gap": {
+          "numerator": "1",
+          "denominator": "100"
+        }
+      }
+    },
+    {
+      "id": "reject-amount-blank",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-amount-number",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": 1,
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-amount-leadingZero",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "01",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-amount-exponent",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1e3",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-amount-negativeZero",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "-0",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-amount-nan",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "NaN",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-amount-infinite",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "Infinity",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-amount-trailingDot",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1.",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-amount-leadingDot",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": ".1",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-amount-space",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": " 1",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-amount-overScale",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "0.0000000000000000001",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-amount-overInteger",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1000000000000000000000000",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-amount-notReduced",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": {
+          "numerator": "2",
+          "denominator": "4"
+        },
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-amount-badZero",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": {
+          "numerator": "0",
+          "denominator": "2"
+        },
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-amount-negativeFraction",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": {
+          "numerator": "-1",
+          "denominator": "1"
+        },
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-amount-denominatorZero",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": {
+          "numerator": "1",
+          "denominator": "0"
+        },
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-amount-numericNumerator",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": {
+          "numerator": 1,
+          "denominator": "1"
+        },
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-amount-longFraction",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": {
+          "numerator": "111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+          "denominator": "1"
+        },
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-amount-fractionExtra",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": {
+          "numerator": "1",
+          "denominator": "1",
+          "extra": true
+        },
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-unit-zero",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-unit-negative",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "-0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-unit-tooLarge",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "1.5",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-unit-tooFine",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.0000001",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-unit-number",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": 0.01,
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-unit-space",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": " 0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-policy-noBasis",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-policy-blankBasis",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": " "
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-policy-badMode",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "CEILING",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-policy-unknownKind",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1",
+        "policy": {
+          "kind": "AUTOMATIC",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-policy-mixedUnknown",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1",
+        "policy": {
+          "kind": "UNRESOLVED",
+          "unit": "0.01"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-policy-extra",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract",
+          "currency": "USD"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-currency",
+      "family": "ROUND",
+      "input": {
+        "currency": "usd",
+        "amount": "1",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-round-extra",
+      "family": "ROUND",
+      "input": {
+        "currency": "USD",
+        "amount": "1",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "apply": true
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-group-empty",
+      "family": "GROUP",
+      "input": {
+        "currency": "USD",
+        "rows": [],
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "scope": "PER_LINE"
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-group-nine",
+      "family": "GROUP",
+      "input": {
+        "currency": "USD",
+        "rows": [
+          {
+            "line_id": "line-0",
+            "currency": "USD",
+            "amount": "0"
+          },
+          {
+            "line_id": "line-1",
+            "currency": "USD",
+            "amount": "0"
+          },
+          {
+            "line_id": "line-2",
+            "currency": "USD",
+            "amount": "0"
+          },
+          {
+            "line_id": "line-3",
+            "currency": "USD",
+            "amount": "0"
+          },
+          {
+            "line_id": "line-4",
+            "currency": "USD",
+            "amount": "0"
+          },
+          {
+            "line_id": "line-5",
+            "currency": "USD",
+            "amount": "0"
+          },
+          {
+            "line_id": "line-6",
+            "currency": "USD",
+            "amount": "0"
+          },
+          {
+            "line_id": "line-7",
+            "currency": "USD",
+            "amount": "0"
+          },
+          {
+            "line_id": "line-8",
+            "currency": "USD",
+            "amount": "0"
+          }
+        ],
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "scope": "PER_LINE"
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-group-duplicate",
+      "family": "GROUP",
+      "input": {
+        "currency": "USD",
+        "rows": [
+          {
+            "line_id": "line-0",
+            "currency": "USD",
+            "amount": "1"
+          },
+          {
+            "line_id": "line-0",
+            "currency": "USD",
+            "amount": "2"
+          }
+        ],
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "scope": "PER_LINE"
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-group-mixed",
+      "family": "GROUP",
+      "input": {
+        "currency": "USD",
+        "rows": [
+          {
+            "line_id": "line-0",
+            "currency": "USD",
+            "amount": "1"
+          },
+          {
+            "line_id": "foreign",
+            "currency": "CNY",
+            "amount": "1"
+          }
+        ],
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "scope": "PER_LINE"
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-group-unknownScope",
+      "family": "GROUP",
+      "input": {
+        "currency": "USD",
+        "rows": [
+          {
+            "line_id": "line-0",
+            "currency": "USD",
+            "amount": "1"
+          }
+        ],
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "scope": "DAY"
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-group-unknownPolicy",
+      "family": "GROUP",
+      "input": {
+        "currency": "USD",
+        "rows": [
+          {
+            "line_id": "line-0",
+            "currency": "USD",
+            "amount": "1"
+          }
+        ],
+        "policy": {
+          "kind": "UNRESOLVED"
+        },
+        "scope": "PER_LINE"
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-group-badRow",
+      "family": "GROUP",
+      "input": {
+        "currency": "USD",
+        "rows": [
+          {
+            "line_id": "a",
+            "currency": "USD"
+          }
+        ],
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "scope": "PER_LINE"
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-group-badId",
+      "family": "GROUP",
+      "input": {
+        "currency": "USD",
+        "rows": [
+          {
+            "line_id": "__proto__",
+            "currency": "USD",
+            "amount": "1"
+          }
+        ],
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "scope": "PER_LINE"
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-split-unbalanced",
+      "family": "SPLIT_AUDIT",
+      "input": {
+        "currency": "USD",
+        "gross": "1",
+        "net": "0.9",
+        "tax": "0.2",
+        "credit": null,
+        "customs": null,
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-split-excessCredit",
+      "family": "SPLIT_AUDIT",
+      "input": {
+        "currency": "USD",
+        "gross": "1",
+        "net": "0.88",
+        "tax": "0.12",
+        "credit": "0.2",
+        "customs": null,
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-split-excessCustoms",
+      "family": "SPLIT_AUDIT",
+      "input": {
+        "currency": "USD",
+        "gross": "1",
+        "net": "0.88",
+        "tax": "0.12",
+        "credit": null,
+        "customs": "2",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-split-unknownNet",
+      "family": "SPLIT_AUDIT",
+      "input": {
+        "currency": "USD",
+        "gross": "1",
+        "net": null,
+        "tax": "0.12",
+        "credit": null,
+        "customs": null,
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-split-unresolved",
+      "family": "SPLIT_AUDIT",
+      "input": {
+        "currency": "USD",
+        "gross": "1",
+        "net": "0.88",
+        "tax": "0.12",
+        "credit": null,
+        "customs": null,
+        "policy": {
+          "kind": "UNRESOLVED"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-fx-zeroRate",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "0",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-fx-negativeRate",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "-1",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-fx-wrongPair",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "EUR",
+          "quote": "GBP",
+          "rate": "7",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-fx-unknownType",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "BANK",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-fx-future",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-19",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-fx-expired",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-17",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-fx-notEffective",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-19",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-fx-badDate",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CONTRACT",
+          "rate_date": "2026-02-30",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-fx-missingDate",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-01",
+          "valid_from": "",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-fx-reverseDates",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-31",
+          "valid_to": "2026-10-01",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-fx-customsAsCommercial",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CUSTOMS",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-fx-samePair",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "USD",
+          "rate": "7",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-fx-blankReference",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": " "
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-commercial-sameCurrency",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "USD",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-commercial-badChannel",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "customs",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-commercial-unknownPurpose",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "BANK_POSTING",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-commercial-badPolicy",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "CEILING",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-commercial-invalidAsOf",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "COMMERCIAL_REVIEW",
+        "channel": "cash",
+        "as_of": "2026-02-30",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CONTRACT",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-customs-market",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "CUSTOMS_COMPONENT_REVIEW",
+        "channel": "customs",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "MARKET",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-customs-target",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "CNY",
+        "to": "USD",
+        "purpose": "CUSTOMS_COMPONENT_REVIEW",
+        "channel": "customs",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CUSTOMS",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-customs-channel",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "CUSTOMS_COMPONENT_REVIEW",
+        "channel": "credit",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CUSTOMS",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-customs-mode",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "CUSTOMS_COMPONENT_REVIEW",
+        "channel": "customs",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_EVEN",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CUSTOMS",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-customs-unit",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "CUSTOMS_COMPONENT_REVIEW",
+        "channel": "customs",
+        "as_of": "2026-10-18",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "1",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CUSTOMS",
+          "rate_date": "2026-10-01",
+          "valid_from": "2026-10-01",
+          "valid_to": "2026-10-31",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-customs-historical",
+      "family": "FX",
+      "input": {
+        "amount": "1.005",
+        "from": "USD",
+        "to": "CNY",
+        "purpose": "CUSTOMS_COMPONENT_REVIEW",
+        "channel": "customs",
+        "as_of": "2024-11-30",
+        "policy": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "rate_source": {
+          "base": "USD",
+          "quote": "CNY",
+          "rate": "7",
+          "type": "CUSTOMS",
+          "rate_date": "2024-11-01",
+          "valid_from": "2024-11-01",
+          "valid_to": "2024-11-30",
+          "reference": "SYNTHETIC exact rate, not an official release"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-stage-zeroRate",
+      "family": "STAGE_ORDER",
+      "input": {
+        "amount": "1.0049995",
+        "rate": "0",
+        "intermediate": {
+          "kind": "EXPLICIT",
+          "unit": "0.000001",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "final": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-stage-unknownAmount",
+      "family": "STAGE_ORDER",
+      "input": {
+        "amount": null,
+        "rate": "1",
+        "intermediate": {
+          "kind": "EXPLICIT",
+          "unit": "0.000001",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "final": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-stage-unknownPolicy",
+      "family": "STAGE_ORDER",
+      "input": {
+        "amount": "1.0049995",
+        "rate": "1",
+        "intermediate": {
+          "kind": "UNRESOLVED"
+        },
+        "final": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-stage-badFinal",
+      "family": "STAGE_ORDER",
+      "input": {
+        "amount": "1.0049995",
+        "rate": "1",
+        "intermediate": {
+          "kind": "EXPLICIT",
+          "unit": "0.000001",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "final": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "CEILING",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "reject-stage-negativeAmount",
+      "family": "STAGE_ORDER",
+      "input": {
+        "amount": "-1",
+        "rate": "1",
+        "intermediate": {
+          "kind": "EXPLICIT",
+          "unit": "0.000001",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        },
+        "final": {
+          "kind": "EXPLICIT",
+          "unit": "0.01",
+          "mode": "HALF_UP",
+          "basis": "SYNTHETIC explicit policy, not a real contract"
+        }
+      },
+      "reject": true
+    }
+  ]
+}
