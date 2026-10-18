@@ -1,6 +1,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { createServer } from 'vite';
+import {buildFeePrecisionSelectionTemplates} from './build-fee-precision-selection-templates.mjs';
 const root=resolve(import.meta.dirname,'..'),server=await createServer({root,configFile:false,optimizeDeps:{noDiscovery:true,include:[]},server:{middlewareMode:true},appType:'custom'});
 const json=value=>JSON.stringify(value,null,2)+'\n';
 try {
@@ -10,6 +11,7 @@ try {
  const {containerCostPairSchema}=await server.ssrLoadModule('/src/data/container-cost-pair.ts');
  const {containerCostReviewPlanSchema}=await server.ssrLoadModule('/src/data/container-cost-review-plan.ts');
  const {feeTaxAttachmentSchema}=await server.ssrLoadModule('/src/data/fee-tax-attachment.ts');
+ const {feePrecisionSelectionSchema}=await server.ssrLoadModule('/src/data/fee-precision-selection.ts');
  const {CONTAINER_BILL_TEMPLATES,containerBillTemplateText}=await server.ssrLoadModule('/src/data/container-bill-templates.ts');
  writeFileSync(join(root,'schemas/project-0.9.schema.json'),json(transportProjectSchema()));
  const {PROJECT_TEMPLATES,projectTemplateText,projectTemplateCatalog}=await server.ssrLoadModule('/src/data/project-templates.ts');
@@ -20,6 +22,8 @@ try {
  const {periodExampleResource}=await server.ssrLoadModule('/src/ui/period-example.ts');
  const {fundingExampleResource}=await server.ssrLoadModule('/src/ui/funding-example.ts');
  mkdirSync(join(root,'schemas'),{recursive:true});mkdirSync(join(root,'templates'),{recursive:true});
+ writeFileSync(join(root,'schemas/fee-precision-selection-1.0.schema.json'),json(feePrecisionSelectionSchema()));
+ await buildFeePrecisionSelectionTemplates(server,root);
  writeFileSync(join(root,'schemas/fee-tax-attachment-1.0.schema.json'),json(feeTaxAttachmentSchema()));
  console.log('Generated 1 independent fee tax attachment schema');
  writeFileSync(join(root,'schemas/container-bill-1.0.schema.json'),json(containerBillDraftSchema()));

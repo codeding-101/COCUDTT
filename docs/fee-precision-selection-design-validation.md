@@ -1,3 +1,5 @@
+> 本文保留第六十五轮设计基线。第六十六轮已实现[独立文件模块](fee-precision-selection-file-validation.md)、离线Schema及合成模板；尚无工作台、草稿恢复或费用应用。下文拟议及下一轮表述按当轮阶段理解。
+
 # 第六十五轮：精度选择记录设计验收
 
 2026-10-18。交付[独立选择记录设计](fee-precision-selection-design.md)、[固定合成状态案例](cases/fee-precision-selection-design.json)及[独立检查器](../tools/check-fee-precision-selection-design.mjs)，加入Windows/Linux CI。没有新增生产解析器、Schema、模板、控件、草稿键、确认入口或费用写入；已有精度API仍独立于运行工具。

@@ -1,12 +1,12 @@
 # 能力与验证证据矩阵
 
-2026-10-18，第六十五轮。面向中国一般贸易进口、单商品一票的本地内部测算工具。本文说明程序做了什么、用什么验证，以及没有证明什么；不以测试数量代替法规、真实业务或专业认证。
+2026-10-18，第六十六轮。面向中国一般贸易进口、单商品一票的本地内部测算工具。本文说明程序做了什么、用什么验证，以及没有证明什么；不以测试数量代替法规、真实业务或专业认证。
 
 ## 五条验收轴
 
 “开发完成”仅指列出的受限路径可用；“自动化通过”指固定或合成输入的程序/浏览器检查。“人工专业复核”“真实单据对照”“真实设备验收”是另外三项，当前均未完成，按用户安排暂缓。示例中的EXAMPLE、用户自行确认和程序可计算不能提升为后三项。历史文档的测试数、未合并等状态仅对应其阶段。
 
-基线为第五十五轮：79文件2660项测试、37套离线浏览器回归、166项线上检查，Windows/Linux CI和公开产物哈希核对；见[最近项目验收](recent-projects-ui-validation.md)及[PR #52](https://github.com/codeding-101/COCUDTT/pull/52)。第五十六轮新增合成案例与静态说明，见[当轮验收](capability-walkthrough-validation.md)。第五十八轮新增独立成分模块，完整82文件3139项及本轮静态介绍检查见[模块验收](fee-tax-components-module-validation.md)。第五十九轮新增[附件状态设计核对](fee-tax-attachment-design-validation.md)；第六十轮独立文件模块新增90项，完整85文件3229项，见[文件验收](fee-tax-attachment-file-validation.md)。文件API及[独立交接模块](fee-tax-attachment-controller-validation.md)已实现；第六十二轮[工作区验收](fee-tax-attachment-workspace-validation.md)接入页面，新增22项、完整88文件3302项。第六十三轮新增[精度设计验收](fee-precision-design-validation.md)，53/75/4860/124为独立设计证据，第六十四轮[独立精度模块](fee-precision-module-validation.md)实现五类API，新增193项、完整90文件3495项；尚无运行精度选择。第六十五轮新增[精度选择记录设计验收](fee-precision-selection-design-validation.md)，独立81/60状态案例及50/51单叶变更；不是生产文件或UI证据。不把旧证据记成重跑结果。
+基线为第五十五轮：79文件2660项测试、37套离线浏览器回归、166项线上检查，Windows/Linux CI和公开产物哈希核对；见[最近项目验收](recent-projects-ui-validation.md)及[PR #52](https://github.com/codeding-101/COCUDTT/pull/52)。第五十六轮新增合成案例与静态说明，见[当轮验收](capability-walkthrough-validation.md)。第五十八轮新增独立成分模块，完整82文件3139项及本轮静态介绍检查见[模块验收](fee-tax-components-module-validation.md)。第五十九轮新增[附件状态设计核对](fee-tax-attachment-design-validation.md)；第六十轮独立文件模块新增90项，完整85文件3229项，见[文件验收](fee-tax-attachment-file-validation.md)。文件API及[独立交接模块](fee-tax-attachment-controller-validation.md)已实现；第六十二轮[工作区验收](fee-tax-attachment-workspace-validation.md)接入页面，新增22项、完整88文件3302项。第六十三轮新增[精度设计验收](fee-precision-design-validation.md)，53/75/4860/124为独立设计证据，第六十四轮[独立精度模块](fee-precision-module-validation.md)实现五类API，新增193项、完整90文件3495项；尚无运行精度选择。第六十五轮新增[精度选择记录设计验收](fee-precision-selection-design-validation.md)，独立81/60状态案例及50/51单叶变更；不是生产文件或UI证据。第六十六轮[独立精度文件](fee-precision-selection-file-validation.md)新增168项、完整93文件3663项；已实现严格文件API、Schema/合成模板，尚无运行入口或草稿恢复。不把旧证据记成重跑结果。
 
 ## 受限能力、证据与边界
 
@@ -46,4 +46,4 @@ flowchart LR
 
 固定案例从[操作说明](china-import-walkthrough.md)开始，或离线打开[演示页面](../china-import-walkthrough.html)。开发环境执行 `node node_modules/vitest/vitest.mjs run tests/china-import-walkthrough.test.ts` 对照固定答案，再执行 `node tools/build-import-walkthrough.mjs --check` 检查HTML和内嵌项目字节。全套测试、类型、绑定、独立设计基准、离线构建和版本化资源比对由[双平台CI](../.github/workflows/quality.yml)执行。
 
-简历可以说明：本地优先、明确领域边界、独立手算与回归、版本化文件、客户/内部隔离和可追溯核对。不能写“支持全球税制”“生产级合规认证”“真实报关准确率100%”或把测试数量当作业务正确率。第五十八轮已完成独立只读成分模块，见[验收](fee-tax-components-module-validation.md)。第六十五轮[选择记录设计](fee-precision-selection-design.md)已完成，尚未实现生产文件。下一轮先实现独立严格文件模块，重验真实完整配对与原成分，处理租约、失效/重绑、新业务空记录及离线Schema/模板；之后再接控制器、草稿、内部输出与工作台，费用原子应用及失败回滚最后验收。
+简历可以说明：本地优先、明确领域边界、独立手算与回归、版本化文件、客户/内部隔离和可追溯核对。不能写“支持全球税制”“生产级合规认证”“真实报关准确率100%”或把测试数量当作业务正确率。第五十八轮已完成独立只读成分模块，见[验收](fee-tax-components-module-validation.md)。第六十六轮[选择文件模块](fee-precision-selection-file-validation.md)已完成。下一阶段实现独立交接控制器、已提交文件与未提交编辑的草稿、冻结保存/迟到读取/冲突恢复，以及内部审计和客户隔离；再接工作台与离线窄屏流程，费用原子应用和失败回滚最后验收。

@@ -18,3 +18,8 @@
 ## 明确期间配套合成例
 
 另有[配套项目](synthetic-period-example.project.json)（项目0.8）、[配套付款](synthetic-period-example.plan.json)（付款1.5）、[固定手算记录](synthetic-period-example.check.json)和[无脚本离线说明](synthetic-period-example.guide.html)。先保存自己的项目及付款，再依序打开配套项目/付款，不用重绑定掩盖错配；记录/说明不可导入。三计算段、两归集期及四片交集分别核对，全部为合成内部应计假设，不代表银行结息。旧八份本金/舍入资源保持。
+
+
+## 精度选择独立文件1.0（开发API）
+
+[空精度记录](fee-precision-selection-empty.json)与[算术示例](fee-precision-selection-synthetic-example.json)均绑定固定合成配对和成分附件；空文件只是records为空，不是空白真实业务。EXAMPLE来源、合成13%比例和汇率7不能当作实际税率、汇率或合同。1.0050001 USD保留精度待办，无政策回执、不应用费用；专用文件API支持，当前工具打开项目/配对入口不能混用。见[文件验收](../docs/fee-precision-selection-file-validation.md)和[离线Schema](../schemas/fee-precision-selection-1.0.schema.json)。

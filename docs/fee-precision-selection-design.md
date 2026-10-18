@@ -1,3 +1,5 @@
+> 本文保留第六十五轮设计基线。第六十六轮已实现[独立文件模块](fee-precision-selection-file-validation.md)、离线Schema及合成模板；尚无工作台、草稿恢复或费用应用。下文拟议及下一轮表述按当轮阶段理解。
+
 # 精度选择记录：来源、版本与失效设计
 
 2026-10-18，第六十五轮。承接[独立精度API](fee-precision-module-validation.md)与[成分附件1.0](fee-tax-attachment-file-validation.md)。本轮交付实现前契约、固定合成状态向量和独立检查器；**没有新增生产文件解析器、Schema、页面控件、草稿键或费用写入**。下述1.0是拟议格式，不能作为当前可导入文件。

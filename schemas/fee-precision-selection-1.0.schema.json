@@ -1,0 +1,393 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:cocudtt:internal-fee-precision-selection:1.0",
+  "title": "COCUDTT internal fee precision selection 1.0",
+  "description": "Read-only arithmetic policies; not tax certification or fee application. Runtime verifies nested duplicate keys, fingerprints, references, exact fractions, UTF-8 limits and dates.",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "const": "INTERNAL_FEE_PRECISION_SELECTION"
+    },
+    "version": {
+      "const": "1.0"
+    },
+    "selection_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000000
+    },
+    "pair_snapshot_json": {
+      "type": "string"
+    },
+    "pair_snapshot_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "attachment_snapshot_json": {
+      "type": "string"
+    },
+    "attachment_snapshot_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "records": {
+      "type": "array",
+      "maxItems": 48,
+      "items": {
+        "type": "object",
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+          },
+          "component_record_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "mapping_id": {
+                "type": "string",
+                "maxLength": 200,
+                "pattern": "\\S",
+                "not": {
+                  "enum": [
+                    "__proto__",
+                    "constructor",
+                    "prototype"
+                  ]
+                }
+              },
+              "bill_id": {
+                "type": "string",
+                "maxLength": 200,
+                "pattern": "\\S",
+                "not": {
+                  "enum": [
+                    "__proto__",
+                    "constructor",
+                    "prototype"
+                  ]
+                }
+              },
+              "line_id": {
+                "type": "string",
+                "maxLength": 200,
+                "pattern": "\\S",
+                "not": {
+                  "enum": [
+                    "__proto__",
+                    "constructor",
+                    "prototype"
+                  ]
+                }
+              },
+              "cost_id": {
+                "type": "string",
+                "maxLength": 200,
+                "pattern": "\\S",
+                "not": {
+                  "enum": [
+                    "__proto__",
+                    "constructor",
+                    "prototype"
+                  ]
+                }
+              },
+              "operation": {
+                "enum": [
+                  "CREATE_NEW",
+                  "REFERENCE_EXISTING"
+                ]
+              }
+            },
+            "required": [
+              "mapping_id",
+              "bill_id",
+              "line_id",
+              "cost_id",
+              "operation"
+            ],
+            "additionalProperties": false
+          },
+          "channel": {
+            "enum": [
+              "cash",
+              "net",
+              "tax",
+              "credit",
+              "economic",
+              "customs"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "original": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "numerator": {
+                    "type": "string",
+                    "pattern": "^(0|[1-9][0-9]{0,79})$"
+                  },
+                  "denominator": {
+                    "type": "string",
+                    "pattern": "^[1-9][0-9]{0,79}$"
+                  }
+                },
+                "required": [
+                  "numerator",
+                  "denominator"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "choice": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "UNRESOLVED"
+                  }
+                },
+                "required": [
+                  "kind"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "ROUND"
+                  },
+                  "policy": {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "const": "EXPLICIT"
+                      },
+                      "unit": {
+                        "type": "string",
+                        "pattern": "^(0|[1-9][0-9]{0,23})(\\.[0-9]{1,18})?$"
+                      },
+                      "mode": {
+                        "enum": [
+                          "HALF_UP",
+                          "HALF_EVEN",
+                          "DOWN"
+                        ]
+                      },
+                      "basis": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "pattern": "\\S"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "unit",
+                      "mode",
+                      "basis"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "kind",
+                  "policy"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "FX"
+                  },
+                  "to": {
+                    "type": "string",
+                    "pattern": "^[A-Z]{3}$"
+                  },
+                  "purpose": {
+                    "enum": [
+                      "COMMERCIAL_REVIEW",
+                      "CUSTOMS_COMPONENT_REVIEW"
+                    ]
+                  },
+                  "as_of": {
+                    "type": "string",
+                    "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                  },
+                  "rate_source": {
+                    "type": "object",
+                    "properties": {
+                      "base": {
+                        "type": "string",
+                        "pattern": "^[A-Z]{3}$"
+                      },
+                      "quote": {
+                        "type": "string",
+                        "pattern": "^[A-Z]{3}$"
+                      },
+                      "rate": {
+                        "type": "string",
+                        "pattern": "^(0|[1-9][0-9]{0,23})(\\.[0-9]{1,18})?$"
+                      },
+                      "type": {
+                        "enum": [
+                          "CONTRACT",
+                          "MARKET",
+                          "CUSTOMS"
+                        ]
+                      },
+                      "rate_date": {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                      },
+                      "valid_from": {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                      },
+                      "valid_to": {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                      },
+                      "reference": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "pattern": "\\S"
+                      }
+                    },
+                    "required": [
+                      "base",
+                      "quote",
+                      "rate",
+                      "type",
+                      "rate_date",
+                      "valid_from",
+                      "valid_to",
+                      "reference"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "policy": {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "const": "EXPLICIT"
+                      },
+                      "unit": {
+                        "type": "string",
+                        "pattern": "^(0|[1-9][0-9]{0,23})(\\.[0-9]{1,18})?$"
+                      },
+                      "mode": {
+                        "enum": [
+                          "HALF_UP",
+                          "HALF_EVEN",
+                          "DOWN"
+                        ]
+                      },
+                      "basis": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "pattern": "\\S"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "unit",
+                      "mode",
+                      "basis"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "kind",
+                  "to",
+                  "purpose",
+                  "as_of",
+                  "rate_source",
+                  "policy"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "acknowledgement": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "basis_sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "required": [
+                  "basis_sha256"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "required": [
+          "record_id",
+          "component_record_id",
+          "target",
+          "channel",
+          "currency",
+          "original",
+          "choice",
+          "acknowledgement"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "retired_record_ids": {
+      "type": "array",
+      "maxItems": 500,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+      }
+    },
+    "content_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "kind",
+    "version",
+    "selection_id",
+    "revision",
+    "pair_snapshot_json",
+    "pair_snapshot_sha256",
+    "attachment_snapshot_json",
+    "attachment_snapshot_sha256",
+    "records",
+    "retired_record_ids",
+    "content_sha256"
+  ],
+  "additionalProperties": false
+}
