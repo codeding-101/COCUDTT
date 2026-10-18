@@ -1,0 +1,2938 @@
+{
+  "kind": "SYNTHETIC_PRECISION_SELECTION_DESIGN_ONLY",
+  "version": "0.1",
+  "runtime_enabled": false,
+  "description": "Reduced sources and fixed channel table only; not a production pair, attachment, file parser or arithmetic oracle.",
+  "digest_vectors": [
+    {
+      "text": "",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "text": "abc",
+      "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    },
+    {
+      "text": "{\"pair_id\":\"pair-synthetic\",\"revision\":3,\"project\":{\"incoterm\":\"CIF\",\"quantity\":\"1\",\"market_fx\":\"7.2\",\"customs_fx\":\"7.1\",\"extension\":{\"fee_precision_selection\":{\"legacy\":\"PRIVATE_LEGACY\"}}},\"bill\":{\"review_date\":\"2026-10-18\",\"currency\":\"USD\",\"original_amount\":\"1.000000000000000000\"},\"mapping\":{\"mapping_id\":\"mapping-1\",\"bill_id\":\"bill-1\",\"line_id\":\"bill-line-1\",\"cost_id\":\"cost-1\",\"operation\":\"CREATE_NEW\"},\"retired\":[],\"business_issues\":[\"CORE_PRECISION_LOSS\",\"TAX_COMPONENT_UNVERIFIED\",\"QUOTE_INCLUSION_UNRESOLVED\",\"ORIGINAL_AMOUNT_MISMATCH\"]}",
+      "sha256": "605d2c75d388602f65750b9dacdf2d4a3534fe41c4fc78f2267e09e53ccea59e"
+    },
+    {
+      "text": "{\"attachment_id\":\"attachment-synthetic\",\"revision\":4,\"pair_snapshot_json\":\"{\\\"pair_id\\\":\\\"pair-synthetic\\\",\\\"revision\\\":3,\\\"project\\\":{\\\"incoterm\\\":\\\"CIF\\\",\\\"quantity\\\":\\\"1\\\",\\\"market_fx\\\":\\\"7.2\\\",\\\"customs_fx\\\":\\\"7.1\\\",\\\"extension\\\":{\\\"fee_precision_selection\\\":{\\\"legacy\\\":\\\"PRIVATE_LEGACY\\\"}}},\\\"bill\\\":{\\\"review_date\\\":\\\"2026-10-18\\\",\\\"currency\\\":\\\"USD\\\",\\\"original_amount\\\":\\\"1.000000000000000000\\\"},\\\"mapping\\\":{\\\"mapping_id\\\":\\\"mapping-1\\\",\\\"bill_id\\\":\\\"bill-1\\\",\\\"line_id\\\":\\\"bill-line-1\\\",\\\"cost_id\\\":\\\"cost-1\\\",\\\"operation\\\":\\\"CREATE_NEW\\\"},\\\"retired\\\":[],\\\"business_issues\\\":[\\\"CORE_PRECISION_LOSS\\\",\\\"TAX_COMPONENT_UNVERIFIED\\\",\\\"QUOTE_INCLUSION_UNRESOLVED\\\",\\\"ORIGINAL_AMOUNT_MISMATCH\\\"]}\",\"pair_snapshot_sha256\":\"605d2c75d388602f65750b9dacdf2d4a3534fe41c4fc78f2267e09e53ccea59e\",\"rows\":[{\"record_id\":\"component-1\",\"target\":{\"mapping_id\":\"mapping-1\",\"bill_id\":\"bill-1\",\"line_id\":\"bill-line-1\",\"cost_id\":\"cost-1\",\"operation\":\"CREATE_NEW\"},\"currency\":\"USD\",\"component_input\":{\"gross\":\"1.000000000000000000\",\"tax_rate\":\"2.000000000000000000\"},\"channels\":{\"cash\":{\"numerator\":\"1\",\"denominator\":\"1\"},\"net\":{\"numerator\":\"1\",\"denominator\":\"3\"},\"tax\":{\"numerator\":\"2\",\"denominator\":\"3\"},\"credit\":{\"numerator\":\"0\",\"denominator\":\"1\"},\"economic\":{\"numerator\":\"1\",\"denominator\":\"1\"},\"customs\":null},\"sources\":{\"tax\":\"SYNTHETIC_TAX_REFERENCE\",\"credit\":\"SYNTHETIC_NO_CREDIT\",\"customs\":\"UNKNOWN\"},\"acknowledgements\":{\"tax\":null,\"credit\":null,\"customs\":null}}],\"retired_record_ids\":[],\"legacy_extension\":{\"private\":\"PRIVATE_ATTACHMENT\"}}",
+      "sha256": "0e3b9fd2eb53ff474c5f21b3f61ee661c3943a4c25a0f960488bf9d8c3737665"
+    }
+  ],
+  "baseline": {
+    "kind": "INTERNAL_FEE_PRECISION_SELECTION",
+    "version": "1.0",
+    "selection_id": "precision-synthetic",
+    "revision": 1,
+    "pair_snapshot_json": "{\"pair_id\":\"pair-synthetic\",\"revision\":3,\"project\":{\"incoterm\":\"CIF\",\"quantity\":\"1\",\"market_fx\":\"7.2\",\"customs_fx\":\"7.1\",\"extension\":{\"fee_precision_selection\":{\"legacy\":\"PRIVATE_LEGACY\"}}},\"bill\":{\"review_date\":\"2026-10-18\",\"currency\":\"USD\",\"original_amount\":\"1.000000000000000000\"},\"mapping\":{\"mapping_id\":\"mapping-1\",\"bill_id\":\"bill-1\",\"line_id\":\"bill-line-1\",\"cost_id\":\"cost-1\",\"operation\":\"CREATE_NEW\"},\"retired\":[],\"business_issues\":[\"CORE_PRECISION_LOSS\",\"TAX_COMPONENT_UNVERIFIED\",\"QUOTE_INCLUSION_UNRESOLVED\",\"ORIGINAL_AMOUNT_MISMATCH\"]}",
+    "pair_snapshot_sha256": "605d2c75d388602f65750b9dacdf2d4a3534fe41c4fc78f2267e09e53ccea59e",
+    "attachment_snapshot_json": "{\"attachment_id\":\"attachment-synthetic\",\"revision\":4,\"pair_snapshot_json\":\"{\\\"pair_id\\\":\\\"pair-synthetic\\\",\\\"revision\\\":3,\\\"project\\\":{\\\"incoterm\\\":\\\"CIF\\\",\\\"quantity\\\":\\\"1\\\",\\\"market_fx\\\":\\\"7.2\\\",\\\"customs_fx\\\":\\\"7.1\\\",\\\"extension\\\":{\\\"fee_precision_selection\\\":{\\\"legacy\\\":\\\"PRIVATE_LEGACY\\\"}}},\\\"bill\\\":{\\\"review_date\\\":\\\"2026-10-18\\\",\\\"currency\\\":\\\"USD\\\",\\\"original_amount\\\":\\\"1.000000000000000000\\\"},\\\"mapping\\\":{\\\"mapping_id\\\":\\\"mapping-1\\\",\\\"bill_id\\\":\\\"bill-1\\\",\\\"line_id\\\":\\\"bill-line-1\\\",\\\"cost_id\\\":\\\"cost-1\\\",\\\"operation\\\":\\\"CREATE_NEW\\\"},\\\"retired\\\":[],\\\"business_issues\\\":[\\\"CORE_PRECISION_LOSS\\\",\\\"TAX_COMPONENT_UNVERIFIED\\\",\\\"QUOTE_INCLUSION_UNRESOLVED\\\",\\\"ORIGINAL_AMOUNT_MISMATCH\\\"]}\",\"pair_snapshot_sha256\":\"605d2c75d388602f65750b9dacdf2d4a3534fe41c4fc78f2267e09e53ccea59e\",\"rows\":[{\"record_id\":\"component-1\",\"target\":{\"mapping_id\":\"mapping-1\",\"bill_id\":\"bill-1\",\"line_id\":\"bill-line-1\",\"cost_id\":\"cost-1\",\"operation\":\"CREATE_NEW\"},\"currency\":\"USD\",\"component_input\":{\"gross\":\"1.000000000000000000\",\"tax_rate\":\"2.000000000000000000\"},\"channels\":{\"cash\":{\"numerator\":\"1\",\"denominator\":\"1\"},\"net\":{\"numerator\":\"1\",\"denominator\":\"3\"},\"tax\":{\"numerator\":\"2\",\"denominator\":\"3\"},\"credit\":{\"numerator\":\"0\",\"denominator\":\"1\"},\"economic\":{\"numerator\":\"1\",\"denominator\":\"1\"},\"customs\":null},\"sources\":{\"tax\":\"SYNTHETIC_TAX_REFERENCE\",\"credit\":\"SYNTHETIC_NO_CREDIT\",\"customs\":\"UNKNOWN\"},\"acknowledgements\":{\"tax\":null,\"credit\":null,\"customs\":null}}],\"retired_record_ids\":[],\"legacy_extension\":{\"private\":\"PRIVATE_ATTACHMENT\"}}",
+    "attachment_snapshot_sha256": "0e3b9fd2eb53ff474c5f21b3f61ee661c3943a4c25a0f960488bf9d8c3737665",
+    "records": [
+      {
+        "record_id": "precision-cash",
+        "component_record_id": "component-1",
+        "target": {
+          "mapping_id": "mapping-1",
+          "bill_id": "bill-1",
+          "line_id": "bill-line-1",
+          "cost_id": "cost-1",
+          "operation": "CREATE_NEW"
+        },
+        "channel": "cash",
+        "currency": "USD",
+        "original": {
+          "numerator": "1",
+          "denominator": "1"
+        },
+        "choice": {
+          "kind": "ROUND",
+          "policy": {
+            "kind": "EXPLICIT",
+            "unit": "0.01",
+            "mode": "HALF_UP",
+            "basis": "  contract precision  "
+          }
+        },
+        "acknowledgement": {
+          "basis_sha256": "361887613e5f5c94e425cd4bf5006abc1b30480a39347867103f6de45e4306e5"
+        }
+      },
+      {
+        "record_id": "precision-net",
+        "component_record_id": "component-1",
+        "target": {
+          "mapping_id": "mapping-1",
+          "bill_id": "bill-1",
+          "line_id": "bill-line-1",
+          "cost_id": "cost-1",
+          "operation": "CREATE_NEW"
+        },
+        "channel": "net",
+        "currency": "USD",
+        "original": {
+          "numerator": "1",
+          "denominator": "3"
+        },
+        "choice": {
+          "kind": "FX",
+          "to": "CNY",
+          "purpose": "COMMERCIAL_REVIEW",
+          "as_of": "2026-10-18",
+          "rate_source": {
+            "base": "USD",
+            "quote": "CNY",
+            "rate": "7.000000000000000000",
+            "type": "CONTRACT",
+            "rate_date": "2026-10-01",
+            "valid_from": "2026-10-01",
+            "valid_to": "2026-10-31",
+            "reference": "FX-SYNTHETIC"
+          },
+          "policy": {
+            "kind": "EXPLICIT",
+            "unit": "0.01",
+            "mode": "HALF_UP",
+            "basis": "  contract precision  "
+          }
+        },
+        "acknowledgement": {
+          "basis_sha256": "83395dd07630dc477a90b2b797950c99935ad7924e7f78069c8823605e23565c"
+        }
+      }
+    ],
+    "retired_record_ids": [
+      "precision-retired"
+    ],
+    "content_sha256": "8c9fb1c4e8e52ae410ecab5b322e3772d3e45cce1b0858ab9c70ba7168b94d55"
+  },
+  "cases": [
+    {
+      "id": "unchanged",
+      "family": "STATE",
+      "input": {
+        "event": "UNCHANGED"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "pending": [],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "pair-project.incoterm",
+      "family": "SOURCE",
+      "input": {
+        "source": "pair",
+        "path": "project.incoterm",
+        "value": "FOB",
+        "style": "LEAF"
+      },
+      "expected": {
+        "binding": "STALE_PAIR",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "pair-project.quantity",
+      "family": "SOURCE",
+      "input": {
+        "source": "pair",
+        "path": "project.quantity",
+        "value": "2",
+        "style": "LEAF"
+      },
+      "expected": {
+        "binding": "STALE_PAIR",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "pair-project.market_fx",
+      "family": "SOURCE",
+      "input": {
+        "source": "pair",
+        "path": "project.market_fx",
+        "value": "7.3",
+        "style": "LEAF"
+      },
+      "expected": {
+        "binding": "STALE_PAIR",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "pair-project.customs_fx",
+      "family": "SOURCE",
+      "input": {
+        "source": "pair",
+        "path": "project.customs_fx",
+        "value": "7.15",
+        "style": "LEAF"
+      },
+      "expected": {
+        "binding": "STALE_PAIR",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "pair-bill.review_date",
+      "family": "SOURCE",
+      "input": {
+        "source": "pair",
+        "path": "bill.review_date",
+        "value": "2026-10-19",
+        "style": "LEAF"
+      },
+      "expected": {
+        "binding": "STALE_PAIR",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "pair-bill.original_amount",
+      "family": "SOURCE",
+      "input": {
+        "source": "pair",
+        "path": "bill.original_amount",
+        "value": "1.000000000000000001",
+        "style": "LEAF"
+      },
+      "expected": {
+        "binding": "STALE_PAIR",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "pair-mapping.cost_id",
+      "family": "SOURCE",
+      "input": {
+        "source": "pair",
+        "path": "mapping.cost_id",
+        "value": "different-cost",
+        "style": "LEAF"
+      },
+      "expected": {
+        "binding": "STALE_PAIR",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "pair-project.extension.fee_precision_selection.legacy",
+      "family": "SOURCE",
+      "input": {
+        "source": "pair",
+        "path": "project.extension.fee_precision_selection.legacy",
+        "value": "CHANGED",
+        "style": "LEAF"
+      },
+      "expected": {
+        "binding": "STALE_PAIR",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "pair-WHITESPACE",
+      "family": "SOURCE",
+      "input": {
+        "source": "pair",
+        "path": "",
+        "value": null,
+        "style": "WHITESPACE"
+      },
+      "expected": {
+        "binding": "STALE_PAIR",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "pair-KEY_ORDER",
+      "family": "SOURCE",
+      "input": {
+        "source": "pair",
+        "path": "",
+        "value": null,
+        "style": "KEY_ORDER"
+      },
+      "expected": {
+        "binding": "STALE_PAIR",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "attachment-revision",
+      "family": "SOURCE",
+      "input": {
+        "source": "attachment",
+        "path": "revision",
+        "value": 5,
+        "style": "LEAF"
+      },
+      "expected": {
+        "binding": "STALE_ATTACHMENT",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "attachment-rows.0.component_input.gross",
+      "family": "SOURCE",
+      "input": {
+        "source": "attachment",
+        "path": "rows.0.component_input.gross",
+        "value": "1.00",
+        "style": "LEAF"
+      },
+      "expected": {
+        "binding": "STALE_ATTACHMENT",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "attachment-rows.0.sources.tax",
+      "family": "SOURCE",
+      "input": {
+        "source": "attachment",
+        "path": "rows.0.sources.tax",
+        "value": "NEW_REF",
+        "style": "LEAF"
+      },
+      "expected": {
+        "binding": "STALE_ATTACHMENT",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "attachment-rows.0.acknowledgements.tax",
+      "family": "SOURCE",
+      "input": {
+        "source": "attachment",
+        "path": "rows.0.acknowledgements.tax",
+        "value": {
+          "basis_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "style": "LEAF"
+      },
+      "expected": {
+        "binding": "STALE_ATTACHMENT",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "attachment-rows.0.channels.net",
+      "family": "SOURCE",
+      "input": {
+        "source": "attachment",
+        "path": "rows.0.channels.net",
+        "value": {
+          "numerator": "1",
+          "denominator": "4"
+        },
+        "style": "LEAF"
+      },
+      "expected": {
+        "binding": "STALE_ATTACHMENT",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "attachment-rows.0.target.operation",
+      "family": "SOURCE",
+      "input": {
+        "source": "attachment",
+        "path": "rows.0.target.operation",
+        "value": "REFERENCE_EXISTING",
+        "style": "LEAF"
+      },
+      "expected": {
+        "binding": "STALE_ATTACHMENT",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "attachment-legacy_extension.private",
+      "family": "SOURCE",
+      "input": {
+        "source": "attachment",
+        "path": "legacy_extension.private",
+        "value": "CHANGED",
+        "style": "LEAF"
+      },
+      "expected": {
+        "binding": "STALE_ATTACHMENT",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "attachment-WHITESPACE",
+      "family": "SOURCE",
+      "input": {
+        "source": "attachment",
+        "path": "",
+        "value": null,
+        "style": "WHITESPACE"
+      },
+      "expected": {
+        "binding": "STALE_ATTACHMENT",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "attachment-KEY_ORDER",
+      "family": "SOURCE",
+      "input": {
+        "source": "attachment",
+        "path": "",
+        "value": null,
+        "style": "KEY_ORDER"
+      },
+      "expected": {
+        "binding": "STALE_ATTACHMENT",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "cash-mutation-choice.policy.unit",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-cash",
+        "path": "choice.policy.unit",
+        "value": "0.010"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-net"
+        ],
+        "pending": [
+          "precision-cash"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "cash-mutation-choice.policy.mode",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-cash",
+        "path": "choice.policy.mode",
+        "value": "DOWN"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-net"
+        ],
+        "pending": [
+          "precision-cash"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "cash-mutation-choice.policy.basis",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-cash",
+        "path": "choice.policy.basis",
+        "value": "contract precision"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-net"
+        ],
+        "pending": [
+          "precision-cash"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "cash-mutation-original",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-cash",
+        "path": "original",
+        "value": {
+          "numerator": "1001",
+          "denominator": "1000"
+        }
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-net"
+        ],
+        "pending": [
+          "precision-cash"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "cash-mutation-target.cost_id",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-cash",
+        "path": "target.cost_id",
+        "value": "changed"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-net"
+        ],
+        "pending": [
+          "precision-cash"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "cash-mutation-component_record_id",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-cash",
+        "path": "component_record_id",
+        "value": "missing-component"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-net"
+        ],
+        "pending": [
+          "precision-cash"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "cash-mutation-acknowledgement.basis_sha256",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-cash",
+        "path": "acknowledgement.basis_sha256",
+        "value": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-net"
+        ],
+        "pending": [
+          "precision-cash"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "fx-mutation-choice.rate_source.reference",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-net",
+        "path": "choice.rate_source.reference",
+        "value": "NEW_REF"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-cash"
+        ],
+        "pending": [
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "fx-mutation-choice.rate_source.rate",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-net",
+        "path": "choice.rate_source.rate",
+        "value": "7.1"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-cash"
+        ],
+        "pending": [
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "fx-mutation-choice.rate_source.valid_to",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-net",
+        "path": "choice.rate_source.valid_to",
+        "value": "2026-11-01"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-cash"
+        ],
+        "pending": [
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "fx-mutation-choice.as_of",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-net",
+        "path": "choice.as_of",
+        "value": "2026-10-19"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-cash"
+        ],
+        "pending": [
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "unresolved-choice",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-cash",
+        "path": "choice",
+        "value": {
+          "kind": "UNRESOLVED"
+        }
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-net"
+        ],
+        "pending": [
+          "precision-cash"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "unknown-original",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-cash",
+        "path": "original",
+        "value": null
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-net"
+        ],
+        "pending": [
+          "precision-cash"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES"
+      }
+    },
+    {
+      "id": "edit-identical",
+      "family": "CHOICE_EDIT",
+      "input": {
+        "record_id": "precision-cash",
+        "choice": {
+          "kind": "ROUND",
+          "policy": {
+            "kind": "EXPLICIT",
+            "unit": "0.01",
+            "mode": "HALF_UP",
+            "basis": "  contract precision  "
+          }
+        },
+        "expected_revision": 1,
+        "expected_digest": "8c9fb1c4e8e52ae410ecab5b322e3772d3e45cce1b0858ab9c70ba7168b94d55"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "pending": [],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1
+      }
+    },
+    {
+      "id": "edit-key-order",
+      "family": "CHOICE_EDIT",
+      "input": {
+        "record_id": "precision-cash",
+        "choice": {
+          "policy": {
+            "kind": "EXPLICIT",
+            "unit": "0.01",
+            "mode": "HALF_UP",
+            "basis": "  contract precision  "
+          },
+          "kind": "ROUND"
+        },
+        "expected_revision": 1,
+        "expected_digest": "8c9fb1c4e8e52ae410ecab5b322e3772d3e45cce1b0858ab9c70ba7168b94d55"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "pending": [],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1
+      }
+    },
+    {
+      "id": "edit-different-text",
+      "family": "CHOICE_EDIT",
+      "input": {
+        "record_id": "precision-cash",
+        "choice": {
+          "kind": "ROUND",
+          "policy": {
+            "kind": "EXPLICIT",
+            "unit": "0.010",
+            "mode": "HALF_UP",
+            "basis": "  contract precision  "
+          }
+        },
+        "expected_revision": 1,
+        "expected_digest": "8c9fb1c4e8e52ae410ecab5b322e3772d3e45cce1b0858ab9c70ba7168b94d55"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-net"
+        ],
+        "pending": [
+          "precision-cash"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2
+      }
+    },
+    {
+      "id": "edit-different-policy",
+      "family": "CHOICE_EDIT",
+      "input": {
+        "record_id": "precision-cash",
+        "choice": {
+          "kind": "ROUND",
+          "policy": {
+            "kind": "EXPLICIT",
+            "unit": "0.01",
+            "mode": "HALF_EVEN",
+            "basis": "  contract precision  "
+          }
+        },
+        "expected_revision": 1,
+        "expected_digest": "8c9fb1c4e8e52ae410ecab5b322e3772d3e45cce1b0858ab9c70ba7168b94d55"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-net"
+        ],
+        "pending": [
+          "precision-cash"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2
+      }
+    },
+    {
+      "id": "ack-cash",
+      "family": "ACK",
+      "input": {
+        "record_id": "precision-cash",
+        "channel": "cash",
+        "original": {
+          "numerator": "1",
+          "denominator": "1"
+        },
+        "choice": {
+          "kind": "ROUND",
+          "policy": {
+            "kind": "EXPLICIT",
+            "unit": "0.01",
+            "mode": "HALF_UP",
+            "basis": "  contract precision  "
+          }
+        }
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "pending": [],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2
+      }
+    },
+    {
+      "id": "ack-zero-credit",
+      "family": "ACK",
+      "input": {
+        "record_id": "precision-cash",
+        "channel": "credit",
+        "original": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "choice": {
+          "kind": "ROUND",
+          "policy": {
+            "kind": "EXPLICIT",
+            "unit": "0.01",
+            "mode": "HALF_UP",
+            "basis": "  contract precision  "
+          }
+        }
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "pending": [],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2
+      }
+    },
+    {
+      "id": "ack-inverse-fx",
+      "family": "ACK",
+      "input": {
+        "record_id": "precision-net",
+        "channel": "net",
+        "original": {
+          "numerator": "1",
+          "denominator": "3"
+        },
+        "choice": {
+          "kind": "FX",
+          "to": "CNY",
+          "purpose": "COMMERCIAL_REVIEW",
+          "as_of": "2026-10-18",
+          "rate_source": {
+            "base": "CNY",
+            "quote": "USD",
+            "rate": "0.142857142857142857",
+            "type": "CONTRACT",
+            "rate_date": "2026-10-01",
+            "valid_from": "2026-10-01",
+            "valid_to": "2026-10-31",
+            "reference": "FX-SYNTHETIC"
+          },
+          "policy": {
+            "kind": "EXPLICIT",
+            "unit": "0.01",
+            "mode": "HALF_UP",
+            "basis": "  contract precision  "
+          }
+        }
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "pending": [],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2
+      }
+    },
+    {
+      "id": "repeat-precision-cash",
+      "family": "ACK_REPEAT",
+      "input": {
+        "record_id": "precision-cash"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "pending": [],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1
+      }
+    },
+    {
+      "id": "repeat-precision-net",
+      "family": "ACK_REPEAT",
+      "input": {
+        "record_id": "precision-net"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "pending": [],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 1
+      }
+    },
+    {
+      "id": "rebind-pair-project.incoterm",
+      "family": "REBIND",
+      "input": {
+        "source": "pair",
+        "path": "project.incoterm",
+        "value": "FOB"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "recordsPreserved": true
+      }
+    },
+    {
+      "id": "rebind-pair-bill.review_date",
+      "family": "REBIND",
+      "input": {
+        "source": "pair",
+        "path": "bill.review_date",
+        "value": "2026-10-19"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "recordsPreserved": true
+      }
+    },
+    {
+      "id": "rebind-pair-mapping.cost_id",
+      "family": "REBIND",
+      "input": {
+        "source": "pair",
+        "path": "mapping.cost_id",
+        "value": "replaced"
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "recordsPreserved": true
+      }
+    },
+    {
+      "id": "rebind-pair-retired",
+      "family": "REBIND",
+      "input": {
+        "source": "pair",
+        "path": "retired",
+        "value": [
+          "mapping-1"
+        ]
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "recordsPreserved": true
+      }
+    },
+    {
+      "id": "rebind-attachment-revision",
+      "family": "REBIND",
+      "input": {
+        "source": "attachment",
+        "path": "revision",
+        "value": 5
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "recordsPreserved": true
+      }
+    },
+    {
+      "id": "rebind-attachment-rows",
+      "family": "REBIND",
+      "input": {
+        "source": "attachment",
+        "path": "rows",
+        "value": []
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "recordsPreserved": true
+      }
+    },
+    {
+      "id": "rebind-attachment-rows.0.channels.net",
+      "family": "REBIND",
+      "input": {
+        "source": "attachment",
+        "path": "rows.0.channels.net",
+        "value": {
+          "numerator": "1",
+          "denominator": "4"
+        }
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "recordsPreserved": true
+      }
+    },
+    {
+      "id": "rebind-attachment-rows.0.acknowledgements.tax",
+      "family": "REBIND",
+      "input": {
+        "source": "attachment",
+        "path": "rows.0.acknowledgements.tax",
+        "value": {
+          "basis_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [],
+        "pending": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "recordsPreserved": true
+      }
+    },
+    {
+      "id": "delete-cash",
+      "family": "DELETE",
+      "input": {
+        "record_id": "precision-cash",
+        "replacement": null
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-net"
+        ],
+        "pending": [],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "retired": [
+          "precision-retired",
+          "precision-cash"
+        ]
+      }
+    },
+    {
+      "id": "delete-and-replace",
+      "family": "DELETE",
+      "input": {
+        "record_id": "precision-cash",
+        "replacement": {
+          "record_id": "precision-new",
+          "component_record_id": "component-1",
+          "target": {
+            "mapping_id": "mapping-1",
+            "bill_id": "bill-1",
+            "line_id": "bill-line-1",
+            "cost_id": "cost-1",
+            "operation": "CREATE_NEW"
+          },
+          "channel": "cash",
+          "currency": "USD",
+          "original": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "choice": {
+            "kind": "ROUND",
+            "policy": {
+              "kind": "EXPLICIT",
+              "unit": "0.01",
+              "mode": "HALF_UP",
+              "basis": "  contract precision  "
+            }
+          },
+          "acknowledgement": null
+        }
+      },
+      "expected": {
+        "binding": "CURRENT",
+        "recorded": [
+          "precision-net"
+        ],
+        "pending": [
+          "precision-new"
+        ],
+        "business_issues": [
+          "CORE_PRECISION_LOSS",
+          "TAX_COMPONENT_UNVERIFIED",
+          "QUOTE_INCLUSION_UNRESOLVED",
+          "ORIGINAL_AMOUNT_MISMATCH"
+        ],
+        "scope": "DESIGN_ONLY_NO_FEE_WRITES",
+        "revision": 2,
+        "retired": [
+          "precision-retired",
+          "precision-cash"
+        ]
+      }
+    },
+    {
+      "id": "save-as-identity",
+      "family": "TRANSFER",
+      "input": {
+        "action": "SAVE_AS",
+        "new_id": null
+      },
+      "expected": {
+        "selection_id": "precision-synthetic",
+        "revision": 1,
+        "records": 2,
+        "recorded": [
+          "precision-cash",
+          "precision-net"
+        ],
+        "retired": 1
+      }
+    },
+    {
+      "id": "new-business-empty",
+      "family": "TRANSFER",
+      "input": {
+        "action": "NEW_BUSINESS",
+        "new_id": "precision-new-business"
+      },
+      "expected": {
+        "selection_id": "precision-new-business",
+        "revision": 1,
+        "records": 0,
+        "recorded": [],
+        "retired": 0
+      }
+    },
+    {
+      "id": "save-SAVED-false",
+      "family": "SAVE",
+      "input": {
+        "outcome": "SAVED",
+        "changed_while_waiting": false
+      },
+      "expected": {
+        "saved_revision": 1,
+        "current_revision": 1,
+        "clean": true,
+        "rawRetained": true
+      }
+    },
+    {
+      "id": "save-SAVED-true",
+      "family": "SAVE",
+      "input": {
+        "outcome": "SAVED",
+        "changed_while_waiting": true
+      },
+      "expected": {
+        "saved_revision": 1,
+        "current_revision": 2,
+        "clean": false,
+        "rawRetained": true
+      }
+    },
+    {
+      "id": "save-CANCELLED-false",
+      "family": "SAVE",
+      "input": {
+        "outcome": "CANCELLED",
+        "changed_while_waiting": false
+      },
+      "expected": {
+        "saved_revision": null,
+        "current_revision": 1,
+        "clean": false,
+        "rawRetained": true
+      }
+    },
+    {
+      "id": "save-CANCELLED-true",
+      "family": "SAVE",
+      "input": {
+        "outcome": "CANCELLED",
+        "changed_while_waiting": true
+      },
+      "expected": {
+        "saved_revision": null,
+        "current_revision": 2,
+        "clean": false,
+        "rawRetained": true
+      }
+    },
+    {
+      "id": "save-FAILED-false",
+      "family": "SAVE",
+      "input": {
+        "outcome": "FAILED",
+        "changed_while_waiting": false
+      },
+      "expected": {
+        "saved_revision": null,
+        "current_revision": 1,
+        "clean": false,
+        "rawRetained": true
+      }
+    },
+    {
+      "id": "save-FAILED-true",
+      "family": "SAVE",
+      "input": {
+        "outcome": "FAILED",
+        "changed_while_waiting": true
+      },
+      "expected": {
+        "saved_revision": null,
+        "current_revision": 2,
+        "clean": false,
+        "rawRetained": true
+      }
+    },
+    {
+      "id": "open-1.0-true-true-true",
+      "family": "OPEN",
+      "input": {
+        "version": "1.0",
+        "valid_file": true,
+        "token_current": true,
+        "lease_current": true
+      },
+      "expected": {
+        "candidate": "PREVIEW_ONLY",
+        "workspacePreserved": true,
+        "autoConfirm": false,
+        "rawBackup": true
+      }
+    },
+    {
+      "id": "open-2.0-true-true-true",
+      "family": "OPEN",
+      "input": {
+        "version": "2.0",
+        "valid_file": true,
+        "token_current": true,
+        "lease_current": true
+      },
+      "expected": {
+        "candidate": "NOT_INSTALLED",
+        "workspacePreserved": true,
+        "autoConfirm": false,
+        "rawBackup": true
+      }
+    },
+    {
+      "id": "open-1.0-false-true-true",
+      "family": "OPEN",
+      "input": {
+        "version": "1.0",
+        "valid_file": false,
+        "token_current": true,
+        "lease_current": true
+      },
+      "expected": {
+        "candidate": "NOT_INSTALLED",
+        "workspacePreserved": true,
+        "autoConfirm": false,
+        "rawBackup": true
+      }
+    },
+    {
+      "id": "open-1.0-true-false-true",
+      "family": "OPEN",
+      "input": {
+        "version": "1.0",
+        "valid_file": true,
+        "token_current": false,
+        "lease_current": true
+      },
+      "expected": {
+        "candidate": "NOT_INSTALLED",
+        "workspacePreserved": true,
+        "autoConfirm": false,
+        "rawBackup": true
+      }
+    },
+    {
+      "id": "open-1.0-true-true-false",
+      "family": "OPEN",
+      "input": {
+        "version": "1.0",
+        "valid_file": true,
+        "token_current": true,
+        "lease_current": false
+      },
+      "expected": {
+        "candidate": "NOT_INSTALLED",
+        "workspacePreserved": true,
+        "autoConfirm": false,
+        "rawBackup": true
+      }
+    },
+    {
+      "id": "draft-preview",
+      "family": "DRAFT",
+      "input": {
+        "same_id": true,
+        "same_sources": true,
+        "same_lease": true,
+        "same_raw": true,
+        "valid": true,
+        "conflict": false,
+        "storage_ok": true
+      },
+      "expected": {
+        "candidate": "PREVIEW_ONLY",
+        "autoApply": false,
+        "memoryRetained": true,
+        "backupBoth": false,
+        "unsubmittedInExport": false
+      }
+    },
+    {
+      "id": "draft-same_id",
+      "family": "DRAFT",
+      "input": {
+        "same_id": false,
+        "same_sources": true,
+        "same_lease": true,
+        "same_raw": true,
+        "valid": true,
+        "conflict": false,
+        "storage_ok": true
+      },
+      "expected": {
+        "candidate": "NOT_INSTALLED",
+        "autoApply": false,
+        "memoryRetained": true,
+        "backupBoth": false,
+        "unsubmittedInExport": false
+      }
+    },
+    {
+      "id": "draft-same_sources",
+      "family": "DRAFT",
+      "input": {
+        "same_id": true,
+        "same_sources": false,
+        "same_lease": true,
+        "same_raw": true,
+        "valid": true,
+        "conflict": false,
+        "storage_ok": true
+      },
+      "expected": {
+        "candidate": "NOT_INSTALLED",
+        "autoApply": false,
+        "memoryRetained": true,
+        "backupBoth": false,
+        "unsubmittedInExport": false
+      }
+    },
+    {
+      "id": "draft-same_lease",
+      "family": "DRAFT",
+      "input": {
+        "same_id": true,
+        "same_sources": true,
+        "same_lease": false,
+        "same_raw": true,
+        "valid": true,
+        "conflict": false,
+        "storage_ok": true
+      },
+      "expected": {
+        "candidate": "NOT_INSTALLED",
+        "autoApply": false,
+        "memoryRetained": true,
+        "backupBoth": false,
+        "unsubmittedInExport": false
+      }
+    },
+    {
+      "id": "draft-same_raw",
+      "family": "DRAFT",
+      "input": {
+        "same_id": true,
+        "same_sources": true,
+        "same_lease": true,
+        "same_raw": false,
+        "valid": true,
+        "conflict": false,
+        "storage_ok": true
+      },
+      "expected": {
+        "candidate": "NOT_INSTALLED",
+        "autoApply": false,
+        "memoryRetained": true,
+        "backupBoth": false,
+        "unsubmittedInExport": false
+      }
+    },
+    {
+      "id": "draft-valid",
+      "family": "DRAFT",
+      "input": {
+        "same_id": true,
+        "same_sources": true,
+        "same_lease": true,
+        "same_raw": true,
+        "valid": false,
+        "conflict": false,
+        "storage_ok": true
+      },
+      "expected": {
+        "candidate": "NOT_INSTALLED",
+        "autoApply": false,
+        "memoryRetained": true,
+        "backupBoth": false,
+        "unsubmittedInExport": false
+      }
+    },
+    {
+      "id": "draft-conflict",
+      "family": "DRAFT",
+      "input": {
+        "same_id": true,
+        "same_sources": true,
+        "same_lease": true,
+        "same_raw": true,
+        "valid": true,
+        "conflict": true,
+        "storage_ok": true
+      },
+      "expected": {
+        "candidate": "NOT_INSTALLED",
+        "autoApply": false,
+        "memoryRetained": true,
+        "backupBoth": true,
+        "unsubmittedInExport": false
+      }
+    },
+    {
+      "id": "draft-storage_ok",
+      "family": "DRAFT",
+      "input": {
+        "same_id": true,
+        "same_sources": true,
+        "same_lease": true,
+        "same_raw": true,
+        "valid": true,
+        "conflict": false,
+        "storage_ok": false
+      },
+      "expected": {
+        "candidate": "PREVIEW_ONLY",
+        "autoApply": false,
+        "memoryRetained": true,
+        "backupBoth": true,
+        "unsubmittedInExport": false
+      }
+    },
+    {
+      "id": "extension-project",
+      "family": "EXTENSION",
+      "input": {
+        "location": "project"
+      },
+      "expected": {
+        "preserved": true,
+        "activated": false,
+        "location": "project"
+      }
+    },
+    {
+      "id": "extension-bill",
+      "family": "EXTENSION",
+      "input": {
+        "location": "bill"
+      },
+      "expected": {
+        "preserved": true,
+        "activated": false,
+        "location": "bill"
+      }
+    },
+    {
+      "id": "extension-pair",
+      "family": "EXTENSION",
+      "input": {
+        "location": "pair"
+      },
+      "expected": {
+        "preserved": true,
+        "activated": false,
+        "location": "pair"
+      }
+    },
+    {
+      "id": "extension-attachment",
+      "family": "EXTENSION",
+      "input": {
+        "location": "attachment"
+      },
+      "expected": {
+        "preserved": true,
+        "activated": false,
+        "location": "attachment"
+      }
+    },
+    {
+      "id": "customer-private-sentinels",
+      "family": "CUSTOMER",
+      "input": {
+        "internal": {
+          "pair_snapshot_json": "PRIVATE_PAIR",
+          "attachment_snapshot_json": "PRIVATE_ATTACHMENT",
+          "policy": "PRIVATE_POLICY",
+          "acknowledgement": "PRIVATE_RECEIPT",
+          "metadata": {
+            "cost": "PRIVATE_COST"
+          }
+        }
+      },
+      "expected": {
+        "public_reference": "Q-SYNTHETIC",
+        "quote_amount": "113"
+      }
+    },
+    {
+      "id": "limits-at-ceilings",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "attachment_bytes": 25165824,
+        "outer_bytes": 67108864,
+        "records": 48,
+        "retired": 500,
+        "revision": 1000000000,
+        "depth": 32,
+        "nodes": 300000
+      },
+      "expected": {
+        "withinDesignLimits": true
+      }
+    },
+    {
+      "id": "limits-empty",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 0,
+        "attachment_bytes": 0,
+        "outer_bytes": 0,
+        "records": 0,
+        "retired": 0,
+        "revision": 1,
+        "depth": 0,
+        "nodes": 0
+      },
+      "expected": {
+        "withinDesignLimits": true
+      }
+    },
+    {
+      "id": "limit-pair_bytes",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485761,
+        "attachment_bytes": 25165824,
+        "outer_bytes": 67108864,
+        "records": 48,
+        "retired": 500,
+        "revision": 1000000000,
+        "depth": 32,
+        "nodes": 300000
+      },
+      "reject": true
+    },
+    {
+      "id": "limit-attachment_bytes",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "attachment_bytes": 25165825,
+        "outer_bytes": 67108864,
+        "records": 48,
+        "retired": 500,
+        "revision": 1000000000,
+        "depth": 32,
+        "nodes": 300000
+      },
+      "reject": true
+    },
+    {
+      "id": "limit-outer_bytes",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "attachment_bytes": 25165824,
+        "outer_bytes": 67108865,
+        "records": 48,
+        "retired": 500,
+        "revision": 1000000000,
+        "depth": 32,
+        "nodes": 300000
+      },
+      "reject": true
+    },
+    {
+      "id": "limit-records",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "attachment_bytes": 25165824,
+        "outer_bytes": 67108864,
+        "records": 49,
+        "retired": 500,
+        "revision": 1000000000,
+        "depth": 32,
+        "nodes": 300000
+      },
+      "reject": true
+    },
+    {
+      "id": "limit-retired",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "attachment_bytes": 25165824,
+        "outer_bytes": 67108864,
+        "records": 48,
+        "retired": 501,
+        "revision": 1000000000,
+        "depth": 32,
+        "nodes": 300000
+      },
+      "reject": true
+    },
+    {
+      "id": "limit-revision",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "attachment_bytes": 25165824,
+        "outer_bytes": 67108864,
+        "records": 48,
+        "retired": 500,
+        "revision": 1000000001,
+        "depth": 32,
+        "nodes": 300000
+      },
+      "reject": true
+    },
+    {
+      "id": "limit-depth",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "attachment_bytes": 25165824,
+        "outer_bytes": 67108864,
+        "records": 48,
+        "retired": 500,
+        "revision": 1000000000,
+        "depth": 33,
+        "nodes": 300000
+      },
+      "reject": true
+    },
+    {
+      "id": "limit-nodes",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "attachment_bytes": 25165824,
+        "outer_bytes": 67108864,
+        "records": 48,
+        "retired": 500,
+        "revision": 1000000000,
+        "depth": 32,
+        "nodes": 300001
+      },
+      "reject": true
+    },
+    {
+      "id": "revision-zero",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "attachment_bytes": 25165824,
+        "outer_bytes": 67108864,
+        "records": 48,
+        "retired": 500,
+        "revision": 0,
+        "depth": 32,
+        "nodes": 300000
+      },
+      "reject": true
+    },
+    {
+      "id": "negative-bytes",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": -1,
+        "attachment_bytes": 25165824,
+        "outer_bytes": 67108864,
+        "records": 48,
+        "retired": 500,
+        "revision": 1000000000,
+        "depth": 32,
+        "nodes": 300000
+      },
+      "reject": true
+    },
+    {
+      "id": "unsafe-limit",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "attachment_bytes": 25165824,
+        "outer_bytes": 67108864,
+        "records": 48,
+        "retired": 500,
+        "revision": 1000000000,
+        "depth": 32,
+        "nodes": 9007199254740992
+      },
+      "reject": true
+    },
+    {
+      "id": "fractional-limit",
+      "family": "LIMIT",
+      "input": {
+        "pair_bytes": 10485760,
+        "attachment_bytes": 25165824,
+        "outer_bytes": 67108864,
+        "records": 1.5,
+        "retired": 500,
+        "revision": 1000000000,
+        "depth": 32,
+        "nodes": 300000
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-file-kind",
+      "family": "BAD_FILE",
+      "input": {
+        "path": "kind",
+        "value": "WRONG",
+        "reseal": true
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-file-version",
+      "family": "BAD_FILE",
+      "input": {
+        "path": "version",
+        "value": "2.0",
+        "reseal": true
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-file-revision",
+      "family": "BAD_FILE",
+      "input": {
+        "path": "revision",
+        "value": 0,
+        "reseal": true
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-file-selection_id",
+      "family": "BAD_FILE",
+      "input": {
+        "path": "selection_id",
+        "value": "bad id",
+        "reseal": true
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-file-pair_snapshot_sha256",
+      "family": "BAD_FILE",
+      "input": {
+        "path": "pair_snapshot_sha256",
+        "value": "0000000000000000000000000000000000000000000000000000000000000000",
+        "reseal": true
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-file-attachment_snapshot_sha256",
+      "family": "BAD_FILE",
+      "input": {
+        "path": "attachment_snapshot_sha256",
+        "value": "0000000000000000000000000000000000000000000000000000000000000000",
+        "reseal": true
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-file-content_sha256",
+      "family": "BAD_FILE",
+      "input": {
+        "path": "content_sha256",
+        "value": "0000000000000000000000000000000000000000000000000000000000000000",
+        "reseal": false
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-file-retired_record_ids",
+      "family": "BAD_FILE",
+      "input": {
+        "path": "retired_record_ids",
+        "value": [
+          "precision-cash"
+        ],
+        "reseal": true
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-file-records",
+      "family": "BAD_FILE",
+      "input": {
+        "path": "records",
+        "value": [
+          {
+            "record_id": "precision-cash",
+            "component_record_id": "component-1",
+            "target": {
+              "mapping_id": "mapping-1",
+              "bill_id": "bill-1",
+              "line_id": "bill-line-1",
+              "cost_id": "cost-1",
+              "operation": "CREATE_NEW"
+            },
+            "channel": "cash",
+            "currency": "USD",
+            "original": {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            "choice": {
+              "kind": "ROUND",
+              "policy": {
+                "kind": "EXPLICIT",
+                "unit": "0.01",
+                "mode": "HALF_UP",
+                "basis": "  contract precision  "
+              }
+            },
+            "acknowledgement": {
+              "basis_sha256": "361887613e5f5c94e425cd4bf5006abc1b30480a39347867103f6de45e4306e5"
+            }
+          },
+          {
+            "record_id": "precision-cash",
+            "component_record_id": "component-1",
+            "target": {
+              "mapping_id": "mapping-1",
+              "bill_id": "bill-1",
+              "line_id": "bill-line-1",
+              "cost_id": "cost-1",
+              "operation": "CREATE_NEW"
+            },
+            "channel": "cash",
+            "currency": "USD",
+            "original": {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            "choice": {
+              "kind": "ROUND",
+              "policy": {
+                "kind": "EXPLICIT",
+                "unit": "0.01",
+                "mode": "HALF_UP",
+                "basis": "  contract precision  "
+              }
+            },
+            "acknowledgement": {
+              "basis_sha256": "361887613e5f5c94e425cd4bf5006abc1b30480a39347867103f6de45e4306e5"
+            }
+          }
+        ],
+        "reseal": true
+      },
+      "reject": true
+    },
+    {
+      "id": "duplicate-slot-other-id",
+      "family": "BAD_FILE",
+      "input": {
+        "path": "records",
+        "value": [
+          {
+            "record_id": "precision-cash",
+            "component_record_id": "component-1",
+            "target": {
+              "mapping_id": "mapping-1",
+              "bill_id": "bill-1",
+              "line_id": "bill-line-1",
+              "cost_id": "cost-1",
+              "operation": "CREATE_NEW"
+            },
+            "channel": "cash",
+            "currency": "USD",
+            "original": {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            "choice": {
+              "kind": "ROUND",
+              "policy": {
+                "kind": "EXPLICIT",
+                "unit": "0.01",
+                "mode": "HALF_UP",
+                "basis": "  contract precision  "
+              }
+            },
+            "acknowledgement": {
+              "basis_sha256": "361887613e5f5c94e425cd4bf5006abc1b30480a39347867103f6de45e4306e5"
+            }
+          },
+          {
+            "record_id": "precision-net",
+            "component_record_id": "component-1",
+            "target": {
+              "mapping_id": "mapping-1",
+              "bill_id": "bill-1",
+              "line_id": "bill-line-1",
+              "cost_id": "cost-1",
+              "operation": "CREATE_NEW"
+            },
+            "channel": "net",
+            "currency": "USD",
+            "original": {
+              "numerator": "1",
+              "denominator": "3"
+            },
+            "choice": {
+              "kind": "FX",
+              "to": "CNY",
+              "purpose": "COMMERCIAL_REVIEW",
+              "as_of": "2026-10-18",
+              "rate_source": {
+                "base": "USD",
+                "quote": "CNY",
+                "rate": "7.000000000000000000",
+                "type": "CONTRACT",
+                "rate_date": "2026-10-01",
+                "valid_from": "2026-10-01",
+                "valid_to": "2026-10-31",
+                "reference": "FX-SYNTHETIC"
+              },
+              "policy": {
+                "kind": "EXPLICIT",
+                "unit": "0.01",
+                "mode": "HALF_UP",
+                "basis": "  contract precision  "
+              }
+            },
+            "acknowledgement": {
+              "basis_sha256": "83395dd07630dc477a90b2b797950c99935ad7924e7f78069c8823605e23565c"
+            }
+          },
+          {
+            "record_id": "precision-extra",
+            "component_record_id": "component-1",
+            "target": {
+              "mapping_id": "mapping-1",
+              "bill_id": "bill-1",
+              "line_id": "bill-line-1",
+              "cost_id": "cost-1",
+              "operation": "CREATE_NEW"
+            },
+            "channel": "cash",
+            "currency": "USD",
+            "original": {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            "choice": {
+              "kind": "ROUND",
+              "policy": {
+                "kind": "EXPLICIT",
+                "unit": "0.01",
+                "mode": "HALF_UP",
+                "basis": "  contract precision  "
+              }
+            },
+            "acknowledgement": {
+              "basis_sha256": "361887613e5f5c94e425cd4bf5006abc1b30480a39347867103f6de45e4306e5"
+            }
+          }
+        ],
+        "reseal": true
+      },
+      "reject": true
+    },
+    {
+      "id": "reuse-retired-id",
+      "family": "BAD_FILE",
+      "input": {
+        "path": "records.0.record_id",
+        "value": "precision-retired",
+        "reseal": true
+      },
+      "reject": true
+    },
+    {
+      "id": "incoherent-embedded-pair",
+      "family": "BAD_FILE",
+      "input": {
+        "path": "pair_snapshot_json",
+        "value": "{\"pair_id\":\"pair-synthetic\",\"revision\":3,\"project\":{\"incoterm\":\"CIF\",\"quantity\":\"1\",\"market_fx\":\"7.2\",\"customs_fx\":\"7.1\",\"extension\":{\"fee_precision_selection\":{\"legacy\":\"PRIVATE_LEGACY\"}}},\"bill\":{\"review_date\":\"2026-10-18\",\"currency\":\"USD\",\"original_amount\":\"1.000000000000000000\"},\"mapping\":{\"mapping_id\":\"mapping-1\",\"bill_id\":\"bill-1\",\"line_id\":\"bill-line-1\",\"cost_id\":\"cost-1\",\"operation\":\"CREATE_NEW\"},\"retired\":[],\"business_issues\":[\"CORE_PRECISION_LOSS\",\"TAX_COMPONENT_UNVERIFIED\",\"QUOTE_INCLUSION_UNRESOLVED\",\"ORIGINAL_AMOUNT_MISMATCH\"]}\n",
+        "reseal": true
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-record-original",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-cash",
+        "path": "original",
+        "value": 1
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-record-original.numerator",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-cash",
+        "path": "original.numerator",
+        "value": "01"
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-record-original.denominator",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-cash",
+        "path": "original.denominator",
+        "value": "0"
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-record-channel",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-cash",
+        "path": "channel",
+        "value": "vat"
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-record-choice.kind",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-cash",
+        "path": "choice.kind",
+        "value": "GROUP"
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-record-choice.policy.mode",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-cash",
+        "path": "choice.policy.mode",
+        "value": "CEILING"
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-record-choice.policy.unit",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-cash",
+        "path": "choice.policy.unit",
+        "value": "0"
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-record-choice.policy.basis",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-cash",
+        "path": "choice.policy.basis",
+        "value": " "
+      },
+      "reject": true
+    },
+    {
+      "id": "unreduced-fraction",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-cash",
+        "path": "original",
+        "value": {
+          "numerator": "2",
+          "denominator": "2"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "fraction-input-over80",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-cash",
+        "path": "original",
+        "value": {
+          "numerator": "111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+          "denominator": "1"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-fx-choice.rate_source.rate",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-net",
+        "path": "choice.rate_source.rate",
+        "value": "0"
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-fx-choice.rate_source.base",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-net",
+        "path": "choice.rate_source.base",
+        "value": "EUR"
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-fx-choice.rate_source.type",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-net",
+        "path": "choice.rate_source.type",
+        "value": "CUSTOMS"
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-fx-choice.rate_source.rate_date",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-net",
+        "path": "choice.rate_source.rate_date",
+        "value": "2026-10-19"
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-fx-choice.rate_source.valid_to",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-net",
+        "path": "choice.rate_source.valid_to",
+        "value": "2026-10-17"
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-fx-choice.as_of",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-net",
+        "path": "choice.as_of",
+        "value": "2026-02-30"
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-fx-choice.to",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-net",
+        "path": "choice.to",
+        "value": "USD"
+      },
+      "reject": true
+    },
+    {
+      "id": "bad-fx-choice.purpose",
+      "family": "RECORD_MUTATION",
+      "input": {
+        "record_id": "precision-net",
+        "path": "choice.purpose",
+        "value": "CUSTOMS_COMPONENT_REVIEW"
+      },
+      "reject": true
+    },
+    {
+      "id": "ack-unknown",
+      "family": "ACK",
+      "input": {
+        "record_id": "precision-cash",
+        "channel": "customs",
+        "original": null,
+        "choice": {
+          "kind": "ROUND",
+          "policy": {
+            "kind": "EXPLICIT",
+            "unit": "0.01",
+            "mode": "HALF_UP",
+            "basis": "  contract precision  "
+          }
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "ack-unresolved",
+      "family": "ACK",
+      "input": {
+        "record_id": "precision-cash",
+        "channel": "cash",
+        "original": {
+          "numerator": "1",
+          "denominator": "1"
+        },
+        "choice": {
+          "kind": "UNRESOLVED"
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "ack-wrong-original",
+      "family": "ACK",
+      "input": {
+        "record_id": "precision-cash",
+        "channel": "cash",
+        "original": {
+          "numerator": "2",
+          "denominator": "1"
+        },
+        "choice": {
+          "kind": "ROUND",
+          "policy": {
+            "kind": "EXPLICIT",
+            "unit": "0.01",
+            "mode": "HALF_UP",
+            "basis": "  contract precision  "
+          }
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "ack-wrong-review-date",
+      "family": "ACK",
+      "input": {
+        "record_id": "precision-net",
+        "channel": "net",
+        "original": {
+          "numerator": "1",
+          "denominator": "3"
+        },
+        "choice": {
+          "kind": "FX",
+          "to": "CNY",
+          "purpose": "COMMERCIAL_REVIEW",
+          "as_of": "2026-10-19",
+          "rate_source": {
+            "base": "USD",
+            "quote": "CNY",
+            "rate": "7.000000000000000000",
+            "type": "CONTRACT",
+            "rate_date": "2026-10-01",
+            "valid_from": "2026-10-01",
+            "valid_to": "2026-10-31",
+            "reference": "FX-SYNTHETIC"
+          },
+          "policy": {
+            "kind": "EXPLICIT",
+            "unit": "0.01",
+            "mode": "HALF_UP",
+            "basis": "  contract precision  "
+          }
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "stale-lease-revision",
+      "family": "CHOICE_EDIT",
+      "input": {
+        "record_id": "precision-cash",
+        "choice": {
+          "kind": "ROUND",
+          "policy": {
+            "kind": "EXPLICIT",
+            "unit": "0.01",
+            "mode": "HALF_UP",
+            "basis": "  contract precision  "
+          }
+        },
+        "expected_revision": 2,
+        "expected_digest": "8c9fb1c4e8e52ae410ecab5b322e3772d3e45cce1b0858ab9c70ba7168b94d55"
+      },
+      "reject": true
+    },
+    {
+      "id": "stale-lease-digest",
+      "family": "CHOICE_EDIT",
+      "input": {
+        "record_id": "precision-cash",
+        "choice": {
+          "kind": "ROUND",
+          "policy": {
+            "kind": "EXPLICIT",
+            "unit": "0.01",
+            "mode": "HALF_UP",
+            "basis": "  contract precision  "
+          }
+        },
+        "expected_revision": 1,
+        "expected_digest": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "reject": true
+    },
+    {
+      "id": "rebind-identity-pair",
+      "family": "REBIND",
+      "input": {
+        "source": "pair",
+        "path": "pair_id",
+        "value": "another-pair"
+      },
+      "reject": true
+    },
+    {
+      "id": "rebind-identity-attachment",
+      "family": "REBIND",
+      "input": {
+        "source": "attachment",
+        "path": "attachment_id",
+        "value": "another-attachment"
+      },
+      "reject": true
+    },
+    {
+      "id": "delete-reuse-same-id",
+      "family": "DELETE",
+      "input": {
+        "record_id": "precision-cash",
+        "replacement": {
+          "record_id": "precision-cash",
+          "component_record_id": "component-1",
+          "target": {
+            "mapping_id": "mapping-1",
+            "bill_id": "bill-1",
+            "line_id": "bill-line-1",
+            "cost_id": "cost-1",
+            "operation": "CREATE_NEW"
+          },
+          "channel": "cash",
+          "currency": "USD",
+          "original": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "choice": {
+            "kind": "ROUND",
+            "policy": {
+              "kind": "EXPLICIT",
+              "unit": "0.01",
+              "mode": "HALF_UP",
+              "basis": "  contract precision  "
+            }
+          },
+          "acknowledgement": {
+            "basis_sha256": "361887613e5f5c94e425cd4bf5006abc1b30480a39347867103f6de45e4306e5"
+          }
+        }
+      },
+      "reject": true
+    },
+    {
+      "id": "new-business-old-id",
+      "family": "TRANSFER",
+      "input": {
+        "action": "NEW_BUSINESS",
+        "new_id": "precision-synthetic"
+      },
+      "reject": true
+    },
+    {
+      "id": "open-bad-token-type",
+      "family": "OPEN",
+      "input": {
+        "version": "1.0",
+        "valid_file": true,
+        "token_current": 1,
+        "lease_current": true
+      },
+      "reject": true
+    },
+    {
+      "id": "draft-bad-boolean",
+      "family": "DRAFT",
+      "input": {
+        "same_id": true,
+        "same_sources": true,
+        "same_lease": true,
+        "same_raw": true,
+        "valid": true,
+        "conflict": "false",
+        "storage_ok": true
+      },
+      "reject": true
+    },
+    {
+      "id": "coherent-outer-but-wrong-inner-text",
+      "family": "BAD_SOURCE",
+      "input": {
+        "path": "pair_snapshot_json",
+        "value": "{\"pair_id\":\"pair-synthetic\",\"revision\":3,\"project\":{\"incoterm\":\"CIF\",\"quantity\":\"1\",\"market_fx\":\"7.2\",\"customs_fx\":\"7.1\",\"extension\":{\"fee_precision_selection\":{\"legacy\":\"PRIVATE_LEGACY\"}}},\"bill\":{\"review_date\":\"2026-10-18\",\"currency\":\"USD\",\"original_amount\":\"1.000000000000000000\"},\"mapping\":{\"mapping_id\":\"mapping-1\",\"bill_id\":\"bill-1\",\"line_id\":\"bill-line-1\",\"cost_id\":\"cost-1\",\"operation\":\"CREATE_NEW\"},\"retired\":[],\"business_issues\":[\"CORE_PRECISION_LOSS\",\"TAX_COMPONENT_UNVERIFIED\",\"QUOTE_INCLUSION_UNRESOLVED\",\"ORIGINAL_AMOUNT_MISMATCH\"]}\n"
+      },
+      "reject": true
+    },
+    {
+      "id": "coherent-outer-but-wrong-inner-digest",
+      "family": "BAD_SOURCE",
+      "input": {
+        "path": "pair_snapshot_sha256",
+        "value": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "reject": true
+    },
+    {
+      "id": "revision-ceiling-no-op",
+      "family": "REVISION_CEILING",
+      "input": {
+        "action": "NO_OP"
+      },
+      "expected": {
+        "revision": 1000000000,
+        "changed": false
+      }
+    },
+    {
+      "id": "revision-ceiling-EDIT",
+      "family": "REVISION_CEILING",
+      "input": {
+        "action": "EDIT"
+      },
+      "reject": true
+    },
+    {
+      "id": "revision-ceiling-ACK",
+      "family": "REVISION_CEILING",
+      "input": {
+        "action": "ACK"
+      },
+      "reject": true
+    },
+    {
+      "id": "revision-ceiling-DELETE",
+      "family": "REVISION_CEILING",
+      "input": {
+        "action": "DELETE"
+      },
+      "reject": true
+    },
+    {
+      "id": "revision-ceiling-REBIND",
+      "family": "REVISION_CEILING",
+      "input": {
+        "action": "REBIND"
+      },
+      "reject": true
+    }
+  ]
+}
