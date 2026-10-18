@@ -23,7 +23,7 @@
 
 第六十二轮的[独立成分工作区](https://github.com/codeding-101/COCUDTT/blob/main/docs/fee-tax-attachment-workspace-validation.md)继续可用，入口是“高级设置 → 费用与税务成分 · 独立内部假设”。先在配对面板捕获当前完整修订，再创建附件、选择映射并明确取用原币事实；未提交编辑不进入导出，数据未知不补零，假设不写项目费用或税基。
 
-第六十五轮完成[精度选择记录设计](https://github.com/codeding-101/COCUDTT/blob/main/docs/fee-precision-selection-design-validation.md)：拟议独立1.0，完整配对与成分附件双来源绑定、单成分/通道槽位、局部编辑和来源变更失效、同身份重绑、另存/新业务及草稿恢复边界。独立检查81有效/60拒绝，另有50来源和51政策指纹字段变更及4固定SHA-256向量；它们不计入应用测试总数。**这是实现前设计，尚无新文件解析器或工作台精度入口。**第六十四轮[独立精度API](https://github.com/codeding-101/COCUDTT/blob/main/docs/fee-precision-module-validation.md)及完整90文件3495项测试保持。下一轮先实现独立严格文件模块，重验真实完整配对与原成分，处理租约、失效/重绑、新业务空记录及离线Schema/模板；之后再接控制器、草稿、内部输出与工作台，费用原子应用及失败回滚最后验收。
+第六十六轮完成[精度选择独立文件模块](https://github.com/codeding-101/COCUDTT/blob/main/docs/fee-precision-selection-file-validation.md)：独立1.0严格JSON、完整配对与成分附件原文/指纹、原成分重算、唯一槽位、政策回执与变更失效、同身份重绑及新业务空记录。新增168项、完整93文件3663项；[离线Schema](https://github.com/codeding-101/COCUDTT/blob/main/schemas/fee-precision-selection-1.0.schema.json)与两份固定合成模板已生成。**当前为独立开发API，尚无工作台精度选择、自动草稿或费用应用。**模板均绑定合成来源，空模板只表示精度记录为空；政策回执不清除原税务/金额/CORE精度待办。下一阶段实现独立交接控制器、已提交文件与未提交编辑的草稿、冻结保存/迟到读取/冲突恢复，以及内部审计和客户隔离；再接工作台与离线窄屏流程，费用原子应用和失败回滚最后验收。
 
 ## 解决什么问题
 
