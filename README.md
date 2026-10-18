@@ -23,7 +23,7 @@
 
 第六十二轮的[独立成分工作区](https://github.com/codeding-101/COCUDTT/blob/main/docs/fee-tax-attachment-workspace-validation.md)继续可用，入口是“高级设置 → 费用与税务成分 · 独立内部假设”。先在配对面板捕获当前完整修订，再创建附件、选择映射并明确取用原币事实；未提交编辑不进入导出，数据未知不补零，假设不写项目费用或税基。
 
-第六十六轮完成[精度选择独立文件模块](https://github.com/codeding-101/COCUDTT/blob/main/docs/fee-precision-selection-file-validation.md)：独立1.0严格JSON、完整配对与成分附件原文/指纹、原成分重算、唯一槽位、政策回执与变更失效、同身份重绑及新业务空记录。新增168项、完整93文件3663项；[离线Schema](https://github.com/codeding-101/COCUDTT/blob/main/schemas/fee-precision-selection-1.0.schema.json)与两份固定合成模板已生成。**当前为独立开发API，尚无工作台精度选择、自动草稿或费用应用。**模板均绑定合成来源，空模板只表示精度记录为空；政策回执不清除原税务/金额/CORE精度待办。下一阶段实现独立交接控制器、已提交文件与未提交编辑的草稿、冻结保存/迟到读取/冲突恢复，以及内部审计和客户隔离；再接工作台与离线窄屏流程，费用原子应用和失败回滚最后验收。
+第六十七轮完成[精度文件交接与内部审计模块](https://github.com/codeding-101/COCUDTT/blob/main/docs/fee-precision-selection-controller-validation.md)：已提交文件与未提交编辑的两份草稿、完整租约/双来源/槽位核对、冻结保存、迟到读取与冲突恢复，内部JSON/HTML/Excel保留原值/候选/差额/完整审计。新增89项、完整97文件3752项；两种版式真实客户HTML/XLSX/PDF与未注入完整内部资料的基准文件一致。**当前为独立开发API，尚无工作台精度选择、全局自动草稿或费用应用。**已有独立文件1.0、Schema和两份固定合成模板保持；政策回执不消除原税务/金额/CORE精度待办，存储不是双槽原子事务。下一阶段接入工作台精度面板，贯通完整双来源捕获、政策编辑、明确采用/另存、草稿恢复与冲突备份、内部审计及客户隔离；通过离线真实下载、故障竞态和320px流程后再公开启用，费用原子应用与失败回滚最后验收。
 
 ## 解决什么问题
 
