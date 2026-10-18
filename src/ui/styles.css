@@ -872,3 +872,13 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
 .fee-tax-channels dd { margin:0; font-size:1.15rem; font-variant-numeric:tabular-nums; }
 .fee-tax-channels dt { font-size:.85rem; color:var(--muted,#526070); }
 @media(max-width:600px) { .fee-tax-channels,.fee-tax-workspace .panel-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .fee-tax-workspace fieldset { padding:.65rem; } }
+.fee-precision-workspace { min-width:0; overflow-wrap:anywhere; }
+.fee-precision-workspace button { min-height:44px; white-space:normal; }
+.fee-precision-workspace input,.fee-precision-workspace select { min-width:0; max-width:100%; }
+.fee-precision-workspace .pair-original { max-width:100%; white-space:pre-wrap; overflow-wrap:anywhere; }
+.fee-precision-record,.fee-precision-confirm { border:1px solid var(--line,#d4dce5); border-radius:6px; padding:1rem; margin:1rem 0; }
+.fee-precision-confirm { background:var(--surface-alt,#f4f6f8); }
+.fee-precision-values { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.75rem; }
+.fee-precision-values dd { margin:0; font-size:1.15rem; font-variant-numeric:tabular-nums; }
+.fee-precision-values dt { font-size:.85rem; color:var(--muted,#526070); }
+@media(max-width:600px) { .fee-precision-values,.fee-precision-workspace .panel-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } }

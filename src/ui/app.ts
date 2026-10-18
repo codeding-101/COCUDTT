@@ -88,6 +88,8 @@ import {serializeContainerBillDraft} from '../data/container-bill-file.js';
 import {serializeContainerCostPair} from '../data/container-cost-pair.js';
 import {FeeTaxAttachmentWorkspace} from './fee-tax-attachment-workspace.js';
 import {FEE_TAX_ATTACHMENT_STORAGE_KEYS} from './fee-tax-attachment-controller.js';
+import {FeePrecisionSelectionWorkspace} from './fee-precision-selection-workspace.js';
+import {FEE_PRECISION_SELECTION_STORAGE_KEYS} from './fee-precision-selection-controller.js';
 
 const DRAFT_KEY = 'trade-cost-engine:draft-v1';
 
@@ -225,7 +227,16 @@ const containerPair=new ContainerCostPairController({project:()=>currentProject(
 const feeTaxWorkspace=new FeeTaxAttachmentWorkspace({
  storage:{getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value)},
  currentPairText:()=>!stateInitialized||pendingCalculation||!containerPair.pair||containerPair.editor||containerPair.reviewEditor||containerPair.liveIssues().length?null:serializeContainerCostPair(containerPair.pair),
- blocked:()=>recoveryStage!==null,write:writeFeeTaxFile,
+ blocked:()=>recoveryStage!==null,write:writeFeeTaxFile,onChange:()=>feePrecisionWorkspace.refresh(),
+});
+const feePrecisionWorkspace=new FeePrecisionSelectionWorkspace({
+ storage:{getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value)},
+ currentSources:()=>{
+  if(!stateInitialized||pendingCalculation||!containerPair.pair||containerPair.editor||containerPair.reviewEditor||containerPair.liveIssues().length)return null;
+  const s=feeTaxWorkspace.controller.state(),a=s.attachment,pair_json=serializeContainerCostPair(containerPair.pair);
+  if(!a||s.editor||s.mutation_busy||a.pair_snapshot_json!==pair_json)return null;
+  return{pair_json,attachment_json:JSON.stringify(a,null,2)+'\n'};
+ },blocked:()=>recoveryStage!==null,write:writeFeeTaxFile,
 });
 async function writeFeeTaxFile(name:string,data:string|Uint8Array<ArrayBuffer>,mime:string):Promise<'SAVED'|'DOWNLOAD_STARTED'>{
  const blob=new Blob([data],{type:mime}),picker=(window as SaveFilePickerWindow).showSaveFilePicker;
@@ -304,12 +315,14 @@ function backupRecovery(): void {
   let editorDraftText:string|null=null;
   let reviewDraftText:string|null=null;
   const feeTaxRaw:Record<string,string|null>={};
+  const feePrecisionRaw:Record<string,string|null>={};
   try { draft = localStorage.getItem(DRAFT_KEY); } catch { /* Memory backup remains available. */ }
   try{billDraftText=localStorage.getItem(BILL_STORAGE_KEY);}catch{/* Raw memory bill remains available. */}
   try{pairDraftText=localStorage.getItem(PAIR_STORAGE_KEY);}catch{/* Raw pair remains in memory. */}
   try{editorDraftText=localStorage.getItem(COST_EDITOR_STORAGE_KEY);}catch{/* Raw editor remains in memory. */}
   try{reviewDraftText=localStorage.getItem(REVIEW_EDITOR_STORAGE_KEY);}catch{/* Raw review editor remains in memory. */}
   for(const [slot,key] of Object.entries(FEE_TAX_ATTACHMENT_STORAGE_KEYS)){try{feeTaxRaw[slot]=localStorage.getItem(key);}catch{/* In-memory attachment remains available. */}}
+  for(const [slot,key] of Object.entries(FEE_PRECISION_SELECTION_STORAGE_KEYS)){try{feePrecisionRaw[slot]=localStorage.getItem(key);}catch{/* In-memory precision file remains available. */}}
   try {
     // Raw inputs, including uncommitted FX rows, without running any calculation/validator.
     const text = JSON.stringify({kind:'INTERNAL_RECOVERY_SNAPSHOT',version:'1.0',stage:recoveryStage,
@@ -321,6 +334,7 @@ function backupRecovery(): void {
       ...(reviewDraftText&&reviewDraftText!=='null'?{container_review_editor_draft_text:reviewDraftText}:{}),
       ...(containerPair.copyCandidate?{container_business_copy:containerPair.copyCandidate.pair}:{}),
       ...(feeTaxWorkspace.controller.state().attachment||feeTaxWorkspace.controller.state().editor||Object.values(feeTaxRaw).some(v=>v&&v!=='null')?{fee_tax_attachment_memory:feeTaxWorkspace.controller.state().attachment,fee_tax_attachment_editor:feeTaxWorkspace.controller.state().editor,fee_tax_attachment_raw:feeTaxRaw}:{}),
+      ...(feePrecisionWorkspace.controller.state().selection||feePrecisionWorkspace.controller.state().editor||Object.values(feePrecisionRaw).some(v=>v&&v!=='null')?{fee_precision_selection_memory:feePrecisionWorkspace.controller.state().selection,fee_precision_selection_editor:feePrecisionWorkspace.controller.state().editor,fee_precision_selection_raw:feePrecisionRaw}:{}),
       ...(editorDraftText&&editorDraftText!=='null'?{container_cost_editor_draft_text:editorDraftText}:{})},null,2) + '\n';
     downloadText('internal-recovery-snapshot.json',text);
     showRecoveryView(recoveryStage,{retry:retryInterface,backup:backupRecovery},'已发起内部恢复备份下载，请确认文件已保存；原项目与草稿未改写');
@@ -1401,6 +1415,7 @@ function renderApp(): void {
       ${renderHsPanel(state.project)}
       ${renderTransportLinkControls(state.project)}
       ${feeTaxWorkspace.render()}
+      ${feePrecisionWorkspace.render()}
       </div></details>
       <div class="workspace-section-label"><h2>业务资料与交接</h2><p>按实际需要展开。独立账单、付款计划与核对记录不自动写入交易成本。</p></div>
       ${renderSettlementPanel(currentProject(), settlementPlan, state.result, settlementBusy)}
@@ -1448,6 +1463,7 @@ function renderApp(): void {
   });
   mobileSettings.afterRender();
   feeTaxWorkspace.afterRender();
+  feePrecisionWorkspace.afterRender();
   if(!mobileReset)restoreFocus(focused);
   fieldHelp.afterRender();
   onboarding.afterRender();
@@ -1504,7 +1520,7 @@ function bind(): void {
   const calculationInput = (target: HTMLInputElement): boolean => target.type!=='file' &&
     (target.dataset.quickCostField==='amount'||['path','itemField','fxField','hsField','contractField','logisticsField'].some(key=>target.dataset[key]!==undefined));
   const customerText=(target:unknown):target is HTMLTextAreaElement=>typeof HTMLTextAreaElement!=='undefined'&&target instanceof HTMLTextAreaElement&&CUSTOMER_QUOTE_FIELDS.some(key=>key===target.dataset.customerField);
-  const commitsInput=(action:string):boolean=>['save','open','toggle-file-menu','show-field-help','show-quick-costs','show-cost-settings','show-full-results','show-calculation-learning','learning-target','show-mobile-settings','close-mobile-settings','locate-workspace-issue','locate-input','locate-input-review','show-onboarding','customer-view','show-project-templates'].includes(action)||action.startsWith('mode-')||action.startsWith('recent-')||action.startsWith('fee-tax-');
+  const commitsInput=(action:string):boolean=>['save','open','toggle-file-menu','show-field-help','show-quick-costs','show-cost-settings','show-full-results','show-calculation-learning','learning-target','show-mobile-settings','close-mobile-settings','locate-workspace-issue','locate-input','locate-input-review','show-onboarding','customer-view','show-project-templates'].includes(action)||action.startsWith('mode-')||action.startsWith('recent-')||action.startsWith('fee-tax-')||action.startsWith('fee-precision-');
   const flushInput=():void=>{
     const active=document.activeElement;
     if((active instanceof HTMLInputElement||customerText(active))&&(editedControl===active||active instanceof HTMLInputElement&&pendingCalculation&&calculationInput(active)))active.dispatchEvent(new Event('change',{bubbles:true}));
@@ -1515,16 +1531,19 @@ function bind(): void {
     window.addEventListener('storage',event=>runUi('INTERACTION',()=>{
       if((event.key===RECENT_PROJECTS_KEY||event.key===null)&&(!event.storageArea||event.storageArea===localStorage))recentProjects.externalChange();
       if(!event.storageArea||event.storageArea===localStorage)feeTaxWorkspace.storageChanged(event.key);
+      if(!event.storageArea||event.storageArea===localStorage)feePrecisionWorkspace.storageChanged(event.key);
     }));boundEvents.add('recent-storage');
   }
   listen('input',event=>{
     const target=event.target;if(target instanceof HTMLElement&&target.dataset.recentField!==undefined)return;
     if(target instanceof HTMLInputElement&&target.dataset.feeTaxField!==undefined){editedControl=target;feeTaxWorkspace.field(target.dataset.feeTaxField,target.value,true);return;}
+    if(target instanceof HTMLInputElement&&target.dataset.feePrecisionField!==undefined){editedControl=target;feePrecisionWorkspace.field(target.dataset.feePrecisionField,target.value,true);return;}
     invalidateRecentProjects();
     if(target instanceof HTMLInputElement&&target.type!=='file'&&target.dataset.customerField!=='reviewed'||customerText(target))editedControl=target;
     if(customerText(target)){customerReviewed=false;const reviewed=document.querySelector<HTMLInputElement>('[data-customer-field="reviewed"]');if(reviewed)reviewed.checked=false;document.querySelectorAll<HTMLButtonElement>('[data-action="export-customer-quote"],[data-action="export-customer-xlsx"],[data-action="export-customer-pdf"],[data-action="export-bilingual-summary"]').forEach(e=>e.disabled=true);return;}
     if(!(target instanceof HTMLInputElement)||!calculationInput(target))return;
     pendingCalculation=true;
+    feePrecisionWorkspace.refresh();
     const workspace=document.querySelector<HTMLElement>('[data-workspace-mode]');if(workspace)workspace.dataset.calculationPending='true';
     const status=document.querySelector<HTMLElement>('[data-calculation-status]');if(status)status.textContent='输入已变更 · 待更新';
     document.querySelectorAll<HTMLButtonElement>('[data-action^="export-"],[data-action="preview-customer-quote"]').forEach(button=>button.disabled=true);
@@ -1575,6 +1594,8 @@ function bind(): void {
   listen('change', (event) => {
     const target = event.target;
     if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement)&&target.dataset.feeTaxField!==undefined){if(editedControl===target)editedControl=null;feeTaxWorkspace.field(target.dataset.feeTaxField,target.value);return;}
+    if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement)&&target.dataset.feePrecisionField!==undefined){if(editedControl===target)editedControl=null;feePrecisionWorkspace.field(target.dataset.feePrecisionField,target.value);return;}
+    if(target instanceof HTMLInputElement&&target.id==='fee-precision-file-input'){const file=target.files?.[0];if(file)void feePrecisionWorkspace.controller.openFile(file);return;}
     if(target instanceof HTMLInputElement&&target.id==='fee-tax-file-input'){const file=target.files?.[0];if(file)void feeTaxWorkspace.controller.openFile(file);return;}
     if(target instanceof HTMLInputElement&&target.dataset.recentField!==undefined){
       const {recentField,recentGeneration}=target.dataset,checked=target.checked;
@@ -1735,6 +1756,7 @@ function bind(): void {
     const action = target.dataset.action;
     if (action === undefined) return;
     if(action.startsWith('fee-tax-')){flushInput();expandedEvidenceSections.add('fee-tax-attachment');void feeTaxWorkspace.action(action,target.dataset);return;}
+    if(action.startsWith('fee-precision-')){flushInput();expandedEvidenceSections.add('fee-precision-selection');void feePrecisionWorkspace.action(action,target.dataset);return;}
     if(['show-mobile-settings','show-cost-settings','locate-workspace-issue','locate-input','locate-input-review'].includes(action))mobileSettings.remember(target);
     if(commitsInput(action))flushInput();
     if(pendingCalculation&&(action==='save'||action.startsWith('export-')||action==='preview-customer-quote'||action.startsWith('mode-')||action==='show-calculation-learning'||action==='learning-target'))return;

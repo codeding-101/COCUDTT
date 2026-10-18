@@ -73,6 +73,10 @@ const feeTaxUi=read(join(root,'src/ui/fee-tax-attachment-workspace.ts'));
 if(!appTs.includes("action.startsWith('fee-tax-')")||!appTs.includes('target.dataset.feeTaxField!==undefined'))problems.push('[成分附件工作区未接入] 缺少动作或字段入口');
 const feeTaxHandled=matchAll(feeTaxUi,/\b(?:key|action)==='([a-z-]+)'/g);
 for(const action of matchAll(feeTaxUi,/(?:b|button)\('([a-z-]+)'/g)){renderedActions.add('fee-tax-'+action);if(feeTaxHandled.has(action))handledActions.add('fee-tax-'+action);}
+const precisionUi=read(join(root,'src/ui/fee-precision-selection-workspace.ts'));
+if(!appTs.includes("action.startsWith('fee-precision-')")||!appTs.includes('target.dataset.feePrecisionField!==undefined'))problems.push('[精度工作区未接入] 缺少动作或字段入口');
+const precisionHandled=matchAll(precisionUi,/\b(?:key|p\.action)==='([a-z-]+)'/g);
+for(const action of matchAll(precisionUi,/(?:b|button)\('([a-z-]+)'/g)){renderedActions.add('fee-precision-'+action);if(precisionHandled.has(action))handledActions.add('fee-precision-'+action);}
 const recentUi=read(join(root,'src/ui/recent-projects.ts')),recentController=read(join(root,'src/ui/recent-projects-controller.ts'));
 for(const action of matchAll(recentUi,/\bbutton\('([a-z-]+)'/g))renderedActions.add(action);
 for(const field of matchAll(recentUi,/data-recent-field="([a-z]+)"/g))if(!appTs.includes('target.dataset.recentField!==undefined')||!recentController.includes(`field === '${field}'`))problems.push(`[最近项目字段未处理] ${field}`);

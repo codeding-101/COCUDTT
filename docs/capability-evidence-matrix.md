@@ -1,6 +1,6 @@
 # 能力与验证证据矩阵
 
-2026-10-18，第六十七轮。面向中国一般贸易进口、单商品一票的本地内部测算工具。本文说明程序做了什么、用什么验证，以及没有证明什么；不以测试数量代替法规、真实业务或专业认证。
+2026-10-18，第六十八轮。面向中国一般贸易进口、单商品一票的本地内部测算工具。本文说明程序做了什么、用什么验证，以及没有证明什么；不以测试数量代替法规、真实业务或专业认证。
 
 ## 五条验收轴
 
@@ -28,7 +28,7 @@
 | 内部/客户导出：已启用 | [客户测试](../tests/customer-quote.test.ts)、[Excel测试](../tests/workbook-export.test.ts)、[PDF测试](../tests/customer-pdf.test.ts)、[双版式验收](customer-views-validation.md) | 客户公开白名单与内部资料隔离，HTML/XLSX/PDF/固定双语；自由条款不自动认证翻译，文件下载受浏览器限制，打印分页非真实设备验收 |
 | 项目文件、恢复与快照：已启用 | [文件测试](../tests/project-file.test.ts)、[真实事件](../tests/project-io.test.ts)、[快照测试](../tests/recent-projects-ui.test.ts)、[快照接入](recent-projects-ui-validation.md) | 版本/扩展保护、异常原文、独立资料、手动3份快照；本机缓存非备份，不承诺跨标签原子事务 |
 | 新手、专业与移动界面：已启用 | [工作台测试](../tests/workspace.test.ts)、[移动设置测试](../tests/mobile-settings.test.ts)、[引导验收](onboarding-validation.md) | 核心输入/具体修错/待更新、键盘和模拟窄屏；真实手机、系统文件分享、辅助技术全面验收未完成 |
-| 成分假设与独立精度API已实现；运行选择和费用应用未启用 | [只读核对测试](../tests/container-cost-review.test.ts)、[设计反例](container-cost-review-design.md)、[阶段目标](development-stages.md) | 已有只读待办不等于经济成本、海关金额或税额已确定；[成分设计](fee-tax-components-design.md)已通过31手算/45拒绝/200对照，独立成分模块和内部工作区已实现；[精度设计](fee-precision-design.md)、[固定合成向量](cases/fee-precision-design.json)与[独立检查器](../tools/check-fee-precision-design.mjs)核对原值/差额/守恒/换算边界，[纯数值模块](../src/engine/fee-precision.ts)、[计算测试](../tests/fee-precision.test.ts)和[边界测试](../tests/fee-precision-boundaries.test.ts)已完成，尚无工作台精度入口或费用应用事务 |
+| 成分假设与精度选择工作台已接入；费用应用未启用 | [只读核对测试](../tests/container-cost-review.test.ts)、[设计反例](container-cost-review-design.md)、[阶段目标](development-stages.md) | 已有只读待办不等于经济成本、海关金额或税额已确定；[成分设计](fee-tax-components-design.md)已通过31手算/45拒绝/200对照，独立成分模块和内部工作区已实现；[精度设计](fee-precision-design.md)、[固定合成向量](cases/fee-precision-design.json)与[独立检查器](../tools/check-fee-precision-design.mjs)核对原值/差额/守恒/换算边界，[纯数值模块](../src/engine/fee-precision.ts)、[计算测试](../tests/fee-precision.test.ts)和[边界测试](../tests/fee-precision-boundaries.test.ts)已完成，[精度工作台](fee-precision-selection-workspace-validation.md)已接入，完整双来源、原值/候选/差额及原待办分别核对，尚无费用应用事务 |
 
 ## 工程边界与可复现入口
 
@@ -47,3 +47,6 @@ flowchart LR
 固定案例从[操作说明](china-import-walkthrough.md)开始，或离线打开[演示页面](../china-import-walkthrough.html)。开发环境执行 `node node_modules/vitest/vitest.mjs run tests/china-import-walkthrough.test.ts` 对照固定答案，再执行 `node tools/build-import-walkthrough.mjs --check` 检查HTML和内嵌项目字节。全套测试、类型、绑定、独立设计基准、离线构建和版本化资源比对由[双平台CI](../.github/workflows/quality.yml)执行。
 
 简历可以说明：本地优先、明确领域边界、独立手算与回归、版本化文件、客户/内部隔离和可追溯核对。不能写“支持全球税制”“生产级合规认证”“真实报关准确率100%”或把测试数量当作业务正确率。第五十八轮已完成独立只读成分模块，见[验收](fee-tax-components-module-validation.md)。第六十七轮[交接模块](fee-precision-selection-controller-validation.md)已完成。下一阶段接入工作台精度面板，贯通完整双来源捕获、政策编辑、明确采用/另存、草稿恢复与冲突备份、内部审计及客户隔离；通过离线真实下载、故障竞态和320px流程后再公开启用，费用原子应用与失败回滚最后验收。
+
+
+第六十八轮完成[工作台精度政策与交接](fee-precision-selection-workspace-validation.md)：高级设置中的原成分/通道选择、ROUND/FX明确政策、原值/候选/带符号差额，完整双来源失配与原业务待办分别呈现；明确采用/恢复、两份草稿、冲突备份和内部HTML/Excel贯通。新增41项、完整98文件3793项；39套浏览器流程及精度40项检查，离线原生下载、故障恢复与320px指针输入验证。政策不应用费用或清除CORE精度/税务待办，原计算、文件1.0、Schema和模板保持。 下一阶段先设计费用应用事务：明确成分/通道到费用字段的映射、包含及重叠、防重复、稳定ID、来源失效、旧格式与整批失败回滚；固定合成反例和独立检查器通过后，再实现独立应用提案，最后接明确预览及原子写入。
