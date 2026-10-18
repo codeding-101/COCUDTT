@@ -1,0 +1,7 @@
+import type {JsonSchema} from './project-validation.js';
+/** Outer shape only. Runtime validates all nested formats, hashes, roles and history. */
+export function feeEnvelopeSchema():JsonSchema{
+ const object=(properties:Record<string,unknown>)=>({type:'object',properties,required:Object.keys(properties),additionalProperties:false});
+ const id={type:'string',minLength:1,maxLength:400,pattern:'\\S',not:{enum:['__proto__','constructor','prototype']}},digest={type:'string',pattern:'^[0-9a-f]{64}$'},raw={type:'string'},optional={type:['string','null']};
+ return{$schema:'http://json-schema.org/draft-07/schema#',$id:'urn:cocudtt:internal-fee-application-envelope:1.0',title:'COCUDTT internal fee envelope 1.0',description:'Independent read-only file. Schema checks outer shape only; runtime checks nested duplicate keys, UTF-8/UTF-16, fingerprints, archive closure and roles, complete source reviews, historical project changes and identity. No financial writes or real-order certification.',...object({kind:{const:'INTERNAL_FEE_APPLICATION_ENVELOPE'},version:{const:'1.0'},envelope_id:id,business_id:id,revision:{type:'integer',minimum:1,maximum:1000000000},history_origin:{enum:['NEW_DECLARED','UNKNOWN_IMPORTED']},current_sources:object({project_json:raw,bill_json:raw,pair_json:optional,attachment_json:optional,precision_json:optional}),ledger_json:raw,archives:{type:'array',maxItems:512,items:object({sha256:digest,raw_json:raw})},content_sha256:digest})};
+}
