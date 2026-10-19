@@ -1,3 +1,4 @@
+import{withDocumentNavigation}from'./browser-document.mjs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -18,7 +19,7 @@ const ws=new WebSocket(targets.find(t=>t.type==='page'&&!t.url.startsWith('edge:
 await new Promise((resolve,reject)=>{ws.onopen=resolve;ws.onerror=reject});
 let next=0;const pending=new Map(),exceptions=[],requests=[];
 ws.onmessage=event=>{const r=JSON.parse(event.data);if(r.method==='Runtime.exceptionThrown')exceptions.push(r.params.exceptionDetails.text);if(r.method==='Network.requestWillBeSent')requests.push(r.params.request.url);const p=pending.get(r.id);if(p){pending.delete(r.id);r.error?p.reject(Error(JSON.stringify(r.error))):p.resolve(r.result)}};
-const call=(method,params={})=>new Promise((resolve,reject)=>{const id=++next;pending.set(id,{resolve,reject});ws.send(JSON.stringify({id,method,params}))});
+const call=withDocumentNavigation((method,params={})=>new Promise((resolve,reject)=>{const id=++next;pending.set(id,{resolve,reject});ws.send(JSON.stringify({id,method,params}))}));
 async function evaluate(expression){const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;}
 async function until(expression){for(let n=0;n<80;n++){if(await evaluate(expression))return;await new Promise(r=>setTimeout(r,100))}throw Error(expression)}
 async function upload(id,text){await evaluate(`(()=>{const e=document.querySelector('#${id}'),d=new DataTransfer();d.items.add(new File([${JSON.stringify(text)}],'synthetic.json',{type:'application/json'}));e.files=d.files;e.dispatchEvent(new Event('change',{bubbles:true}));})()`);await new Promise(r=>setTimeout(r,150));}
