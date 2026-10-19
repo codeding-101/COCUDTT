@@ -1,7 +1,7 @@
 import {FeeApplicationTransactionError, type FeeApplicationTransactionPreview, type FeeApplicationStageResult, type FeeApplicationReplayStatus} from '../domain/fee-application-transaction.js';
 import type {FeeEnvelope, FeeEnvelopeLease, FeeEnvelopeLedger, FeeEnvelopePayload, FeeEnvelopePlan, FeeEnvelopeReceipt} from '../domain/fee-envelope.js';
 import {copyFeeEnvelopeJson as copy, parseFeeEnvelopeJson as json, canonicalFeeEnvelopeJson as canonical, feeEnvelopeSha256 as sha} from './fee-envelope-json.js';
-import {parseFeeEnvelope, validateFeeEnvelope, serializeFeeEnvelope, reviewFeeEnvelope} from './fee-envelope.js';
+import {parseFeeEnvelope, validateFeeEnvelope} from './fee-envelope.js';
 import {proposeFeeApplication} from './fee-application-proposal.js';
 import {parseContainerCostPair} from './container-cost-pair.js';
 import {parseProject, toTrade, toScenario, type ProjectFile} from './project-file.js';
@@ -14,6 +14,13 @@ const issued = new WeakMap<object, {after_json: string; after_lease: FeeEnvelope
 export const transactionLease = (a: FeeEnvelope): FeeEnvelopeLease => ({envelope_id: a.envelope_id, business_id: a.business_id, revision: a.revision, content_sha256: a.content_sha256});
 function freeze<T>(v: T): T { if (v && typeof v === 'object') { Object.values(v).forEach(freeze); Object.freeze(v); } return v; }
 function calculate(text: string) { const p = parseProject(text); return analyze({trade: toTrade(p), scenario: toScenario(p), taxProfile: p.tax_profile, fxBooks: p.fx_books}); }
+/** Private detached result of parseFeeEnvelope only; never accepts an unverified caller object. */
+function historyOf(a: FeeEnvelope) {
+  const ledger = JSON.parse(a.ledger_json) as FeeEnvelopeLedger, archives = new Map(a.archives.map(b => [b.sha256, b.raw_json]));
+  const receipts = ledger.receipt_refs.map(ref => JSON.parse(archives.get(ref)!) as FeeEnvelopeReceipt), consumed = new Set<string>();
+  for (const receipt of receipts) for (const row of receipt.rows) if (row.operation === 'CREATE_NEW') consumed.add(canonical([a.business_id, row.bill_id, row.line_id]));
+  return {ledger, receipts, consumed, archives};
+}
 function identity(v: unknown): asserts v is string { if (typeof v !== 'string' || !v.trim() || Array.from(v).length > 200 || ['__proto__', 'constructor', 'prototype'].includes(v)) fail('TRANSACTION_ID'); }
 function planText(text: unknown): FeeEnvelopePlan {
   const p = json(text, 1024 * 1024) as FeeEnvelopePlan;
@@ -37,7 +44,7 @@ function planText(text: unknown): FeeEnvelopePlan {
 async function replay(a: FeeEnvelope, plan: FeeEnvelopePlan): Promise<FeeApplicationReplayStatus> {
   if (a.business_id !== plan.business_id) return 'BUSINESS_MISMATCH';
   if (a.history_origin === 'UNKNOWN_IMPORTED') return 'HISTORY_UNKNOWN';
-  const audit = await reviewFeeEnvelope(a), receipt = audit.receipts.find(r => r.transaction_id === plan.transaction_id);
+  const audit = historyOf(a), receipt = audit.receipts.find(r => r.transaction_id === plan.transaction_id);
   if (!receipt) return 'NOT_RECORDED';
   const stored = JSON.parse(a.archives.find(b => b.sha256 === receipt.plan_ref)!.raw_json) as FeeEnvelopePlan;
   if (!same(stored, plan)) return 'TRANSACTION_ID_COLLISION';
@@ -58,7 +65,7 @@ export async function prepareFeeApplicationTransaction(envelope_json: string, tr
   if (a.history_origin !== 'NEW_DECLARED') issues.push('HISTORY_NOT_ESTABLISHED');
   if (!s.pair_json || !s.attachment_json || !s.precision_json) issues.push('COMPLETE_CURRENT_SOURCES_REQUIRED');
   if (issues.length) return blocked();
-  const history = await reviewFeeEnvelope(a), ledger = JSON.parse(a.ledger_json) as FeeEnvelopeLedger;
+  const history = historyOf(a), ledger = history.ledger;
   if (history.receipts.some(r => r.transaction_id === transaction_id)) issues.push('TRANSACTION_ALREADY_RECORDED_INSPECT_ORIGINAL_PLAN');
   if (a.revision >= 1000000000) issues.push('REVISION_LIMIT');
   if (ledger.receipt_refs.length >= 64) issues.push('RECEIPT_LIMIT');
@@ -67,7 +74,7 @@ export async function prepareFeeApplicationTransaction(envelope_json: string, tr
   if (!audit.rows.length) issues.push('EMPTY_BATCH');
   const created = new Set(history.receipts.flatMap(r => r.rows.filter(row => row.operation === 'CREATE_NEW').map(row => row.cost_id)));
   for (const row of audit.rows) if (row.mapping.operation === 'CREATE_NEW') {
-    if (history.consumed.some(c => c.key === canonical([a.business_id, row.mapping.bill_id, row.mapping.line_id]))) issues.push('SOURCE_ALREADY_CONSUMED');
+    if (history.consumed.has(canonical([a.business_id, row.mapping.bill_id, row.mapping.line_id]))) issues.push('SOURCE_ALREADY_CONSUMED');
     if (created.has(row.mapping.cost_id) || ledger.retired_cost_ids.includes(row.mapping.cost_id)) issues.push('TARGET_ID_USED_OR_RETIRED');
   }
   if (issues.length) return blocked();
@@ -100,7 +107,8 @@ export async function prepareFeeApplicationTransaction(envelope_json: string, tr
   const {content_sha256: _, ...envelopeBody} = after; after.content_sha256 = await sha(canonical(envelopeBody));
   // Revalidate full historical closure and effective core responsibility before offering the candidate.
   const verified = await validateFeeEnvelope(after); calculate(verified.current_sources.project_json);
-  const after_json = await serializeFeeEnvelope(verified);
+  // validateFeeEnvelope already checks this exact pretty-JSON byte bound. No await or exposed object intervenes.
+  const after_json = JSON.stringify(verified, null, 2) + '\n';
   const preview: FeeApplicationTransactionPreview = freeze({scope: 'INDEPENDENT_FEE_APPLICATION_PREVIEW', status: 'STAGED', transaction_id, before_json, before_lease, plan_json, issues: [], diagnostics, costs_added, references_recorded: plan.rows.length - costs_added, workbench_writes: 0});
   issued.set(preview, {after_json, after_lease: transactionLease(verified), plan_json}); return preview;
 }

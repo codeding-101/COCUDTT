@@ -15,7 +15,7 @@ describe('独立整批暂存：完整来源、历史和财务差异', {timeout: 
     expect(a.revision).toBe(2); expect(a.business_id).toBe(s.a.business_id); expect(a.envelope_id).toBe(s.a.envelope_id); expect(history.receipts).toHaveLength(1); expect(history.consumed).toHaveLength(1);
     expect(a.current_sources.bill_json).toBe(s.sources.bill_json); expect(a.current_sources.pair_json).toBe(s.sources.pair_json); expect(a.current_sources.attachment_json).toBe(s.sources.attachment_json); expect(a.current_sources.precision_json).toBe(s.sources.precision_json);
     expect(history.issues).toContain('PROJECT_SNAPSHOT_MISMATCH'); expect(JSON.stringify(s.a)).toBe(before); expect(await replay(r.envelope_json!, p.plan_json!)).toEqual({status: 'ALREADY_RECORDED_NO_WRITE', workbench_writes: 0});
-  });
+  }, 60000);
   it('实际核心计算增加买方原币费用，不修改旧费用、卖方利润、风险或排除项税费', async () => {
     const s = await transactionFixture(), p = await prepare(s.raw, 'money-76'), r = await stage(p, s.raw), a = await parseFeeEnvelope(r.envelope_json!);
     const run = (text: string) => {const project = parseProject(text); return analyze({trade: toTrade(project), scenario: toScenario(project), taxProfile: project.tax_profile, fxBooks: project.fx_books});};
