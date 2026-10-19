@@ -6,7 +6,7 @@ import {readFeePrecisionForm,newFeePrecisionForm,changeFeePrecisionForm} from '.
 import {serializeWorkbook,XLSX_MIME} from '../data/xlsx-file.js';
 import {escapeHtml as h} from './format.js';
 
-type Environment=Omit<FeePrecisionSelectionControllerEnvironment,'changed'|'write'>&{write:(name:string,data:string|Uint8Array<ArrayBuffer>,mime:string)=>Promise<'SAVED'|'DOWNLOAD_STARTED'>};
+type Environment=Omit<FeePrecisionSelectionControllerEnvironment,'changed'|'write'>&{write:(name:string,data:string|Uint8Array<ArrayBuffer>,mime:string)=>Promise<'SAVED'|'DOWNLOAD_STARTED'>;onChange?:()=>void};
 type Pending={action:string;id:string;token:string;basis:string;raw?:string|null};
 const channels={cash:'应付 G',net:'净额 N',tax:'税额 T',credit:'抵扣假设 X',economic:'费用净额 E',customs:'海关成分 C'};
 const fraction=(v:PrecisionFraction|null)=>v===null?'未知':v.denominator==='1'?v.numerator:v.numerator+'/'+v.denominator;
@@ -17,7 +17,7 @@ export class FeePrecisionSelectionWorkspace {
  readonly controller:FeePrecisionSelectionController;
  private pending:Pending|null=null;private typing=false;private exportBusy=false;private exportMessage='';
  private reviewKey='';private reviewGeneration=0;private reviewHtml='';
- constructor(private readonly env:Environment){this.controller=new FeePrecisionSelectionController({...env,changed:()=>this.refresh()});}
+ constructor(private readonly env:Environment){this.controller=new FeePrecisionSelectionController({...env,changed:()=>{this.refresh();env.onChange?.();}});}
  private live(){try{return this.env.currentSources();}catch{return null;}}
  private basis(){const s=this.controller.state();return JSON.stringify([s.selection?.content_sha256,s.editor,this.live()]);}
  private button(action:string,label:string,disabled=false,extra=''){return`<button type="button" data-action="fee-precision-${action}"${disabled?' disabled':''}${extra}>${h(label)}</button>`;}
