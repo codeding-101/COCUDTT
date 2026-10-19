@@ -1,3 +1,4 @@
+import{withDocumentNavigation}from'./browser-document.mjs';
 import{mkdir,readFile,writeFile}from'node:fs/promises';import{resolve,join}from'node:path';import{pathToFileURL}from'node:url';import{createServer}from'vite';import{unzipSync,strFromU8}from'fflate';import{PDFDocument,PDFRawStream,decodePDFRawStream}from'pdf-lib';
 const out=process.env.BROWSER_CHECK_OUTPUT??'C:/Temp/container-review-integration';await mkdir(out,{recursive:true});
 const server=await createServer({configFile:false,optimizeDeps:{noDiscovery:true,include:[]},server:{middlewareMode:true},appType:'custom'});let customer;
@@ -5,7 +6,7 @@ try{const{actualQuotesProject}=await server.ssrLoadModule('/tests/fixtures/actua
 const targets=await(await fetch(`http://127.0.0.1:${process.env.BROWSER_CHECK_PORT??'9414'}/json`)).json(),socket=new WebSocket(targets.find(p=>p.type==='page'&&!p.url.startsWith('edge:')).webSocketDebuggerUrl);await new Promise((ok,bad)=>{socket.onopen=ok;socket.onerror=bad});let serial=0;const pending=new Map(),exceptions=[],requests=[];
 socket.onmessage=e=>{const r=JSON.parse(e.data);if(r.method==='Runtime.exceptionThrown')exceptions.push(r.params.exceptionDetails.text);if(r.method==='Network.requestWillBeSent')requests.push(r.params.request.url);const p=pending.get(r.id);if(p){pending.delete(r.id);r.error?p.reject(Error(JSON.stringify(r.error))):p.resolve(r.result)}};
 const send=(method,params={})=>new Promise((resolve,reject)=>{const id=++serial;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}))});
-const call=async(method,params={})=>{if(method!=='Page.navigate'&&method!=='Page.reload')return send(method,params);await send('Runtime.evaluate',{expression:'window.oldDocumentBeforeNavigation=true'});const result=await send(method,params);await until("!window.oldDocumentBeforeNavigation&&document.readyState==='complete'");return result};
+const call=withDocumentNavigation(send);
 const evaluate=async expression=>{const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;};
 async function until(expression){for(let i=0;i<120;i++){try{if(await evaluate(expression))return;}catch(error){if(!/Execution context.*destroy|Cannot find context|Inspected target navigated or closed|Cannot find default execution context/i.test(String(error)))throw error;}await new Promise(r=>setTimeout(r,100));}throw Error(expression);}
 const click=action=>evaluate(`document.querySelector('[data-action="${action}"]').click()`);
