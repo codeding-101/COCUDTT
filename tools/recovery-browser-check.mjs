@@ -1,3 +1,4 @@
+import{withDocumentNavigation}from'./browser-document.mjs';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {tmpdir} from 'node:os';
@@ -10,7 +11,7 @@ try{const {actualQuotesProject}=await server.ssrLoadModule('/tests/fixtures/actu
 const targets=await(await fetch(`http://127.0.0.1:${process.env.BROWSER_CHECK_PORT??'9366'}/json`)).json();
 const ws=new WebSocket(targets.find(t=>t.type==='page'&&!t.url.startsWith('edge://')).webSocketDebuggerUrl);await new Promise((r,j)=>{ws.onopen=r;ws.onerror=j});
 let next=0;const pending=new Map(),exceptions=[],requests=[];ws.onmessage=e=>{const r=JSON.parse(e.data);if(r.method==='Runtime.exceptionThrown')exceptions.push(r.params.exceptionDetails);if(r.method==='Network.requestWillBeSent')requests.push(r.params.request.url);const p=pending.get(r.id);if(p){pending.delete(r.id);r.error?p.reject(Error(JSON.stringify(r.error))):p.resolve(r.result)}};
-const call=(method,params={})=>new Promise((r,j)=>{const id=++next;pending.set(id,{resolve:r,reject:j});ws.send(JSON.stringify({id,method,params}))});
+const call=withDocumentNavigation((method,params={})=>new Promise((r,j)=>{const id=++next;pending.set(id,{resolve:r,reject:j});ws.send(JSON.stringify({id,method,params}))}));
 async function evaluate(expression){const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value}
 async function until(expression){for(let i=0;i<80;i++){if(await evaluate(expression))return;await new Promise(r=>setTimeout(r,100))}throw Error(expression)}
 const injection=`(()=>{const descriptor=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');window.injectFailure=false;Object.defineProperty(Element.prototype,'innerHTML',{...descriptor,set(value){if(this.id==='app'&&window.injectFailure){window.injectFailure=false;throw Error('PRIVATE_SYNTHETIC_EXCEPTION_831')}return descriptor.set.call(this,value)}});})()`;

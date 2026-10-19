@@ -1,3 +1,4 @@
+import{withDocumentNavigation}from'./browser-document.mjs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -21,13 +22,14 @@ ws.onmessage = (event) => {
     message.error ? request.reject(new Error(JSON.stringify(message.error))) : request.resolve(message.result);
   }
 };
-function call(method, params = {}) {
+function sendBrowserCommand(method, params = {}) {
   return new Promise((resolve, reject) => {
     const request = ++id;
     pending.set(request, { resolve, reject });
     ws.send(JSON.stringify({ id: request, method, params }));
   });
 }
+const call=withDocumentNavigation(sendBrowserCommand);
 async function evaluate(expression) {
   const result = await call('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
   if (result.exceptionDetails) throw new Error(JSON.stringify(result.exceptionDetails));

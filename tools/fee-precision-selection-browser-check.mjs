@@ -1,3 +1,4 @@
+import{withDocumentNavigation}from'./browser-document.mjs';
 import{mkdir,readFile,writeFile}from'node:fs/promises';import{resolve,join}from'node:path';import{pathToFileURL}from'node:url';import{unzipSync,strFromU8}from'fflate';
 const out=resolve(process.env.BROWSER_CHECK_OUTPUT??'browser-results/fee-precision-selection');await mkdir(out,{recursive:true});
 const downloads=resolve(out,'downloads',String(Date.now()));
@@ -8,7 +9,8 @@ const sample=JSON.parse(await readFile('templates/fee-precision-selection-synthe
 const pages=await(await fetch(`http://127.0.0.1:${process.env.BROWSER_CHECK_PORT??'9438'}/json`)).json(),socket=new WebSocket(pages.find(p=>p.type==='page'&&!p.url.startsWith('edge:')).webSocketDebuggerUrl);await new Promise((ok,bad)=>{socket.onopen=ok;socket.onerror=bad});
 let serial=0;const pending=new Map(),exceptions=[],requests=[],checks={},layouts=[];
 socket.onmessage=e=>{const r=JSON.parse(e.data);if(r.method==='Runtime.exceptionThrown')exceptions.push(r.params.exceptionDetails.text);if(r.method==='Network.requestWillBeSent')requests.push(r.params.request.url);const p=pending.get(r.id);if(p){pending.delete(r.id);r.error?p.reject(Error(JSON.stringify(r.error))):p.resolve(r.result);}};
-const call=(method,params={})=>new Promise((resolve,reject)=>{const id=++serial;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
+const send=(method,params={})=>new Promise((resolve,reject)=>{const id=++serial;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
+const call=withDocumentNavigation(send);
 const evaluate=async expression=>{const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;};
 async function until(expression){for(let i=0;i<200;i++){if(await evaluate(expression))return;await new Promise(r=>setTimeout(r,100));}throw Error('Timeout: '+expression);}
 const click=(key,prefix='fee-precision')=>evaluate(`document.querySelector('[data-action="${prefix}-${key}"]').click()`);

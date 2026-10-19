@@ -69,6 +69,12 @@ const handledActions = new Set([
   ...matchAll(appTs, /dataset\.action === '([a-z-]+)'/g),
 ]);
 const renderedActions = matchAll(uiText, /data-action="([a-z-]+)"/g);
+const feeEnvelopeUi=read(join(root,'src/ui/fee-envelope-workspace.ts'));
+if(!appTs.includes("action.startsWith('fee-envelope-')")||!appTs.includes('target.dataset.feeEnvelopeField')&&!appTs.includes('envelopeTarget.dataset.feeEnvelopeField'))problems.push('[封套工作区未接入] 缺少动作或字段入口');
+const feeEnvelopeHandled=matchAll(feeEnvelopeUi,/\b(?:key|action) === '([a-z-]+)'/g);
+for(const action of ['capture','update','new-business','clear'])if(feeEnvelopeUi.includes("['capture', 'update', 'new-business', 'clear'].includes(key)"))feeEnvelopeHandled.add(action);
+for(const action of matchAll(feeEnvelopeUi,/(?:b|button)\('([a-z-]+)'/g)){renderedActions.add('fee-envelope-'+action);if(feeEnvelopeHandled.has(action))handledActions.add('fee-envelope-'+action);}
+for(const action of matchAll(feeEnvelopeUi,/'(backup-[a-z-]+)'\s*:/g)){renderedActions.add('fee-envelope-'+action);if(feeEnvelopeUi.includes("key.startsWith('backup-')"))handledActions.add('fee-envelope-'+action);}
 const feeTaxUi=read(join(root,'src/ui/fee-tax-attachment-workspace.ts'));
 if(!appTs.includes("action.startsWith('fee-tax-')")||!appTs.includes('target.dataset.feeTaxField!==undefined'))problems.push('[成分附件工作区未接入] 缺少动作或字段入口');
 const feeTaxHandled=matchAll(feeTaxUi,/\b(?:key|action)==='([a-z-]+)'/g);

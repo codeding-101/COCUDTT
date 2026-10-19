@@ -873,6 +873,13 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
 .fee-tax-channels dt { font-size:.85rem; color:var(--muted,#526070); }
 @media(max-width:600px) { .fee-tax-channels,.fee-tax-workspace .panel-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .fee-tax-workspace fieldset { padding:.65rem; } }
 .fee-precision-workspace { min-width:0; overflow-wrap:anywhere; }
+.fee-envelope-workspace { min-width:0; overflow-wrap:anywhere; }
+.fee-envelope-workspace button { height:auto; min-height:44px; max-width:100%; padding:7px 9px; line-height:1.45; white-space:normal; overflow-wrap:anywhere; }
+.fee-envelope-workspace input { min-width:0; max-width:100%; }
+.fee-envelope-confirm { border:1px solid var(--line,#d4dce5); border-radius:6px; padding:1rem; margin:1rem 0; background:var(--surface-alt,#f4f6f8); }
+.fee-envelope-check { display:flex; align-items:flex-start; gap:.65rem; margin:.75rem 0; }
+.fee-envelope-check input { width:auto; flex:0 0 auto; margin-top:.25rem; }
+@media(max-width:600px) { .fee-envelope-workspace .panel-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .fee-envelope-confirm { padding:.65rem; } }
 .fee-precision-workspace button { min-height:44px; white-space:normal; }
 .fee-precision-workspace input,.fee-precision-workspace select { min-width:0; max-width:100%; }
 .fee-precision-workspace .pair-original { max-width:100%; white-space:pre-wrap; overflow-wrap:anywhere; }

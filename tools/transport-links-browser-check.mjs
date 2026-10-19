@@ -1,3 +1,4 @@
+import{withDocumentNavigation}from'./browser-document.mjs';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import {pathToFileURL} from 'node:url';
@@ -9,7 +10,7 @@ try{const{logisticsProject}=await server.ssrLoadModule('/tests/fixtures/logistic
 const targets=await(await fetch(`http://127.0.0.1:${process.env.BROWSER_CHECK_PORT??'9375'}/json`)).json(),socket=new WebSocket(targets.find(p=>p.type==='page'&&!p.url.startsWith('edge:')).webSocketDebuggerUrl);
 await new Promise((ok,bad)=>{socket.onopen=ok;socket.onerror=bad});let serial=0;const pending=new Map(),exceptions=[],requests=[];
 socket.onmessage=e=>{const r=JSON.parse(e.data);if(r.method==='Runtime.exceptionThrown')exceptions.push(r.params.exceptionDetails.text);if(r.method==='Network.requestWillBeSent')requests.push(r.params.request.url);const p=pending.get(r.id);if(p){pending.delete(r.id);r.error?p.reject(Error(JSON.stringify(r.error))):p.resolve(r.result)}};
-const call=(method,params={})=>new Promise((resolve,reject)=>{const id=++serial;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}))});
+const call=withDocumentNavigation((method,params={})=>new Promise((resolve,reject)=>{const id=++serial;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}))}));
 const evaluate=async expression=>{const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value};
 async function until(expr){for(let i=0;i<100;i++){if(await evaluate(expr))return;await new Promise(r=>setTimeout(r,100))}throw Error(expr)}
 async function upload(value){const text=typeof value==='string'?value:JSON.stringify(value);await evaluate(`(()=>{const e=document.querySelector('#file-input'),d=new DataTransfer();d.items.add(new File([${JSON.stringify(text)}],'project.json',{type:'application/json'}));e.files=d.files;e.dispatchEvent(new Event('change',{bubbles:true}));})()`);await new Promise(r=>setTimeout(r,100));}
