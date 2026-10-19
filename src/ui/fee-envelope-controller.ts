@@ -1,3 +1,4 @@
+import type {WorkbenchStateOwner} from './workbench-state.js';
 import {FEE_ENVELOPE_BYTES, FeeEnvelopeError, type FeeEnvelope, type FeeEnvelopeLease, type FeeEnvelopeLedger} from '../domain/fee-envelope.js';
 import {parseFeeEnvelope, compareFeeEnvelopeRecovery, updateFeeEnvelopeSources, serializeFeeEnvelope} from '../data/fee-envelope.js';
 import {copyFeeEnvelopeJson} from '../data/fee-envelope-json.js';
@@ -9,6 +10,7 @@ export interface FeeEnvelopeStorage {
   compareAndSet(key: string, expected: string | null, next: string | null): boolean | Promise<boolean>;
 }
 export interface FeeEnvelopeControllerEnvironment {
+  stateOwner?: WorkbenchStateOwner;
   storage?: FeeEnvelopeStorage;
   blocked(): boolean;
   changed(): void;
@@ -59,7 +61,7 @@ export class FeeEnvelopeController {
   private protectedLocal = true;
   private storageStatus = 'UNOBSERVED';
   private message = '独立封套尚未载入；不会安装项目或写入费用。';
-  constructor(private readonly env: FeeEnvelopeControllerEnvironment) {}
+  constructor(private readonly env: FeeEnvelopeControllerEnvironment) {env.stateOwner?.bind(this, 'envelope-controller');}
   private blocked(): boolean {
     if (this.checkingBlocked) return true;
     this.checkingBlocked = true;

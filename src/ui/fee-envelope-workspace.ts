@@ -1,3 +1,4 @@
+import type {WorkbenchStateOwner} from './workbench-state.js';
 import {FeeEnvelopeController, FEE_ENVELOPE_STORAGE_KEY, type FeeEnvelopeStorage, type FeeEnvelopeFileSource, type FeeEnvelopeBackup} from './fee-envelope-controller.js';
 import {adoptLegacyFeeEnvelope, createNewFeeEnvelopeFromPair, serializeFeeEnvelope, parseFeeEnvelope, reviewFeeEnvelope} from '../data/fee-envelope.js';
 import {feeEnvelopeInternalHtml, feeEnvelopeInternalWorkbook} from '../data/fee-envelope-snapshot.js';
@@ -6,6 +7,7 @@ import {XLSX_MIME} from '../data/xlsx-file.js';
 import {escapeHtml as h} from './format.js';
 
 export interface FeeEnvelopeWorkspaceEnvironment {
+  stateOwner?: WorkbenchStateOwner;
   storage: FeeEnvelopeStorage; cacheWritable: boolean;
   currentSources(): FeeEnvelopeSources | null; blocked(): boolean;
   write(name: string, data: string | Uint8Array<ArrayBuffer>, mime: string): Promise<'SAVED' | 'DOWNLOAD_STARTED'>;
@@ -29,7 +31,8 @@ export class FeeEnvelopeWorkspace {
   private choices: Record<string, boolean> = {}; private choiceToken = -1;
   private reviewKey = ''; private reviewGeneration = 0; private reviewHtml = '';
   constructor(private readonly env: FeeEnvelopeWorkspaceEnvironment) {
-    this.controller = new FeeEnvelopeController({storage: env.storage, blocked: () => env.blocked() || this.busy, changed: () => this.refresh(), write: (...args) => env.write(...args)});
+    this.controller = new FeeEnvelopeController({stateOwner:env.stateOwner,storage: env.storage, blocked: () => env.blocked() || this.busy, changed: () => this.refresh(), write: (...args) => env.write(...args)});
+    env.stateOwner?.bind(this, 'envelope-workspace');
   }
   private live() { try { return this.env.currentSources(); } catch { return null; } }
   private basis() { const s = this.controller.state(); return JSON.stringify([this.generation, s.current?.lease, s.preview?.token, this.businessName, this.live()]); }

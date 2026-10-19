@@ -1,3 +1,4 @@
+import type {WorkbenchStateOwner} from './workbench-state.js';
 import type {ProjectFile} from '../data/project-file.js';
 import type {ContainerBillDraft} from '../domain/container-bill-draft.js';
 import type {ContainerCostPair} from '../domain/container-cost-pair.js';
@@ -14,6 +15,7 @@ import {containerReviewExample} from '../data/container-review-example.js';
 export const PAIR_STORAGE_KEY='trade-cost-engine:container-cost-pair-v1';
 type PairReview=ReturnType<typeof reviewContainerCostPair>;
 interface Environment {
+ stateOwner?:WorkbenchStateOwner;
  project:()=>ProjectFile;bill:()=>ContainerBillDraft|null;blocked:()=>boolean;render:()=>void;
  install:(pair:ContainerCostPair)=>void;afterInstall:()=>void;cancelOtherReads:()=>void;
  write:(name:string,text:string,mime:string)=>Promise<'SAVED'|'DOWNLOAD_STARTED'>;
@@ -33,7 +35,7 @@ export class ContainerCostPairController {
  copyName='';copyAcknowledged=false;copyCandidate:{pair:ContainerCostPair;text:string;source_pair_id:string;source_revision:number}|null=null;
  private copyKey:string|null=null;
  private epoch=0;private loaded=false;
- constructor(private readonly env:Environment){}
+ constructor(private readonly env:Environment){env.stateOwner?.bind(this,'pair');}
  cancelReads():void {this.epoch++;if(this.message.startsWith('正在读取'))this.message='配对读取已取消，当前资料保留。';}
  liveIssues():string[]{return[...(this.env.inputIssues?.()??[]),...(this.pair?pairLiveIssues(this.pair,this.env.project(),this.env.bill()):[])];}
  loadLocal():void {

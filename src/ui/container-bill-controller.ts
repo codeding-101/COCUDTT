@@ -1,3 +1,4 @@
+import type {WorkbenchStateOwner} from './workbench-state.js';
 import {emptyContainerBillDraft,type ContainerBillDraft} from '../domain/container-bill-draft.js';
 import {emptyEvidence} from '../domain/source-evidence.js';
 import {parseContainerBillDraft,serializeContainerBillDraft,validateContainerBillDraft,containerBillDraftSchema,CONTAINER_BILL_FILE_BYTES} from '../data/container-bill-file.js';
@@ -8,12 +9,12 @@ import type {ProjectFile} from '../data/project-file.js';
 
 export const BILL_STORAGE_KEY='trade-cost-engine:container-bill-v1';
 export const BILL_ROW_FIELDS=['scope_id','direction','equipment_type','container_ids','currency','reference','charge_kind','mode','rate','period.start_date','period.end_date','period.start_event','period.end_event','period.start_included','period.end_included','daily.free_day_basis','daily.charge_day_basis','daily.free_days','daily.tier_mode','daily.tier_basis','tier.through_day','tier.rate','source.reference','source.valid_from','source.valid_to','source.checked_on','source.status','cost_reference.cost_id','cost_reference.note','cost_source.reference','cost_source.valid_from','cost_source.valid_to','cost_source.checked_on'] as const;
-interface BillUiEnvironment {project:()=>ProjectFile;render:()=>void;write:(name:string,text:string,mime:string)=>Promise<'SAVED'|'DOWNLOAD_STARTED'>;blocked:()=>boolean;onChange?:()=>void}
+interface BillUiEnvironment {stateOwner?:WorkbenchStateOwner;project:()=>ProjectFile;render:()=>void;write:(name:string,text:string,mime:string)=>Promise<'SAVED'|'DOWNLOAD_STARTED'>;blocked:()=>boolean;onChange?:()=>void}
 /** Independent state and read epochs; project/customer payloads never receive this draft. */
 export class ContainerBillController {
  draft:ContainerBillDraft|null=null;busy=false;message='尚未打开独立账单；新建不会预填业务条件。';
  private epoch=0;private loaded=false;
- constructor(private readonly env:BillUiEnvironment){}
+ constructor(private readonly env:BillUiEnvironment){env.stateOwner?.bind(this,'bill');}
  loadLocal():void {
   if(this.loaded)return;this.loaded=true;
   try{const raw=localStorage.getItem(BILL_STORAGE_KEY);if(raw!==null&&raw!=='null'){try{this.draft=parseContainerBillDraft(raw);this.message='已恢复独立账单草稿；请核对当前项目绑定并另存文件。';}catch{this.message='独立账单草稿无法读取，原文未覆盖；请先备份本地存储，再新建或打开其他账单。';}}}catch{this.message='账单自动草稿不可用；请另存独立文件。';}

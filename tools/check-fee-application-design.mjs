@@ -1,4 +1,5 @@
 // Independent reduced design oracle. No production imports, file adoption or fee writes.
+import './check-workbench-owner.mjs';
 import{readFileSync,readdirSync}from'node:fs';import{createHash}from'node:crypto';import{isDeepStrictEqual}from'node:util';
 const fixture=JSON.parse(readFileSync(new URL('../docs/cases/fee-application-design.json',import.meta.url),'utf8'));
 const fail=()=>{throw Error('UNSUPPORTED_FEE_APPLICATION_DESIGN_INPUT');};
