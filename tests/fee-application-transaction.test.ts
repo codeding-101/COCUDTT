@@ -1,9 +1,8 @@
 import {describe, it, expect} from 'vitest';
 import {prepareFeeApplicationTransaction as prepare, stageFeeApplicationTransaction as stage, inspectFeeApplicationReplay as replay} from '../src/data/fee-application-transaction';
 import {parseFeeEnvelope, reviewFeeEnvelope, updateFeeEnvelopeSources, serializeFeeEnvelope} from '../src/data/fee-envelope';
-import {transactionFixture, batchFixture} from './fixtures/fee-transaction';
+import {transactionFixture, batchFixture, componentFixture} from './fixtures/fee-transaction';
 import {empty, fullSources, historical, seal, lease, stable, hash} from './fixtures/fee-envelope';
-import {freeze} from './fixtures/fee-tax-attachment';
 import {parseProject, toTrade, toScenario} from '../src/data/project-file';
 import {analyze} from '../src/engine/analyze';
 
@@ -21,11 +20,11 @@ describe('独立整批暂存：完整来源、历史和财务差异', {timeout: 
     const s = await transactionFixture(), p = await prepare(s.raw, 'money-76'), r = await stage(p, s.raw), a = await parseFeeEnvelope(r.envelope_json!);
     const run = (text: string) => {const project = parseProject(text); return analyze({trade: toTrade(project), scenario: toScenario(project), taxProfile: project.tax_profile, fxBooks: project.fx_books});};
     const before = run(s.sources.project_json), after = run(a.current_sources.project_json), added = after.items.find(i => i.item.cost_id === 'new-proposed-service')!;
-    expect(added.gross_amount.toString()).toBe('113'); expect(added.responsibility).toBe('BUYER'); expect(added.counts_to_buyer).toBe(true);
+    expect(added.gross_amount.toString()).toBe('113'); expect(added.base_amount.toString()).toBe('791'); expect(added.responsibility).toBe('BUYER'); expect(added.counts_to_buyer).toBe(true);
     expect(after.buyer.additional_cost_total.minus(before.buyer.additional_cost_total).equals(added.base_amount)).toBe(true); expect(after.seller).toEqual(before.seller); expect(after.risk).toEqual(before.risk); expect(after.import_tax).toEqual(before.import_tax);
   });
   it.each([false, true])('两行整批/mixed=%s不跳过或改写已有引用', async mixed => {
-    const s = await batchFixture(mixed, true), p = await prepare(s.raw, 'batch-76'); expect(p.status).toBe('STAGED'); expect(p.costs_added).toBe(mixed ? 1 : 2);
+    const s = await batchFixture(mixed, true), p = await prepare(s.raw, 'batch-76'); expect(p.status, p.issues.join('|')).toBe('STAGED'); expect(p.costs_added).toBe(mixed ? 1 : 2);
     const r = await stage(p, s.raw), a = await parseFeeEnvelope(r.envelope_json!), history = await reviewFeeEnvelope(a), project = JSON.parse(a.current_sources.project_json);
     expect(history.receipts).toHaveLength(1); expect(history.receipts[0]!.rows).toHaveLength(2); expect(history.consumed).toHaveLength(mixed ? 1 : 2); expect(project.items.slice(0, s.pair.project.items.length)).toEqual(s.pair.project.items); expect(project.opaque_future).toEqual({note: 'PRIVATE76_😀', amount: '123.123456789123'});
   });
@@ -33,10 +32,13 @@ describe('独立整批暂存：完整来源、历史和财务差异', {timeout: 
     const s = await transactionFixture('113', '1.0', true), p = await prepare(s.raw, 'reference-76'), r = await stage(p, s.raw), a = await parseFeeEnvelope(r.envelope_json!), history = await reviewFeeEnvelope(a);
     expect(p.costs_added).toBe(0); expect(p.references_recorded).toBe(1); expect(a.current_sources.project_json).toBe(s.sources.project_json); expect(a.current_sources.bill_json).toBe(s.sources.bill_json); expect(history.consumed).toEqual([]); expect(history.receipts).toHaveLength(1);
   });
+  it('同类既有费用仍保留覆盖待办，不能用不同箱号/标签绕过', async () => {const s = await batchFixture(true, false, true), p = await prepare(s.raw, 'coverage'); expect(p.status).toBe('BLOCKED'); expect(p.issues).toContain('EXISTING_COST_COVERAGE_REVIEW_REQUIRED');});
   it('未知历史不能通过完整来源及数字兼容升级成可提交', async () => {const s = await transactionFixture(), a = empty(s.sources, 'UNKNOWN_IMPORTED').a, raw = JSON.stringify(a), p = await prepare(raw, 'unknown'); expect(p.status).toBe('BLOCKED'); expect(p.issues).toContain('HISTORY_NOT_ESTABLISHED'); expect(p.costs_added).toBe(0); expect(JSON.stringify(a)).toBe(raw);});
   it.each(['pair_json', 'attachment_json', 'precision_json'] as const)('缺%s阻断完整批次', async slot => {const s = await transactionFixture(); s.a.current_sources[slot] = null; seal(s.a); const p = await prepare(JSON.stringify(s.a), 'missing'); expect(p.status).toBe('BLOCKED'); expect(p.issues).toContain('COMPLETE_CURRENT_SOURCES_REQUIRED');});
   it('原始工作台项目发生变化时不因金额相同沿用旧配对', async () => {const s = await transactionFixture(); s.a.current_sources.project_json += '\n'; seal(s.a); const p = await prepare(JSON.stringify(s.a), 'raw-space'); expect(p.status).toBe('STAGED'); const modified = JSON.parse(s.sources.project_json); modified.name += ' changed'; s.a.current_sources.project_json = JSON.stringify(modified); seal(s.a); expect((await prepare(JSON.stringify(s.a), 'changed')).issues).toContain('PROJECT_SNAPSHOT_MISMATCH');});
   it.each(['0.1234567', '113.005'])('原金额%s不通过核心精度/舍入差额', async amount => {const s = await transactionFixture(amount), p = await prepare(s.raw, 'precision'); expect(p.status).toBe('BLOCKED'); expect(p.plan_json).toBeNull(); expect(p.costs_added).toBe(0);});
+  it('来源与政策确认齐全仍不能把13抵扣偷换成100费用', async () => {const s = await componentFixture({credit: {kind: 'ASSUMED', amount: '13', basis: '合成', document_ref: 'SYNTHETIC76', eligibility_ref: 'SYNTHETIC76'}}), p = await prepare(s.raw, 'credit'); expect(p.status).toBe('BLOCKED'); expect(p.issues).toContain('SEPARATE_ECONOMIC_MODEL_REQUIRED'); expect(p.costs_added).toBe(0);});
+  it('来源与政策确认齐全仍不能把40部分海关金额映射为全额113', async () => {const s = await componentFixture({customs: {kind: 'ADD_COMPONENT', amount: '40', basis: '合成部分金额'}}), p = await prepare(s.raw, 'partial-customs'); expect(p.status).toBe('BLOCKED'); expect(p.issues).toContain('PARTIAL_CUSTOMS_MODEL_REQUIRED'); expect(p.costs_added).toBe(0);});
   it.each(['attachment', 'precision', 'unknown'])('%s待办保留，任一行失败整批不暂存', async kind => {
     const s = await batchFixture(); const slot = kind === 'precision' ? 'precision_json' : 'attachment_json', value = JSON.parse(s.a.current_sources[slot]!);
     if (kind === 'precision') value.records[1].acknowledgement = null; else if (kind === 'attachment') value.records[1].acknowledgements.tax = null; else value.records[1].input.customs = {kind: 'UNKNOWN'};
@@ -44,6 +46,7 @@ describe('独立整批暂存：完整来源、历史和财务差异', {timeout: 
     const before = JSON.stringify(s.a); let blocked = false; try {blocked = (await prepare(before, 'bad-row')).status === 'BLOCKED';} catch {blocked = true;} expect(blocked).toBe(true); expect(JSON.stringify(s.a)).toBe(before);
   });
   it('费用字段BUYER不能覆盖实际核心SELLER归属，暂存失败保持原文件', async () => {const s = await fullSources('113', '1.0', false, 'SELLER_PREMISES'), a = empty(s.sources).a, raw = JSON.stringify(a); await expect(prepare(raw, 'wrong-party')).rejects.toThrow('EFFECTIVE_RESPONSIBILITY_MISMATCH'); expect(JSON.stringify(a)).toBe(raw);});
+  it('单金额虽可映射但缺真实商业换算来源，核心重算失败不提供提交能力', async () => {const s = await fullSources(), a = empty(s.sources).a, raw = JSON.stringify(a); await expect(prepare(raw, 'missing-fx')).rejects.toThrow(); expect(JSON.stringify(a)).toBe(raw);});
   it.each(['revision', 'retired'])('%s边界阻断，不重用或回绕', async kind => {const s = await transactionFixture(); if (kind === 'revision') s.a.revision = 1000000000; else {const l = JSON.parse(s.a.ledger_json); l.retired_cost_ids = ['new-proposed-service']; s.a.ledger_json = JSON.stringify(l);} seal(s.a); const p = await prepare(JSON.stringify(s.a), 'limit'); expect(p.status).toBe('BLOCKED'); expect(p.issues).toContain(kind === 'revision' ? 'REVISION_LIMIT' : 'TARGET_ID_USED_OR_RETIRED');});
   it('删除已创建费用、改事务ID或恢复原来源，仍不能再次消费', async () => {const s = await historical(), a = await updateFeeEnvelopeSources(s.a, lease(s.a), s.sources), p = await prepare(await serializeFeeEnvelope(a), 'different-tx'); expect(p.status).toBe('BLOCKED'); expect(p.issues).toContain('SOURCE_ALREADY_CONSUMED'); expect(p.issues).toContain('TARGET_ID_USED_OR_RETIRED');});
 });

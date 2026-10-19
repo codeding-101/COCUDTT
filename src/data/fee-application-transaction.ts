@@ -4,7 +4,8 @@ import {copyFeeEnvelopeJson as copy, parseFeeEnvelopeJson as json, canonicalFeeE
 import {parseFeeEnvelope, validateFeeEnvelope, serializeFeeEnvelope, reviewFeeEnvelope} from './fee-envelope.js';
 import {proposeFeeApplication} from './fee-application-proposal.js';
 import {parseContainerCostPair} from './container-cost-pair.js';
-import type {ProjectFile} from './project-file.js';
+import {parseProject, toTrade, toScenario, type ProjectFile} from './project-file.js';
+import {analyze} from '../engine/analyze.js';
 
 function fail(reason: string): never { throw new FeeApplicationTransactionError(reason); }
 const same = (a: unknown, b: unknown) => canonical(a) === canonical(b);
@@ -12,6 +13,7 @@ const descriptive = new Set(['NO_FEE_APPLICATION', 'NO_GLOBAL_DUPLICATE_PROOF', 
 const issued = new WeakMap<object, {after_json: string; after_lease: FeeEnvelopeLease; plan_json: string}>();
 export const transactionLease = (a: FeeEnvelope): FeeEnvelopeLease => ({envelope_id: a.envelope_id, business_id: a.business_id, revision: a.revision, content_sha256: a.content_sha256});
 function freeze<T>(v: T): T { if (v && typeof v === 'object') { Object.values(v).forEach(freeze); Object.freeze(v); } return v; }
+function calculate(text: string) { const p = parseProject(text); return analyze({trade: toTrade(p), scenario: toScenario(p), taxProfile: p.tax_profile, fxBooks: p.fx_books}); }
 function identity(v: unknown): asserts v is string { if (typeof v !== 'string' || !v.trim() || Array.from(v).length > 200 || ['__proto__', 'constructor', 'prototype'].includes(v)) fail('TRANSACTION_ID'); }
 function planText(text: unknown): FeeEnvelopePlan {
   const p = json(text, 1024 * 1024) as FeeEnvelopePlan;
@@ -69,6 +71,7 @@ export async function prepareFeeApplicationTransaction(envelope_json: string, tr
     if (created.has(row.mapping.cost_id) || ledger.retired_cost_ids.includes(row.mapping.cost_id)) issues.push('TARGET_ID_USED_OR_RETIRED');
   }
   if (issues.length) return blocked();
+  calculate(s.project_json);
   const after = copy(a) as FeeEnvelope;
   const archive = async (value: unknown) => {
     const raw_json = typeof value === 'string' ? value : JSON.stringify(value), sha256 = await sha(raw_json);
@@ -96,7 +99,8 @@ export async function prepareFeeApplicationTransaction(envelope_json: string, tr
   ledger.receipt_refs.push(await archive(receipt)); after.ledger_json = JSON.stringify(ledger); after.current_sources.project_json = after_payload.project_json; after.revision++;
   const {content_sha256: _, ...envelopeBody} = after; after.content_sha256 = await sha(canonical(envelopeBody));
   // Revalidate full historical closure and effective core responsibility before offering the candidate.
-  const verified = await validateFeeEnvelope(after), after_json = await serializeFeeEnvelope(verified);
+  const verified = await validateFeeEnvelope(after); calculate(verified.current_sources.project_json);
+  const after_json = await serializeFeeEnvelope(verified);
   const preview: FeeApplicationTransactionPreview = freeze({scope: 'INDEPENDENT_FEE_APPLICATION_PREVIEW', status: 'STAGED', transaction_id, before_json, before_lease, plan_json, issues: [], diagnostics, costs_added, references_recorded: plan.rows.length - costs_added, workbench_writes: 0});
   issued.set(preview, {after_json, after_lease: transactionLease(verified), plan_json}); return preview;
 }
@@ -110,6 +114,7 @@ export async function stageFeeApplicationTransaction(preview: FeeApplicationTran
     return freeze({status: status === 'NOT_RECORDED' ? 'STALE_CONTEXT' : status, envelope_json: null, lease: null, workbench_writes: 0});
   }
   if (!same(transactionLease(current), preview.before_lease)) fail('STALE_LEASE');
-  await parseFeeEnvelope(captured.after_json);
+  const after = await parseFeeEnvelope(captured.after_json);
+  calculate(current.current_sources.project_json); calculate(after.current_sources.project_json);
   return freeze({status: 'STAGED', envelope_json: captured.after_json, lease: captured.after_lease, workbench_writes: 0});
 }
