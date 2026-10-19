@@ -1,3 +1,4 @@
+import type {WorkbenchStateOwner} from './workbench-state.js';
 import type {FeeTaxAttachment,FeeTaxAttachmentFacet} from '../domain/fee-tax-attachment.js';
 import {FEE_TAX_ATTACHMENT_BYTES} from '../domain/fee-tax-attachment.js';
 import {createFeeTaxAttachment,parseFeeTaxAttachment,serializeFeeTaxAttachment,setFeeTaxAttachmentRecord,acknowledgeFeeTaxAttachmentRecord,removeFeeTaxAttachmentRecord,rebindFeeTaxAttachment} from '../data/fee-tax-attachment.js';
@@ -6,6 +7,7 @@ import {startFeeTaxAttachmentEditor,validateFeeTaxAttachmentEditor,parseFeeTaxAt
 export const FEE_TAX_ATTACHMENT_STORAGE_KEYS={committed:'trade-cost-engine:fee-tax-attachment-v1',editor:'trade-cost-engine:fee-tax-attachment-editor-v1'} as const;
 export type FeeTaxAttachmentStorageSlot=keyof typeof FEE_TAX_ATTACHMENT_STORAGE_KEYS;
 export interface FeeTaxAttachmentControllerEnvironment {
+ stateOwner?:WorkbenchStateOwner;
  storage:{getItem:(key:string)=>string|null;setItem:(key:string,value:string)=>void};
  currentPairText:()=>string|null;blocked:()=>boolean;changed:()=>void;
  write:(name:string,text:string,mime:string)=>Promise<'SAVED'|'DOWNLOAD_STARTED'>;
@@ -26,7 +28,7 @@ export class FeeTaxAttachmentController {
  private savedKey:string|null=null;private observed=new Map<Slot,string|null>();private protectedSlots=new Set<Slot>();
  private storageStatus:Record<Slot,string|null>={committed:null,editor:null};private observedOnce=false;
  private message='附件尚未载入；独立资料不会自动替换项目或账单。';
- constructor(private readonly env:FeeTaxAttachmentControllerEnvironment){}
+ constructor(private readonly env:FeeTaxAttachmentControllerEnvironment){env.stateOwner?.bind(this,'tax-controller');}
  state(){return{attachment:this.attachment?structuredClone(this.attachment):null,editor:this.editor?structuredClone(this.editor):null,source_is_current:!!this.attachment&&this.live()===this.attachment.pair_snapshot_json,editor_is_current:!!this.attachment&&!!this.editor&&feeTaxAttachmentEditorIsCurrent(this.editor,this.attachment),preview:this.preview?{token:this.preview.token,attachment_id:this.preview.attachment.attachment_id,revision:this.preview.attachment.revision}:null,recovery:this.recovery?{token:this.recovery.token,attachment_id:this.recovery.attachment.attachment_id,has_editor:!!this.recovery.editor}:null,dirty:!!this.editor||!!this.attachment&&this.savedKey!==this.attachment.content_sha256,mutation_busy:this.mutationBusy,write_busy:this.writeBusy,storage_status:{...this.storageStatus},message:this.message};}
  private notify(message?:string){if(message!==undefined)this.message=message;try{this.env.changed();}catch{this.message='显示更新失败，内存附件与原文保留，请备份后重试。';}}
  private touch(){this.epoch++;this.readToken++;this.preview=null;this.recovery=null;}

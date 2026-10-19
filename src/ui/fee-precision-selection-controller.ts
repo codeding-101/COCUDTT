@@ -1,3 +1,4 @@
+import type {WorkbenchStateOwner} from './workbench-state.js';
 import type {FeePrecisionSelection} from '../domain/fee-precision-selection.js';
 import {FEE_PRECISION_SELECTION_BYTES} from '../domain/fee-precision-selection.js';
 import {createFeePrecisionSelection,parseFeePrecisionSelection,serializeFeePrecisionSelection,addFeePrecisionSelectionRecord,setFeePrecisionSelectionChoice,acknowledgeFeePrecisionSelectionRecord,removeFeePrecisionSelectionRecord,rebindFeePrecisionSelection} from '../data/fee-precision-selection.js';
@@ -7,6 +8,7 @@ export const FEE_PRECISION_SELECTION_STORAGE_KEYS={committed:'trade-cost-engine:
 export type FeePrecisionStorageSlot=keyof typeof FEE_PRECISION_SELECTION_STORAGE_KEYS;
 export interface FeePrecisionCurrentSources {pair_json:string;attachment_json:string}
 export interface FeePrecisionSelectionControllerEnvironment {
+ stateOwner?:WorkbenchStateOwner;
  storage:{getItem:(key:string)=>string|null;setItem:(key:string,value:string)=>void};
  currentSources:()=>FeePrecisionCurrentSources|null;blocked:()=>boolean;changed:()=>void;
  write:(name:string,text:string,mime:string)=>Promise<'SAVED'|'DOWNLOAD_STARTED'>;
@@ -27,7 +29,7 @@ export class FeePrecisionSelectionController {
  private protectedSlots=new Set<FeePrecisionStorageSlot>();private writingSlots=new Set<FeePrecisionStorageSlot>();
  private storageStatus:Record<FeePrecisionStorageSlot,string|null>={committed:null,editor:null};
  private message='精度文件尚未载入；独立政策不应用费用。';
- constructor(private readonly env:FeePrecisionSelectionControllerEnvironment){}
+ constructor(private readonly env:FeePrecisionSelectionControllerEnvironment){env.stateOwner?.bind(this,'precision-controller');}
  private blocked(){try{return!!this.env.blocked();}catch{return true;}}
  private live():FeePrecisionCurrentSources|null{try{const s=this.env.currentSources();return s&&typeof s.pair_json==='string'&&typeof s.attachment_json==='string'?{pair_json:s.pair_json,attachment_json:s.attachment_json}:null;}catch{return null;}}
  private current(a:FeePrecisionSelection,s:FeePrecisionCurrentSources|null){return!!s&&a.pair_snapshot_json===s.pair_json&&a.attachment_snapshot_json===s.attachment_json;}

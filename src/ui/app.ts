@@ -1,3 +1,4 @@
+import {WorkbenchStateOwner} from './workbench-state.js';
 import { COST_PRESETS, customCostItem, presetToCostItem } from '../data/cost-presets.js';
 import {
   parseProject,
@@ -115,7 +116,42 @@ interface DraftPayload {
   fxRows: FxRow[];
   pair_fx_row_key?:string;
 }
-let pairFxLease:{row_key:string;books:ProjectFile['fx_books']}|null=null;
+const workbenchState = new WorkbenchStateOwner();
+const workflow = {
+  pairFxLease: (null as {row_key:string;books:ProjectFile['fx_books']}|null),
+  restoredFromDraft: false,
+  draftFailure: (null as string | null),
+  draftStorageUnavailable: false,
+  workspaceMode: ('beginner' as WorkspaceMode),
+  workspaceNote: '当前为 CIF 合成示例：货值、运保费、汇率与税率仅用于演示。',
+  calculatedAt: '',
+  pendingCalculation: false,
+  editedControl: (null as HTMLElement|null),
+  stateInitialized: false,
+  recoveryStage: (null as FailureStage | null),
+  boundRoot: (null as HTMLDivElement | null),
+  sensitivityControls: newSensitivityControls(),
+  sensitivityAnalysis: (null as SensitivityResult | null),
+  sensitivityError: (null as string | null),
+  customerFields: emptyCustomerQuoteFields(),
+  customerView: ('full' as CustomerQuoteView),
+  customerReviewed: false,
+  projectResourceBusy: false,
+  customerSummaryBusy: false,
+  customerPreview: (null as CustomerQuote | null),
+  customerError: (null as string | null),
+  customerPdfBusy: false,
+  settlementPlan: (null as SettlementPlan | null),
+  settlementBusy: false,
+  settlementEpoch: 0,
+  inputLocations: ([] as InputSection[]),
+  recoveryReview: (null as RecoveryReview | null),
+  recoveryReviewError: (null as string | null),
+  recoveryReviewBusy: false,
+  recoveryReviewEpoch: 0,
+  projectReadEpoch: 0,
+};
+workbenchState.bind(workflow, 'workflow');
 
 /** 折叠的面板；跨渲染保留 */
 const collapsedSections = new Set<string>();
@@ -154,37 +190,28 @@ function loadDraft(): DraftLoad {
 
 function saveDraft(project: ProjectFile, fxRows: readonly FxRow[]): boolean {
   try {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({ project, fxRows,...(pairFxLease?.row_key===JSON.stringify(fxRows)?{pair_fx_row_key:pairFxLease.row_key}:{}) }));
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ project, fxRows,...(workflow.pairFxLease?.row_key===JSON.stringify(fxRows)?{pair_fx_row_key:workflow.pairFxLease.row_key}:{}) }));
     return true;
   } catch {
     return false;
   }
 }
 
-/** 启动时是否从草稿恢复，必须在 initialState() 之前声明 */
-let restoredFromDraft = false;
-/** 草稿读取失败的说明，启动时展示 */
-let draftFailure: string | null = null;
-let draftStorageUnavailable = false;
-let workspaceMode: WorkspaceMode = 'beginner';
-let workspaceNote = '当前为 CIF 合成示例：货值、运保费、汇率与税率仅用于演示。';
-let calculatedAt = '';
-let pendingCalculation = false;
 const quickCosts=new QuickCostsController();
 const fieldHelp=new FieldHelpController();
 const onboarding=new OnboardingController();
 const mobileSettings=new MobileSettingsController();
-let editedControl:HTMLElement|null=null;
+
 
 function initialState(): AppState {
   const draft = loadDraft();
   const project = draft.payload?.project ?? sampleProjectFile();
   const fxRows = draft.payload?.fxRows ?? booksToRows(project.fx_books);
-  pairFxLease=draft.payload?.pair_fx_row_key===JSON.stringify(fxRows)&&draft.payload.pair_fx_row_key===JSON.stringify(booksToRows(project.fx_books))?{row_key:draft.payload.pair_fx_row_key,books:project.fx_books}:null;
-  restoredFromDraft = draft.payload !== null;
-  workspaceMode = loadWorkspaceMode();
-  if (restoredFromDraft) workspaceNote = '已恢复本机草稿；按保存的报价、费用与假设继续核对。';
-  draftFailure = draft.failure;
+  workflow.pairFxLease=draft.payload?.pair_fx_row_key===JSON.stringify(fxRows)&&draft.payload.pair_fx_row_key===JSON.stringify(booksToRows(project.fx_books))?{row_key:draft.payload.pair_fx_row_key,books:project.fx_books}:null;
+  workflow.restoredFromDraft = draft.payload !== null;
+  workflow.workspaceMode = loadWorkspaceMode();
+  if (workflow.restoredFromDraft) workflow.workspaceNote = '已恢复本机草稿；按保存的报价、费用与假设继续核对。';
+  workflow.draftFailure = draft.failure;
   return {
     project,
     fxRows,
@@ -200,55 +227,37 @@ function initialState(): AppState {
 }
 
 let state: AppState;
-let stateInitialized = false;
-let recoveryStage: FailureStage | null = null;
-let boundRoot: HTMLDivElement | null = null;
+
 const boundEvents = new Set<string>();
-let sensitivityControls = newSensitivityControls();
-let sensitivityAnalysis: SensitivityResult | null = null;
-let sensitivityError: string | null = null;
-let customerFields = emptyCustomerQuoteFields();
-let customerView:CustomerQuoteView='full';
-let customerReviewed = false;
-let projectResourceBusy = false;
-let customerSummaryBusy = false;
-let customerPreview: CustomerQuote | null = null;
-let customerError: string | null = null;
-let customerPdfBusy = false;
-let settlementPlan: SettlementPlan | null = null;
-let settlementBusy = false;
-let settlementEpoch = 0;
-let inputLocations: InputSection[] = [];
-let recoveryReview: RecoveryReview | null = null;
-let recoveryReviewError: string | null = null;
-let recoveryReviewBusy = false;
-let recoveryReviewEpoch = 0;
-let projectReadEpoch=0;
-const containerBill=new ContainerBillController({project:()=>currentProject(),render:()=>render(),blocked:()=>recoveryStage!==null,write:writeBillFile,onChange:()=>containerPair.cancelReads()});
-const containerPair=new ContainerCostPairController({project:()=>currentProject(),bill:()=>containerBill.draft,render:()=>runUi('RENDER',()=>render()),blocked:()=>recoveryStage!==null,write:writeBillFile,
+
+const containerBill=new ContainerBillController({stateOwner:workbenchState,project:()=>currentProject(),render:()=>render(),blocked:()=>workflow.recoveryStage!==null,write:writeBillFile,onChange:()=>containerPair.cancelReads()});
+const containerPair=new ContainerCostPairController({stateOwner:workbenchState,project:()=>currentProject(),bill:()=>containerBill.draft,render:()=>runUi('RENDER',()=>render()),blocked:()=>workflow.recoveryStage!==null,write:writeBillFile,
  inputIssues:pairedFxDraftIssues,
- install:installPair,cancelOtherReads:()=>{projectReadEpoch++;containerBill.cancelReads();settlementEpoch++;},afterInstall:()=>runUi('RENDER',()=>{recompute();render();})});
+ install:installPair,cancelOtherReads:()=>{workflow.projectReadEpoch++;containerBill.cancelReads();workflow.settlementEpoch++;},afterInstall:()=>runUi('RENDER',()=>{recompute();render();})});
 const feeTaxWorkspace=new FeeTaxAttachmentWorkspace({
+ stateOwner:workbenchState,
  storage:{getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value)},
- currentPairText:()=>!stateInitialized||pendingCalculation||!containerPair.pair||containerPair.editor||containerPair.reviewEditor||containerPair.liveIssues().length?null:serializeContainerCostPair(containerPair.pair),
- blocked:()=>recoveryStage!==null,write:writeFeeTaxFile,onChange:()=>{feePrecisionWorkspace.refresh();feeEnvelopeWorkspace.externalChanged();},
+ currentPairText:()=>!workflow.stateInitialized||workflow.pendingCalculation||!containerPair.pair||containerPair.editor||containerPair.reviewEditor||containerPair.liveIssues().length?null:serializeContainerCostPair(containerPair.pair),
+ blocked:()=>workflow.recoveryStage!==null,write:writeFeeTaxFile,onChange:()=>{feePrecisionWorkspace.refresh();feeEnvelopeWorkspace.externalChanged();},
 });
 const feePrecisionWorkspace=new FeePrecisionSelectionWorkspace({
+ stateOwner:workbenchState,
  storage:{getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value)},
  currentSources:()=>{
-  if(!stateInitialized||pendingCalculation||!containerPair.pair||containerPair.editor||containerPair.reviewEditor||containerPair.liveIssues().length)return null;
+  if(!workflow.stateInitialized||workflow.pendingCalculation||!containerPair.pair||containerPair.editor||containerPair.reviewEditor||containerPair.liveIssues().length)return null;
   const s=feeTaxWorkspace.controller.state(),a=s.attachment,pair_json=serializeContainerCostPair(containerPair.pair);
   if(!a||s.editor||s.mutation_busy||a.pair_snapshot_json!==pair_json)return null;
   return{pair_json,attachment_json:JSON.stringify(a,null,2)+'\n'};
- },blocked:()=>recoveryStage!==null,write:writeFeeTaxFile,onChange:()=>feeEnvelopeWorkspace.externalChanged(),
+ },blocked:()=>workflow.recoveryStage!==null,write:writeFeeTaxFile,onChange:()=>feeEnvelopeWorkspace.externalChanged(),
 });
 const envelopeExclusive = typeof navigator !== 'undefined' && navigator.locks ? <T>(name:string,task:()=>T)=>navigator.locks.request(name,{mode:'exclusive'},()=>task()) : null;
 const feeEnvelopeWorkspace=new FeeEnvelopeWorkspace({
+ stateOwner:workbenchState,
  storage:createFeeEnvelopeBrowserStorage({getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value),removeItem:key=>localStorage.removeItem(key)},envelopeExclusive),
- cacheWritable:envelopeExclusive!==null,blocked:()=>recoveryStage!==null,write:writeFeeTaxFile,currentSources:currentEnvelopeSources,
+ cacheWritable:envelopeExclusive!==null,blocked:()=>workflow.recoveryStage!==null,write:writeFeeTaxFile,currentSources:currentEnvelopeSources,
 });
 function currentEnvelopeSources():FeeEnvelopeSources|null{
- if(!stateInitialized||pendingCalculation||!containerBill.draft||containerPair.editor||containerPair.reviewEditor||containerPair.busy||containerBill.busy)return null;
+ if(!workflow.stateInitialized||workflow.pendingCalculation||!containerBill.draft||containerPair.editor||containerPair.reviewEditor||containerPair.busy||containerBill.busy)return null;
  const tax=feeTaxWorkspace.controller.state(),precision=feePrecisionWorkspace.controller.state();
  if(tax.editor||tax.mutation_busy||precision.editor||precision.mutation_busy||containerPair.pair&&containerPair.liveIssues().length)return null;
  return{project_json:serializeProject(currentProject()),bill_json:serializeContainerBillDraft(containerBill.draft),pair_json:containerPair.pair?serializeContainerCostPair(containerPair.pair):null,attachment_json:tax.attachment?JSON.stringify(tax.attachment,null,2)+'\n':null,precision_json:precision.selection?JSON.stringify(precision.selection,null,2)+'\n':null};
@@ -262,11 +271,11 @@ function installPair(pair:ContainerCostPair):void {
  // Prepare every potentially failing conversion before replacing either in-memory half.
  const project=structuredClone(pair.project),bill=structuredClone(pair.bill),fxRows=booksToRows(project.fx_books),billText=serializeContainerBillDraft(bill),row_key=JSON.stringify(fxRows);
  const controls=newSensitivityControls(),publicFields=emptyCustomerQuoteFields();
- projectReadEpoch++;settlementEpoch++;recoveryReviewEpoch++;
- state.project=project;state.fxRows=fxRows;pairFxLease={row_key,books:project.fx_books};
-  workspaceNote='当前来自完整配对文件；账单与核对记录不自动应用为项目费用。';
+ workflow.projectReadEpoch++;workflow.settlementEpoch++;workflow.recoveryReviewEpoch++;
+ state.project=project;state.fxRows=fxRows;workflow.pairFxLease={row_key,books:project.fx_books};
+  workflow.workspaceNote='当前来自完整配对文件；账单与核对记录不自动应用为项目费用。';
  containerBill.installPrepared(bill,billText);
- settlementPlan=null;sensitivityControls=controls;customerFields=publicFields;customerView='full';customerReviewed=false;customerPreview=null;
+ workflow.settlementPlan=null;workflow.sensitivityControls=controls;workflow.customerFields=publicFields;workflow.customerView='full';workflow.customerReviewed=false;workflow.customerPreview=null;
  state.result=null;state.comparison=null;state.fileName=null;state.savedAt=null;state.dirty=true;
  expandedEvidenceSections.add('container-cost-pair');expandedEvidenceSections.add('container-bill');
 }
@@ -279,12 +288,12 @@ async function writeBillFile(name:string,text:string,mime:string):Promise<'SAVED
 
 const recentProjects = new RecentProjectsController({
  storage:{getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value),removeItem:key=>localStorage.removeItem(key)},
- context:()=>JSON.stringify({project:currentProject(),fxRows:state.fxRows,projectReadEpoch,settlementEpoch,fileName:state.fileName,savedAt:state.savedAt,dirty:state.dirty,
-  settlementPlan,sensitivityControls,customerFields,customerReviewed,customerView,bill:containerBill.draft,billMessage:containerBill.message,
+ context:()=>JSON.stringify({project:currentProject(),fxRows:state.fxRows,projectReadEpoch: workflow.projectReadEpoch,settlementEpoch: workflow.settlementEpoch,fileName:state.fileName,savedAt:state.savedAt,dirty:state.dirty,
+  settlementPlan: workflow.settlementPlan,sensitivityControls: workflow.sensitivityControls,customerFields: workflow.customerFields,customerReviewed: workflow.customerReviewed,customerView: workflow.customerView,bill:containerBill.draft,billMessage:containerBill.message,
   pair:containerPair.pair,editor:containerPair.editor,reviewEditor:containerPair.reviewEditor,copyName:containerPair.copyName,copyAcknowledged:containerPair.copyAcknowledged,copyCandidate:containerPair.copyCandidate,pairMessage:containerPair.message}),
  capture:()=>serializeProject(currentProject()),captureIssues:pairedFxDraftIssues,
- install:text=>{projectReadEpoch++;return openProjectFromText(text,'',true);},
- write:writeBillFile,render:()=>render(),blocked:()=>recoveryStage!==null,id:()=>crypto.randomUUID(),now:()=>new Date().toISOString(),
+ install:text=>{workflow.projectReadEpoch++;return openProjectFromText(text,'',true);},
+ write:writeBillFile,render:()=>render(),blocked:()=>workflow.recoveryStage!==null,id:()=>crypto.randomUUID(),now:()=>new Date().toISOString(),
 });
 function invalidateRecentProjects():void {
  if(!recentProjects.invalidate())return;
@@ -295,35 +304,35 @@ function showFatalFailure(stage: FailureStage): void {
   recentProjects.invalidate();
   onboarding.dismiss(false,false);
   fieldHelp.dismiss(false);
-  mobileSettings.dismiss(false);editedControl=null;
-  projectReadEpoch++;
-  recoveryStage = stage;
+  mobileSettings.dismiss(false);workflow.editedControl=null;
+  workflow.projectReadEpoch++;
+  workflow.recoveryStage = stage;
   containerBill.cancelReads();
   containerPair.cancelReads();
-  settlementEpoch++;
-  recoveryReviewEpoch++; recoveryReviewBusy = false; inputLocations = [];
-  if (stateInitialized) { state.result = null; state.comparison = null; }
-  customerReviewed = false; customerPreview = null; sensitivityAnalysis = null;
+  workflow.settlementEpoch++;
+  workflow.recoveryReviewEpoch++; workflow.recoveryReviewBusy = false; workflow.inputLocations = [];
+  if (workflow.stateInitialized) { state.result = null; state.comparison = null; }
+  workflow.customerReviewed = false; workflow.customerPreview = null; workflow.sensitivityAnalysis = null;
   showRecoveryView(stage,{retry:retryInterface,backup:backupRecovery});
 }
 function runUi(stage: FailureStage, operation: () => void): void {
   try { operation(); } catch { showFatalFailure(stage); }
 }
 function retryInterface(): void {
-  const initializing = !stateInitialized;
-  const startupWarning = stateInitialized && state.status === draftFailure ? draftFailure : null;
-  recoveryStage = null;
+  const initializing = !workflow.stateInitialized;
+  const startupWarning = workflow.stateInitialized && state.status === workflow.draftFailure ? workflow.draftFailure : null;
+  workflow.recoveryStage = null;
   runUi('STARTUP',()=>{
-    if (!stateInitialized) { state = initialState(); stateInitialized = true; }
+    if (!workflow.stateInitialized) initializeAppState();
     containerBill.loadLocal();
     containerPair.loadLocal();
     bind(); recompute(false);
-    if ((initializing && draftFailure) || startupWarning) { state.status = startupWarning ?? draftFailure!; state.statusLevel = 'warn'; }
+    if ((initializing && workflow.draftFailure) || startupWarning) { state.status = startupWarning ?? workflow.draftFailure!; state.statusLevel = 'warn'; }
     render();
   });
 }
 function backupRecovery(): void {
-  if (!recoveryStage) return;
+  if (!workflow.recoveryStage) return;
   let draft: string | null = null;
   let billDraftText:string|null=null;
   let pairDraftText:string|null=null;
@@ -342,9 +351,10 @@ function backupRecovery(): void {
   try{feeEnvelopeRaw=localStorage.getItem(FEE_ENVELOPE_STORAGE_KEY);}catch{/* Independent envelope memory remains available. */}
   try {
     // Raw inputs, including uncommitted FX rows, without running any calculation/validator.
-    const text = JSON.stringify({kind:'INTERNAL_RECOVERY_SNAPSHOT',version:'1.0',stage:recoveryStage,
-      project:stateInitialized ? state.project : null,fx_rows:stateInitialized ? state.fxRows : null,
-      settlement_plan:settlementPlan,sensitivity:sensitivityControls,customer_fields:customerFields,
+    const text = JSON.stringify({kind:'INTERNAL_RECOVERY_SNAPSHOT',version:'1.0',stage:workflow.recoveryStage,
+      workbench_state_owner:workbenchState.status(),
+      project:workflow.stateInitialized ? state.project : null,fx_rows:workflow.stateInitialized ? state.fxRows : null,
+      settlement_plan:workflow.settlementPlan,sensitivity:workflow.sensitivityControls,customer_fields:workflow.customerFields,
       browser_draft_text:draft,container_bill:containerBill.draft,container_bill_draft_text:billDraftText,container_cost_pair:containerPair.pair,container_cost_pair_draft_text:pairDraftText,
       ...(containerPair.editor?{container_cost_editor:containerPair.editor}:{}),
       ...(containerPair.reviewEditor?{container_review_editor:containerPair.reviewEditor}:{}),
@@ -355,23 +365,23 @@ function backupRecovery(): void {
       ...(feeEnvelopeWorkspace.controller.state().current||feeEnvelopeWorkspace.controller.state().incoming_raw||feeEnvelopeRaw!==null?{fee_envelope_memory:feeEnvelopeWorkspace.controller.state(),fee_envelope_raw:feeEnvelopeRaw}:{}),
       ...(editorDraftText&&editorDraftText!=='null'?{container_cost_editor_draft_text:editorDraftText}:{})},null,2) + '\n';
     downloadText('internal-recovery-snapshot.json',text);
-    showRecoveryView(recoveryStage,{retry:retryInterface,backup:backupRecovery},'已发起内部恢复备份下载，请确认文件已保存；原项目与草稿未改写');
+    showRecoveryView(workflow.recoveryStage,{retry:retryInterface,backup:backupRecovery},'已发起内部恢复备份下载，请确认文件已保存；原项目与草稿未改写');
   } catch {
-    showRecoveryView(recoveryStage,{retry:retryInterface,backup:backupRecovery},'恢复备份下载失败，当前内存输入仍保留；请不要刷新，检查浏览器下载权限后重试');
+    showRecoveryView(workflow.recoveryStage,{retry:retryInterface,backup:backupRecovery},'恢复备份下载失败，当前内存输入仍保留；请不要刷新，检查浏览器下载权限后重试');
   }
 }
 
 function onSettlementField(target: HTMLInputElement | HTMLSelectElement): void {
-  if (!settlementPlan) return;
+  if (!workflow.settlementPlan) return;
   const field = target.dataset.settlementField;
   const kind = target.dataset.settlementRow;
   const index = Number(target.dataset.settlementIndex);
   if (kind === 'payment') {
-    const row = settlementPlan.payments[index];
+    const row = workflow.settlementPlan.payments[index];
     if (row && field === 'basis' && ['AMOUNT','PERCENT'].includes(target.value)) row.basis = target.value as typeof row.basis;
     else if (row && (field === 'value' || field === 'date' || field === 'trigger')) row[field] = target.value;
   } else if (kind === 'fee') {
-    const row = settlementPlan.bank_fees[index];
+    const row = workflow.settlementPlan.bank_fees[index];
     if (row && field === 'source' && ['EXISTING','EXTRA'].includes(target.value)) {
       row.source = target.value as typeof row.source;
       // Preserve old values; incompatible associations must be cleared explicitly.
@@ -379,58 +389,58 @@ function onSettlementField(target: HTMLInputElement | HTMLSelectElement): void {
     } else if (row && (field === 'bearer' || field === 'payer') && ['UNCONFIRMED','BUYER','SELLER'].includes(target.value)) row[field] = target.value as typeof row.bearer;
     else if (row && field === 'not_in_project') row.not_in_project = target instanceof HTMLInputElement && target.checked;
     else if (row && (field === 'cost_id' || field === 'amount' || field === 'currency' || field === 'date' || field === 'reference')) row[field] = target.value;
-  } else if (kind === 'funding-event' && (['1.2','1.3','1.4','1.5'].includes(settlementPlan.version))) {
-    const row = settlementPlan.funding?.events?.[index];
+  } else if (kind === 'funding-event' && (['1.2','1.3','1.4','1.5'].includes(workflow.settlementPlan.version))) {
+    const row = workflow.settlementPlan.funding?.events?.[index];
     if (row && field === 'direction' && ['INCREASE','DECREASE'].includes(target.value)) row.direction = target.value as typeof row.direction;
     else if (row && (field === 'amount' || field === 'currency' || field === 'date' || field === 'reference')) row[field] = target.value;
-  } else if(kind==='funding-rate'&&(settlementPlan.version==='1.3'||settlementPlan.version==='1.4'||settlementPlan.version==='1.5')){
-    const row=settlementPlan.funding?.rate_events?.[index];
+  } else if(kind==='funding-rate'&&(workflow.settlementPlan.version==='1.3'||workflow.settlementPlan.version==='1.4'||workflow.settlementPlan.version==='1.5')){
+    const row=workflow.settlementPlan.funding?.rate_events?.[index];
     if(row&&(field==='date'||field==='annual_rate'||field==='reference'))row[field]=target.value;
-  } else if(kind==='funding-rounding'&&(settlementPlan.version==='1.4'||settlementPlan.version==='1.5')){
-    const row=settlementPlan.funding!.rounding!;
+  } else if(kind==='funding-rounding'&&(workflow.settlementPlan.version==='1.4'||workflow.settlementPlan.version==='1.5')){
+    const row=workflow.settlementPlan.funding!.rounding!;
     if(field === 'status'&&['UNCONFIRMED','NOT_APPLIED','APPLIED'].includes(target.value))row.status=target.value as typeof row.status;
-    else if(field === 'scope'&&(settlementPlan.version==='1.5'?['UNCONFIRMED','TOTAL','INTERVALS','PERIODS']:['UNCONFIRMED','TOTAL','INTERVALS']).includes(target.value)){row.scope=target.value as typeof row.scope;row.status='UNCONFIRMED';row.intervals_confirmed=false;}
+    else if(field === 'scope'&&(workflow.settlementPlan.version==='1.5'?['UNCONFIRMED','TOTAL','INTERVALS','PERIODS']:['UNCONFIRMED','TOTAL','INTERVALS']).includes(target.value)){row.scope=target.value as typeof row.scope;row.status='UNCONFIRMED';row.intervals_confirmed=false;}
     else if(field === 'mode'&&['UNCONFIRMED','HALF_UP','HALF_EVEN','DOWN'].includes(target.value))row.mode=target.value as typeof row.mode;
     else if(field === 'unit'||field === 'reference')row[field]=target.value;
     else if(field === 'intervals_confirmed')row.intervals_confirmed=target instanceof HTMLInputElement&&target.checked;
-  } else if(kind==='funding-period-schedule'&&settlementPlan.version==='1.5'){
-    const row=settlementPlan.funding!.period_schedule!;
+  } else if(kind==='funding-period-schedule'&&workflow.settlementPlan.version==='1.5'){
+    const row=workflow.settlementPlan.funding!.period_schedule!;
     if(field==='status'&&['UNCONFIRMED','PROVIDED'].includes(target.value))row.status=target.value as typeof row.status;
     else if(field==='reference')row.reference=target.value;
     else if(field === 'periods_confirmed')row.periods_confirmed=target instanceof HTMLInputElement&&target.checked;
-  } else if(kind==='funding-period'&&settlementPlan.version==='1.5'){
-    const row=settlementPlan.funding!.period_schedule!.periods[index];
+  } else if(kind==='funding-period'&&workflow.settlementPlan.version==='1.5'){
+    const row=workflow.settlementPlan.funding!.period_schedule!.periods[index];
     if(row&&(field==='start_date'||field==='end_date'||field==='reference'))row[field]=target.value;
-  } else if (kind === 'funding' && settlementPlan.version !== '1.0' && settlementPlan.funding) {
-    const row = settlementPlan.funding;
+  } else if (kind === 'funding' && workflow.settlementPlan.version !== '1.0' && workflow.settlementPlan.funding) {
+    const row = workflow.settlementPlan.funding;
     if (field === 'status' && ['UNCONFIRMED','NOT_MODELED','PROVIDED'].includes(target.value)) row.status = target.value as typeof row.status;
     else if (field === 'kind' && ['UNCONFIRMED','FINANCING','OPPORTUNITY'].includes(target.value)) row.kind = target.value as typeof row.kind;
     else if (field === 'party' && ['UNCONFIRMED','BUYER','SELLER'].includes(target.value)) row.party = target.value as typeof row.party;
     else if (field === 'day_basis' && ['UNCONFIRMED','ACT_365F','ACT_360'].includes(target.value)) row.day_basis = target.value as typeof row.day_basis;
-    else if (field === 'balance_model' && (['1.2','1.3','1.4','1.5'].includes(settlementPlan.version)) && ['CONSTANT','EVENTS'].includes(target.value)) { row.balance_model = target.value as typeof row.balance_model; row.status = 'UNCONFIRMED'; }
-    else if(field === 'rate_model'&&(settlementPlan.version==='1.3'||settlementPlan.version==='1.4'||settlementPlan.version==='1.5')&&['CONSTANT','EVENTS'].includes(target.value)){row.rate_model=target.value as typeof row.rate_model;row.status='UNCONFIRMED';}
+    else if (field === 'balance_model' && (['1.2','1.3','1.4','1.5'].includes(workflow.settlementPlan.version)) && ['CONSTANT','EVENTS'].includes(target.value)) { row.balance_model = target.value as typeof row.balance_model; row.status = 'UNCONFIRMED'; }
+    else if(field === 'rate_model'&&(workflow.settlementPlan.version==='1.3'||workflow.settlementPlan.version==='1.4'||workflow.settlementPlan.version==='1.5')&&['CONSTANT','EVENTS'].includes(target.value)){row.rate_model=target.value as typeof row.rate_model;row.status='UNCONFIRMED';}
     else if (field === 'principal' || field === 'currency' || field === 'start_date' || field === 'end_date' || field === 'annual_rate' || field === 'reference') row[field] = target.value;
-  } else if (field === 'method' && ['UNCONFIRMED','TT','LC','OA'].includes(target.value)) settlementPlan.method = target.value as typeof settlementPlan.method;
-  else if (field === 'bank_status' && ['UNCONFIRMED','NO_FEES','LISTED'].includes(target.value)) settlementPlan.bank_status = target.value as typeof settlementPlan.bank_status;
-  else if (field === 'notes') settlementPlan.notes = target.value;
-  if((settlementPlan.version==='1.4'||settlementPlan.version==='1.5')&&((kind==='funding-event'||kind==='funding-rate')&&field==='date'||kind==='funding'&&['start_date','end_date','balance_model','rate_model'].includes(field??'')))settlementPlan.funding!.rounding!.intervals_confirmed=false;
-  if(settlementPlan.version==='1.5'){
-    const f=settlementPlan.funding!;
+  } else if (field === 'method' && ['UNCONFIRMED','TT','LC','OA'].includes(target.value)) workflow.settlementPlan.method = target.value as typeof workflow.settlementPlan.method;
+  else if (field === 'bank_status' && ['UNCONFIRMED','NO_FEES','LISTED'].includes(target.value)) workflow.settlementPlan.bank_status = target.value as typeof workflow.settlementPlan.bank_status;
+  else if (field === 'notes') workflow.settlementPlan.notes = target.value;
+  if((workflow.settlementPlan.version==='1.4'||workflow.settlementPlan.version==='1.5')&&((kind==='funding-event'||kind==='funding-rate')&&field==='date'||kind==='funding'&&['start_date','end_date','balance_model','rate_model'].includes(field??'')))workflow.settlementPlan.funding!.rounding!.intervals_confirmed=false;
+  if(workflow.settlementPlan.version==='1.5'){
+    const f=workflow.settlementPlan.funding!;
     if(['funding','funding-event','funding-rate','funding-period','funding-rounding'].includes(kind??'')||kind==='funding-period-schedule'&&field!=='periods_confirmed')f.period_schedule!.periods_confirmed=false;
     if(kind==='funding-rounding'&&['mode','unit','reference'].includes(field??''))f.rounding!.status='UNCONFIRMED';
   }
-  settlementEpoch++;
+  workflow.settlementEpoch++;
   render();
 }
 
 async function saveSettlement(): Promise<void> {
-  if (settlementBusy) return;
+  if (workflow.settlementBusy) return;
   let writing=false;
   try {
-    if (!settlementPlan) throw Error('请先创建内部付款计划');
-    const text = serializeSettlementPlan(settlementPlan);
+    if (!workflow.settlementPlan) throw Error('请先创建内部付款计划');
+    const text = serializeSettlementPlan(workflow.settlementPlan);
     writing=true;
-    settlementBusy = true;
+    workflow.settlementBusy = true;
     render();
     const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
     if (picker) {
@@ -442,37 +452,37 @@ async function saveSettlement(): Promise<void> {
   } catch (error) {
     state.status = error instanceof Error && error.name === 'AbortError' ? '已取消付款计划保存，输入保留' : writing?'付款计划保存失败，请检查浏览器保存权限或存储空间后重试；输入保留':`付款计划保存失败：${error instanceof Error ? error.message : String(error)}`;
     state.statusLevel = 'warn';
-  } finally { settlementBusy = false; render(); }
+  } finally { workflow.settlementBusy = false; render(); }
 }
 
 function recomputeCustomerPreview(): void {
-  customerPreview = null;
-  customerError = null;
-  try { customerPreview = projectCustomerQuote(currentProject(), customerFields); }
-  catch (error) { customerError = error instanceof Error ? error.message : '公开报价数据未完成，请核对'; }
+  workflow.customerPreview = null;
+  workflow.customerError = null;
+  try { workflow.customerPreview = projectCustomerQuote(currentProject(), workflow.customerFields); }
+  catch (error) { workflow.customerError = error instanceof Error ? error.message : '公开报价数据未完成，请核对'; }
 }
 
 function recomputeSensitivity(): void {
-  sensitivityAnalysis = null;
-  sensitivityError = null;
-  if (!sensitivityControls.enabled) return;
-  try { sensitivityAnalysis = projectSensitivity(currentProject(), sensitivityControls); }
-  catch (error) { sensitivityError = error instanceof Error ? error.message : String(error); }
+  workflow.sensitivityAnalysis = null;
+  workflow.sensitivityError = null;
+  if (!workflow.sensitivityControls.enabled) return;
+  try { workflow.sensitivityAnalysis = projectSensitivity(currentProject(), workflow.sensitivityControls); }
+  catch (error) { workflow.sensitivityError = error instanceof Error ? error.message : String(error); }
 }
 
 function currentProject(): ProjectFile {
-  return { ...state.project, fx_books: pairFxLease?.row_key===JSON.stringify(state.fxRows)?pairFxLease.books:rowsToBooks(state.fxRows) };
+  return { ...state.project, fx_books: workflow.pairFxLease?.row_key===JSON.stringify(state.fxRows)?workflow.pairFxLease.books:rowsToBooks(state.fxRows) };
 }
 function pairedFxDraftIssues():string[]{
- if(pairFxLease?.row_key===JSON.stringify(state.fxRows))return[];
+ if(workflow.pairFxLease?.row_key===JSON.stringify(state.fxRows))return[];
  if(state.fxRows.some(r=>!r.from.trim()||!r.to.trim()||!r.rate.trim()))return['汇率行尚未填写完整，请先修正再捕获或另存配对；原行仍在草稿和恢复备份中'];
  const keys=state.fxRows.map(r=>JSON.stringify([r.type,r.date,r.valid_from??'',r.valid_to??'',r.from,r.to]));
  return new Set(keys).size!==keys.length?['汇率行有重复币种对和适用期，请先核对；配对不会静默覆盖其中一行']:[];
 }
 
 function recompute(persistDraft = true): void {
-  pendingCalculation = false;
-  inputLocations = [];
+  workflow.pendingCalculation = false;
+  workflow.inputLocations = [];
   const project = currentProject();
   try {
     const trade = toTrade(project);
@@ -506,7 +516,7 @@ function recompute(persistDraft = true): void {
     state.comparison = null;
     if (!isEngineError(error)) throw error;
     const failure = inputFailure(error);
-    inputLocations = inputSections(error);
+    workflow.inputLocations = inputSections(error);
     state.error = `${failure.message}\n${failure.hint}`;
     if (isEngineError(error) && (project.anchor.kind === 'ACTUAL_QUOTES' || project.term_scenarios !== undefined || project.items.some(item => item.applicable_incoterms !== undefined || item.alternative_group?.trim()))) {
       try {
@@ -519,8 +529,8 @@ function recompute(persistDraft = true): void {
     state.status = `输入不足以完成计算：${failure.hint}`;
     state.statusLevel = 'error';
   }
-  if (persistDraft) draftStorageUnavailable = !saveDraft(state.project, state.fxRows);
-  calculatedAt = new Date().toLocaleTimeString('zh-CN',{hour12:false});
+  if (persistDraft) workflow.draftStorageUnavailable = !saveDraft(state.project, state.fxRows);
+  workflow.calculatedAt = new Date().toLocaleTimeString('zh-CN',{hour12:false});
   recomputeSensitivity();
   recomputeCustomerPreview();
 }
@@ -1103,7 +1113,7 @@ interface SaveFilePickerWindow extends Window {
 
 async function saveProject(): Promise<void> {
   let text: string, suggested: string;
-  const saveEpoch=projectReadEpoch;
+  const saveEpoch=workflow.projectReadEpoch;
   let saveKey:string;
   try {
     saveKey=JSON.stringify({project:currentProject(),fxRows:state.fxRows});
@@ -1124,7 +1134,7 @@ async function saveProject(): Promise<void> {
       const writable = await handle.createWritable();
       await writable.write(text);
       await writable.close();
-      if(saveEpoch!==projectReadEpoch||saveKey!==JSON.stringify({project:currentProject(),fxRows:state.fxRows})){
+      if(saveEpoch!==workflow.projectReadEpoch||saveKey!==JSON.stringify({project:currentProject(),fxRows:state.fxRows})){
         state.status='已保存点击时的项目快照；当前资料已变更，本次保存未改变当前文件与保存状态。';state.statusLevel='warn';render();return;
       }
       state.fileName = handle.name;
@@ -1154,7 +1164,7 @@ async function saveProject(): Promise<void> {
     render();
     return;
   }
-  if(saveEpoch!==projectReadEpoch||saveKey!==JSON.stringify({project:currentProject(),fxRows:state.fxRows})){
+  if(saveEpoch!==workflow.projectReadEpoch||saveKey!==JSON.stringify({project:currentProject(),fxRows:state.fxRows})){
     state.status='已发起点击时项目快照下载；当前资料的文件与保存状态保持。';state.statusLevel='warn';render();return;
   }
   state.savedAt = new Date().toLocaleTimeString();
@@ -1165,7 +1175,7 @@ async function saveProject(): Promise<void> {
 }
 
 async function exportProjectResource(templateId?:string,schemaKind?:string,exampleKind?:string,exampleFamily:'funding'|'rounding'|'period'='funding'):Promise<void> {
-  if(projectResourceBusy)return;
+  if(workflow.projectResourceBusy)return;
   const label=exampleKind===undefined?'模板或结构文件':'合成案例文件';
   try {
     let text:string,name:string,mime='application/json';
@@ -1178,19 +1188,19 @@ async function exportProjectResource(templateId?:string,schemaKind?:string,examp
       text=JSON.stringify(schemaKind==='transport'?transportProjectSchema():projectJsonSchema(schemaKind==='legacy'),null,2)+'\n';
       name=schemaKind==='transport'?'project-0.9.schema.json':schemaKind==='legacy'?'project-import-0.1-0.8.schema.json':'project-0.8.schema.json';
     }else throw Error('请选择有效的模板或结构文件');
-    projectResourceBusy=true;render();
+    workflow.projectResourceBusy=true;render();
     const picker=(window as SaveFilePickerWindow).showSaveFilePicker;
     if(picker){const handle=await picker.call(window,{suggestedName:name,types:[{description:label,accept:{[mime]:[mime==='text/html'?'.html':'.json']}}]});const writable=await handle.createWritable();await writable.write(text);await writable.close();state.status=`已导出${label} ${handle.name}；当前项目未替换，项目文件仍需单独保存`;}
     else{downloadText(name,text,mime);state.status=`已发起${label}下载；当前项目未替换，请确认文件已保存`;}
     state.statusLevel='warn';
   }catch(error){if(error instanceof Error&&error.name==='AbortError'){state.status=`已取消${label}导出，当前项目未改变`;state.statusLevel='warn';}else{state.status=`${label}导出失败：${exampleKind!==undefined?'文件未写入，请核对案例类型及保存权限':error instanceof Error?error.message:'文件未写入'}`;state.statusLevel='error';}}
-  finally{projectResourceBusy=false;render();}
+  finally{workflow.projectResourceBusy=false;render();}
 }
 
 async function exportReport(): Promise<void> {
   try {
     const project = currentProject();
-    const html = createProjectReport(project, undefined, sensitivityControls.enabled ? sensitivityControls : undefined, settlementPlan ?? undefined,containerBill.draft??undefined,containerPair.pair??undefined);
+    const html = createProjectReport(project, undefined, workflow.sensitivityControls.enabled ? workflow.sensitivityControls : undefined, workflow.settlementPlan ?? undefined,containerBill.draft??undefined,containerPair.pair??undefined);
     const name = safeFileName(`${project.name || 'trade-cost'}-内部测算报告`, 'html');
     const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
     if (picker !== undefined) {
@@ -1216,11 +1226,11 @@ async function exportReport(): Promise<void> {
 async function exportWorkbook(customer: boolean): Promise<void> {
   const label = customer ? '客户报价 Excel 草稿' : '内部成本 Excel';
   try {
-    if (customer && !customerReviewed) throw new Error('请先检查客户预览中的公开内容');
+    if (customer && !workflow.customerReviewed) throw new Error('请先检查客户预览中的公开内容');
     const project = currentProject();
-    const quote = customer ? projectCustomerQuote(project, customerFields) : null;
-    const view=customerView;
-    const bytes = quote ? createCustomerWorkbook(quote,undefined,view) : createInternalWorkbook(project, undefined, sensitivityControls.enabled ? sensitivityControls : undefined, settlementPlan ?? undefined,containerBill.draft??undefined,containerPair.pair??undefined);
+    const quote = customer ? projectCustomerQuote(project, workflow.customerFields) : null;
+    const view=workflow.customerView;
+    const bytes = quote ? createCustomerWorkbook(quote,undefined,view) : createInternalWorkbook(project, undefined, workflow.sensitivityControls.enabled ? workflow.sensitivityControls : undefined, workflow.settlementPlan ?? undefined,containerBill.draft??undefined,containerPair.pair??undefined);
     const name = quote ? customerQuoteFileName(quote,view).replace(/\.html$/, '.xlsx') : safeFileName(`${project.name || 'trade-cost'}-内部成本`, 'xlsx');
     const blob = new Blob([bytes], { type: XLSX_MIME });
     const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
@@ -1246,14 +1256,14 @@ async function exportWorkbook(customer: boolean): Promise<void> {
 }
 
 async function exportCustomerPdf(): Promise<void> {
-  if (customerPdfBusy) return;
+  if (workflow.customerPdfBusy) return;
   try {
-    if (!customerReviewed) throw new Error('请先检查客户预览中的公开内容');
-    const quote = projectCustomerQuote(currentProject(), customerFields);
+    if (!workflow.customerReviewed) throw new Error('请先检查客户预览中的公开内容');
+    const quote = projectCustomerQuote(currentProject(), workflow.customerFields);
     const generatedAt = new Date().toISOString();
-    const view=customerView;
+    const view=workflow.customerView;
     const name = customerQuoteFileName(quote,view).replace(/\.html$/, '.pdf').replace(/[\u0000-\u001F]/g, '-');
-    customerPdfBusy = true; render();
+    workflow.customerPdfBusy = true; render();
     // Open the picker while the click still has user activation; generation starts only after selection.
     const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
     const handle = picker === undefined ? null : await picker.call(window, { suggestedName: name, types: [{ description: '客户报价 PDF 草稿', accept: { 'application/pdf': ['.pdf'] } }] });
@@ -1273,19 +1283,19 @@ async function exportCustomerPdf(): Promise<void> {
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') { state.status = '已取消客户报价 PDF 导出，项目保存状态未改变'; state.statusLevel = 'warn'; }
     else { state.status = `客户报价 PDF 导出失败：${error instanceof Error ? error.message : '文件未写入'}`; state.statusLevel = 'error'; }
-  } finally { customerPdfBusy = false; render(); }
+  } finally { workflow.customerPdfBusy = false; render(); }
 }
 
 async function exportCustomerQuote(bilingual=false): Promise<void> {
-  if(bilingual&&customerSummaryBusy)return;
+  if(bilingual&&workflow.customerSummaryBusy)return;
   const label=bilingual?'中英文条款摘要':'客户报价';
   try {
-    if (!customerReviewed) throw new Error('请先检查客户预览中的公开内容');
-    const quote = projectCustomerQuote(currentProject(), customerFields);
-    const view=customerView;
+    if (!workflow.customerReviewed) throw new Error('请先检查客户预览中的公开内容');
+    const quote = projectCustomerQuote(currentProject(), workflow.customerFields);
+    const view=workflow.customerView;
     const html = bilingual?createBilingualSummaryDocument(quote):createCustomerQuoteDocument(quote,undefined,view);
     const name = bilingual?customerQuoteFileName(quote).replace('-客户报价草稿.html','-中英文条款摘要草稿.html').replace(/[\u0000-\u001F]/g,'-'):customerQuoteFileName(quote,view);
-    if(bilingual){customerSummaryBusy=true;render();}
+    if(bilingual){workflow.customerSummaryBusy=true;render();}
     const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
     if (picker !== undefined) {
       const handle = await picker.call(window, { suggestedName: name, types: [{ description: bilingual?'中英文条款摘要草稿':'客户报价说明草稿', accept: { 'text/html': ['.html'] } }] });
@@ -1299,7 +1309,7 @@ async function exportCustomerQuote(bilingual=false): Promise<void> {
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') { state.status = `已取消${label}导出，项目保存状态未改变`; state.statusLevel = 'warn'; }
     else { state.status = `${label}导出失败：${error instanceof Error ? error.message : '文件未写入'}`; state.statusLevel = 'error'; }
-  }finally{if(bilingual)customerSummaryBusy=false;}
+  }finally{if(bilingual)workflow.customerSummaryBusy=false;}
   render();
 }
 
@@ -1316,16 +1326,16 @@ function openProjectFromText(text: string, fileName: string, fromRecent=false): 
     // 所有可能失败的准备步骤完成后，才替换当前编辑内容。
     const fxRows = booksToRows(project.fx_books);
     const templateNote=importedTemplateNote(project);
-    pairFxLease=null;containerPair.cancelReads();
+    workflow.pairFxLease=null;containerPair.cancelReads();
     state.project = project;
-    workspaceNote = fromRecent?'已打开本机项目快照；独立付款、账单、配对与客户资料未由快照恢复，请另存项目 JSON。':templateNote??'已打开本地项目；按文件中保存的费用、报价与适用条件核对。';
+    workflow.workspaceNote = fromRecent?'已打开本机项目快照；独立付款、账单、配对与客户资料未由快照恢复，请另存项目 JSON。':templateNote??'已打开本地项目；按文件中保存的费用、报价与适用条件核对。';
     containerBill.projectChanged();
-    settlementPlan = null;
-    settlementEpoch++;
-    sensitivityControls = newSensitivityControls();
-    customerFields = emptyCustomerQuoteFields();
-    customerView='full';
-    customerReviewed = false;
+    workflow.settlementPlan = null;
+    workflow.settlementEpoch++;
+    workflow.sensitivityControls = newSensitivityControls();
+    workflow.customerFields = emptyCustomerQuoteFields();
+    workflow.customerView='full';
+    workflow.customerReviewed = false;
     state.fxRows = fxRows;
     state.fileName = fromRecent?null:fileName;
     state.savedAt = null;
@@ -1340,16 +1350,16 @@ function openProjectFromText(text: string, fileName: string, fromRecent=false): 
 }
 
 function newProject(mode: 'sample' | 'china-sample' | 'china-blank' = 'sample'): void {
-  pairFxLease=null;containerPair.cancelReads();
-  projectReadEpoch++;
-  settlementPlan = null;
-  settlementEpoch++;
-  sensitivityControls = newSensitivityControls();
-  customerFields = emptyCustomerQuoteFields();
-  customerView='full';
-  customerReviewed = false;
+  workflow.pairFxLease=null;containerPair.cancelReads();
+  workflow.projectReadEpoch++;
+  workflow.settlementPlan = null;
+  workflow.settlementEpoch++;
+  workflow.sensitivityControls = newSensitivityControls();
+  workflow.customerFields = emptyCustomerQuoteFields();
+  workflow.customerView='full';
+  workflow.customerReviewed = false;
   state.project = mode === 'china-blank' ? newChinaImportProjectFile() : mode === 'china-sample' ? chinaImportSampleProjectFile() : sampleProjectFile();
-  workspaceNote = mode==='china-blank'?'空白中国进口交易：金额、费用、日期、税率与资格均需填写；CIF/海运/人民币仅为可修改起点，无费用不代表零成本。':mode==='china-sample'?'中国进口合成示例：净价100,000、运费8,000、保险300 USD；税率、汇率及申报日期均虚构，真实使用须逐项替换。':'CIF 合成示例：净价100,000、运费8,000、保险300 USD；通用成本口径及虚构税务假设，不是完整中国出口税务流程。';
+  workflow.workspaceNote = mode==='china-blank'?'空白中国进口交易：金额、费用、日期、税率与资格均需填写；CIF/海运/人民币仅为可修改起点，无费用不代表零成本。':mode==='china-sample'?'中国进口合成示例：净价100,000、运费8,000、保险300 USD；税率、汇率及申报日期均虚构，真实使用须逐项替换。':'CIF 合成示例：净价100,000、运费8,000、保险300 USD；通用成本口径及虚构税务假设，不是完整中国出口税务流程。';
   state.fxRows = booksToRows(state.project.fx_books);
   containerBill.projectChanged();
   state.fileName = null;
@@ -1369,7 +1379,7 @@ function saveStateText(): { text: string; className: string } {
   const target = state.fileName ?? '尚未保存为文件';
   const when = state.savedAt !== null ? ` · 上次保存 ${state.savedAt}` : '';
   const dirtyMark = state.dirty ? ' · 有未保存改动' : '';
-  if (draftStorageUnavailable) {
+  if (workflow.draftStorageUnavailable) {
     return { text: `${target}${dirtyMark} · 自动草稿保存失败，请保存项目文件`, className: 'save-state dirty' };
   }
   return {
@@ -1379,7 +1389,7 @@ function saveStateText(): { text: string; className: string } {
 }
 
 function render(): void {
-  if (recoveryStage) return;
+  if (workflow.recoveryStage) return;
   runUi('RENDER',()=>{ renderApp(); clearRecoveryView(); });
 }
 function renderApp(): void {
@@ -1389,13 +1399,13 @@ function renderApp(): void {
   const mobileReset=mobileSettings.beforeRender(state.project);
   const saveState = saveStateText();
   const workspace: WorkspaceResult = {project:currentProject(),result:state.result,comparison:state.comparison,error:state.error,
-    issues:state.error===null?[]:workspaceIssues(currentProject(),state.fxRows),calculatedAt,mode:workspaceMode};
+    issues:state.error===null?[]:workspaceIssues(currentProject(),state.fxRows),calculatedAt: workflow.calculatedAt,mode:workflow.workspaceMode};
 
   app.innerHTML = `
-    <div class="workspace" data-workspace-mode="${workspaceMode}" data-calculation-pending="${pendingCalculation}">
+    <div class="workspace" data-workspace-mode="${workflow.workspaceMode}" data-calculation-pending="${workflow.pendingCalculation}">
     <header class="app-bar">
       <div class="brand">国际贸易成本<span class="sub">COCUDTT · 本地工作台</span></div>
-      ${renderModeSwitch(workspaceMode)}
+      ${renderModeSwitch(workflow.workspaceMode)}
       <div class="file-actions workspace-file-actions">
         <button class="primary" data-action="save">保存项目</button>
         <details class="workspace-export" data-evidence-section="file-menu"><summary data-action="toggle-file-menu">项目与导出</summary><div>
@@ -1411,22 +1421,22 @@ function renderApp(): void {
     </header>
     <main class="layout">
       <div class="workspace-file-state"><span class="${saveState.className}" role="status" aria-live="polite">${escapeHtml(saveState.text)}</span><span>仅供学习与内部测算。数据仅在本机浏览器；清除存储会丢失草稿，请另存项目 JSON。</span></div>
-      ${renderQuickStart(state.project,workspaceNote)}
+      ${renderQuickStart(state.project,workflow.workspaceNote)}
       ${onboarding.entry()}
       ${renderRecentProjects(recentProjects,expandedEvidenceSections.has('recent-projects'))}
-      ${renderFormsRow(state.project,workspaceMode==='beginner')}
+      ${renderFormsRow(state.project,workflow.workspaceMode==='beginner')}
       <div class="mobile-settings-entry"><button type="button" data-action="show-mobile-settings">高级设置 · 费用、汇率与税务 →</button></div>
       ${renderInputReview(inputReviews(currentProject(),state.fxRows))}
       ${quickCosts.render(state.project,state.result)}
       ${renderWorkspaceSummary(workspace)}
       ${renderCalculationLearning(state.result,state.error)}
-      <details class="panel workspace-results" data-evidence-section="full-results"${workspaceMode==='professional'&&!collapsedSections.has('full-results')?' open':''}><summary><span class="panel-title">完整计算过程与方案对比</span><span class="hint">公式、费用归属、税基、风险与来源</span></summary><div class="panel-body">
-      ${renderOutputColumn({ result: state.result, comparison: state.comparison, error: state.error, inputLocations })}
-      ${renderSensitivityPanel(currentProject(), state.result, sensitivityControls, sensitivityAnalysis, sensitivityError)}
+      <details class="panel workspace-results" data-evidence-section="full-results"${workflow.workspaceMode==='professional'&&!collapsedSections.has('full-results')?' open':''}><summary><span class="panel-title">完整计算过程与方案对比</span><span class="hint">公式、费用归属、税基、风险与来源</span></summary><div class="panel-body">
+      ${renderOutputColumn({ result: state.result, comparison: state.comparison, error: state.error, inputLocations: workflow.inputLocations })}
+      ${renderSensitivityPanel(currentProject(), state.result, workflow.sensitivityControls, workflow.sensitivityAnalysis, workflow.sensitivityError)}
       </div></details>
-      <details class="panel workspace-advanced" data-evidence-section="advanced-settings"${workspaceMode==='professional'&&!collapsedSections.has('advanced-settings')?' open':''}><summary><span class="panel-title">高级设置</span><span class="hint">运保费、汇率、税务与合同依据</span></summary><div class="panel-body">
+      <details class="panel workspace-advanced" data-evidence-section="advanced-settings"${workflow.workspaceMode==='professional'&&!collapsedSections.has('advanced-settings')?' open':''}><summary><span class="panel-title">高级设置</span><span class="hint">运保费、汇率、税务与合同依据</span></summary><div class="panel-body">
       <p class="hint block">适用场景：录入实际费用、进口计税、商业和海关汇率，或核对合同费用约定。收起只改变显示，原字段仍参与计算；没有录入的费用不会自动视为已核实的零费用。</p>
-      ${workspaceMode==='beginner'?renderAdvancedTradeFields(state.project):''}
+      ${workflow.workspaceMode==='beginner'?renderAdvancedTradeFields(state.project):''}
       ${renderItemsPanel(state.project, enrichmentMap())}
       ${renderFxPanel(state.fxRows)}
       ${renderImportTaxPanel(state.project)}
@@ -1437,11 +1447,11 @@ function renderApp(): void {
       ${feeEnvelopeWorkspace.render()}
       </div></details>
       <div class="workspace-section-label"><h2>业务资料与交接</h2><p>按实际需要展开。独立账单、付款计划与核对记录不自动写入交易成本。</p></div>
-      ${renderSettlementPanel(currentProject(), settlementPlan, state.result, settlementBusy)}
+      ${renderSettlementPanel(currentProject(), workflow.settlementPlan, state.result, workflow.settlementBusy)}
       ${renderContainerBillPanel(containerBill.draft,currentProject(),containerBill.busy,containerBill.message)}
       ${renderContainerCostPairPanel(containerPair)}
-      ${renderCustomerQuotePanel(currentProject(), customerFields, customerReviewed, customerPreview, customerError, customerPdfBusy,customerSummaryBusy,customerView)}
-      <details class="panel" data-evidence-section="workspace-help"${workspaceMode==='professional'&&!collapsedSections.has('workspace-help')?' open':''}><summary><span class="panel-title">帮助、示例与文件模板</span><span class="hint">适用范围、假设说明及恢复检查</span></summary><div class="panel-body">
+      ${renderCustomerQuotePanel(currentProject(), workflow.customerFields, workflow.customerReviewed, workflow.customerPreview, workflow.customerError, workflow.customerPdfBusy,workflow.customerSummaryBusy,workflow.customerView)}
+      <details class="panel" data-evidence-section="workspace-help"${workflow.workspaceMode==='professional'&&!collapsedSections.has('workspace-help')?' open':''}><summary><span class="panel-title">帮助、示例与文件模板</span><span class="hint">适用范围、假设说明及恢复检查</span></summary><div class="panel-body">
       <aside class="responsibility-notice" aria-label="责任声明">本工具仅供学习与内部测算参考，不构成法律或专业贸易建议。实际合同请以 Incoterms® 官方文本及当地法规为准。</aside>
       <details class="panel" data-evidence-section="project-introduction">
         <summary><span class="panel-title">项目说明 · 适用范围与使用方法</span></summary>
@@ -1454,11 +1464,11 @@ function renderApp(): void {
           <details><summary>PDF 字体许可与来源</summary><pre class="font-license">${escapeHtml(fontProvenance)}\n${escapeHtml(fontLicense)}</pre></details>
         </div>
       </details>
-      ${renderProjectTemplatePanel(projectResourceBusy)}
-      ${renderFundingExamplePanel(projectResourceBusy)}
-      ${renderRoundingExamplePanel(projectResourceBusy)}
-      ${renderPeriodExamplePanel(projectResourceBusy)}
-      ${renderRecoveryReviewPanel(recoveryReview,recoveryReviewBusy,recoveryReviewError)}
+      ${renderProjectTemplatePanel(workflow.projectResourceBusy)}
+      ${renderFundingExamplePanel(workflow.projectResourceBusy)}
+      ${renderRoundingExamplePanel(workflow.projectResourceBusy)}
+      ${renderPeriodExamplePanel(workflow.projectResourceBusy)}
+      ${renderRecoveryReviewPanel(workflow.recoveryReview,workflow.recoveryReviewBusy,workflow.recoveryReviewError)}
       </div></details>
       <footer class="app-footer">
         <span>费用 ${state.project.items.length} 项 · 11 术语对比 · 核算币种 ${escapeHtml(state.project.base_currency)}</span>
@@ -1493,8 +1503,8 @@ function commit(): void {
   containerPair.cancelReads();
   invalidateTransportCostLinks(state.project);
   containerBill.projectChanged();
-  projectReadEpoch++;
-  customerReviewed = false;
+  workflow.projectReadEpoch++;
+  workflow.customerReviewed = false;
   state.dirty = true;
   recompute();
   render();
@@ -1530,10 +1540,10 @@ function populateContainedIn(select: HTMLSelectElement, costId: string): void {
 function bind(): void {
   const app = document.querySelector<HTMLDivElement>('#app');
   if (app === null) return;
-  if (boundRoot !== app) { boundRoot = app; boundEvents.clear(); }
+  if (workflow.boundRoot !== app) { workflow.boundRoot = app; boundEvents.clear(); }
   const listen = (type: string, listener: (event: Event) => void, capture = false): void => {
     if (boundEvents.has(type)) return;
-    app.addEventListener(type,event=>{ if (!recoveryStage) runUi('INTERACTION',()=>listener(event)); },capture);
+    app.addEventListener(type,event=>{ if (!workflow.recoveryStage) runUi('INTERACTION',()=>{workbenchState.touch();listener(event);}); },capture);
     boundEvents.add(type);
   };
 
@@ -1543,13 +1553,14 @@ function bind(): void {
   const commitsInput=(action:string):boolean=>['save','open','toggle-file-menu','show-field-help','show-quick-costs','show-cost-settings','show-full-results','show-calculation-learning','learning-target','show-mobile-settings','close-mobile-settings','locate-workspace-issue','locate-input','locate-input-review','show-onboarding','customer-view','show-project-templates'].includes(action)||action.startsWith('mode-')||action.startsWith('recent-')||action.startsWith('fee-tax-')||action.startsWith('fee-precision-')||action.startsWith('fee-envelope-');
   const flushInput=():void=>{
     const active=document.activeElement;
-    if((active instanceof HTMLInputElement||customerText(active))&&(editedControl===active||active instanceof HTMLInputElement&&pendingCalculation&&calculationInput(active)))active.dispatchEvent(new Event('change',{bubbles:true}));
+    if((active instanceof HTMLInputElement||customerText(active))&&(workflow.editedControl===active||active instanceof HTMLInputElement&&workflow.pendingCalculation&&calculationInput(active)))active.dispatchEvent(new Event('change',{bubbles:true}));
   };
-  mobileSettings.onReturn=()=>runUi('INTERACTION',()=>{flushInput();if(!pendingCalculation)mobileSettings.dismiss();});
+  mobileSettings.onReturn=()=>runUi('INTERACTION',()=>{flushInput();if(!workflow.pendingCalculation)mobileSettings.dismiss();});
   if(typeof window.addEventListener==='function'&&!boundEvents.has('mobile-resize')){window.addEventListener('resize',()=>runUi('INTERACTION',()=>mobileSettings.resize()));boundEvents.add('mobile-resize');}
   if(typeof window.addEventListener==='function'&&!boundEvents.has('fee-envelope-unload')){window.addEventListener('beforeunload',event=>{const s=feeEnvelopeWorkspace.controller.state();if(s.dirty||s.write_busy||s.cache_busy||s.mutation_busy||s.preview?.source==='MEMORY'||s.incoming_error&&s.incoming_raw){event.preventDefault();event.returnValue='';}});boundEvents.add('fee-envelope-unload');}
   if(typeof window.addEventListener==='function'&&!boundEvents.has('recent-storage')){
     window.addEventListener('storage',event=>runUi('INTERACTION',()=>{
+      workbenchState.touch();
       if((event.key===RECENT_PROJECTS_KEY||event.key===null)&&(!event.storageArea||event.storageArea===localStorage))recentProjects.externalChange();
       if(!event.storageArea||event.storageArea===localStorage)feeTaxWorkspace.storageChanged(event.key);
       if(!event.storageArea||event.storageArea===localStorage)feePrecisionWorkspace.storageChanged(event.key);
@@ -1561,13 +1572,13 @@ function bind(): void {
     if(target instanceof HTMLInputElement&&target.dataset.feeEnvelopeField!==undefined){feeEnvelopeWorkspace.field(target.value);return;}
     if(target instanceof HTMLInputElement&&target.dataset.feeEnvelopeChoice!==undefined)return;
     feeEnvelopeWorkspace.externalChanged();
-    if(target instanceof HTMLInputElement&&target.dataset.feeTaxField!==undefined){editedControl=target;feeTaxWorkspace.field(target.dataset.feeTaxField,target.value,true);return;}
-    if(target instanceof HTMLInputElement&&target.dataset.feePrecisionField!==undefined){editedControl=target;feePrecisionWorkspace.field(target.dataset.feePrecisionField,target.value,true);return;}
+    if(target instanceof HTMLInputElement&&target.dataset.feeTaxField!==undefined){workflow.editedControl=target;feeTaxWorkspace.field(target.dataset.feeTaxField,target.value,true);return;}
+    if(target instanceof HTMLInputElement&&target.dataset.feePrecisionField!==undefined){workflow.editedControl=target;feePrecisionWorkspace.field(target.dataset.feePrecisionField,target.value,true);return;}
     invalidateRecentProjects();
-    if(target instanceof HTMLInputElement&&target.type!=='file'&&target.dataset.customerField!=='reviewed'||customerText(target))editedControl=target;
-    if(customerText(target)){customerReviewed=false;const reviewed=document.querySelector<HTMLInputElement>('[data-customer-field="reviewed"]');if(reviewed)reviewed.checked=false;document.querySelectorAll<HTMLButtonElement>('[data-action="export-customer-quote"],[data-action="export-customer-xlsx"],[data-action="export-customer-pdf"],[data-action="export-bilingual-summary"]').forEach(e=>e.disabled=true);return;}
+    if(target instanceof HTMLInputElement&&target.type!=='file'&&target.dataset.customerField!=='reviewed'||customerText(target))workflow.editedControl=target;
+    if(customerText(target)){workflow.customerReviewed=false;const reviewed=document.querySelector<HTMLInputElement>('[data-customer-field="reviewed"]');if(reviewed)reviewed.checked=false;document.querySelectorAll<HTMLButtonElement>('[data-action="export-customer-quote"],[data-action="export-customer-xlsx"],[data-action="export-customer-pdf"],[data-action="export-bilingual-summary"]').forEach(e=>e.disabled=true);return;}
     if(!(target instanceof HTMLInputElement)||!calculationInput(target))return;
-    pendingCalculation=true;
+    workflow.pendingCalculation=true;
     feePrecisionWorkspace.refresh();
     const workspace=document.querySelector<HTMLElement>('[data-workspace-mode]');if(workspace)workspace.dataset.calculationPending='true';
     const status=document.querySelector<HTMLElement>('[data-calculation-status]');if(status)status.textContent='输入已变更 · 待更新';
@@ -1576,8 +1587,8 @@ function bind(): void {
   // Keep the active input until a toolbar click can commit it. Otherwise blur
   // replaces the clicked DOM node before mouseup, swallowing the first click.
   listen('mousedown',event=>{
-    const target=event.target;if(!(pendingCalculation||editedControl===document.activeElement)||!(target instanceof HTMLElement)||(event as MouseEvent).button!==0)return;
-    const action=target.dataset.action;if(action&&commitsInput(action)||target.dataset.recentField!==undefined||target.dataset.customerField==='reviewed'&&customerText(editedControl))event.preventDefault();
+    const target=event.target;if(!(workflow.pendingCalculation||workflow.editedControl===document.activeElement)||!(target instanceof HTMLElement)||(event as MouseEvent).button!==0)return;
+    const action=target.dataset.action;if(action&&commitsInput(action)||target.dataset.recentField!==undefined||target.dataset.customerField==='reviewed'&&customerText(workflow.editedControl))event.preventDefault();
   });
   listen('keydown',event=>{
     const key=event as KeyboardEvent,target=event.target;
@@ -1623,8 +1634,8 @@ function bind(): void {
     if(envelopeTarget instanceof HTMLInputElement&&envelopeTarget.id==='fee-envelope-file-input'){const file=envelopeTarget.files?.[0];if(file)void feeEnvelopeWorkspace.openFile(file);return;}
     feeEnvelopeWorkspace.externalChanged();
     const target = event.target;
-    if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement)&&target.dataset.feeTaxField!==undefined){if(editedControl===target)editedControl=null;feeTaxWorkspace.field(target.dataset.feeTaxField,target.value);return;}
-    if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement)&&target.dataset.feePrecisionField!==undefined){if(editedControl===target)editedControl=null;feePrecisionWorkspace.field(target.dataset.feePrecisionField,target.value);return;}
+    if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement)&&target.dataset.feeTaxField!==undefined){if(workflow.editedControl===target)workflow.editedControl=null;feeTaxWorkspace.field(target.dataset.feeTaxField,target.value);return;}
+    if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement)&&target.dataset.feePrecisionField!==undefined){if(workflow.editedControl===target)workflow.editedControl=null;feePrecisionWorkspace.field(target.dataset.feePrecisionField,target.value);return;}
     if(target instanceof HTMLInputElement&&target.id==='fee-precision-file-input'){const file=target.files?.[0];if(file)void feePrecisionWorkspace.controller.openFile(file);return;}
     if(target instanceof HTMLInputElement&&target.id==='fee-tax-file-input'){const file=target.files?.[0];if(file)void feeTaxWorkspace.controller.openFile(file);return;}
     if(target instanceof HTMLInputElement&&target.dataset.recentField!==undefined){
@@ -1632,7 +1643,7 @@ function bind(): void {
       flushInput();recentProjects.accept(recentField,checked,recentGeneration);return;
     }
     invalidateRecentProjects();
-    if(editedControl===target)editedControl=null;
+    if(workflow.editedControl===target)workflow.editedControl=null;
     if(target instanceof HTMLInputElement&&target.dataset.onboardingField==='hide'){onboarding.setHidden(target.checked);return;}
     if(target instanceof HTMLInputElement&&target.id==='pair-file-input'){const file=target.files?.[0];if(file)void containerPair.open(file);return;}
     containerPair.cancelReads();
@@ -1652,20 +1663,20 @@ function bind(): void {
     if (target instanceof HTMLInputElement && target.id === 'recovery-review-input') {
       const file = target.files?.[0];
       if (!file) return;
-      const epoch = ++recoveryReviewEpoch;
-      recoveryReview = null; recoveryReviewError = null; recoveryReviewBusy = true;
+      const epoch = ++workflow.recoveryReviewEpoch;
+      workflow.recoveryReview = null; workflow.recoveryReviewError = null; workflow.recoveryReviewBusy = true;
       expandedEvidenceSections.add('recovery-review'); render();
       const read = async (): Promise<void> => {
         let review: RecoveryReview | null = null, error: string | null = null;
         try {
           if (file.size > RECOVERY_REVIEW_MAX_BYTES) throw Error('恢复文件超过5 MiB检查上限；请保留原文件，分开人工核对');
           const text = await file.text();
-          if (epoch !== recoveryReviewEpoch) return;
+          if (epoch !== workflow.recoveryReviewEpoch) return;
           // Inspector errors are controlled messages; file API errors may contain private paths.
           try { review = inspectRecoveryText(text); } catch (failure) { error = failure instanceof Error ? failure.message : '恢复文件无法检查，请保留原文'; }
         } catch { error = file.size > RECOVERY_REVIEW_MAX_BYTES ? '恢复文件超过5 MiB检查上限；请保留原文件，分开人工核对' : '恢复文件读取失败；请保留原文件并核对读取权限'; }
-        if (epoch !== recoveryReviewEpoch || recoveryStage) return;
-        runUi('INTERACTION',()=>{ recoveryReview = review; recoveryReviewError = error; recoveryReviewBusy = false; render(); });
+        if (epoch !== workflow.recoveryReviewEpoch || workflow.recoveryStage) return;
+        runUi('INTERACTION',()=>{ workflow.recoveryReview = review; workflow.recoveryReviewError = error; workflow.recoveryReviewBusy = false; render(); });
       };
       void read();
       return;
@@ -1674,15 +1685,15 @@ function bind(): void {
     if (target instanceof HTMLInputElement && target.id === 'settlement-file-input') {
       const file = target.files?.[0];
       if (!file) return;
-      const epoch = ++settlementEpoch;
+      const epoch = ++workflow.settlementEpoch;
       void file.text().then(text => {
-        if (epoch !== settlementEpoch) return;
+        if (epoch !== workflow.settlementEpoch) return;
         const parsed = parseSettlementPlan(text);
-        settlementPlan = parsed;
+        workflow.settlementPlan = parsed;
         state.status = '已打开内部付款计划；当前交易未改变，绑定和费用仍按当前项目重新核对';
         state.statusLevel = 'warn';
         expandedEvidenceSections.add('settlement'); render();
-      }).catch(error => { if (epoch === settlementEpoch) showFileError(error); });
+      }).catch(error => { if (epoch === workflow.settlementEpoch) showFileError(error); });
       return;
     }
 
@@ -1690,8 +1701,8 @@ function bind(): void {
       containerPair.cancelReads();
       const file = target.files?.[0];
       if (file === undefined) return;
-      const epoch=++projectReadEpoch;
-      void file.text().then((text) => { if (epoch===projectReadEpoch&&!recoveryStage) runUi('INTERACTION',()=>openProjectFromText(text,file.name)); }).catch(error=>{if(epoch===projectReadEpoch)showFileError(error)});
+      const epoch=++workflow.projectReadEpoch;
+      void file.text().then((text) => { if (epoch===workflow.projectReadEpoch&&!workflow.recoveryStage) runUi('INTERACTION',()=>openProjectFromText(text,file.name)); }).catch(error=>{if(epoch===workflow.projectReadEpoch)showFileError(error)});
       return;
     }
 
@@ -1703,10 +1714,10 @@ function bind(): void {
 
     if (target.dataset.customerField !== undefined) {
       const field = target.dataset.customerField;
-      if (field === 'reviewed') {const checked=target instanceof HTMLInputElement&&target.checked;flushInput();customerReviewed=checked&&customerPreview!==null;}
+      if (field === 'reviewed') {const checked=target instanceof HTMLInputElement&&target.checked;flushInput();workflow.customerReviewed=checked&&workflow.customerPreview!==null;}
       else if (CUSTOMER_QUOTE_FIELDS.some(key => key === field)) {
-        customerFields[field as keyof typeof customerFields] = target.value;
-        customerReviewed = false;
+        workflow.customerFields[field as keyof typeof workflow.customerFields] = target.value;
+        workflow.customerReviewed = false;
         recomputeCustomerPreview();
       }
       render();
@@ -1718,11 +1729,11 @@ function bind(): void {
 
     if (target.dataset.sensitivityField !== undefined) {
       const field = target.dataset.sensitivityField;
-      if (field === 'enabled') sensitivityControls.enabled = target instanceof HTMLInputElement && target.checked;
+      if (field === 'enabled') workflow.sensitivityControls.enabled = target instanceof HTMLInputElement && target.checked;
       else if (field === 'kind' && ['FREIGHT', 'FX', 'RESPONSIBILITY'].includes(target.value)) {
-        sensitivityControls.kind = target.value as typeof sensitivityControls.kind;
-        sensitivityControls.target = sensitivityOptions(currentProject(), state.result, sensitivityControls.kind)[0]?.value ?? '';
-      } else if (field === 'target' || field === 'from' || field === 'to' || field === 'step') sensitivityControls[field] = target.value;
+        workflow.sensitivityControls.kind = target.value as typeof workflow.sensitivityControls.kind;
+        workflow.sensitivityControls.target = sensitivityOptions(currentProject(), state.result, workflow.sensitivityControls.kind)[0]?.value ?? '';
+      } else if (field === 'target' || field === 'from' || field === 'to' || field === 'step') workflow.sensitivityControls[field] = target.value;
       recomputeSensitivity();
       render();
       return;
@@ -1790,7 +1801,7 @@ function bind(): void {
     if(action.startsWith('fee-envelope-')){flushInput();expandedEvidenceSections.add('fee-envelope');void feeEnvelopeWorkspace.action(action,target.dataset);return;}
     if(['show-mobile-settings','show-cost-settings','locate-workspace-issue','locate-input','locate-input-review'].includes(action))mobileSettings.remember(target);
     if(commitsInput(action))flushInput();
-    if(pendingCalculation&&(action==='save'||action.startsWith('export-')||action==='preview-customer-quote'||action.startsWith('mode-')||action==='show-calculation-learning'||action==='learning-target'))return;
+    if(workflow.pendingCalculation&&(action==='save'||action.startsWith('export-')||action==='preview-customer-quote'||action.startsWith('mode-')||action==='show-calculation-learning'||action==='learning-target'))return;
     if(!action.startsWith('pair-')&&!action.startsWith('recent-')&&!['show-onboarding','close-onboarding','onboarding-next','onboarding-back','customer-view','show-project-templates'].includes(action))containerPair.cancelReads();
     switch (action) {
       case 'recent-refresh':
@@ -1807,16 +1818,16 @@ function bind(): void {
         const summary=document.querySelector<HTMLElement>('[data-evidence-section="project-templates"] > summary');if(summary)revealWorkspaceElement(summary);break;
       }
       case 'customer-view': {
-        const view=target.dataset.customerView;if(pendingCalculation||view!=='full'&&view!=='compact')break;
-        if(view!==customerView){customerView=view;customerReviewed=false;render();}
+        const view=target.dataset.customerView;if(workflow.pendingCalculation||view!=='full'&&view!=='compact')break;
+        if(view!==workflow.customerView){workflow.customerView=view;workflow.customerReviewed=false;render();}
         [...document.querySelectorAll<HTMLElement>('[data-action="customer-view"]')].find(e=>e.dataset.customerView===view)?.focus({preventScroll:true});break;
       }
-      case 'show-onboarding':if(!pendingCalculation)onboarding.open(target);break;
+      case 'show-onboarding':if(!workflow.pendingCalculation)onboarding.open(target);break;
       case 'close-onboarding':onboarding.dismiss();break;
       case 'onboarding-next':onboarding.move('next');break;
       case 'onboarding-back':onboarding.move('back');break;
       case 'locate-input-review': {
-        if(pendingCalculation)break;
+        if(workflow.pendingCalculation)break;
         const issue=inputReviews(currentProject(),state.fxRows).find(issue=>issue.key===target.dataset.reviewKey);
         const element=issue?inputReviewElement(issue):null;
         if(element){mobileSettings.route(element,target);revealWorkspaceElement(element);}break;
@@ -1824,7 +1835,7 @@ function bind(): void {
       case 'show-mobile-settings':
         if(!mobileSettings.open(target)){expandedEvidenceSections.add('advanced-settings');collapsedSections.delete('advanced-settings');render();focusInputSection('items');}break;
       case 'close-mobile-settings':
-        if(!pendingCalculation)mobileSettings.dismiss();break;
+        if(!workflow.pendingCalculation)mobileSettings.dismiss();break;
       case 'show-calculation-learning': {
         expandedEvidenceSections.add('calculation-learning');render();
         const summary=document.querySelector<HTMLElement>('[data-evidence-section="calculation-learning"] > summary');if(summary)revealWorkspaceElement(summary);break;
@@ -1847,12 +1858,12 @@ function bind(): void {
       case 'mode-beginner':
       case 'mode-professional':
         mobileSettings.dismiss(false);
-        workspaceMode=action==='mode-professional'?'professional':'beginner';
+        workflow.workspaceMode=action==='mode-professional'?'professional':'beginner';
         for(const section of ['advanced-settings','full-results','workspace-help']) {
-          if(workspaceMode==='professional'){expandedEvidenceSections.add(section);collapsedSections.delete(section);}
+          if(workflow.workspaceMode==='professional'){expandedEvidenceSections.add(section);collapsedSections.delete(section);}
           else{expandedEvidenceSections.delete(section);collapsedSections.add(section);}
         }
-        if(!saveWorkspaceMode(workspaceMode)){state.status='本次模式切换有效；浏览器存储不可用，刷新后会回到新手模式';state.statusLevel='warn';}
+        if(!saveWorkspaceMode(workflow.workspaceMode)){state.status='本次模式切换有效；浏览器存储不可用，刷新后会回到新手模式';state.statusLevel='warn';}
         render();break;
       case 'show-full-results': {
         mobileSettings.dismiss(false);
@@ -1915,92 +1926,92 @@ function bind(): void {
         document.querySelector<HTMLInputElement>('#recovery-review-input')?.click();
         break;
       case 'clear-recovery-review':
-        recoveryReviewEpoch++; recoveryReview = null; recoveryReviewError = null; recoveryReviewBusy = false; render();
+        workflow.recoveryReviewEpoch++; workflow.recoveryReview = null; workflow.recoveryReviewError = null; workflow.recoveryReviewBusy = false; render();
         break;
       case 'locate-input': {
         const section = target.dataset.inputSection;
-        const valid = inputLocations.find(key => key === section);
+        const valid = workflow.inputLocations.find(key => key === section);
         if(valid){mobileSettings.route(inputSectionElement(valid),target);if(focusInputSection(valid))collapsedSections.delete(valid);}
         break;
       }
       case 'settlement-enable-funding':
-        if (settlementPlan?.version === '1.0') {
-          settlementPlan.version = '1.1'; settlementPlan.funding = newFundingAssumption();
-          settlementEpoch++; render();
+        if (workflow.settlementPlan?.version === '1.0') {
+          workflow.settlementPlan.version = '1.1'; workflow.settlementPlan.funding = newFundingAssumption();
+          workflow.settlementEpoch++; render();
         }
         break;
       case 'settlement-enable-ledger':
-        if (settlementPlan) {
-          try { settlementPlan = enableFundingLedger(settlementPlan); settlementEpoch++; state.status = '已升级付款计划1.2；保留原输入，请重新确认资金测算范围'; state.statusLevel = 'warn'; render(); }
+        if (workflow.settlementPlan) {
+          try { workflow.settlementPlan = enableFundingLedger(workflow.settlementPlan); workflow.settlementEpoch++; state.status = '已升级付款计划1.2；保留原输入，请重新确认资金测算范围'; state.statusLevel = 'warn'; render(); }
           catch (error) { showFileError(error); }
         }
         break;
       case 'settlement-enable-rounding':
-        if(settlementPlan){try{settlementPlan=enableFundingRounding(settlementPlan);settlementEpoch++;state.status='已升级付款计划1.4；请重新确认资金范围与金额舍入依据';state.statusLevel='warn';render();}catch(error){showFileError(error);}}
+        if(workflow.settlementPlan){try{workflow.settlementPlan=enableFundingRounding(workflow.settlementPlan);workflow.settlementEpoch++;state.status='已升级付款计划1.4；请重新确认资金范围与金额舍入依据';state.statusLevel='warn';render();}catch(error){showFileError(error);}}
         break;
       case 'settlement-enable-periods':
-        if(settlementPlan){try{settlementPlan=enableFundingPeriods(settlementPlan);settlementEpoch++;state.status='已升级付款计划1.5；请重新核对资金、舍入与明确期间边界';state.statusLevel='warn';render();}catch(error){showFileError(error);}}
+        if(workflow.settlementPlan){try{workflow.settlementPlan=enableFundingPeriods(workflow.settlementPlan);workflow.settlementEpoch++;state.status='已升级付款计划1.5；请重新核对资金、舍入与明确期间边界';state.statusLevel='warn';render();}catch(error){showFileError(error);}}
         break;
       case 'settlement-add-period':
       case 'settlement-remove-period': {
-        if(settlementPlan?.version==='1.5'){
-          const f=settlementPlan.funding!,rows=f.period_schedule!.periods;
+        if(workflow.settlementPlan?.version==='1.5'){
+          const f=workflow.settlementPlan.funding!,rows=f.period_schedule!.periods;
           if(action==='settlement-add-period'&&rows.length<100){let id=1;while(rows.some(row=>row.id===`period-${id}`))id++;rows.push({id:`period-${id}`,start_date:'',end_date:'',reference:''});}
           else if(action==='settlement-remove-period'){const index=Number(target.dataset.settlementIndex);if(Number.isInteger(index)&&index>=0&&index<rows.length)rows.splice(index,1);}
-          f.period_schedule!.periods_confirmed=false;settlementEpoch++;render();
+          f.period_schedule!.periods_confirmed=false;workflow.settlementEpoch++;render();
         }break;
       }
       case 'settlement-enable-rates':
-        if(settlementPlan){try{settlementPlan=enableFundingRates(settlementPlan);settlementEpoch++;state.status='已升级付款计划1.3；请重新确认利率及资金测算范围';state.statusLevel='warn';render();}catch(error){showFileError(error);}}
+        if(workflow.settlementPlan){try{workflow.settlementPlan=enableFundingRates(workflow.settlementPlan);workflow.settlementEpoch++;state.status='已升级付款计划1.3；请重新确认利率及资金测算范围';state.statusLevel='warn';render();}catch(error){showFileError(error);}}
         break;
       case 'settlement-add-rate-event': {
-        if((settlementPlan?.version==='1.3'||settlementPlan?.version==='1.4'||settlementPlan?.version==='1.5')){const rows=settlementPlan.funding!.rate_events!;if(rows.length<100){let id=1;while(rows.some(row=>row.id===`rate-${id}`))id++;rows.push(newFundingRateEvent(`rate-${id}`));if(settlementPlan.version==='1.4'||settlementPlan.version==='1.5')settlementPlan.funding!.rounding!.intervals_confirmed=false;if(settlementPlan.version==='1.5')settlementPlan.funding!.period_schedule!.periods_confirmed=false;settlementEpoch++;render();}}
+        if((workflow.settlementPlan?.version==='1.3'||workflow.settlementPlan?.version==='1.4'||workflow.settlementPlan?.version==='1.5')){const rows=workflow.settlementPlan.funding!.rate_events!;if(rows.length<100){let id=1;while(rows.some(row=>row.id===`rate-${id}`))id++;rows.push(newFundingRateEvent(`rate-${id}`));if(workflow.settlementPlan.version==='1.4'||workflow.settlementPlan.version==='1.5')workflow.settlementPlan.funding!.rounding!.intervals_confirmed=false;if(workflow.settlementPlan.version==='1.5')workflow.settlementPlan.funding!.period_schedule!.periods_confirmed=false;workflow.settlementEpoch++;render();}}
         break;
       }
       case 'settlement-remove-rate-event': {
-        const index=Number(target.dataset.settlementIndex),rows=(settlementPlan?.version==='1.3'||settlementPlan?.version==='1.4'||settlementPlan?.version==='1.5')?settlementPlan.funding?.rate_events:null;
-        if(rows&&Number.isInteger(index)&&index>=0&&index<rows.length){rows.splice(index,1);if(settlementPlan?.version==='1.4'||settlementPlan?.version==='1.5')settlementPlan.funding!.rounding!.intervals_confirmed=false;if(settlementPlan?.version==='1.5')settlementPlan.funding!.period_schedule!.periods_confirmed=false;settlementEpoch++;render();}break;
+        const index=Number(target.dataset.settlementIndex),rows=(workflow.settlementPlan?.version==='1.3'||workflow.settlementPlan?.version==='1.4'||workflow.settlementPlan?.version==='1.5')?workflow.settlementPlan.funding?.rate_events:null;
+        if(rows&&Number.isInteger(index)&&index>=0&&index<rows.length){rows.splice(index,1);if(workflow.settlementPlan?.version==='1.4'||workflow.settlementPlan?.version==='1.5')workflow.settlementPlan.funding!.rounding!.intervals_confirmed=false;if(workflow.settlementPlan?.version==='1.5')workflow.settlementPlan.funding!.period_schedule!.periods_confirmed=false;workflow.settlementEpoch++;render();}break;
       }
       case 'settlement-add-funding-event': {
-        if (settlementPlan && ['1.2','1.3','1.4','1.5'].includes(settlementPlan.version)) {
-          const rows = settlementPlan.funding!.events!;
-          if (rows.length < 100) { let id=1; while(rows.some(row=>row.id===`funding-${id}`))id++; rows.push(newFundingPrincipalEvent(`funding-${id}`)); if(settlementPlan.version==='1.4'||settlementPlan.version==='1.5')settlementPlan.funding!.rounding!.intervals_confirmed=false;if(settlementPlan.version==='1.5')settlementPlan.funding!.period_schedule!.periods_confirmed=false; settlementEpoch++; render(); }
+        if (workflow.settlementPlan && ['1.2','1.3','1.4','1.5'].includes(workflow.settlementPlan.version)) {
+          const rows = workflow.settlementPlan.funding!.events!;
+          if (rows.length < 100) { let id=1; while(rows.some(row=>row.id===`funding-${id}`))id++; rows.push(newFundingPrincipalEvent(`funding-${id}`)); if(workflow.settlementPlan.version==='1.4'||workflow.settlementPlan.version==='1.5')workflow.settlementPlan.funding!.rounding!.intervals_confirmed=false;if(workflow.settlementPlan.version==='1.5')workflow.settlementPlan.funding!.period_schedule!.periods_confirmed=false; workflow.settlementEpoch++; render(); }
         }
         break;
       }
       case 'settlement-remove-funding-event': {
-        const index=Number(target.dataset.settlementIndex),rows=(['1.2','1.3','1.4','1.5'].includes(settlementPlan?.version??''))?settlementPlan?.funding?.events:null;
-        if(rows&&Number.isInteger(index)&&index>=0&&index<rows.length){rows.splice(index,1);if(settlementPlan?.version==='1.4'||settlementPlan?.version==='1.5')settlementPlan.funding!.rounding!.intervals_confirmed=false;if(settlementPlan?.version==='1.5')settlementPlan.funding!.period_schedule!.periods_confirmed=false;settlementEpoch++;render();}
+        const index=Number(target.dataset.settlementIndex),rows=(['1.2','1.3','1.4','1.5'].includes(workflow.settlementPlan?.version??''))?workflow.settlementPlan?.funding?.events:null;
+        if(rows&&Number.isInteger(index)&&index>=0&&index<rows.length){rows.splice(index,1);if(workflow.settlementPlan?.version==='1.4'||workflow.settlementPlan?.version==='1.5')workflow.settlementPlan.funding!.rounding!.intervals_confirmed=false;if(workflow.settlementPlan?.version==='1.5')workflow.settlementPlan.funding!.period_schedule!.periods_confirmed=false;workflow.settlementEpoch++;render();}
         break;
       }
       case 'settlement-create':
       case 'settlement-rebind':
         try {
           const binding = settlementBinding(currentProject());
-          if (action === 'settlement-rebind' && settlementPlan){settlementPlan.binding=binding;if(settlementPlan.version==='1.5'){settlementPlan.funding!.status='UNCONFIRMED';settlementPlan.funding!.rounding!.status='UNCONFIRMED';settlementPlan.funding!.rounding!.intervals_confirmed=false;settlementPlan.funding!.period_schedule!.periods_confirmed=false;}}
-          else settlementPlan = newSettlementPlan(binding);
-          settlementEpoch++; expandedEvidenceSections.add('settlement'); render();
+          if (action === 'settlement-rebind' && workflow.settlementPlan){workflow.settlementPlan.binding=binding;if(workflow.settlementPlan.version==='1.5'){workflow.settlementPlan.funding!.status='UNCONFIRMED';workflow.settlementPlan.funding!.rounding!.status='UNCONFIRMED';workflow.settlementPlan.funding!.rounding!.intervals_confirmed=false;workflow.settlementPlan.funding!.period_schedule!.periods_confirmed=false;}}
+          else workflow.settlementPlan = newSettlementPlan(binding);
+          workflow.settlementEpoch++; expandedEvidenceSections.add('settlement'); render();
         } catch (error) { showFileError(error); }
         break;
       case 'settlement-add-payment':
       case 'settlement-add-fee': {
-        if (settlementPlan) {
-          const rows = action === 'settlement-add-payment' ? settlementPlan.payments : settlementPlan.bank_fees;
+        if (workflow.settlementPlan) {
+          const rows = action === 'settlement-add-payment' ? workflow.settlementPlan.payments : workflow.settlementPlan.bank_fees;
           if (rows.length < 100) {
             const prefix = action === 'settlement-add-payment' ? 'payment' : 'fee';
             let id = 1; while (rows.some(row => row.id === `${prefix}-${id}`)) id++;
-            if (action === 'settlement-add-payment') settlementPlan.payments.push(newPaymentEntry(`${prefix}-${id}`));
-            else settlementPlan.bank_fees.push(newBankFeeEntry(`${prefix}-${id}`));
+            if (action === 'settlement-add-payment') workflow.settlementPlan.payments.push(newPaymentEntry(`${prefix}-${id}`));
+            else workflow.settlementPlan.bank_fees.push(newBankFeeEntry(`${prefix}-${id}`));
           }
-          settlementEpoch++; render();
+          workflow.settlementEpoch++; render();
         }
         break;
       }
       case 'settlement-remove-payment':
       case 'settlement-remove-fee': {
         const index = Number(target.dataset.settlementIndex);
-        const rows = action === 'settlement-remove-payment' ? settlementPlan?.payments : settlementPlan?.bank_fees;
-        if (rows && Number.isInteger(index) && index >= 0 && index < rows.length) { rows.splice(index, 1); settlementEpoch++; render(); }
+        const rows = action === 'settlement-remove-payment' ? workflow.settlementPlan?.payments : workflow.settlementPlan?.bank_fees;
+        if (rows && Number.isInteger(index) && index >= 0 && index < rows.length) { rows.splice(index, 1); workflow.settlementEpoch++; render(); }
         break;
       }
       case 'settlement-save': void saveSettlement(); break;
@@ -2135,21 +2146,26 @@ function bind(): void {
   });
 }
 
+function initializeAppState(): void {
+  state = initialState();
+  workbenchState.bind(state, 'app');
+  workflow.stateInitialized = true;
+}
 export function start(): void {
   runUi('STARTUP',startApplication);
 }
 function startApplication(): void {
-  if (!stateInitialized) { state = initialState(); stateInitialized = true; }
+  if (!workflow.stateInitialized) initializeAppState();
   containerBill.loadLocal();
   containerPair.loadLocal();
   bind();
-  recompute(draftFailure === null);
-  if (draftFailure !== null) {
-    state.status = draftFailure;
+  recompute(workflow.draftFailure === null);
+  if (workflow.draftFailure !== null) {
+    state.status = workflow.draftFailure;
     state.statusLevel = 'warn';
-  } else if (restoredFromDraft) {
+  } else if (workflow.restoredFromDraft) {
     state.status = `已恢复草稿 · ${state.status}`;
   }
   render();
-  if(!recoveryStage)onboarding.start(draftFailure===null&&!restoredFromDraft&&workspaceMode==='beginner');
+  if(!workflow.recoveryStage)onboarding.start(workflow.draftFailure===null&&!workflow.restoredFromDraft&&workflow.workspaceMode==='beginner');
 }
