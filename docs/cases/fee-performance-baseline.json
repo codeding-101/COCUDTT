@@ -1,0 +1,571 @@
+{
+  "kind": "SYNTHETIC_FEE_PERFORMANCE_EVIDENCE",
+  "version": "1.0",
+  "phase": 85,
+  "baseline_only": true,
+  "no_concurrent_project_tests_during_final_measurement": true,
+  "node": {
+    "kind": "SYNTHETIC_FEE_PERFORMANCE_BASELINE",
+    "version": "1.0",
+    "generated_at": "2026-10-20T16:23:02.478Z",
+    "environment": {
+      "node": "v24.19.0",
+      "platform": "win32",
+      "arch": "x64",
+      "logical_cpus": 16,
+      "cpu_model": "AMD Ryzen 7 7840H w/ Radeon 780M Graphics      ",
+      "total_memory_bytes": 16309932032
+    },
+    "module_load_ms": 626.63,
+    "methodology": {
+      "first": "First timed operation after fixture/controller setup and structural checks; not a cold process, OS or browser",
+      "repeated": 3,
+      "phases_overlap": true,
+      "latency_thresholds": false,
+      "fixture_setup_excluded": true,
+      "node_capture": "Real ten-participant controllers, complete retained harness state; excludes DOM controls and page rendering. Browser benchmark measures actual app capture separately",
+      "measurement_scope": "Read-only preview/preparation and backup encoding; no apply/cache/download",
+      "source_input": "Built-in synthetic 113 USD per independent container, explicit commercial conversion 7 CNY/USD; not real business/tax evidence"
+    },
+    "source_fingerprints": {
+      "src/ui/app.ts": "6846043e719dea87dd1eaf0a5cffb75cf328809a",
+      "src/ui/fee-workbench-preview.ts": "5dd51ecf4e0c993c7b5b54e933fa9b1ab0529705",
+      "src/ui/fee-workbench-candidate.ts": "75d874d8d59692ba44f6fc4f4cdfa2d8fdecdab2",
+      "src/data/fee-envelope.ts": "61d94cc590d96590cd0d44bf8a4926e0d20dc14d",
+      "src/data/fee-envelope-json.ts": "355ad1537ec028bbd7cc93630b0e6f26adeae7a2",
+      "src/domain/fee-envelope.ts": "30f6303aec15898be506343aadce0c359f0602af",
+      "src/data/runtime-fee-backup.ts": "b65ae637385b674149654709f6f2c19b6d0b1432",
+      "tools/benchmark-fee-workbench.mjs": "17f07cf378f75800a795d0d15dcf22042f41bfdc",
+      "tools/fee-performance-fixture.ts": "2487fc0941e7f069708787cdd9d28497574ee046",
+      "tools/fee-performance-harness.ts": "ea3138260d410fe3918e9972f937d63163a07a99",
+      "tools/fee-performance-metrics.ts": "6dce0d0d777b30918b498385877197f984b93ace",
+      "tools/fee-performance-size.ts": "a6ffe46c4b8e549a10b5b1a921a798b545bc6fdd"
+    },
+    "cases": [
+      {
+        "count": 1,
+        "status": "MEASURED",
+        "fixture_setup_ms": 828.838,
+        "capacity": {
+          "existing_limit_bytes": 134217728,
+          "projected_capture_bytes": 32479563,
+          "limit_exceeded": false,
+          "oversized_capture_attempted": false,
+          "projection_once_ms": 78.88089999999988,
+          "projection_method": "Unprotected tooling-only input construction and exact JSON byte count; never installed or used as a preview",
+          "top_level_utf8_bytes": {
+            "scope": 31,
+            "envelope_json": 2122686,
+            "sources": 1165454,
+            "fx": 71,
+            "files": 3101368,
+            "editors": 83,
+            "activity": 130,
+            "retained_json": 26089633,
+            "blockers": 2
+          }
+        },
+        "sizes": {
+          "sources_utf8_bytes": {
+            "project_json": 13112,
+            "bill_json": 8351,
+            "pair_json": 110681,
+            "attachment_json": 162294,
+            "precision_json": 422238
+          },
+          "envelope_utf8_bytes": 1204195,
+          "envelope_canonical_utf8_bytes": 1204111,
+          "capture_utf8_bytes": 32479563,
+          "check_backup_raw_utf8_bytes": 32480216,
+          "check_backup_encoded_utf8_bytes": 32480216,
+          "prepared_backup_utf8_bytes": 36738318
+        },
+        "phases": {
+          "controller_capture": {
+            "status": "MEASURED",
+            "first_ms": 331.2377999999999,
+            "repeated_ms": [
+              337.4357,
+              330.21599999999853,
+              325.2469999999994
+            ],
+            "repeated_min_ms": 325.2469999999994,
+            "repeated_median_ms": 330.21599999999853,
+            "repeated_max_ms": 337.4357
+          },
+          "canonical_sha256": {
+            "status": "MEASURED",
+            "first_ms": 5.609699999999975,
+            "repeated_ms": [
+              5.741799999999785,
+              5.76929999999993,
+              5.477600000001985
+            ],
+            "repeated_min_ms": 5.477600000001985,
+            "repeated_median_ms": 5.741799999999785,
+            "repeated_max_ms": 5.76929999999993
+          },
+          "strict_envelope_parse": {
+            "status": "MEASURED",
+            "first_ms": 85.39219999999978,
+            "repeated_ms": [
+              85.56660000000011,
+              85.85180000000037,
+              86.25870000000214
+            ],
+            "repeated_min_ms": 85.56660000000011,
+            "repeated_median_ms": 85.85180000000037,
+            "repeated_max_ms": 86.25870000000214
+          },
+          "complete_preview": {
+            "status": "MEASURED",
+            "first_ms": 2537.1316999999995,
+            "repeated_ms": [
+              2536.7101999999995,
+              2518.4598000000005,
+              2523.945899999999
+            ],
+            "repeated_min_ms": 2518.4598000000005,
+            "repeated_median_ms": 2523.945899999999,
+            "repeated_max_ms": 2536.7101999999995
+          },
+          "candidate_prepare": {
+            "status": "MEASURED",
+            "first_ms": 2692.0828999999994,
+            "repeated_ms": [
+              2671.4822999999997,
+              2683.2615000000005,
+              2682.8515000000007
+            ],
+            "repeated_min_ms": 2671.4822999999997,
+            "repeated_median_ms": 2682.8515000000007,
+            "repeated_max_ms": 2683.2615000000005
+          },
+          "capture_backup_encode": {
+            "status": "MEASURED",
+            "first_ms": 159.73329999999987,
+            "repeated_ms": [
+              165.6298000000006,
+              162.3101999999999,
+              164.73169999999664
+            ],
+            "repeated_min_ms": 162.3101999999999,
+            "repeated_median_ms": 164.73169999999664,
+            "repeated_max_ms": 165.6298000000006
+          }
+        },
+        "verified": {
+          "complete_ten_participants": true,
+          "all_rows_staged": true,
+          "original_amounts_preserved": true,
+          "synthetic_buyer_delta": true,
+          "seller_profit_remains_unknown": true,
+          "no_owner_revision_change": true,
+          "no_project_or_receipt_write": true,
+          "customer_review_unchanged": true,
+          "no_application_backup": true
+        }
+      },
+      {
+        "count": 4,
+        "status": "CAPACITY_BLOCKED",
+        "fixture_setup_ms": 5699.076399999998,
+        "capacity": {
+          "existing_limit_bytes": 134217728,
+          "projected_capture_bytes": 199578320,
+          "limit_exceeded": true,
+          "oversized_capture_attempted": false,
+          "projection_once_ms": 440.6547999999966,
+          "projection_method": "Unprotected tooling-only input construction and exact JSON byte count; never installed or used as a preview",
+          "top_level_utf8_bytes": {
+            "scope": 31,
+            "envelope_json": 12748457,
+            "sources": 6808789,
+            "fx": 71,
+            "files": 18628820,
+            "editors": 83,
+            "activity": 130,
+            "retained_json": 161391832,
+            "blockers": 2
+          }
+        },
+        "sizes": {
+          "sources_utf8_bytes": {
+            "project_json": 13112,
+            "bill_json": 23582,
+            "pair_json": 557993,
+            "attachment_json": 887902,
+            "precision_json": 2416198
+          },
+          "envelope_utf8_bytes": 6882201,
+          "envelope_canonical_utf8_bytes": 6882117,
+          "capture_utf8_bytes": 199578320,
+          "check_backup_raw_utf8_bytes": null,
+          "check_backup_encoded_utf8_bytes": null,
+          "prepared_backup_utf8_bytes": null
+        },
+        "phases": {
+          "controller_capture": {
+            "status": "NOT_RUN_EXISTING_CAPTURE_LIMIT",
+            "first_ms": null,
+            "repeated_ms": [],
+            "repeated_min_ms": null,
+            "repeated_median_ms": null,
+            "repeated_max_ms": null
+          },
+          "canonical_sha256": {
+            "status": "MEASURED",
+            "first_ms": 29.4291000000012,
+            "repeated_ms": [
+              29.095099999998638,
+              29.643599999995786,
+              29.448100000001432
+            ],
+            "repeated_min_ms": 29.095099999998638,
+            "repeated_median_ms": 29.448100000001432,
+            "repeated_max_ms": 29.643599999995786
+          },
+          "strict_envelope_parse": {
+            "status": "MEASURED",
+            "first_ms": 422.61820000000444,
+            "repeated_ms": [
+              430.4890000000014,
+              417.5193999999974,
+              409.620600000002
+            ],
+            "repeated_min_ms": 409.620600000002,
+            "repeated_median_ms": 417.5193999999974,
+            "repeated_max_ms": 430.4890000000014
+          },
+          "complete_preview": {
+            "status": "NOT_RUN_EXISTING_CAPTURE_LIMIT",
+            "first_ms": null,
+            "repeated_ms": [],
+            "repeated_min_ms": null,
+            "repeated_median_ms": null,
+            "repeated_max_ms": null
+          },
+          "candidate_prepare": {
+            "status": "NOT_RUN_EXISTING_CAPTURE_LIMIT",
+            "first_ms": null,
+            "repeated_ms": [],
+            "repeated_min_ms": null,
+            "repeated_median_ms": null,
+            "repeated_max_ms": null
+          },
+          "capture_backup_encode": {
+            "status": "NOT_RUN_EXISTING_CAPTURE_LIMIT",
+            "first_ms": null,
+            "repeated_ms": [],
+            "repeated_min_ms": null,
+            "repeated_median_ms": null,
+            "repeated_max_ms": null
+          }
+        },
+        "verified": {
+          "complete_ten_participants": null,
+          "all_rows_staged": null,
+          "original_amounts_preserved": true,
+          "synthetic_buyer_delta": null,
+          "seller_profit_remains_unknown": null,
+          "no_owner_revision_change": true,
+          "no_project_or_receipt_write": true,
+          "customer_review_unchanged": true,
+          "no_application_backup": true
+        }
+      },
+      {
+        "count": 8,
+        "status": "CAPACITY_BLOCKED",
+        "fixture_setup_ms": 25214.048300000002,
+        "capacity": {
+          "existing_limit_bytes": 134217728,
+          "projected_capture_bytes": 637708233,
+          "limit_exceeded": true,
+          "oversized_capture_attempted": false,
+          "projection_once_ms": 1324.3044999999984,
+          "projection_method": "Unprotected tooling-only input construction and exact JSON byte count; never installed or used as a preview",
+          "top_level_utf8_bytes": {
+            "scope": 31,
+            "envelope_json": 40490774,
+            "sources": 21424402,
+            "fx": 71,
+            "files": 59125566,
+            "editors": 83,
+            "activity": 130,
+            "retained_json": 516667069,
+            "blockers": 2
+          }
+        },
+        "sizes": {
+          "sources_utf8_bytes": {
+            "project_json": 13112,
+            "bill_json": 43890,
+            "pair_json": 1666529,
+            "attachment_json": 2727690,
+            "precision_json": 7539819
+          },
+          "envelope_utf8_bytes": 21544042,
+          "envelope_canonical_utf8_bytes": 21543958,
+          "capture_utf8_bytes": 637708233,
+          "check_backup_raw_utf8_bytes": null,
+          "check_backup_encoded_utf8_bytes": null,
+          "prepared_backup_utf8_bytes": null
+        },
+        "phases": {
+          "controller_capture": {
+            "status": "NOT_RUN_EXISTING_CAPTURE_LIMIT",
+            "first_ms": null,
+            "repeated_ms": [],
+            "repeated_min_ms": null,
+            "repeated_median_ms": null,
+            "repeated_max_ms": null
+          },
+          "canonical_sha256": {
+            "status": "MEASURED",
+            "first_ms": 91.03940000000875,
+            "repeated_ms": [
+              91.66890000000421,
+              91.30280000000494,
+              91.74640000000363
+            ],
+            "repeated_min_ms": 91.30280000000494,
+            "repeated_median_ms": 91.66890000000421,
+            "repeated_max_ms": 91.74640000000363
+          },
+          "strict_envelope_parse": {
+            "status": "MEASURED",
+            "first_ms": 1262.0402999999933,
+            "repeated_ms": [
+              1271.0060999999987,
+              1279.3981000000058,
+              1253.7712000000029
+            ],
+            "repeated_min_ms": 1253.7712000000029,
+            "repeated_median_ms": 1271.0060999999987,
+            "repeated_max_ms": 1279.3981000000058
+          },
+          "complete_preview": {
+            "status": "NOT_RUN_EXISTING_CAPTURE_LIMIT",
+            "first_ms": null,
+            "repeated_ms": [],
+            "repeated_min_ms": null,
+            "repeated_median_ms": null,
+            "repeated_max_ms": null
+          },
+          "candidate_prepare": {
+            "status": "NOT_RUN_EXISTING_CAPTURE_LIMIT",
+            "first_ms": null,
+            "repeated_ms": [],
+            "repeated_min_ms": null,
+            "repeated_median_ms": null,
+            "repeated_max_ms": null
+          },
+          "capture_backup_encode": {
+            "status": "NOT_RUN_EXISTING_CAPTURE_LIMIT",
+            "first_ms": null,
+            "repeated_ms": [],
+            "repeated_min_ms": null,
+            "repeated_median_ms": null,
+            "repeated_max_ms": null
+          }
+        },
+        "verified": {
+          "complete_ten_participants": null,
+          "all_rows_staged": null,
+          "original_amounts_preserved": true,
+          "synthetic_buyer_delta": null,
+          "seller_profit_remains_unknown": null,
+          "no_owner_revision_change": true,
+          "no_project_or_receipt_write": true,
+          "customer_review_unchanged": true,
+          "no_application_backup": true
+        }
+      }
+    ],
+    "financial_writes": 0,
+    "confirmation_authority": false,
+    "raw_business_data_in_report": false,
+    "real_phone_verified": false,
+    "all_sizes_supported": false
+  },
+  "browser": {
+    "kind": "SYNTHETIC_FEE_BROWSER_PERFORMANCE_BASELINE",
+    "version": "1.0",
+    "generated_at": "2026-10-20T16:25:43.647Z",
+    "browser": {
+      "product": "Edg/155.0.4283.62",
+      "js_version": "15.5.9.7"
+    },
+    "offline_runtime_blob": "c5c59c2c98930c4d1a2bd9a7a56b80967498389b",
+    "methodology": {
+      "viewport": [
+        1440,
+        1000
+      ],
+      "first": "First timed preview after explicit file adoption and structural checks; not cold browser start",
+      "repeated": 3,
+      "scope": "Native mouse event to DOM result plus two animation frames; preview includes full production capture, strict validation, hashing, candidate preparation and rendering",
+      "backup": "Original backup action with substitute Save API; includes blob inspection/hash and two frames, excludes physical disk I/O",
+      "edit": "Synthetic change event through original project-name control to two frames; first invalidates a prepared candidate, later edits have no candidate. Name restored and customer explicitly rechecked; no financial application",
+      "fixture_setup_excluded": true,
+      "latency_thresholds": false,
+      "timings_overlap": true,
+      "synthetic_evidence_only": true,
+      "isolated_profile_storage_reset": true,
+      "file_upload_api_substitute": true,
+      "real_phone_verified": false
+    },
+    "cases": [
+      {
+        "count": 1,
+        "status": "MEASURED",
+        "preview_including_capture_prepare_render": {
+          "first_ms": 6033.100000023842,
+          "repeated_ms": [
+            6096.400000035763,
+            6099.600000023842,
+            6027.600000023842
+          ],
+          "repeated_min_ms": 6027.600000023842,
+          "repeated_median_ms": 6096.400000035763,
+          "repeated_max_ms": 6099.600000023842
+        },
+        "preview_statuses": [
+          "STAGED",
+          "STAGED",
+          "STAGED",
+          "STAGED"
+        ],
+        "prepared_backup_including_capture_encode_save_api": {
+          "first_ms": 1172.5,
+          "repeated_ms": [
+            1262.9000000357628,
+            1235.7999999523163,
+            1174.5
+          ],
+          "repeated_min_ms": 1174.5,
+          "repeated_median_ms": 1235.7999999523163,
+          "repeated_max_ms": 1262.9000000357628
+        },
+        "backup_encoded_utf8_bytes": [
+          41014056,
+          41014056,
+          41014056,
+          41014056
+        ],
+        "backup_kinds": [
+          "INTERNAL_RUNTIME_FEE_WORKBENCH_CHECK_BACKUP",
+          "INTERNAL_RUNTIME_FEE_WORKBENCH_CHECK_BACKUP",
+          "INTERNAL_RUNTIME_FEE_WORKBENCH_CHECK_BACKUP",
+          "INTERNAL_RUNTIME_FEE_WORKBENCH_CHECK_BACKUP"
+        ],
+        "candidate_profit_unknown": true,
+        "temporary_project_name_edit": {
+          "change_event_to_two_frames": {
+            "first_ms": 528.1999999880791,
+            "repeated_ms": [
+              430.4000000357628,
+              458.80000001192093,
+              429.5
+            ],
+            "repeated_min_ms": 429.5,
+            "repeated_median_ms": 430.4000000357628,
+            "repeated_max_ms": 458.80000001192093
+          },
+          "first_edit_invalidates_candidate": true,
+          "all_edits_revoke_customer_review": true,
+          "original_name_restored": true,
+          "customer_review_explicitly_rechecked": true
+        },
+        "verified": {
+          "project_bytes_unchanged": true,
+          "envelope_including_receipts_bytes_unchanged": true,
+          "customer_review_unchanged": true,
+          "application_confirmation_never_used": true
+        },
+        "refusal_message": null
+      },
+      {
+        "count": 4,
+        "status": "APP_REFUSED",
+        "preview_including_capture_prepare_render": {
+          "first_ms": 2103.100000023842,
+          "repeated_ms": [
+            2128.899999976158,
+            2815.699999988079,
+            2037
+          ],
+          "repeated_min_ms": 2037,
+          "repeated_median_ms": 2128.899999976158,
+          "repeated_max_ms": 2815.699999988079
+        },
+        "preview_statuses": [
+          "REFUSED",
+          "REFUSED",
+          "REFUSED",
+          "REFUSED"
+        ],
+        "prepared_backup_including_capture_encode_save_api": null,
+        "backup_encoded_utf8_bytes": [],
+        "backup_kinds": [],
+        "candidate_profit_unknown": null,
+        "temporary_project_name_edit": null,
+        "verified": {
+          "project_bytes_unchanged": true,
+          "envelope_including_receipts_bytes_unchanged": true,
+          "customer_review_unchanged": true,
+          "application_confirmation_never_used": true
+        },
+        "refusal_message": "完整检查未完成；原文保留，可另存当前工作台检查备份后继续核对。"
+      },
+      {
+        "count": 8,
+        "status": "APP_REFUSED",
+        "preview_including_capture_prepare_render": {
+          "first_ms": 4171,
+          "repeated_ms": [
+            4058.699999988079,
+            6226.5,
+            4257.800000011921
+          ],
+          "repeated_min_ms": 4058.699999988079,
+          "repeated_median_ms": 4257.800000011921,
+          "repeated_max_ms": 6226.5
+        },
+        "preview_statuses": [
+          "REFUSED",
+          "REFUSED",
+          "REFUSED",
+          "REFUSED"
+        ],
+        "prepared_backup_including_capture_encode_save_api": null,
+        "backup_encoded_utf8_bytes": [],
+        "backup_kinds": [],
+        "candidate_profit_unknown": null,
+        "temporary_project_name_edit": null,
+        "verified": {
+          "project_bytes_unchanged": true,
+          "envelope_including_receipts_bytes_unchanged": true,
+          "customer_review_unchanged": true,
+          "application_confirmation_never_used": true
+        },
+        "refusal_message": "完整检查未完成；原文保留，可另存当前工作台检查备份后继续核对。"
+      }
+    ],
+    "exceptions": [],
+    "financial_writes": 0,
+    "confirmation_authority": false,
+    "resources_local_only": true,
+    "all_sizes_supported": false
+  },
+  "limitations": {
+    "real_business_verified": false,
+    "professional_review": false,
+    "real_phone_verified": false,
+    "cold_browser_start_measured": false,
+    "physical_save_io_measured": false,
+    "independent_ui_render_profile": false,
+    "capacity_optimization_implemented": false
+  }
+}
