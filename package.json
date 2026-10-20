@@ -6,6 +6,8 @@
   "type": "module",
   "description": "国际贸易成本与贸易术语方案分析系统",
   "scripts": {
+    "benchmark:fees": "node tools/benchmark-fee-workbench.mjs",
+    "benchmark:fees:browser": "node tools/benchmark-fee-browser.mjs",
     "check:container-review-design": "node tools/check-container-cost-review-design.mjs",
     "check:funding-period-design": "node tools/check-funding-period-design.mjs",
     "build:catalog": "node tools/build-project-catalog.mjs",

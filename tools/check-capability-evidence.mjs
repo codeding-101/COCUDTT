@@ -3,6 +3,7 @@ const root=resolve(import.meta.dirname,'..'),files=['docs/capability-evidence-ma
 files.push('docs/fee-workflow-guide-validation.md');
 files.push('docs/fee-workflow-exercises-validation.md');
 files.push('docs/post-application-requote-validation.md');
+files.push('docs/fee-performance-baseline-validation.md');
 for(const file of files){const text=readFileSync(resolve(root,file),'utf8');for(const match of text.matchAll(/\]\(([^)]+)\)/g)){
  const target=match[1];if(/^(https?:|#)/.test(target))continue;
  const full=resolve(dirname(resolve(root,file)),target.split('#')[0]),path=relative(root,full);

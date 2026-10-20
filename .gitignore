@@ -7,6 +7,7 @@ dist/
 audit-report.txt
 stress.txt
 virtual-report.txt
+benchmark-results/
 
 # 编辑器与系统文件
 .vscode/
