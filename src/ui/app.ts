@@ -15,6 +15,7 @@ import { validateDraftFxRows } from '../data/project-validation.js';
 import { projectJsonSchema } from '../data/project-validation.js';
 import { projectTemplateText, PROJECT_TEMPLATES, importedTemplateNote } from '../data/project-templates.js';
 import { renderProjectTemplatePanel } from './project-templates.js';
+import {feeWorkflowTarget} from './fee-workflow-guide.js';
 import { settlementBinding } from '../data/settlement-context.js';
 import { parseSettlementPlan, serializeSettlementPlan } from '../data/settlement-file.js';
 import { newSettlementPlan, newPaymentEntry, newBankFeeEntry, enableFundingLedger, enableFundingRates, enableFundingRounding, enableFundingPeriods, type SettlementPlan } from '../domain/settlement.js';
@@ -1486,7 +1487,7 @@ function renderApp(): void {
       ${feePrecisionWorkspace.render()}
       ${feeEnvelopeWorkspace.render()}
       </div></details>
-      <div class="workspace-section-label"><h2>业务资料与交接</h2><p>按实际需要展开。独立账单、付款计划与核对记录不自动写入交易成本。</p></div>
+      <div class="workspace-section-label"><h2>业务资料与交接</h2><p>按实际需要展开。独立账单、付款计划与核对记录不自动写入交易成本。</p><button type="button" data-action="fee-workflow-go" data-fee-workflow-target="guide">费用工作流 · 查看步骤与待办 →</button></div>
       ${renderSettlementPanel(currentProject(), workflow.settlementPlan, state.result, workflow.settlementBusy)}
       ${renderContainerBillPanel(containerBill.draft,currentProject(),containerBill.busy,containerBill.message)}
       ${renderContainerCostPairPanel(containerPair)}
@@ -1840,6 +1841,13 @@ function bind(): void {
     if(action.startsWith('fee-tax-')){flushInput();feeEnvelopeWorkspace.externalChanged();expandedEvidenceSections.add('fee-tax-attachment');void feeTaxWorkspace.action(action,target.dataset);return;}
     if(action.startsWith('fee-precision-')){flushInput();feeEnvelopeWorkspace.externalChanged();expandedEvidenceSections.add('fee-precision-selection');void feePrecisionWorkspace.action(action,target.dataset);return;}
     if(action.startsWith('fee-envelope-')){flushInput();expandedEvidenceSections.add('fee-envelope');void feeEnvelopeWorkspace.action(action,target.dataset);return;}
+    if(action === 'fee-workflow-go') {
+      const destination=feeWorkflowTarget(target.dataset.feeWorkflowTarget);if(!destination)return;
+      mobileSettings.remember(target);flushInput();
+      const element=document.querySelector<HTMLElement>(destination.selector);
+      if(element){expandedEvidenceSections.add(destination.section);mobileSettings.route(element,target);revealWorkspaceElement(element);if(element.parentElement instanceof HTMLDetailsElement)element.parentElement.open=true;}
+      return;
+    }
     if(['show-mobile-settings','show-cost-settings','locate-workspace-issue','locate-input','locate-input-review'].includes(action))mobileSettings.remember(target);
     if(commitsInput(action))flushInput();
     if(workflow.pendingCalculation&&(action==='save'||action.startsWith('export-')||action==='preview-customer-quote'||action.startsWith('mode-')||action==='show-calculation-learning'||action==='learning-target'))return;

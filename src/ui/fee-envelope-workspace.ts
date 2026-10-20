@@ -8,6 +8,7 @@ import {escapeHtml as h} from './format.js';
 import {captureRuntimeFeeWorkbench, previewRuntimeFeeWorkbench, renderRuntimeFeeWorkbenchPreview, renderRuntimeFeeWorkbenchCandidate, type RuntimeFeeWorkbenchCapture, type RuntimeFeeWorkbenchPreview} from './fee-workbench-preview.js';
 import type {RuntimeFeeApplicationRecord, RuntimeFeeCandidateSummary} from './fee-workbench-candidate.js';
 import {encodeRuntimeFeeBackup} from '../data/runtime-fee-backup.js';
+import {renderFeeWorkflowGuide} from './fee-workflow-guide.js';
 
 export interface FeeEnvelopeWorkspaceEnvironment {
   stateOwner?: WorkbenchStateOwner;
@@ -50,7 +51,16 @@ export class FeeEnvelopeWorkspace {
   }
   private live() { try { return this.env.currentSources(); } catch { return null; } }
   workbenchCapture() {return {pending: this.pending ? structuredClone(this.pending) : null, generation: this.generation, busy: this.busy, exporting: this.exporting, business_name: this.businessName, choices: {...this.choices}};}
-  private invalidateWorkbenchPreview() {this.workbenchGeneration++; if (this.workbenchResult || this.workbenchBusy) this.workbenchMessage = '资料或操作状态已变化，请重新核对完整批次；原项目保持。'; if (this.workbenchCandidate) this.env.discardCandidate?.(this.workbenchCandidate.summary); this.workbenchResult = null; this.workbenchCandidate = null; this.workbenchConfirmation = null; this.workbenchBusy = false;}
+  private invalidateWorkbenchPreview() {this.workbenchGeneration++; if (this.workbenchResult || this.workbenchBusy) this.workbenchMessage = '资料或操作状态已变化，请重新核对完整批次；原项目保持。'; if (this.workbenchCandidate) this.env.discardCandidate?.(this.workbenchCandidate.summary); this.workbenchResult = null; this.workbenchCandidate = null; this.workbenchConfirmation = null; this.workbenchBusy = false; this.refreshGuide();}
+  private refreshGuide() {
+    if (typeof document === 'undefined') return;
+    const panel = document.querySelector<HTMLDetailsElement>('[data-fee-workflow-guide]'); if (!panel) return;
+    const open = [...panel.querySelectorAll<HTMLDetailsElement>('details')].filter(el => el.open).map(el => [...el.attributes].find(a => a.name.startsWith('data-fee-workflow-'))?.name);
+    const holder = document.createElement('div'); holder.innerHTML = renderFeeWorkflowGuide(this.workbenchResult, this.workbenchBusy, this.workbenchApplication);
+    const next = holder.firstElementChild as HTMLDetailsElement; next.open = panel.open;
+    for (const name of open) {if (name) {const child = next.querySelector<HTMLDetailsElement>(`[${name}]`); if (child) child.open = true;}}
+    panel.replaceWith(next);
+  }
   private basis() { const s = this.controller.state(); return JSON.stringify([this.generation, s.current?.lease, s.preview?.token, this.businessName, this.live()]); }
   private button(action: string, label: string, disabled = false, extra = '') { return `<button type="button" data-action="fee-envelope-${action}"${disabled ? ' disabled' : ''}${extra}>${h(label)}</button>`; }
   render() { return `<details class="panel fee-envelope-workspace" data-evidence-section="fee-envelope"><summary><span class="panel-title">项目资料封套 · 内部交接</span></summary><div class="panel-body" data-fee-envelope-host>${this.body()}</div></details>`; }
@@ -59,7 +69,7 @@ export class FeeEnvelopeWorkspace {
     if (this.choiceToken !== (p?.token ?? -1)) { this.choiceToken = p?.token ?? -1; this.choices = {}; }
     const b = (key: string, label: string, disabled = false) => this.button(key, label, disabled || locked);
     const check = (key: string, text: string) => `<label class="fee-envelope-check"><input type="checkbox" data-fee-envelope-choice="${key}"${this.choices[key] ? ' checked' : ''}>${h(text)}</label>`;
-    return `<p>适用场景：把项目、账单与核对资料保存在同一份内部文件，方便交接并保留历史。采用只替换本面板文件，不安装其中的项目或附件，不写费用、利润或税基。整批费用应用须在下方单独预览并明确确认。</p>
+    return `${renderFeeWorkflowGuide(this.workbenchResult, this.workbenchBusy, this.workbenchApplication)}<p>适用场景：把项目、账单与核对资料保存在同一份内部文件，方便交接并保留历史。采用只替换本面板文件，不安装其中的项目或附件，不写费用、利润或税基。整批费用应用须在下方单独预览并明确确认。</p>
       <p role="status" aria-live="polite" data-fee-envelope-status>${h(s.message)}</p><p data-fee-envelope-info>${s.current ? `封套 ${h(s.current.lease.envelope_id)} · 修订 ${s.current.lease.revision} · ${s.dirty ? '有待另存资料' : '已打开或另存文件'} · ${s.current.history_origin === 'UNKNOWN_IMPORTED' ? '历史未知，不能推定未消费' : '仅声明的本地历史，不证明真实业务'}` : '先打开独立文件，或从当前项目与账单生成历史未知候选。'}</p>
       <div class="panel-actions">${b('open', '打开封套 JSON')}${b('capture', '捕获当前资料为历史未知候选', !this.live())}${b('update', '更新当前封套来源（保留历史）', !s.current || !this.live())}${b('save', '另存封套 JSON', !s.current || writing)}${b('html', '导出内部审计 HTML', !s.current || writing)}${b('xlsx', '导出内部审计 Excel', !s.current || writing)}</div><input id="fee-envelope-file-input" type="file" accept=".json,application/json" hidden>
       ${s.reading ? b('cancel', '取消读取') : ''}${s.incoming_error ? `<p role="alert">候选未通过读取或校验：${h(s.incoming_error)}。原文件不被修改；已捕获文字可在备份区另存。</p>` : ''}
@@ -80,7 +90,9 @@ export class FeeEnvelopeWorkspace {
     const active = document.activeElement, field = active instanceof HTMLInputElement ? active.dataset.feeEnvelopeField : undefined, choice = active instanceof HTMLInputElement ? active.dataset.feeEnvelopeChoice : undefined;
     const selection = field && active instanceof HTMLInputElement ? [active.selectionStart, active.selectionEnd] as const : null;
     const workbenchOpen = host.querySelector<HTMLDetailsElement>('[data-fee-workbench-panel]')?.open;
+    const guideOpen = [...host.querySelectorAll<HTMLDetailsElement>('[data-fee-workflow-guide] details, [data-fee-workflow-guide]')].filter(el => el.open).map(el => [...el.attributes].find(a => a.name.startsWith('data-fee-workflow-'))?.name).filter((v): v is string => !!v);
     host.innerHTML = this.body();
+    for (const name of guideOpen) {const panel = host.querySelector<HTMLDetailsElement>(`[${name}]`); if (panel) panel.open = true;}
     if (workbenchOpen) {const panel = host.querySelector<HTMLDetailsElement>('[data-fee-workbench-panel]'); if (panel) panel.open = true;}
     if (field || choice) { const next = host.querySelector<HTMLInputElement>(field ? '[data-fee-envelope-field="business-name"]' : `[data-fee-envelope-choice="${choice}"]`); next?.focus(); if (next && field && selection && selection[0] !== null) next.setSelectionRange(selection[0], selection[1]); }
     this.review();

@@ -65,6 +65,7 @@ for (const field of renderedFields) {
 
 const handledActions = new Set([
   ...matchAll(appTs, /^\s+case '([a-z-]+)':/gm),
+  ...matchAll(appTs, /if\(action === '([a-z-]+)'\)/g),
   // 下拉选择触发的动作不走 switch，而是直接比对 dataset.action
   ...matchAll(appTs, /dataset\.action === '([a-z-]+)'/g),
 ]);
