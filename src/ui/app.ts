@@ -16,6 +16,7 @@ import { projectJsonSchema } from '../data/project-validation.js';
 import { projectTemplateText, PROJECT_TEMPLATES, importedTemplateNote } from '../data/project-templates.js';
 import { renderProjectTemplatePanel } from './project-templates.js';
 import {feeWorkflowTarget} from './fee-workflow-guide.js';
+import {buildFeeWorkflowExercisePack} from '../data/fee-workflow-exercises.js';
 import { settlementBinding } from '../data/settlement-context.js';
 import { parseSettlementPlan, serializeSettlementPlan } from '../data/settlement-file.js';
 import { newSettlementPlan, newPaymentEntry, newBankFeeEntry, enableFundingLedger, enableFundingRates, enableFundingRounding, enableFundingPeriods, type SettlementPlan } from '../domain/settlement.js';
@@ -263,6 +264,7 @@ const feeEnvelopeWorkspace=new FeeEnvelopeWorkspace({
  stateOwner:workbenchState,
  storage:createFeeEnvelopeBrowserStorage({getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value),removeItem:key=>localStorage.removeItem(key)},envelopeExclusive),
  cacheWritable:envelopeExclusive!==null,blocked:()=>workflow.recoveryStage!==null,write:writeFeeTaxFile,currentSources:currentEnvelopeSources,captureWorkbench:captureCurrentFeeWorkbench,
+ exerciseExportBusy:()=>workflow.projectResourceBusy,
  prepareCandidate:async preview=>{const summary=await runtimeCandidatePreparer.prepare(preview);return{summary,backup_json:runtimeCandidatePreparer.backup(summary)};},
  applyCandidate:(summary,active)=>runtimeCandidatePreparer.apply(summary,active),discardCandidate:summary=>runtimeCandidatePreparer.discard(summary),
  afterApply:()=>runUi('RENDER',()=>{workflow.calculatedAt=new Date().toLocaleTimeString('zh-CN',{hour12:false});recomputeSensitivity();recomputeCustomerPreview();render();}),
@@ -1213,6 +1215,16 @@ async function saveProject(): Promise<void> {
   } finally {workflow.projectSaveBusy=false;}
 }
 
+async function exportFeeWorkflowExercises():Promise<void> {
+ if(workflow.projectResourceBusy)return;
+ workflow.projectResourceBusy=true;state.status='正在生成独立合成练习包；当前交易保持。';state.statusLevel='warn';render();
+ try{
+  const resource=await buildFeeWorkflowExercisePack(),status=await writeFeeTaxFile(resource.name,resource.bytes,'application/zip');
+  state.status=status==='SAVED'?'合成练习包已另存；请解压并先读README，项目文件仍须分别保存。':'已发起合成练习包下载，请确认落盘；当前项目和来源确认保持。';state.statusLevel='warn';
+ }catch(error){state.status=error instanceof Error&&error.name==='AbortError'?'合成练习包另存已取消；当前交易保持。':'练习包生成或另存未完成；当前交易保持，请重试。';state.statusLevel='warn';}
+ finally{workflow.projectResourceBusy=false;render();}
+}
+
 async function exportProjectResource(templateId?:string,schemaKind?:string,exampleKind?:string,exampleFamily:'funding'|'rounding'|'period'='funding'):Promise<void> {
   if(workflow.projectResourceBusy)return;
   const label=exampleKind===undefined?'模板或结构文件':'合成案例文件';
@@ -1838,6 +1850,7 @@ function bind(): void {
     if (!(target instanceof HTMLElement)) return;
     const action = target.dataset.action;
     if (action === undefined) return;
+    if(action === 'download-fee-exercises') {void exportFeeWorkflowExercises();return;}
     if(action.startsWith('fee-tax-')){flushInput();feeEnvelopeWorkspace.externalChanged();expandedEvidenceSections.add('fee-tax-attachment');void feeTaxWorkspace.action(action,target.dataset);return;}
     if(action.startsWith('fee-precision-')){flushInput();feeEnvelopeWorkspace.externalChanged();expandedEvidenceSections.add('fee-precision-selection');void feePrecisionWorkspace.action(action,target.dataset);return;}
     if(action.startsWith('fee-envelope-')){flushInput();expandedEvidenceSections.add('fee-envelope');void feeEnvelopeWorkspace.action(action,target.dataset);return;}

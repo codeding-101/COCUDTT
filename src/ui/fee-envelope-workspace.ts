@@ -15,6 +15,7 @@ export interface FeeEnvelopeWorkspaceEnvironment {
   storage: FeeEnvelopeStorage; cacheWritable: boolean;
   currentSources(): FeeEnvelopeSources | null; blocked(): boolean;
   captureWorkbench?(): RuntimeFeeWorkbenchCapture;
+  exerciseExportBusy?(): boolean;
   prepareCandidate?(preview: RuntimeFeeWorkbenchPreview): Promise<{summary: RuntimeFeeCandidateSummary; backup_json: string}>;
   applyCandidate?(summary: RuntimeFeeCandidateSummary, active: () => boolean): Promise<RuntimeFeeApplicationRecord>;
   discardCandidate?(summary: RuntimeFeeCandidateSummary): void;
@@ -56,7 +57,7 @@ export class FeeEnvelopeWorkspace {
     if (typeof document === 'undefined') return;
     const panel = document.querySelector<HTMLDetailsElement>('[data-fee-workflow-guide]'); if (!panel) return;
     const open = [...panel.querySelectorAll<HTMLDetailsElement>('details')].filter(el => el.open).map(el => [...el.attributes].find(a => a.name.startsWith('data-fee-workflow-'))?.name);
-    const holder = document.createElement('div'); holder.innerHTML = renderFeeWorkflowGuide(this.workbenchResult, this.workbenchBusy, this.workbenchApplication);
+    const holder = document.createElement('div'); holder.innerHTML = renderFeeWorkflowGuide(this.workbenchResult, this.workbenchBusy, this.workbenchApplication, this.env.exerciseExportBusy?.());
     const next = holder.firstElementChild as HTMLDetailsElement; next.open = panel.open;
     for (const name of open) {if (name) {const child = next.querySelector<HTMLDetailsElement>(`[${name}]`); if (child) child.open = true;}}
     panel.replaceWith(next);
@@ -69,7 +70,7 @@ export class FeeEnvelopeWorkspace {
     if (this.choiceToken !== (p?.token ?? -1)) { this.choiceToken = p?.token ?? -1; this.choices = {}; }
     const b = (key: string, label: string, disabled = false) => this.button(key, label, disabled || locked);
     const check = (key: string, text: string) => `<label class="fee-envelope-check"><input type="checkbox" data-fee-envelope-choice="${key}"${this.choices[key] ? ' checked' : ''}>${h(text)}</label>`;
-    return `${renderFeeWorkflowGuide(this.workbenchResult, this.workbenchBusy, this.workbenchApplication)}<p>适用场景：把项目、账单与核对资料保存在同一份内部文件，方便交接并保留历史。采用只替换本面板文件，不安装其中的项目或附件，不写费用、利润或税基。整批费用应用须在下方单独预览并明确确认。</p>
+    return `${renderFeeWorkflowGuide(this.workbenchResult, this.workbenchBusy, this.workbenchApplication, this.env.exerciseExportBusy?.())}<p>适用场景：把项目、账单与核对资料保存在同一份内部文件，方便交接并保留历史。采用只替换本面板文件，不安装其中的项目或附件，不写费用、利润或税基。整批费用应用须在下方单独预览并明确确认。</p>
       <p role="status" aria-live="polite" data-fee-envelope-status>${h(s.message)}</p><p data-fee-envelope-info>${s.current ? `封套 ${h(s.current.lease.envelope_id)} · 修订 ${s.current.lease.revision} · ${s.dirty ? '有待另存资料' : '已打开或另存文件'} · ${s.current.history_origin === 'UNKNOWN_IMPORTED' ? '历史未知，不能推定未消费' : '仅声明的本地历史，不证明真实业务'}` : '先打开独立文件，或从当前项目与账单生成历史未知候选。'}</p>
       <div class="panel-actions">${b('open', '打开封套 JSON')}${b('capture', '捕获当前资料为历史未知候选', !this.live())}${b('update', '更新当前封套来源（保留历史）', !s.current || !this.live())}${b('save', '另存封套 JSON', !s.current || writing)}${b('html', '导出内部审计 HTML', !s.current || writing)}${b('xlsx', '导出内部审计 Excel', !s.current || writing)}</div><input id="fee-envelope-file-input" type="file" accept=".json,application/json" hidden>
       ${s.reading ? b('cancel', '取消读取') : ''}${s.incoming_error ? `<p role="alert">候选未通过读取或校验：${h(s.incoming_error)}。原文件不被修改；已捕获文字可在备份区另存。</p>` : ''}
