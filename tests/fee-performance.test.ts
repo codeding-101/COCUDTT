@@ -14,11 +14,13 @@ describe('tooling-only fee performance evidence', () => {
     expect(projectedJsonBytes(value)).toBe(Buffer.byteLength(JSON.stringify(value), 'utf8'));
   });
   it('counts the existing capture limit without its outer string and refuses incomplete arrays', () => {
-    const raw = '"'.repeat(1024 * 1024), value = {copies: Array(65).fill(raw)};
+    // Escaping is checked above. Here the capacity boundary should not depend on
+    // millions of RegExp match objects or a shared runner's CPU speed.
+    const raw = 'x'.repeat(1024 * 1024), value = {copies: Array(129).fill(raw)};
     expect(projectedJsonBytes(value)).toBeGreaterThan(FEE_ENVELOPE_BYTES);
     expect(projectedJsonBytes({copies: Array(2).fill(raw)})).toBe(Buffer.byteLength(JSON.stringify({copies: Array(2).fill(raw)})));
     expect(() => projectedJsonBytes(Array(1))).toThrow('PERFORMANCE_SIZE_JSON_ONLY');
-  });
+  }, 30000);
   it.each([undefined, NaN, Infinity, 1n, new Date(0), {missing: undefined}])('refuses non-ordinary JSON inputs %#', value => {
     expect(() => projectedJsonBytes(value)).toThrow('PERFORMANCE_SIZE_JSON_ONLY');
   });
