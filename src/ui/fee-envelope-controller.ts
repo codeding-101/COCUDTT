@@ -1,3 +1,4 @@
+import {unknownFileEvidence, openedFileEvidence, savedFileEvidence, type FileEvidence} from './file-evidence.js';
 import type {WorkbenchStateOwner} from './workbench-state.js';
 import {FEE_ENVELOPE_BYTES, FeeEnvelopeError, type FeeEnvelope, type FeeEnvelopeLease, type FeeEnvelopeLedger} from '../domain/fee-envelope.js';
 import {parseFeeEnvelope, compareFeeEnvelopeRecovery, updateFeeEnvelopeSources, serializeFeeEnvelope} from '../data/fee-envelope.js';
@@ -61,6 +62,7 @@ export class FeeEnvelopeController {
   private protectedLocal = true;
   private storageStatus = 'UNOBSERVED';
   private message = '独立封套尚未载入；不会安装项目或写入费用。';
+ private fileEvidence:FileEvidence=unknownFileEvidence();
   constructor(private readonly env: FeeEnvelopeControllerEnvironment) {env.stateOwner?.bind(this, 'envelope-controller');}
   private blocked(): boolean {
     if (this.checkingBlocked) return true;
@@ -90,7 +92,7 @@ export class FeeEnvelopeController {
     };
   }
   /** Runtime adapters must call this when their external context changes, including ABA changes. */
-  workbenchCapture(){return{...this.state(),epoch:this.epoch,read_token:this.readToken,saved_raw:this.savedRaw,preview:this.preview?structuredClone(this.preview):null};}
+  workbenchCapture(){return{...this.state(),file_evidence:this.fileEvidence,epoch:this.epoch,read_token:this.readToken,saved_raw:this.savedRaw,preview:this.preview?structuredClone(this.preview):null};}
   invalidatePending() { this.touch(); this.notify('待处理候选已失效；当前文件与原文保持。'); }
   cancelRead() { this.readToken++; this.reading = false; this.preview = null; this.notify('读取已取消；当前文件和已捕获原文保持。'); }
   private beginRead() {
@@ -175,7 +177,7 @@ export class FeeEnvelopeController {
       if (this.preview !== p || !this.readCurrent(token, p.epoch)) return false;
       if (this.current && this.current.raw !== p.raw) this.previousRaw = this.current.raw;
       this.current = {raw: p.raw, envelope}; this.originRaw = p.raw;
-      this.savedRaw = p.source === 'FILE' ? p.raw : null;
+      this.savedRaw = p.source === 'FILE' ? p.raw : null;this.fileEvidence=p.source==='FILE'?openedFileEvidence(p.raw):unknownFileEvidence();
       this.touch();
       if (p.source === 'LOCAL') { this.observed = true; this.observedRaw = p.raw; this.protectedLocal = false; this.storageStatus = 'READY'; }
       this.notify('已明确采用独立封套；未安装项目/附件，不证明最新版本或真实业务。');
@@ -287,7 +289,7 @@ export class FeeEnvelopeController {
     try {
       await parseFeeEnvelope(raw);
       const result = await this.write('internal-fee-envelope.json', raw, 'application/json');
-      if (result === 'SAVED' && this.unchanged(epoch) && this.current?.raw === raw) this.savedRaw = raw;
+      if (result === 'SAVED' && this.unchanged(epoch) && this.current?.raw === raw) {this.savedRaw = raw;this.fileEvidence=savedFileEvidence(raw);}
       this.notify(result === 'SAVED' ? '点击时原文已另存；后续变化仍须保存。' : '已发起下载，请确认落盘；未保存状态保持。'); return true;
     } catch (error) { this.notify(aborted(error) ? '另存已取消，原文与后续编辑保留。' : '另存失败，原文与后续编辑保留。'); return false; }
     finally { this.writeBusy = false; this.notify(); }

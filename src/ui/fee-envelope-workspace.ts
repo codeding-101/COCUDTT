@@ -5,13 +5,15 @@ import {feeEnvelopeInternalHtml, feeEnvelopeInternalWorkbook} from '../data/fee-
 import type {FeeEnvelopeSources} from '../domain/fee-envelope.js';
 import {XLSX_MIME} from '../data/xlsx-file.js';
 import {escapeHtml as h} from './format.js';
-import {captureRuntimeFeeWorkbench, previewRuntimeFeeWorkbench, renderRuntimeFeeWorkbenchPreview, type RuntimeFeeWorkbenchCapture, type RuntimeFeeWorkbenchPreview} from './fee-workbench-preview.js';
+import {captureRuntimeFeeWorkbench, previewRuntimeFeeWorkbench, renderRuntimeFeeWorkbenchPreview, renderRuntimeFeeWorkbenchCandidate, type RuntimeFeeWorkbenchCapture, type RuntimeFeeWorkbenchPreview} from './fee-workbench-preview.js';
+import type {RuntimeFeeCandidateSummary} from './fee-workbench-candidate.js';
 
 export interface FeeEnvelopeWorkspaceEnvironment {
   stateOwner?: WorkbenchStateOwner;
   storage: FeeEnvelopeStorage; cacheWritable: boolean;
   currentSources(): FeeEnvelopeSources | null; blocked(): boolean;
   captureWorkbench?(): RuntimeFeeWorkbenchCapture;
+  prepareCandidate?(preview: RuntimeFeeWorkbenchPreview): Promise<{summary: RuntimeFeeCandidateSummary; backup_json: string}>;
   write(name: string, data: string | Uint8Array<ArrayBuffer>, mime: string): Promise<'SAVED' | 'DOWNLOAD_STARTED'>;
 }
 type Pending = {action: string; token: string; basis: string; sources: FeeEnvelopeSources | null; raw?: string | null; name: string};
@@ -33,6 +35,7 @@ export class FeeEnvelopeWorkspace {
   private choices: Record<string, boolean> = {}; private choiceToken = -1;
   private reviewKey = ''; private reviewGeneration = 0; private reviewHtml = '';
   private workbenchResult: RuntimeFeeWorkbenchPreview | null = null;
+  private workbenchCandidate: {summary: RuntimeFeeCandidateSummary; backup_json: string} | null = null;
   private workbenchGeneration = 0; private workbenchBusy = false; private workbenchMessage = '';
   constructor(private readonly env: FeeEnvelopeWorkspaceEnvironment) {
     this.controller = new FeeEnvelopeController({stateOwner:env.stateOwner,storage: env.storage, blocked: () => env.blocked() || this.busy, changed: () => {this.invalidateWorkbenchPreview(); this.refresh();}, write: (...args) => env.write(...args)});
@@ -40,7 +43,7 @@ export class FeeEnvelopeWorkspace {
   }
   private live() { try { return this.env.currentSources(); } catch { return null; } }
   workbenchCapture() {return {pending: this.pending ? structuredClone(this.pending) : null, generation: this.generation, busy: this.busy, exporting: this.exporting, business_name: this.businessName, choices: {...this.choices}};}
-  private invalidateWorkbenchPreview() {this.workbenchGeneration++; if (this.workbenchResult || this.workbenchBusy) this.workbenchMessage = '资料或操作状态已变化，请重新核对完整批次；原项目保持。'; this.workbenchResult = null; this.workbenchBusy = false;}
+  private invalidateWorkbenchPreview() {this.workbenchGeneration++; if (this.workbenchResult || this.workbenchBusy) this.workbenchMessage = '资料或操作状态已变化，请重新核对完整批次；原项目保持。'; this.workbenchResult = null; this.workbenchCandidate = null; this.workbenchBusy = false;}
   private basis() { const s = this.controller.state(); return JSON.stringify([this.generation, s.current?.lease, s.preview?.token, this.businessName, this.live()]); }
   private button(action: string, label: string, disabled = false, extra = '') { return `<button type="button" data-action="fee-envelope-${action}"${disabled ? ' disabled' : ''}${extra}>${h(label)}</button>`; }
   render() { return `<details class="panel fee-envelope-workspace" data-evidence-section="fee-envelope"><summary><span class="panel-title">项目资料封套 · 内部交接</span></summary><div class="panel-body" data-fee-envelope-host>${this.body()}</div></details>`; }
@@ -57,6 +60,7 @@ export class FeeEnvelopeWorkspace {
       ${this.pending ? `<section class="fee-envelope-confirm" role="alert"><p>${h(({capture: '从当前完整来源生成历史未知候选，不推定未消费。', update: '更新当前封套内来源并保留旧历史，不更新工作台。', 'new-business': '复制当前配对为独立新业务候选，重建身份并撤销已知确认，不识别真实订单。', clear: '仅移除所选本机缓存，原文留在内存，当前文件保持。'} as Record<string,string>)[this.pending.action] ?? '')} 请先另存需要保留的资料。</p>${this.button('confirm', '确认执行', locked, ` data-fee-envelope-token="${this.pending.token}"`)}${b('cancel', '取消操作')}</section>` : ''}
       ${s.current ? `<div data-fee-envelope-review>${this.reviewHtml || '正在核对封套内来源与历史…'}</div>` : ''}
       ${this.env.captureWorkbench ? renderRuntimeFeeWorkbenchPreview(this.workbenchResult, this.workbenchBusy, this.workbenchMessage) : ''}
+      ${renderRuntimeFeeWorkbenchCandidate(this.workbenchCandidate?.summary ?? null)}
       <details><summary>复制新业务候选</summary><p>仅用于明确的新业务。名称与新编号不能证明真实订单唯一；旧资料及确认按复制规则保留为待复核。</p><label>新业务名称（必填）<input data-fee-envelope-field="business-name" maxlength="120" value="${h(this.businessName)}"></label>${b('new-business', '复制当前配对为新业务封套候选', !this.businessName.trim() || !this.live()?.pair_json)}</details>
       <details><summary>本机缓存与完整原文备份</summary><p>资料仅保存在本机浏览器，清除存储会丢失。缓存不替代文件另存，不自动恢复或覆盖已有原文。${this.env.cacheWritable ? '当前环境支持协调缓存写入。' : '当前环境关闭缓存写入，可使用文件交接和只读备份。'}</p><p data-fee-envelope-cache>${h(caches[s.storage_status] ?? s.storage_status)}</p><div class="panel-actions">${b('recover', '检查本机封套缓存', s.cache_busy)}${b('persist', '明确缓存当前封套', !s.current || !this.env.cacheWritable || s.cache_busy)}${b('clear', '明确移除所选本机缓存', !this.env.cacheWritable || s.cache_busy)}${Object.entries(backups).map(([key, v]) => b(key, v.label, writing)).join('')}</div><p>备份保留完整原文，不标记文件已保存。备份槽只保留对应的最近一份，不是无限撤销。内部输出含完整来源，请勿直接发送客户；报告超限时仍可另存完整 JSON。</p></details><p data-fee-envelope-export role="status">${h(this.message)}</p>`;
   }
@@ -138,22 +142,24 @@ export class FeeEnvelopeWorkspace {
     if (key === 'workbench-backup') {
       if (this.exporting) return;
       const capture = captureRuntimeFeeWorkbench(this.env.captureWorkbench());
-      const raw = JSON.stringify({kind: 'INTERNAL_RUNTIME_FEE_WORKBENCH_CHECK_BACKUP', version: '0.1', capture, preview: this.workbenchResult, financial_writes: 0, import_authority: false}, null, 2) + '\n';
+      const raw = this.workbenchCandidate && this.workbenchResult && JSON.stringify(capture) === JSON.stringify(this.workbenchResult.capture) ? this.workbenchCandidate.backup_json : JSON.stringify({kind: 'INTERNAL_RUNTIME_FEE_WORKBENCH_CHECK_BACKUP', version: '0.1', capture, preview: this.workbenchResult, financial_writes: 0, import_authority: false}, null, 2) + '\n';
       this.exporting = true; this.refresh();
       try {const status = await this.env.write('internal-fee-workbench-check.json', raw, 'application/json'); this.workbenchMessage = status === 'SAVED' ? '已另存点击时的内部检查资料；当前项目保存状态保持。' : '已发起内部检查资料下载，请确认落盘；不标记项目或封套已保存。';}
       finally {this.exporting = false; this.refresh();}
       return;
     }
     if (key !== 'workbench-preview' || this.workbenchBusy) return;
-    this.workbenchResult = null; this.workbenchBusy = true; this.workbenchMessage = '正在核对完整来源、未提交输入、历史与整批费用。';
+    this.workbenchResult = null; this.workbenchCandidate = null; this.workbenchBusy = true; this.workbenchMessage = '正在核对完整来源、未提交输入、历史与整批费用。';
     const generation = ++this.workbenchGeneration;
     this.refresh();
     try {
       const capture = captureRuntimeFeeWorkbench(this.env.captureWorkbench()), basis = JSON.stringify(capture);
       const result = await previewRuntimeFeeWorkbench(capture, 'preview-' + crypto.randomUUID());
       if (generation !== this.workbenchGeneration || this.env.blocked()) return;
+      const candidate = result.status === 'STAGED' && this.env.prepareCandidate ? await this.env.prepareCandidate(result) : null;
+      if (generation !== this.workbenchGeneration || this.env.blocked()) return;
       if (basis !== JSON.stringify(captureRuntimeFeeWorkbench(this.env.captureWorkbench()))) {this.invalidateWorkbenchPreview(); this.workbenchMessage = '核对期间完整资料已变化，迟到预览已丢弃，请重新核对。'; return;}
-      this.workbenchResult = result; this.workbenchMessage = result.status === 'STAGED' ? '完整批次已准备，仅供核对；实际费用和回执尚未写入。' : '请处理以下具体待办后重新核对；当前费用保持。';
+      this.workbenchResult = result; this.workbenchCandidate = candidate; this.workbenchMessage = result.status === 'STAGED' ? '完整批次已准备，仅供核对；实际费用和回执尚未写入。' : '请处理以下具体待办后重新核对；当前费用保持。';
     } catch {if (generation === this.workbenchGeneration) this.workbenchMessage = '完整检查未完成；原文保留，可另存当前工作台检查备份后继续核对。';}
     finally {if (generation === this.workbenchGeneration) this.workbenchBusy = false; this.refresh();}
   }

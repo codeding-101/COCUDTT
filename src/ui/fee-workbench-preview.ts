@@ -4,6 +4,7 @@ import {parseProject} from '../data/project-file.js';
 import type {FeeEnvelopePlan, FeeEnvelopeSources} from '../domain/fee-envelope.js';
 import type {FeeWorkbenchInput, FeeWorkbenchPreview} from '../domain/fee-workbench.js';
 import {escapeHtml as h} from './format.js';
+import type {RuntimeFeeCandidateSummary} from './fee-workbench-candidate.js';
 
 /** Actual runtime projection. Missing sources and unknown save evidence remain explicit. */
 export interface RuntimeFeeWorkbenchCapture {
@@ -25,13 +26,19 @@ export interface RuntimeFeeWorkbenchPreview {
   rows: readonly {mapping_id: string; bill_id: string; line_id: string; cost_id: string; operation: 'CREATE_NEW' | 'REFERENCE_EXISTING'; name: string; amount: string; currency: string}[];
   runtime_writes: 0;
 }
+const prepared = new WeakMap<object, {owner: FeeWorkbenchTransaction; preview: FeeWorkbenchPreview}>();
+/** Private issued data only; JSON, copies and blocked previews cannot supply a candidate. */
+export function runtimeFeeWorkbenchPreparedSnapshot(result: RuntimeFeeWorkbenchPreview) {
+  const c = prepared.get(result); if (!c) throw Error('RUNTIME_CANDIDATE_FOREIGN_PREVIEW');
+  return c.owner.preparedSnapshot(c.preview);
+}
 function freeze<T>(v: T): T {if (v && typeof v === 'object') {Object.values(v).forEach(freeze); Object.freeze(v);} return v;}
 export function captureRuntimeFeeWorkbench(value: RuntimeFeeWorkbenchCapture): RuntimeFeeWorkbenchCapture {
   const c = copyFeeEnvelopeJson(value) as RuntimeFeeWorkbenchCapture;
   if (c.scope !== 'RUNTIME_FEE_WORKBENCH_CAPTURE' || !Array.isArray(c.blockers) || c.blockers.some(v => typeof v !== 'string')) throw Error('RUNTIME_CAPTURE_SHAPE');
   return freeze(c);
 }
-/** The transaction owner stays private and is discarded. No confirm, cache, save or runtime installation. */
+/** The transaction owner stays private. No confirm, cache, save or runtime installation. */
 export async function previewRuntimeFeeWorkbench(value: RuntimeFeeWorkbenchCapture, transaction_id: string): Promise<RuntimeFeeWorkbenchPreview> {
   const capture = captureRuntimeFeeWorkbench(value), issues = [...capture.blockers];
   if (capture.envelope_json === null) issues.push('MISSING_ENVELOPE');
@@ -52,7 +59,9 @@ export async function previewRuntimeFeeWorkbench(value: RuntimeFeeWorkbenchCaptu
       rows.push({...row, name: cost.cost_name, amount: String(cost.amount), currency: cost.currency});
     }
   }
-  return freeze({capture, status: preview.status, issues: [...preview.issues], preview, rows, runtime_writes: 0});
+  const result = freeze({capture, status: preview.status, issues: [...preview.issues], preview, rows, runtime_writes: 0 as const});
+  if (preview.status === 'STAGED') prepared.set(result, {owner, preview});
+  return result;
 }
 const labels: Record<string, string> = {
   MISSING_ENVELOPE: '尚未明确采用项目资料封套。', MISSING_PROJECT: '尚无当前项目。', MISSING_BILL: '尚无当前独立账单。',
@@ -64,6 +73,10 @@ const labels: Record<string, string> = {
   HISTORY_NOT_ESTABLISHED: '封套历史未知，不能推定费用从未使用。', COMPLETE_CURRENT_SOURCES_REQUIRED: '还需完整配对、成分附件与精度选择资料。', EMPTY_BATCH: '没有可预览的完整费用批次。',
 };
 export function runtimeFeeWorkbenchIssue(code: string) {return labels[code] ?? '需继续核对：' + code;}
+export function renderRuntimeFeeWorkbenchCandidate(candidate: RuntimeFeeCandidateSummary | null): string {
+  if (!candidate) return '';
+  return `<details data-fee-workbench-candidate><summary>候选提交检查与计算差异</summary><p>候选费用与一份回执已准备，原始文件和历史资料保留；当前结果保持。实际提交后须重新核对客户报价。核算币种：${h(candidate.base_currency)}。</p><dl><dt>卖方利润：当前 → 候选</dt><dd>${h(candidate.before.seller_profit ?? '未知')} → ${h(candidate.after.seller_profit ?? '未知')}</dd><dt>买方总支付：当前 → 候选</dt><dd>${h(candidate.before.buyer_total)} → ${h(candidate.after.buyer_total)}</dd></dl><p>候选已通过实际引擎重算，完整检查备份包含提交前后资料。明确确认与提交后恢复验收完成后再开放实际应用。</p></details>`;
+}
 export function renderRuntimeFeeWorkbenchPreview(result: RuntimeFeeWorkbenchPreview | null, busy: boolean, message: string): string {
   return `<details class="fee-workbench-preview" data-fee-workbench-panel><summary>整批费用预览</summary><p>适用场景：核对当前工作台与封套是否一致，再逐笔查看整批候选。预览不会新增费用或回执，也不证明真实业务或全局未重复。</p><div class="panel-actions"><button type="button" data-action="fee-envelope-workbench-preview"${busy ? ' disabled' : ''}>${busy ? '正在核对完整批次…' : '核对当前工作台并预览'}</button><button type="button" data-action="fee-envelope-workbench-cancel">清除本次预览</button><button type="button" data-action="fee-envelope-workbench-backup">另存当前工作台检查备份</button></div><p role="status" aria-live="polite" data-fee-workbench-status>${h(message)}</p>${result ? `<section data-fee-workbench-result data-status="${result.status}"><h3>${result.status === 'STAGED' ? `批次检查通过：拟新增 ${result.preview!.costs_added} 笔费用、记录 ${result.preview!.references_recorded} 笔已有费用引用` : '暂不能形成完整候选'}</h3>${result.issues.length ? `<ul>${result.issues.map(code => `<li>${h(runtimeFeeWorkbenchIssue(code))} <small>（${h(code)}）</small></li>`).join('')}</ul>` : ''}${result.rows.length ? `<ol class="fee-workbench-rows">${result.rows.map(row => `<li><strong>${h(row.name)}</strong><span>${h(row.amount)} ${h(row.currency)} · ${row.operation === 'CREATE_NEW' ? '拟新增，保持原币原金额' : '仅引用已有费用，不重复新增'}</span><small>账单 ${h(row.bill_id)} / 行 ${h(row.line_id)} → 费用 ${h(row.cost_id)}；映射 ${h(row.mapping_id)}</small></li>`).join('')}</ol><p>若后续实际新增费用，原配对、成分附件与精度选择将保留为历史资料；原确认不能自动沿用。所有金额仍以实际业务依据为准。</p>` : ''}<p>当前项目费用、回执、客户报价及文件保存状态均保持。实际应用入口待整批提交与故障验收完成后开放。</p></section>` : ''}</details>`;
 }

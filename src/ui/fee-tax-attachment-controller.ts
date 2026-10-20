@@ -1,3 +1,4 @@
+import {unknownFileEvidence, openedFileEvidence, savedFileEvidence, type FileEvidence} from './file-evidence.js';
 import type {WorkbenchStateOwner} from './workbench-state.js';
 import type {FeeTaxAttachment,FeeTaxAttachmentFacet} from '../domain/fee-tax-attachment.js';
 import {FEE_TAX_ATTACHMENT_BYTES} from '../domain/fee-tax-attachment.js';
@@ -12,10 +13,10 @@ export interface FeeTaxAttachmentControllerEnvironment {
  currentPairText:()=>string|null;blocked:()=>boolean;changed:()=>void;
  write:(name:string,text:string,mime:string)=>Promise<'SAVED'|'DOWNLOAD_STARTED'>;
 }
-type FileSource={size?:number;text:()=>Promise<string>};
+type FileSource={size?:number;name?:string;text:()=>Promise<string>};
 type Slot=FeeTaxAttachmentStorageSlot;
 type Recovery={token:number;epoch:number;raw:Record<Slot,string|null>;attachment:FeeTaxAttachment;editor:FeeTaxAttachmentEditor|null};
-type Preview={token:number;epoch:number;attachment:FeeTaxAttachment};
+type Preview={token:number;epoch:number;attachment:FeeTaxAttachment;file_evidence?:FileEvidence};
 const slots:Slot[]=['committed','editor'];
 const lease=(a:FeeTaxAttachment)=>({revision:a.revision,content_sha256:a.content_sha256});
 const abort=(error:unknown)=>error instanceof Error&&error.name==='AbortError';
@@ -28,8 +29,9 @@ export class FeeTaxAttachmentController {
  private savedKey:string|null=null;private observed=new Map<Slot,string|null>();private protectedSlots=new Set<Slot>();
  private storageStatus:Record<Slot,string|null>={committed:null,editor:null};private observedOnce=false;
  private message='附件尚未载入；独立资料不会自动替换项目或账单。';
+ private fileEvidence:FileEvidence=unknownFileEvidence();
  constructor(private readonly env:FeeTaxAttachmentControllerEnvironment){env.stateOwner?.bind(this,'tax-controller');}
- workbenchCapture(){return{...this.state(),epoch:this.epoch,read_token:this.readToken,reading:this.readingToken!==null,saved_content_sha256:this.savedKey,preview:this.preview?structuredClone(this.preview):null,recovery:this.recovery?structuredClone(this.recovery):null,observed:Object.fromEntries(this.observed),protected_slots:[...this.protectedSlots]};}
+ workbenchCapture(){return{...this.state(),file_evidence:this.fileEvidence,epoch:this.epoch,read_token:this.readToken,reading:this.readingToken!==null,saved_content_sha256:this.savedKey,preview:this.preview?structuredClone(this.preview):null,recovery:this.recovery?structuredClone(this.recovery):null,observed:Object.fromEntries(this.observed),protected_slots:[...this.protectedSlots]};}
  state(){return{attachment:this.attachment?structuredClone(this.attachment):null,editor:this.editor?structuredClone(this.editor):null,source_is_current:!!this.attachment&&this.live()===this.attachment.pair_snapshot_json,editor_is_current:!!this.attachment&&!!this.editor&&feeTaxAttachmentEditorIsCurrent(this.editor,this.attachment),preview:this.preview?{token:this.preview.token,attachment_id:this.preview.attachment.attachment_id,revision:this.preview.attachment.revision}:null,recovery:this.recovery?{token:this.recovery.token,attachment_id:this.recovery.attachment.attachment_id,has_editor:!!this.recovery.editor}:null,dirty:!!this.editor||!!this.attachment&&this.savedKey!==this.attachment.content_sha256,mutation_busy:this.mutationBusy,write_busy:this.writeBusy,storage_status:{...this.storageStatus},message:this.message};}
  private notify(message?:string){if(message!==undefined)this.message=message;try{this.env.changed();}catch{this.message='显示更新失败，内存附件与原文保留，请备份后重试。';}}
  private touch(){this.epoch++;this.readToken++;this.readingToken=null;this.preview=null;this.recovery=null;}
@@ -47,7 +49,8 @@ export class FeeTaxAttachmentController {
   }catch{this.protectedSlots.add(slot);this.storageStatus[slot]='WRITE_FAILED';return false;}
  }
  private persistEditor(){return this.writeSlot('editor',this.editor?JSON.stringify(this.editor):'null');}
- private install(a:FeeTaxAttachment,text:string,editor:FeeTaxAttachmentEditor|null,saved=false){
+ private install(a:FeeTaxAttachment,text:string,editor:FeeTaxAttachmentEditor|null,saved=false,evidence?:FileEvidence){
+  if(evidence)this.fileEvidence=evidence;else if(this.attachment?.attachment_id!==a.attachment_id)this.fileEvidence=unknownFileEvidence();
   this.attachment=a;this.editor=editor;this.savedKey=saved?a.content_sha256:null;this.touch();const epoch=this.epoch;
   const committed=this.writeSlot('committed',text);
   // Storage adapters can reenter; never clear an editor created during the committed write.
@@ -99,7 +102,7 @@ export class FeeTaxAttachmentController {
    if(file.size!==undefined&&(!Number.isFinite(file.size)||file.size<0||file.size>FEE_TAX_ATTACHMENT_BYTES))throw Error('size');
    const text=await file.text(),attachment=await parseFeeTaxAttachment(text);
    if(token!==this.readToken||epoch!==this.epoch||this.env.blocked())return false;
-   this.preview={token,epoch,attachment};this.notify('附件候选已校验；明确采用后才替换本面板附件，项目和账单保持。');return true;
+   this.preview={token,epoch,attachment,file_evidence:openedFileEvidence(text,file.name??null)};this.notify('附件候选已校验；明确采用后才替换本面板附件，项目和账单保持。');return true;
   }catch(error){if(token===this.readToken&&epoch===this.epoch)this.notify(abort(error)?'已取消读取，当前资料保留。':'附件读取失败，当前资料保留；原文件仍可备份。');return false;}
   finally{if(this.readingToken===token){this.readingToken=null;this.notify();}}
  }
@@ -107,7 +110,7 @@ export class FeeTaxAttachmentController {
   if(!this.canAct()||this.editor||!this.preview||this.preview.token!==token||token!==this.readToken)return false;const p=this.preview;
   const text=await serializeFeeTaxAttachment(p.attachment);
   if(this.preview!==p||p.epoch!==this.epoch||token!==this.readToken||this.env.blocked())return false;
-  const cached=this.install(p.attachment,text,null,true);this.notify(cached?'已明确采用独立附件，未安装其中的项目或账单。':'已采用独立附件；本机旧草稿受保护，未被覆盖。');return true;
+  const cached=this.install(p.attachment,text,null,true,p.file_evidence);this.notify(cached?'已明确采用独立附件，未安装其中的项目或账单。':'已采用独立附件；本机旧草稿受保护，未被覆盖。');return true;
  }
  async prepareLocalRecovery():Promise<boolean>{
   if(this.env.blocked())return false;this.observe();const token=++this.readToken,epoch=this.epoch,raw={} as Record<Slot,string|null>;this.recovery=null;this.preview=null;
@@ -124,7 +127,7 @@ export class FeeTaxAttachmentController {
   try{if(slots.some(s=>this.env.storage.getItem(FEE_TAX_ATTACHMENT_STORAGE_KEYS[s])!==r.raw[s])){this.notify('恢复期间本机草稿已变化，原资料保留，请重新检查。');return false;}}
   catch{this.notify('恢复前无法重读本机草稿，资料保留。');return false;}
   if(r.epoch!==this.epoch||token!==this.readToken||this.editor||this.env.blocked())return false;
-  this.attachment=r.attachment;this.editor=r.editor;this.savedKey=null;this.touch();for(const s of slots){this.protectedSlots.delete(s);this.storageStatus[s]=null;this.observed.set(s,r.raw[s]);}
+  this.attachment=r.attachment;this.editor=r.editor;this.savedKey=null;this.fileEvidence=unknownFileEvidence();this.touch();for(const s of slots){this.protectedSlots.delete(s);this.storageStatus[s]=null;this.observed.set(s,r.raw[s]);}
   this.notify(this.editor&&!feeTaxAttachmentEditorIsCurrent(this.editor,this.attachment)?'已明确恢复；旧编辑来源失配，原文保留，不能直接提交。':'已明确恢复独立附件/编辑，尚未另存；未替换项目或账单。');return true;
  }
  storageChanged(key:string):void{
@@ -142,9 +145,9 @@ export class FeeTaxAttachmentController {
   const ok=this.writeSlot('committed',text);if(ok)this.persistEditor();this.notify(ok&&slots.every(s=>this.storageStatus[s]===null)?'本机草稿已写入并读回；仍须另存文件备份。':'本机草稿未完整写入，内存资料保持。');return ok&&slots.every(s=>this.storageStatus[s]===null);
  }
  async save():Promise<boolean>{
-  if(this.env.blocked()||this.writeBusy||!this.attachment||this.editor)return false;const a=structuredClone(this.attachment);this.writeBusy=true;this.notify('正在另存点击时附件；后续编辑不会改变该文件。');
+  if(this.env.blocked()||this.writeBusy||!this.attachment||this.editor)return false;const a=structuredClone(this.attachment),epoch=this.epoch;this.writeBusy=true;this.notify('正在另存点击时附件；后续编辑不会改变该文件。');
   try{const text=await serializeFeeTaxAttachment(a),result=await this.env.write('internal-fee-tax-attachment.json',text,'application/json');
-   if(result==='SAVED'&&this.attachment?.content_sha256===a.content_sha256&&!this.editor)this.savedKey=a.content_sha256;
+   if(result==='SAVED'&&epoch===this.epoch&&this.attachment?.content_sha256===a.content_sha256&&!this.editor){this.savedKey=a.content_sha256;this.fileEvidence=savedFileEvidence(text);}
    this.notify(result==='SAVED'?'已另存点击时附件；后续修改或未提交编辑须再次保存。':'已发起附件下载，请确认落盘；待保存状态保留。');return true;
   }catch(error){this.notify(abort(error)?'已取消另存，附件与后续编辑保留。':'另存失败，附件与后续编辑保留。');return false;}
   finally{this.writeBusy=false;this.notify();}
