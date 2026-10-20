@@ -884,6 +884,18 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
 .fee-workbench-rows li { padding:.7rem 0; border-bottom:1px solid var(--line,#d4dce5); }
 .fee-workbench-rows span,.fee-workbench-rows small { display:block; margin-top:.35rem; overflow-wrap:anywhere; }
 .fee-workbench-preview [data-status="BLOCKED"] h3 { color:var(--warn,#92521b); }
+.fee-workflow-guide { margin:1rem 0; padding:1rem; border:1px solid var(--line,#d4dce5); border-radius:6px; }
+.fee-workflow-guide > summary { font-weight:650; cursor:pointer; }
+.fee-workflow-guide details { margin-top:1rem; }
+.fee-workflow-steps { list-style:decimal-leading-zero; padding-left:2.2rem; }
+.fee-workflow-steps > li { padding:.8rem 0 .8rem .5rem; border-bottom:1px solid var(--line,#d4dce5); }
+.fee-workflow-steps h3 { margin:0 0 .3rem; font-size:1rem; }
+.fee-workflow-evidence { color:var(--muted,#526070); font-size:.85rem; }
+.fee-workflow-issues { padding-left:1.2rem; }
+.fee-workflow-issues li { margin:.6rem 0; }
+.fee-workflow-issues button { display:block; margin-top:.35rem; }
+.fee-workflow-guide aside { border-left:3px solid var(--warn,#92521b); padding:.6rem .8rem; margin:1rem 0; }
+@media(max-width:600px) { .fee-workflow-guide { padding:.7rem; } .fee-workflow-steps { padding-left:1.7rem; } }
 @media(max-width:600px) { .fee-envelope-workspace .panel-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .fee-envelope-confirm { padding:.65rem; } }
 .fee-precision-workspace button { min-height:44px; white-space:normal; }
 .fee-precision-workspace input,.fee-precision-workspace select { min-width:0; max-width:100%; }
