@@ -24,14 +24,15 @@ export class FeeTaxAttachmentController {
  private attachment:FeeTaxAttachment|null=null;
  private editor:FeeTaxAttachmentEditor|null=null;
  private preview:Preview|null=null;private recovery:Recovery|null=null;
- private epoch=0;private readToken=0;private mutationBusy=false;private writeBusy=false;
+ private epoch=0;private readToken=0;private readingToken:number|null=null;private mutationBusy=false;private writeBusy=false;
  private savedKey:string|null=null;private observed=new Map<Slot,string|null>();private protectedSlots=new Set<Slot>();
  private storageStatus:Record<Slot,string|null>={committed:null,editor:null};private observedOnce=false;
  private message='附件尚未载入；独立资料不会自动替换项目或账单。';
  constructor(private readonly env:FeeTaxAttachmentControllerEnvironment){env.stateOwner?.bind(this,'tax-controller');}
+ workbenchCapture(){return{...this.state(),epoch:this.epoch,read_token:this.readToken,reading:this.readingToken!==null,saved_content_sha256:this.savedKey,preview:this.preview?structuredClone(this.preview):null,recovery:this.recovery?structuredClone(this.recovery):null,observed:Object.fromEntries(this.observed),protected_slots:[...this.protectedSlots]};}
  state(){return{attachment:this.attachment?structuredClone(this.attachment):null,editor:this.editor?structuredClone(this.editor):null,source_is_current:!!this.attachment&&this.live()===this.attachment.pair_snapshot_json,editor_is_current:!!this.attachment&&!!this.editor&&feeTaxAttachmentEditorIsCurrent(this.editor,this.attachment),preview:this.preview?{token:this.preview.token,attachment_id:this.preview.attachment.attachment_id,revision:this.preview.attachment.revision}:null,recovery:this.recovery?{token:this.recovery.token,attachment_id:this.recovery.attachment.attachment_id,has_editor:!!this.recovery.editor}:null,dirty:!!this.editor||!!this.attachment&&this.savedKey!==this.attachment.content_sha256,mutation_busy:this.mutationBusy,write_busy:this.writeBusy,storage_status:{...this.storageStatus},message:this.message};}
  private notify(message?:string){if(message!==undefined)this.message=message;try{this.env.changed();}catch{this.message='显示更新失败，内存附件与原文保留，请备份后重试。';}}
- private touch(){this.epoch++;this.readToken++;this.preview=null;this.recovery=null;}
+ private touch(){this.epoch++;this.readToken++;this.readingToken=null;this.preview=null;this.recovery=null;}
  private live(){try{return this.env.currentPairText();}catch{return null;}}
  private canAct(){return!this.env.blocked()&&!this.mutationBusy;}
  private observe(){if(this.observedOnce)return;this.observedOnce=true;for(const slot of slots){try{const raw=this.env.storage.getItem(FEE_TAX_ATTACHMENT_STORAGE_KEYS[slot]);this.observed.set(slot,raw);if(raw!==null&&raw!=='null'){this.protectedSlots.add(slot);this.storageStatus[slot]='PENDING_RECOVERY';}}catch{this.protectedSlots.add(slot);this.storageStatus[slot]='UNAVAILABLE';}}}
@@ -53,7 +54,7 @@ export class FeeTaxAttachmentController {
   const edited=epoch!==this.epoch;if(committed&&!edited)this.persistEditor();
   return committed&&!edited&&slots.every(s=>this.storageStatus[s]===null);
  }
- cancelRead(){this.readToken++;this.preview=null;this.recovery=null;this.notify('读取已取消，当前附件和未提交编辑保留。');}
+ cancelRead(){this.readToken++;this.readingToken=null;this.preview=null;this.recovery=null;this.notify('读取已取消，当前附件和未提交编辑保留。');}
  async createFromCurrentPair():Promise<boolean>{
   if(!this.canAct()||this.editor)return false;const pair=this.live();if(pair===null)return false;
   return this.mutate(async()=>createFeeTaxAttachment(pair),pair,false);
@@ -93,13 +94,14 @@ export class FeeTaxAttachmentController {
   finally{this.mutationBusy=false;this.notify();}
  }
  async openFile(file:FileSource):Promise<boolean>{
-  if(!this.canAct()||this.editor)return false;const token=++this.readToken,epoch=this.epoch;this.preview=null;this.recovery=null;this.notify('正在读取附件候选，不替换当前项目或账单。');
+  if(!this.canAct()||this.editor)return false;const token=++this.readToken,epoch=this.epoch;this.readingToken=token;this.preview=null;this.recovery=null;this.notify('正在读取附件候选，不替换当前项目或账单。');
   try{
    if(file.size!==undefined&&(!Number.isFinite(file.size)||file.size<0||file.size>FEE_TAX_ATTACHMENT_BYTES))throw Error('size');
    const text=await file.text(),attachment=await parseFeeTaxAttachment(text);
    if(token!==this.readToken||epoch!==this.epoch||this.env.blocked())return false;
    this.preview={token,epoch,attachment};this.notify('附件候选已校验；明确采用后才替换本面板附件，项目和账单保持。');return true;
   }catch(error){if(token===this.readToken&&epoch===this.epoch)this.notify(abort(error)?'已取消读取，当前资料保留。':'附件读取失败，当前资料保留；原文件仍可备份。');return false;}
+  finally{if(this.readingToken===token){this.readingToken=null;this.notify();}}
  }
  async adoptPreview(token:number):Promise<boolean>{
   if(!this.canAct()||this.editor||!this.preview||this.preview.token!==token||token!==this.readToken)return false;const p=this.preview;

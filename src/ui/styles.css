@@ -879,6 +879,11 @@ details.evidence .note { color: var(--text-2); font-size: 12px; margin-top: 3px;
 .fee-envelope-confirm { border:1px solid var(--line,#d4dce5); border-radius:6px; padding:1rem; margin:1rem 0; background:var(--surface-alt,#f4f6f8); }
 .fee-envelope-check { display:flex; align-items:flex-start; gap:.65rem; margin:.75rem 0; }
 .fee-envelope-check input { width:auto; flex:0 0 auto; margin-top:.25rem; }
+.fee-workbench-preview { margin:1rem 0; padding:1rem; border:1px solid var(--line,#d4dce5); border-radius:6px; background:var(--surface-alt,#f4f6f8); }
+.fee-workbench-rows { padding-left:1.4rem; }
+.fee-workbench-rows li { padding:.7rem 0; border-bottom:1px solid var(--line,#d4dce5); }
+.fee-workbench-rows span,.fee-workbench-rows small { display:block; margin-top:.35rem; overflow-wrap:anywhere; }
+.fee-workbench-preview [data-status="BLOCKED"] h3 { color:var(--warn,#92521b); }
 @media(max-width:600px) { .fee-envelope-workspace .panel-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .fee-envelope-confirm { padding:.65rem; } }
 .fee-precision-workspace button { min-height:44px; white-space:normal; }
 .fee-precision-workspace input,.fee-precision-workspace select { min-width:0; max-width:100%; }

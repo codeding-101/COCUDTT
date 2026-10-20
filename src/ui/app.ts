@@ -95,6 +95,7 @@ import {FeeEnvelopeWorkspace} from './fee-envelope-workspace.js';
 import {createFeeEnvelopeBrowserStorage} from './fee-envelope-storage.js';
 import {FEE_ENVELOPE_STORAGE_KEY} from './fee-envelope-controller.js';
 import type {FeeEnvelopeSources} from '../domain/fee-envelope.js';
+import {captureRuntimeFeeWorkbench, type RuntimeFeeWorkbenchCapture} from './fee-workbench-preview.js';
 
 const DRAFT_KEY = 'trade-cost-engine:draft-v1';
 
@@ -150,6 +151,7 @@ const workflow = {
   recoveryReviewBusy: false,
   recoveryReviewEpoch: 0,
   projectReadEpoch: 0,
+  projectReadToken: (null as number | null),
 };
 workbenchState.bind(workflow, 'workflow');
 
@@ -254,8 +256,31 @@ const envelopeExclusive = typeof navigator !== 'undefined' && navigator.locks ? 
 const feeEnvelopeWorkspace=new FeeEnvelopeWorkspace({
  stateOwner:workbenchState,
  storage:createFeeEnvelopeBrowserStorage({getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value),removeItem:key=>localStorage.removeItem(key)},envelopeExclusive),
- cacheWritable:envelopeExclusive!==null,blocked:()=>workflow.recoveryStage!==null,write:writeFeeTaxFile,currentSources:currentEnvelopeSources,
+ cacheWritable:envelopeExclusive!==null,blocked:()=>workflow.recoveryStage!==null,write:writeFeeTaxFile,currentSources:currentEnvelopeSources,captureWorkbench:captureCurrentFeeWorkbench,
 });
+/** Capture committed sources AND unfinished state. Never use currentEnvelopeSources() to silently omit blockers. */
+function captureCurrentFeeWorkbench():RuntimeFeeWorkbenchCapture{
+ const bill=containerBill.workbenchCapture(),pair=containerPair.workbenchCapture(),tax=feeTaxWorkspace.controller.workbenchCapture(),precision=feePrecisionWorkspace.controller.workbenchCapture(),envelope=feeEnvelopeWorkspace.controller.workbenchCapture();
+ const taxUi=feeTaxWorkspace.workbenchCapture(),precisionUi=feePrecisionWorkspace.workbenchCapture(),envelopeUi=feeEnvelopeWorkspace.workbenchCapture();
+ const json=(v:unknown)=>JSON.stringify(v,null,2)+'\n',blockers:string[]=[];
+ let project_json:string|null=null;
+ if(workflow.stateInitialized){try{project_json=serializeProject(currentProject());}catch{blockers.push('INVALID_FX_OR_PROJECT');}}
+ const control=workflow.editedControl;
+ const pending=control instanceof HTMLInputElement||control instanceof HTMLSelectElement||control instanceof HTMLTextAreaElement?{tag:control.tagName,id:control.id,type:control.type,value:control.value,dataset:{...control.dataset},connected:control.isConnected}:null;
+ const storage:Record<string,{raw:string|null;available:boolean}>={};
+ for(const key of[DRAFT_KEY,BILL_STORAGE_KEY,PAIR_STORAGE_KEY,COST_EDITOR_STORAGE_KEY,REVIEW_EDITOR_STORAGE_KEY,...Object.values(FEE_TAX_ATTACHMENT_STORAGE_KEYS),...Object.values(FEE_PRECISION_SELECTION_STORAGE_KEYS),FEE_ENVELOPE_STORAGE_KEY]){try{storage[key]={raw:localStorage.getItem(key),available:true};}catch{storage[key]={raw:null,available:false};}}
+ if(envelope.reading||envelope.mutation_busy||envelope.write_busy||envelope.cache_busy||envelope.preview||envelopeUi.pending||envelopeUi.busy||envelopeUi.exporting)blockers.push('ACTIVE_ENVELOPE');
+ if(bill.write_busy||pair.write_busy||workflow.projectResourceBusy||workflow.settlementBusy||workflow.customerSummaryBusy||workflow.customerPdfBusy)blockers.push('ACTIVE_FILE_WRITE');
+ const file=(name:string|null=null,saved_raw:string|null=null,saved_at:string|null=null)=>({name,saved_raw,saved_at});
+ return captureRuntimeFeeWorkbench({scope:'RUNTIME_FEE_WORKBENCH_CAPTURE',envelope_json:envelope.current?.raw_json??null,
+  sources:{project_json,bill_json:containerBill.draft?serializeContainerBillDraft(containerBill.draft):null,pair_json:containerPair.pair?serializeContainerCostPair(containerPair.pair):null,attachment_json:tax.attachment?json(tax.attachment):null,precision_json:precision.selection?json(precision.selection):null},
+  fx:{rows_json:JSON.stringify(workflow.stateInitialized?state.fxRows:[]),preserved_row_key:workflow.pairFxLease?.row_key??null,preserved_books_json:workflow.pairFxLease?JSON.stringify(workflow.pairFxLease.books):null},
+  files:{project:file(workflow.stateInitialized?state.fileName:null,null,workflow.stateInitialized?state.savedAt:null),bill:file(),pair:file(),attachment:file(),precision:file(),envelope:file(null,envelope.saved_raw)},
+  editors:{cost:containerPair.editor?json(containerPair.editor):null,review:containerPair.reviewEditor?json(containerPair.reviewEditor):null,attachment:tax.editor?json(tax.editor):null,precision:precision.editor?json(precision.editor):null,pending_input:workflow.pendingCalculation||control!==null?json({pending_calculation:workflow.pendingCalculation,control:pending}):null},
+  activity:{project_read:workflow.projectReadToken!==null&&workflow.projectReadToken===workflow.projectReadEpoch,bill_read:bill.reading,pair_read:pair.reading,attachment_mutation:tax.reading||tax.mutation_busy||tax.write_busy||tax.preview!==null||tax.recovery!==null||taxUi.pending!==null||taxUi.export_busy,precision_mutation:precision.reading||precision.mutation_busy||precision.write_busy||precision.preview!==null||precision.recovery!==null||precisionUi.pending!==null||precisionUi.export_busy,recovery:workflow.recoveryStage!==null||workflow.recoveryReviewBusy},
+  retained_json:json({project_raw:workflow.stateInitialized?state.project:null,project_file:{name:workflow.stateInitialized?state.fileName:null,saved_at:workflow.stateInitialized?state.savedAt:null,dirty:workflow.stateInitialized?state.dirty:null,saved_raw_known:false},bill,pair,tax,precision,envelope,tax_workspace:taxUi,precision_workspace:precisionUi,envelope_workspace:envelopeUi,
+   project_read_epoch:workflow.projectReadEpoch,project_read_token:workflow.projectReadToken,settlement_epoch:workflow.settlementEpoch,settlement_plan:workflow.settlementPlan,sensitivity:workflow.sensitivityControls,customer_fields:workflow.customerFields,customer_view:workflow.customerView,customer_reviewed:workflow.customerReviewed,pending_control:pending,storage}),blockers});
+}
 function currentEnvelopeSources():FeeEnvelopeSources|null{
  if(!workflow.stateInitialized||workflow.pendingCalculation||!containerBill.draft||containerPair.editor||containerPair.reviewEditor||containerPair.busy||containerBill.busy)return null;
  const tax=feeTaxWorkspace.controller.state(),precision=feePrecisionWorkspace.controller.state();
@@ -1702,7 +1727,8 @@ function bind(): void {
       const file = target.files?.[0];
       if (file === undefined) return;
       const epoch=++workflow.projectReadEpoch;
-      void file.text().then((text) => { if (epoch===workflow.projectReadEpoch&&!workflow.recoveryStage) runUi('INTERACTION',()=>openProjectFromText(text,file.name)); }).catch(error=>{if(epoch===workflow.projectReadEpoch)showFileError(error)});
+      workflow.projectReadToken=epoch;
+      void file.text().then((text) => { if (epoch===workflow.projectReadEpoch&&!workflow.recoveryStage) runUi('INTERACTION',()=>openProjectFromText(text,file.name)); }).catch(error=>{if(epoch===workflow.projectReadEpoch)showFileError(error)}).finally(()=>{if(workflow.projectReadToken===epoch)workflow.projectReadToken=null;});
       return;
     }
 

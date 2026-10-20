@@ -90,6 +90,7 @@ export class FeeEnvelopeController {
     };
   }
   /** Runtime adapters must call this when their external context changes, including ABA changes. */
+  workbenchCapture(){return{...this.state(),epoch:this.epoch,read_token:this.readToken,saved_raw:this.savedRaw,preview:this.preview?structuredClone(this.preview):null};}
   invalidatePending() { this.touch(); this.notify('待处理候选已失效；当前文件与原文保持。'); }
   cancelRead() { this.readToken++; this.reading = false; this.preview = null; this.notify('读取已取消；当前文件和已捕获原文保持。'); }
   private beginRead() {

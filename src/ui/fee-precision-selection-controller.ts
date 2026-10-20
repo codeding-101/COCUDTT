@@ -24,18 +24,19 @@ const abort=(e:unknown)=>e instanceof Error&&e.name==='AbortError';
 export class FeePrecisionSelectionController {
  private selection:FeePrecisionSelection|null=null;private editor:FeePrecisionSelectionEditor|null=null;
  private preview:Preview|null=null;private recovery:Recovery|null=null;
- private epoch=0;private readToken=0;private mutationBusy=false;private writeBusy=false;private notifying=false;
+ private epoch=0;private readToken=0;private readingToken:number|null=null;private mutationBusy=false;private writeBusy=false;private notifying=false;
  private savedKey:string|null=null;private observedOnce=false;private observed=new Map<FeePrecisionStorageSlot,string|null>();
  private protectedSlots=new Set<FeePrecisionStorageSlot>();private writingSlots=new Set<FeePrecisionStorageSlot>();
  private storageStatus:Record<FeePrecisionStorageSlot,string|null>={committed:null,editor:null};
  private message='精度文件尚未载入；独立政策不应用费用。';
  constructor(private readonly env:FeePrecisionSelectionControllerEnvironment){env.stateOwner?.bind(this,'precision-controller');}
+ workbenchCapture(){return{...this.state(),epoch:this.epoch,read_token:this.readToken,reading:this.readingToken!==null,saved_content_sha256:this.savedKey,preview:this.preview?structuredClone(this.preview):null,recovery:this.recovery?structuredClone(this.recovery):null,observed:Object.fromEntries(this.observed),protected_slots:[...this.protectedSlots],writing_slots:[...this.writingSlots]};}
  private blocked(){try{return!!this.env.blocked();}catch{return true;}}
  private live():FeePrecisionCurrentSources|null{try{const s=this.env.currentSources();return s&&typeof s.pair_json==='string'&&typeof s.attachment_json==='string'?{pair_json:s.pair_json,attachment_json:s.attachment_json}:null;}catch{return null;}}
  private current(a:FeePrecisionSelection,s:FeePrecisionCurrentSources|null){return!!s&&a.pair_snapshot_json===s.pair_json&&a.attachment_snapshot_json===s.attachment_json;}
  state(){const live=this.live();return{selection:this.selection?structuredClone(this.selection):null,editor:this.editor?structuredClone(this.editor):null,source_is_current:!!this.selection&&this.current(this.selection,live),editor_is_current:!!this.selection&&!!this.editor&&feePrecisionSelectionEditorIsCurrent(this.editor,this.selection),preview:this.preview?{token:this.preview.token,selection_id:this.preview.selection.selection_id,revision:this.preview.selection.revision}:null,recovery:this.recovery?{token:this.recovery.token,selection_id:this.recovery.selection.selection_id,has_editor:!!this.recovery.editor}:null,dirty:!!this.editor||!!this.selection&&this.savedKey!==this.selection.content_sha256,mutation_busy:this.mutationBusy,write_busy:this.writeBusy,storage_status:{...this.storageStatus},message:this.message};}
  private notify(message?:string){if(message!==undefined)this.message=message;if(this.notifying)return;this.notifying=true;try{this.env.changed();}catch{this.message='显示更新失败，内存和原文保留，请备份后重试。';}finally{this.notifying=false;}}
- private touch(){this.epoch++;this.readToken++;this.preview=null;this.recovery=null;}
+ private touch(){this.epoch++;this.readToken++;this.readingToken=null;this.preview=null;this.recovery=null;}
  private canAct(){return!this.blocked()&&!this.mutationBusy;}
  private unchanged(epoch:number,live:FeePrecisionCurrentSources|null){const blocked=this.blocked(),now=this.live();return!blocked&&epoch===this.epoch&&sameLive(now,live);}
  private observe(){if(this.observedOnce)return;this.observedOnce=true;for(const s of slots){try{const raw=this.env.storage.getItem(KEYS[s]);if(raw!==null&&typeof raw!=='string')throw Error();this.observed.set(s,raw);if(raw!==null&&raw!=='null'){this.protectedSlots.add(s);this.storageStatus[s]='PENDING_RECOVERY';}}catch{this.protectedSlots.add(s);this.storageStatus[s]='UNAVAILABLE';}}}
@@ -54,7 +55,7 @@ export class FeePrecisionSelectionController {
   this.selection=a;this.editor=editor;this.savedKey=saved?a.content_sha256:null;this.touch();const epoch=this.epoch,ok=this.writeSlot('committed',text,epoch);
   if(ok&&epoch===this.epoch)this.persistEditor(epoch);return ok&&epoch===this.epoch&&slots.every(s=>this.storageStatus[s]===null);
  }
- cancelRead(){this.readToken++;this.preview=null;this.recovery=null;this.notify('读取已取消，当前文件和未提交编辑保留。');}
+ cancelRead(){this.readToken++;this.readingToken=null;this.preview=null;this.recovery=null;this.notify('读取已取消，当前文件和未提交编辑保留。');}
  async createFromCurrentSources():Promise<boolean>{if(!this.canAct()||this.editor)return false;const s=this.live();if(!s)return false;return this.mutate(()=>createFeePrecisionSelection(s.pair_json,s.attachment_json),s,false);}
  beginEdit(record_id:string|null=null):boolean{
   if(!this.canAct()||!this.selection||this.editor)return false;
@@ -76,9 +77,10 @@ export class FeePrecisionSelectionController {
   catch{if(epoch===this.epoch)this.notify('操作未通过校验，文件和编辑原文保留。');return false;}finally{this.mutationBusy=false;this.notify();}
  }
  async openFile(file:FileSource):Promise<boolean>{
-  if(!this.canAct()||this.editor)return false;const token=++this.readToken,epoch=this.epoch,live=this.live();this.preview=null;this.recovery=null;this.notify('正在读取独立候选，不安装项目或成分附件。');
+  if(!this.canAct()||this.editor)return false;const token=++this.readToken,epoch=this.epoch,live=this.live();this.readingToken=token;this.preview=null;this.recovery=null;this.notify('正在读取独立候选，不安装项目或成分附件。');
   try{if(file.size!==undefined&&(!Number.isFinite(file.size)||file.size<0||file.size>FEE_PRECISION_SELECTION_BYTES))throw Error('size');const selection=await parseFeePrecisionSelection(await file.text());if(token!==this.readToken||!this.unchanged(epoch,live))return false;this.preview={token,epoch,live,selection};this.notify('文件候选已校验，明确采用后才替换本面板文件。');return true;}
   catch(e){if(token===this.readToken&&epoch===this.epoch)this.notify(abort(e)?'已取消读取，资料保留。':'读取失败，当前资料保留；原文件未改动。');return false;}
+  finally{if(this.readingToken===token){this.readingToken=null;this.notify();}}
  }
  async adoptPreview(token:number):Promise<boolean>{
   if(!this.canAct()||this.editor||!this.preview||token!==this.preview.token||token!==this.readToken)return false;const p=this.preview;
