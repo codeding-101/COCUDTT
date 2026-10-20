@@ -40,3 +40,7 @@
 ## 第七十九轮运行接续
 
 [实际运行投影与整批预览](runtime-fee-preview-validation.md)开始使用本层open/preview；确认与副作用仍未接入实际财务状态。预览增加真实plan_json与diagnostics供只读逐笔核对，不提供文件导入或批准权限。
+
+## 第八十轮接续
+
+[完整运行候选与文件保存证据](runtime-fee-candidate-validation.md)已接入实际十组持有者：prepareUpdates不替换根，工作流新增保存等待标记后为34字段。文件原文、代次、实际重算、候选/当前差异及引用式完整备份已经准备；仍无实际费用确认或安装入口。

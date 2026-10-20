@@ -4,6 +4,8 @@
 
 后续实现进度：[第七十九轮真实工作台投影与只读整批预览](runtime-fee-preview-validation.md)已接入，本文的早期下一步描述保留为历史设计；实际费用应用仍待一次根替换、明确确认和提交后浏览器验收。
 
+最新接续：[第八十轮完整运行候选](runtime-fee-candidate-validation.md)已准备实际十组状态，仍不提交；确认时须按最新依据/代次重新准备，不能把诊断JSON当金融批准。
+
 ## 先核对现有模型能表达什么
 
 [实际边界测试](../tests/fee-application-foundations.test.ts)通过现有函数核对如下事实，不新增法规结论：

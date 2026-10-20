@@ -1,3 +1,4 @@
+import {unknownFileEvidence, openedFileEvidence, savedFileEvidence, type FileEvidence} from './file-evidence.js';
 import {WorkbenchStateOwner} from './workbench-state.js';
 import { COST_PRESETS, customCostItem, presetToCostItem } from '../data/cost-presets.js';
 import {
@@ -96,6 +97,7 @@ import {createFeeEnvelopeBrowserStorage} from './fee-envelope-storage.js';
 import {FEE_ENVELOPE_STORAGE_KEY} from './fee-envelope-controller.js';
 import type {FeeEnvelopeSources} from '../domain/fee-envelope.js';
 import {captureRuntimeFeeWorkbench, type RuntimeFeeWorkbenchCapture} from './fee-workbench-preview.js';
+import {RuntimeFeeWorkbenchCandidatePreparer} from './fee-workbench-candidate.js';
 
 const DRAFT_KEY = 'trade-cost-engine:draft-v1';
 
@@ -107,6 +109,7 @@ interface AppState {
   error: string | null;
   status: string;
   statusLevel: 'info' | 'warn' | 'error';
+  fileEvidence:FileEvidence;
   fileName: string | null;
   savedAt: string | null;
   dirty: boolean;
@@ -152,6 +155,7 @@ const workflow = {
   recoveryReviewEpoch: 0,
   projectReadEpoch: 0,
   projectReadToken: (null as number | null),
+  projectSaveBusy: false,
 };
 workbenchState.bind(workflow, 'workflow');
 
@@ -222,6 +226,7 @@ function initialState(): AppState {
     error: null,
     status: '',
     statusLevel: 'info',
+    fileEvidence:unknownFileEvidence(),
     fileName: null,
     savedAt: null,
     dirty: draft.payload !== null,
@@ -257,7 +262,9 @@ const feeEnvelopeWorkspace=new FeeEnvelopeWorkspace({
  stateOwner:workbenchState,
  storage:createFeeEnvelopeBrowserStorage({getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value),removeItem:key=>localStorage.removeItem(key)},envelopeExclusive),
  cacheWritable:envelopeExclusive!==null,blocked:()=>workflow.recoveryStage!==null,write:writeFeeTaxFile,currentSources:currentEnvelopeSources,captureWorkbench:captureCurrentFeeWorkbench,
+ prepareCandidate:async preview=>{const summary=await runtimeCandidatePreparer.prepare(preview);return{summary,backup_json:runtimeCandidatePreparer.backup(summary)};},
 });
+const runtimeCandidatePreparer=new RuntimeFeeWorkbenchCandidatePreparer({owner:workbenchState,capture:captureCurrentFeeWorkbench,targets:{get app(){return state;},workflow,bill:containerBill,pair:containerPair,tax:feeTaxWorkspace.controller,precision:feePrecisionWorkspace.controller,envelope:feeEnvelopeWorkspace.controller,taxUi:feeTaxWorkspace,precisionUi:feePrecisionWorkspace,envelopeUi:feeEnvelopeWorkspace}});
 /** Capture committed sources AND unfinished state. Never use currentEnvelopeSources() to silently omit blockers. */
 function captureCurrentFeeWorkbench():RuntimeFeeWorkbenchCapture{
  const bill=containerBill.workbenchCapture(),pair=containerPair.workbenchCapture(),tax=feeTaxWorkspace.controller.workbenchCapture(),precision=feePrecisionWorkspace.controller.workbenchCapture(),envelope=feeEnvelopeWorkspace.controller.workbenchCapture();
@@ -270,15 +277,15 @@ function captureCurrentFeeWorkbench():RuntimeFeeWorkbenchCapture{
  const storage:Record<string,{raw:string|null;available:boolean}>={};
  for(const key of[DRAFT_KEY,BILL_STORAGE_KEY,PAIR_STORAGE_KEY,COST_EDITOR_STORAGE_KEY,REVIEW_EDITOR_STORAGE_KEY,...Object.values(FEE_TAX_ATTACHMENT_STORAGE_KEYS),...Object.values(FEE_PRECISION_SELECTION_STORAGE_KEYS),FEE_ENVELOPE_STORAGE_KEY]){try{storage[key]={raw:localStorage.getItem(key),available:true};}catch{storage[key]={raw:null,available:false};}}
  if(envelope.reading||envelope.mutation_busy||envelope.write_busy||envelope.cache_busy||envelope.preview||envelopeUi.pending||envelopeUi.busy||envelopeUi.exporting)blockers.push('ACTIVE_ENVELOPE');
- if(bill.write_busy||pair.write_busy||workflow.projectResourceBusy||workflow.settlementBusy||workflow.customerSummaryBusy||workflow.customerPdfBusy)blockers.push('ACTIVE_FILE_WRITE');
+ if(workflow.projectSaveBusy||bill.write_busy||pair.write_busy||workflow.projectResourceBusy||workflow.settlementBusy||workflow.customerSummaryBusy||workflow.customerPdfBusy)blockers.push('ACTIVE_FILE_WRITE');
  const file=(name:string|null=null,saved_raw:string|null=null,saved_at:string|null=null)=>({name,saved_raw,saved_at});
  return captureRuntimeFeeWorkbench({scope:'RUNTIME_FEE_WORKBENCH_CAPTURE',envelope_json:envelope.current?.raw_json??null,
   sources:{project_json,bill_json:containerBill.draft?serializeContainerBillDraft(containerBill.draft):null,pair_json:containerPair.pair?serializeContainerCostPair(containerPair.pair):null,attachment_json:tax.attachment?json(tax.attachment):null,precision_json:precision.selection?json(precision.selection):null},
   fx:{rows_json:JSON.stringify(workflow.stateInitialized?state.fxRows:[]),preserved_row_key:workflow.pairFxLease?.row_key??null,preserved_books_json:workflow.pairFxLease?JSON.stringify(workflow.pairFxLease.books):null},
-  files:{project:file(workflow.stateInitialized?state.fileName:null,null,workflow.stateInitialized?state.savedAt:null),bill:file(),pair:file(),attachment:file(),precision:file(),envelope:file(null,envelope.saved_raw)},
+  files:{project:workflow.stateInitialized?{...state.fileEvidence}:file(),bill:{...bill.file_evidence},pair:{...pair.file_evidence},attachment:{...tax.file_evidence},precision:{...precision.file_evidence},envelope:{...envelope.file_evidence}},
   editors:{cost:containerPair.editor?json(containerPair.editor):null,review:containerPair.reviewEditor?json(containerPair.reviewEditor):null,attachment:tax.editor?json(tax.editor):null,precision:precision.editor?json(precision.editor):null,pending_input:workflow.pendingCalculation||control!==null?json({pending_calculation:workflow.pendingCalculation,control:pending}):null},
   activity:{project_read:workflow.projectReadToken!==null&&workflow.projectReadToken===workflow.projectReadEpoch,bill_read:bill.reading,pair_read:pair.reading,attachment_mutation:tax.reading||tax.mutation_busy||tax.write_busy||tax.preview!==null||tax.recovery!==null||taxUi.pending!==null||taxUi.export_busy,precision_mutation:precision.reading||precision.mutation_busy||precision.write_busy||precision.preview!==null||precision.recovery!==null||precisionUi.pending!==null||precisionUi.export_busy,recovery:workflow.recoveryStage!==null||workflow.recoveryReviewBusy},
-  retained_json:json({project_raw:workflow.stateInitialized?state.project:null,project_file:{name:workflow.stateInitialized?state.fileName:null,saved_at:workflow.stateInitialized?state.savedAt:null,dirty:workflow.stateInitialized?state.dirty:null,saved_raw_known:false},bill,pair,tax,precision,envelope,tax_workspace:taxUi,precision_workspace:precisionUi,envelope_workspace:envelopeUi,
+  retained_json:json({project_raw:workflow.stateInitialized?state.project:null,project_file:{name:workflow.stateInitialized?state.fileName:null,saved_at:workflow.stateInitialized?state.savedAt:null,dirty:workflow.stateInitialized?state.dirty:null,saved_raw_known:workflow.stateInitialized&&state.fileEvidence.saved_raw!==null},bill,pair,tax,precision,envelope,tax_workspace:taxUi,precision_workspace:precisionUi,envelope_workspace:envelopeUi,
    project_read_epoch:workflow.projectReadEpoch,project_read_token:workflow.projectReadToken,settlement_epoch:workflow.settlementEpoch,settlement_plan:workflow.settlementPlan,sensitivity:workflow.sensitivityControls,customer_fields:workflow.customerFields,customer_view:workflow.customerView,customer_reviewed:workflow.customerReviewed,pending_control:pending,storage}),blockers});
 }
 function currentEnvelopeSources():FeeEnvelopeSources|null{
@@ -301,7 +308,7 @@ function installPair(pair:ContainerCostPair):void {
   workflow.workspaceNote='当前来自完整配对文件；账单与核对记录不自动应用为项目费用。';
  containerBill.installPrepared(bill,billText);
  workflow.settlementPlan=null;workflow.sensitivityControls=controls;workflow.customerFields=publicFields;workflow.customerView='full';workflow.customerReviewed=false;workflow.customerPreview=null;
- state.result=null;state.comparison=null;state.fileName=null;state.savedAt=null;state.dirty=true;
+ state.result=null;state.comparison=null;state.fileEvidence=unknownFileEvidence();state.fileName=null;state.savedAt=null;state.dirty=true;
  expandedEvidenceSections.add('container-cost-pair');expandedEvidenceSections.add('container-bill');
 }
 async function writeBillFile(name:string,text:string,mime:string):Promise<'SAVED'|'DOWNLOAD_STARTED'> {
@@ -1137,12 +1144,14 @@ interface SaveFilePickerWindow extends Window {
 }
 
 async function saveProject(): Promise<void> {
+  if(workflow.projectSaveBusy)return;workflow.projectSaveBusy=true;
+  try {
   let text: string, suggested: string;
   const saveEpoch=workflow.projectReadEpoch;
   let saveKey:string;
   try {
     saveKey=JSON.stringify({project:currentProject(),fxRows:state.fxRows});
-    const project = touchProject(currentProject());
+    const project = currentProject();
     text = serializeProject(project); suggested = safeFileName(project.name);
   } catch (error) {
     const failure = inputFailure(error);
@@ -1162,6 +1171,7 @@ async function saveProject(): Promise<void> {
       if(saveEpoch!==workflow.projectReadEpoch||saveKey!==JSON.stringify({project:currentProject(),fxRows:state.fxRows})){
         state.status='已保存点击时的项目快照；当前资料已变更，本次保存未改变当前文件与保存状态。';state.statusLevel='warn';render();return;
       }
+      state.fileEvidence=savedFileEvidence(text,handle.name);
       state.fileName = handle.name;
       state.savedAt = new Date().toLocaleTimeString();
       state.dirty = false;
@@ -1192,11 +1202,10 @@ async function saveProject(): Promise<void> {
   if(saveEpoch!==workflow.projectReadEpoch||saveKey!==JSON.stringify({project:currentProject(),fxRows:state.fxRows})){
     state.status='已发起点击时项目快照下载；当前资料的文件与保存状态保持。';state.statusLevel='warn';render();return;
   }
-  state.savedAt = new Date().toLocaleTimeString();
-  state.dirty = false;
-  state.status = '当前浏览器不支持直接写盘，已改为下载项目文件';
-  state.statusLevel = 'info';
+  state.status = '已发起项目文件下载，请确认落盘；原文件与待保存状态保留';
+  state.statusLevel = 'warn';
   render();
+  } finally {workflow.projectSaveBusy=false;}
 }
 
 async function exportProjectResource(templateId?:string,schemaKind?:string,exampleKind?:string,exampleFamily:'funding'|'rounding'|'period'='funding'):Promise<void> {
@@ -1362,6 +1371,7 @@ function openProjectFromText(text: string, fileName: string, fromRecent=false): 
     workflow.customerView='full';
     workflow.customerReviewed = false;
     state.fxRows = fxRows;
+    state.fileEvidence=fromRecent?unknownFileEvidence():openedFileEvidence(text,fileName);
     state.fileName = fromRecent?null:fileName;
     state.savedAt = null;
     state.dirty = fromRecent;
@@ -1387,6 +1397,7 @@ function newProject(mode: 'sample' | 'china-sample' | 'china-blank' = 'sample'):
   workflow.workspaceNote = mode==='china-blank'?'空白中国进口交易：金额、费用、日期、税率与资格均需填写；CIF/海运/人民币仅为可修改起点，无费用不代表零成本。':mode==='china-sample'?'中国进口合成示例：净价100,000、运费8,000、保险300 USD；税率、汇率及申报日期均虚构，真实使用须逐项替换。':'CIF 合成示例：净价100,000、运费8,000、保险300 USD；通用成本口径及虚构税务假设，不是完整中国出口税务流程。';
   state.fxRows = booksToRows(state.project.fx_books);
   containerBill.projectChanged();
+  state.fileEvidence=unknownFileEvidence();
   state.fileName = null;
   state.savedAt = null;
   state.dirty = true;

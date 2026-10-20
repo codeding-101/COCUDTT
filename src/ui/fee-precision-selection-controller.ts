@@ -1,3 +1,4 @@
+import {unknownFileEvidence, openedFileEvidence, savedFileEvidence, type FileEvidence} from './file-evidence.js';
 import type {WorkbenchStateOwner} from './workbench-state.js';
 import type {FeePrecisionSelection} from '../domain/fee-precision-selection.js';
 import {FEE_PRECISION_SELECTION_BYTES} from '../domain/fee-precision-selection.js';
@@ -13,8 +14,8 @@ export interface FeePrecisionSelectionControllerEnvironment {
  currentSources:()=>FeePrecisionCurrentSources|null;blocked:()=>boolean;changed:()=>void;
  write:(name:string,text:string,mime:string)=>Promise<'SAVED'|'DOWNLOAD_STARTED'>;
 }
-type FileSource={size?:number;text:()=>Promise<string>};
-type Preview={token:number;epoch:number;selection:FeePrecisionSelection;live:FeePrecisionCurrentSources|null};
+type FileSource={size?:number;name?:string;text:()=>Promise<string>};
+type Preview={token:number;epoch:number;selection:FeePrecisionSelection;live:FeePrecisionCurrentSources|null;file_evidence?:FileEvidence};
 type Recovery=Preview&{raw:Record<FeePrecisionStorageSlot,string|null>;editor:FeePrecisionSelectionEditor|null};
 const slots:FeePrecisionStorageSlot[]=['committed','editor'],KEYS=FEE_PRECISION_SELECTION_STORAGE_KEYS;
 const lease=(a:FeePrecisionSelection)=>({revision:a.revision,content_sha256:a.content_sha256});
@@ -29,8 +30,9 @@ export class FeePrecisionSelectionController {
  private protectedSlots=new Set<FeePrecisionStorageSlot>();private writingSlots=new Set<FeePrecisionStorageSlot>();
  private storageStatus:Record<FeePrecisionStorageSlot,string|null>={committed:null,editor:null};
  private message='精度文件尚未载入；独立政策不应用费用。';
+ private fileEvidence:FileEvidence=unknownFileEvidence();
  constructor(private readonly env:FeePrecisionSelectionControllerEnvironment){env.stateOwner?.bind(this,'precision-controller');}
- workbenchCapture(){return{...this.state(),epoch:this.epoch,read_token:this.readToken,reading:this.readingToken!==null,saved_content_sha256:this.savedKey,preview:this.preview?structuredClone(this.preview):null,recovery:this.recovery?structuredClone(this.recovery):null,observed:Object.fromEntries(this.observed),protected_slots:[...this.protectedSlots],writing_slots:[...this.writingSlots]};}
+ workbenchCapture(){return{...this.state(),file_evidence:this.fileEvidence,epoch:this.epoch,read_token:this.readToken,reading:this.readingToken!==null,saved_content_sha256:this.savedKey,preview:this.preview?structuredClone(this.preview):null,recovery:this.recovery?structuredClone(this.recovery):null,observed:Object.fromEntries(this.observed),protected_slots:[...this.protectedSlots],writing_slots:[...this.writingSlots]};}
  private blocked(){try{return!!this.env.blocked();}catch{return true;}}
  private live():FeePrecisionCurrentSources|null{try{const s=this.env.currentSources();return s&&typeof s.pair_json==='string'&&typeof s.attachment_json==='string'?{pair_json:s.pair_json,attachment_json:s.attachment_json}:null;}catch{return null;}}
  private current(a:FeePrecisionSelection,s:FeePrecisionCurrentSources|null){return!!s&&a.pair_snapshot_json===s.pair_json&&a.attachment_snapshot_json===s.attachment_json;}
@@ -51,7 +53,8 @@ export class FeePrecisionSelectionController {
   }catch{this.protectedSlots.add(slot);this.storageStatus[slot]='WRITE_FAILED';return false;}finally{this.writingSlots.delete(slot);}
  }
  private persistEditor(epoch=this.epoch){return this.writeSlot('editor',this.editor?JSON.stringify(this.editor):'null',epoch);}
- private install(a:FeePrecisionSelection,text:string,editor:FeePrecisionSelectionEditor|null,saved=false){
+ private install(a:FeePrecisionSelection,text:string,editor:FeePrecisionSelectionEditor|null,saved=false,evidence?:FileEvidence){
+  if(evidence)this.fileEvidence=evidence;else if(this.selection?.selection_id!==a.selection_id)this.fileEvidence=unknownFileEvidence();
   this.selection=a;this.editor=editor;this.savedKey=saved?a.content_sha256:null;this.touch();const epoch=this.epoch,ok=this.writeSlot('committed',text,epoch);
   if(ok&&epoch===this.epoch)this.persistEditor(epoch);return ok&&epoch===this.epoch&&slots.every(s=>this.storageStatus[s]===null);
  }
@@ -78,13 +81,13 @@ export class FeePrecisionSelectionController {
  }
  async openFile(file:FileSource):Promise<boolean>{
   if(!this.canAct()||this.editor)return false;const token=++this.readToken,epoch=this.epoch,live=this.live();this.readingToken=token;this.preview=null;this.recovery=null;this.notify('正在读取独立候选，不安装项目或成分附件。');
-  try{if(file.size!==undefined&&(!Number.isFinite(file.size)||file.size<0||file.size>FEE_PRECISION_SELECTION_BYTES))throw Error('size');const selection=await parseFeePrecisionSelection(await file.text());if(token!==this.readToken||!this.unchanged(epoch,live))return false;this.preview={token,epoch,live,selection};this.notify('文件候选已校验，明确采用后才替换本面板文件。');return true;}
+  try{if(file.size!==undefined&&(!Number.isFinite(file.size)||file.size<0||file.size>FEE_PRECISION_SELECTION_BYTES))throw Error('size');const text=await file.text(),selection=await parseFeePrecisionSelection(text);if(token!==this.readToken||!this.unchanged(epoch,live))return false;this.preview={token,epoch,live,selection,file_evidence:openedFileEvidence(text,file.name??null)};this.notify('文件候选已校验，明确采用后才替换本面板文件。');return true;}
   catch(e){if(token===this.readToken&&epoch===this.epoch)this.notify(abort(e)?'已取消读取，资料保留。':'读取失败，当前资料保留；原文件未改动。');return false;}
   finally{if(this.readingToken===token){this.readingToken=null;this.notify();}}
  }
  async adoptPreview(token:number):Promise<boolean>{
   if(!this.canAct()||this.editor||!this.preview||token!==this.preview.token||token!==this.readToken)return false;const p=this.preview;
-  try{const text=await serializeFeePrecisionSelection(p.selection);if(this.preview!==p||token!==this.readToken||!this.unchanged(p.epoch,p.live))return false;const ok=this.install(p.selection,text,null,true);this.notify(ok?'已明确采用独立文件，未安装其中的项目或附件。':'已采用独立文件；本机旧草稿受保护，请保留备份。');return true;}catch{this.notify('候选采用失败，当前资料保留。');return false;}
+  try{const text=await serializeFeePrecisionSelection(p.selection);if(this.preview!==p||token!==this.readToken||!this.unchanged(p.epoch,p.live))return false;const ok=this.install(p.selection,text,null,true,p.file_evidence);this.notify(ok?'已明确采用独立文件，未安装其中的项目或附件。':'已采用独立文件；本机旧草稿受保护，请保留备份。');return true;}catch{this.notify('候选采用失败，当前资料保留。');return false;}
  }
  async prepareLocalRecovery():Promise<boolean>{
   if(!this.canAct())return false;this.observe();const token=++this.readToken,epoch=this.epoch,live=this.live(),raw={} as Record<FeePrecisionStorageSlot,string|null>;this.preview=null;this.recovery=null;
@@ -99,7 +102,7 @@ export class FeePrecisionSelectionController {
   try{for(const s of slots)if(this.env.storage.getItem(KEYS[s])!==r.raw[s]){this.conflict(s);this.notify('恢复期间草稿已变化，请重新检查并保留两份备份。');return false;}}catch{this.notify('恢复前无法重读草稿，原资料保留。');return false;}
   if(!this.unchanged(r.epoch,r.live)||token!==this.readToken||this.editor)return false;
   if(this.selection?.selection_id===r.selection.selection_id&&this.selection.content_sha256!==r.selection.content_sha256&&r.selection.revision<=this.selection.revision){this.notify('旧修订或同修订分支冲突，未回退当前文件；请备份两份资料。');return false;}
-  this.selection=r.selection;this.editor=r.editor;this.savedKey=null;this.touch();for(const s of slots){this.protectedSlots.delete(s);this.storageStatus[s]=null;this.observed.set(s,r.raw[s]);}
+  this.selection=r.selection;this.editor=r.editor;this.savedKey=null;this.fileEvidence=unknownFileEvidence();this.touch();for(const s of slots){this.protectedSlots.delete(s);this.storageStatus[s]=null;this.observed.set(s,r.raw[s]);}
   this.notify(this.editor&&!feePrecisionSelectionEditorIsCurrent(this.editor,this.selection)?'已明确恢复；编辑租约或槽位失配，原文保留，不能直接提交。':'已明确恢复独立文件和编辑；仍须另存，未应用费用。');return true;
  }
  storageChanged(key:string):void{const s=slots.find(s=>KEYS[s]===key);if(!s)return;this.observe();try{if(this.env.storage.getItem(key)===this.observed.get(s))return;}catch{}this.conflict(s);this.touch();this.notify('其他位置的草稿已变化，内存保留，不自动合并。');}
@@ -114,8 +117,8 @@ export class FeePrecisionSelectionController {
  }
  private async write(name:string,text:string,mime:string){const r=await this.env.write(name,text,mime);if(r!=='SAVED'&&r!=='DOWNLOAD_STARTED')throw Error('WRITE_RESULT');return r;}
  async save():Promise<boolean>{
-  if(this.blocked()||this.writeBusy||!this.selection||this.editor)return false;const a=structuredClone(this.selection);this.writeBusy=true;this.notify('正在另存点击时文件，后续修改不会混入。');
-  try{const r=await this.write('internal-fee-precision-selection.json',await serializeFeePrecisionSelection(a),'application/json');if(r==='SAVED'&&this.selection?.content_sha256===a.content_sha256&&!this.editor)this.savedKey=a.content_sha256;this.notify(r==='SAVED'?'已另存点击时文件；后续修改仍须保存。':'已发起下载，请确认落盘；待保存状态保留。');return true;}catch(e){this.notify(abort(e)?'已取消另存，资料和后续编辑保留。':'另存失败，资料和后续编辑保留。');return false;}finally{this.writeBusy=false;this.notify();}
+  if(this.blocked()||this.writeBusy||!this.selection||this.editor)return false;const a=structuredClone(this.selection),epoch=this.epoch;this.writeBusy=true;this.notify('正在另存点击时文件，后续修改不会混入。');
+  try{const text=await serializeFeePrecisionSelection(a),r=await this.write('internal-fee-precision-selection.json',text,'application/json');if(r==='SAVED'&&epoch===this.epoch&&this.selection?.content_sha256===a.content_sha256&&!this.editor){this.savedKey=a.content_sha256;this.fileEvidence=savedFileEvidence(text);}this.notify(r==='SAVED'?'已另存点击时文件；后续修改仍须保存。':'已发起下载，请确认落盘；待保存状态保留。');return true;}catch(e){this.notify(abort(e)?'已取消另存，资料和后续编辑保留。':'另存失败，资料和后续编辑保留。');return false;}finally{this.writeBusy=false;this.notify();}
  }
  async backupLocalRaw(slot:FeePrecisionStorageSlot):Promise<boolean>{
   if(this.blocked()||this.writeBusy||!slots.includes(slot))return false;let raw:string|null;const epoch=this.epoch;try{raw=this.env.storage.getItem(KEYS[slot]);}catch{this.notify('原文不可读取，未删除或覆盖。');return false;}if(raw===null||typeof raw!=='string'||this.writeBusy||this.blocked()||epoch!==this.epoch)return false;this.writeBusy=true;

@@ -1,3 +1,4 @@
+import {unknownFileEvidence, openedFileEvidence, savedFileEvidence, type FileEvidence} from './file-evidence.js';
 import type {WorkbenchStateOwner} from './workbench-state.js';
 import {emptyContainerBillDraft,type ContainerBillDraft} from '../domain/container-bill-draft.js';
 import {emptyEvidence} from '../domain/source-evidence.js';
@@ -14,24 +15,25 @@ interface BillUiEnvironment {stateOwner?:WorkbenchStateOwner;project:()=>Project
 export class ContainerBillController {
  draft:ContainerBillDraft|null=null;busy=false;message='尚未打开独立账单；新建不会预填业务条件。';
  private epoch=0;private loaded=false;private readingToken:number|null=null;
+ private fileEvidence:FileEvidence=unknownFileEvidence();
  constructor(private readonly env:BillUiEnvironment){env.stateOwner?.bind(this,'bill');}
  /** Exact read activity, never inferred from a translated status message. Save evidence is unknown in this legacy holder. */
- workbenchCapture(){return{epoch:this.epoch,reading:this.readingToken!==null,write_busy:this.busy,loaded:this.loaded,message:this.message};}
+ workbenchCapture(){return{file_evidence:this.fileEvidence,epoch:this.epoch,reading:this.readingToken!==null,write_busy:this.busy,loaded:this.loaded,message:this.message};}
  loadLocal():void {
   if(this.loaded)return;this.loaded=true;
   try{const raw=localStorage.getItem(BILL_STORAGE_KEY);if(raw!==null&&raw!=='null'){try{this.draft=parseContainerBillDraft(raw);this.message='已恢复独立账单草稿；请核对当前项目绑定并另存文件。';}catch{this.message='独立账单草稿无法读取，原文未覆盖；请先备份本地存储，再新建或打开其他账单。';}}}catch{this.message='账单自动草稿不可用；请另存独立文件。';}
  }
  cancelReads():void {this.epoch++;this.readingToken=null;if(this.message.startsWith('正在本机读取'))this.message='读取已取消，当前输入保留。';}
- private changed(draft:ContainerBillDraft|null,message='账单已修改；来源及费用引用须核对，项目费用未改变。',notify=true):void {
+ private changed(draft:ContainerBillDraft|null,message='账单已修改；来源及费用引用须核对，项目费用未改变。',notify=true,evidence?:FileEvidence):void {
   this.env.onChange?.();
   this.epoch++;this.readingToken=null;this.draft=draft?invalidateContainerBillConfirmations(draft,this.env.project()):null;
-  this.message=message;
+  if(evidence)this.fileEvidence=evidence;this.message=message;
   try{if(this.draft)localStorage.setItem(BILL_STORAGE_KEY,serializeContainerBillDraft(this.draft));else localStorage.setItem(BILL_STORAGE_KEY,'null');}catch{this.message+=' 自动草稿保存失败，请另存文件。';}
   if(notify)this.env.render();
  }
  /** Caller validates and serializes both pair halves before installing either. */
  installPrepared(draft:ContainerBillDraft,text:string):void {
-  this.epoch++;this.readingToken=null;this.draft=draft;this.message='已从完整配对资料安装账单；原来源及待办保留。';
+  this.epoch++;this.readingToken=null;this.fileEvidence=unknownFileEvidence();this.draft=draft;this.message='已从完整配对资料安装账单；原来源及待办保留。';
   try{localStorage.setItem(BILL_STORAGE_KEY,text);}catch{this.message+=' 自动草稿保存失败，请另存完整配对文件。';}
  }
  projectChanged():void {
@@ -72,9 +74,9 @@ export class ContainerBillController {
  action(action:string,dataset:DOMStringMap={}):void {
   if(this.busy&&['bill-new','bill-example','bill-clear','bill-save','bill-schema','bill-empty-template','bill-example-template'].includes(action))return;
   try{
-   if(action==='bill-new'){this.changed(emptyContainerBillDraft('bill-'+crypto.randomUUID()),'已新建空账单；请逐项填写，未绑定当前项目。');return;}
-   if(action==='bill-example'){this.changed(containerBillTemplate('container-bill-synthetic-example'),'已载入固定合成例题，来源为示例；不是承运人费率。');return;}
-   if(action==='bill-clear'){this.changed(null,'账单面板已清空；请保留之前另存的文件。');return;}
+   if(action==='bill-new'){this.fileEvidence=unknownFileEvidence();this.changed(emptyContainerBillDraft('bill-'+crypto.randomUUID()),'已新建空账单；请逐项填写，未绑定当前项目。');return;}
+   if(action==='bill-example'){this.fileEvidence=unknownFileEvidence();this.changed(containerBillTemplate('container-bill-synthetic-example'),'已载入固定合成例题，来源为示例；不是承运人费率。');return;}
+   if(action==='bill-clear'){this.fileEvidence=unknownFileEvidence();this.changed(null,'账单面板已清空；请保留之前另存的文件。');return;}
    if(action==='bill-save'){if(this.draft)void this.save('internal-container-bill.json',serializeContainerBillDraft(this.draft),'application/json');return;}
    if(action==='bill-schema'){void this.save('container-bill-1.0.schema.json',JSON.stringify(containerBillDraftSchema(),null,2)+'\n','application/json');return;}
    if(action==='bill-empty-template'||action==='bill-example-template'){const id=action==='bill-empty-template'?'container-bill-empty':'container-bill-synthetic-example';void this.save(id+'.json',containerBillTemplateText(id),'application/json');return;}
@@ -97,16 +99,16 @@ export class ContainerBillController {
    validateContainerBillDraft(copy);this.changed(copy);
   }catch{this.message='操作未完成：请核对条件、来源日期/状态、绑定及费用引用待办；原输入保留。';this.env.render();}
  }
- async open(file:{text:()=>Promise<string>;size?:number}):Promise<void> {
+ async open(file:{text:()=>Promise<string>;size?:number;name?:string}):Promise<void> {
   this.env.onChange?.();
   const epoch=++this.epoch;this.readingToken=epoch;this.message='正在本机读取账单；读取期间修改会取消此次载入。';this.env.render();
-  try{if((file.size??0)>CONTAINER_BILL_FILE_BYTES)throw Error('size');const text=await file.text();if(epoch!==this.epoch||this.env.blocked())return;const parsed=parseContainerBillDraft(text);this.changed(parsed,'已打开独立账单；保留来源记录，当前绑定及失效确认已重新核对。');}
+  try{if((file.size??0)>CONTAINER_BILL_FILE_BYTES)throw Error('size');const text=await file.text();if(epoch!==this.epoch||this.env.blocked())return;const parsed=parseContainerBillDraft(text);this.changed(parsed,'已打开独立账单；保留来源记录，当前绑定及失效确认已重新核对。',true,openedFileEvidence(text,file.name??null));}
   catch{if(epoch!==this.epoch||this.env.blocked())return;this.message='账单读取失败或版本/结构/大小不支持；当前输入保留，原文件请另行核对。';this.env.render();}
   finally{if(this.readingToken===epoch){this.readingToken=null;if(!this.env.blocked())this.env.render();}}
  }
  private async save(name:string,text:string,mime:string):Promise<void> {
-  if(this.busy)return;this.busy=true;this.message='正在保存点击时的账单/资源快照；后续编辑不改变本次内容。';this.env.render();
-  try{const result=await this.env.write(name,text,mime);this.message=result==='SAVED'?'已保存点击时的独立快照；后续修改请再次另存，项目保存状态未改变。':'已发起独立文件下载，请确认落盘；后续修改请再次另存。';}
+  if(this.busy)return;const epoch=this.epoch;this.busy=true;this.message='正在保存点击时的账单/资源快照；后续编辑不改变本次内容。';this.env.render();
+  try{const result=await this.env.write(name,text,mime);if(result!=='SAVED'&&result!=='DOWNLOAD_STARTED')throw Error('WRITE_RESULT');if(result==='SAVED'&&name==='internal-container-bill.json'&&epoch===this.epoch)this.fileEvidence=savedFileEvidence(text);this.message=result==='SAVED'?'已保存点击时的独立快照；后续修改请再次另存，项目保存状态未改变。':'已发起独立文件下载，请确认落盘；后续修改请再次另存。';}
   catch(error){this.message=error instanceof Error&&error.name==='AbortError'?'已取消账单保存，输入保留。':'账单保存失败；请检查下载/保存权限或空间，输入保留。';}
   finally{this.busy=false;this.env.render();}
  }

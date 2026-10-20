@@ -1,6 +1,7 @@
 /** Runtime ownership only. Values remain legacy objects; this is not a JSON or financial validation API. */
 export interface WorkbenchCheckpoint {readonly scope: 'WORKBENCH_OWNER_CHECKPOINT'; readonly revision: number}
 export interface WorkbenchUpdate {target: object; values: Record<string, unknown>}
+export interface WorkbenchPreparation extends WorkbenchUpdate {advance: readonly string[]}
 type Fields = Readonly<Record<string, unknown>>;
 type Root = Readonly<Record<string, Fields>>;
 const reserved = new Set(['__proto__', 'constructor', 'prototype']);
@@ -51,6 +52,36 @@ export class WorkbenchStateOwner {
     this.issued.set(token, {root: this.root, revision: this.revision}); return token;
   }
   isCurrent(token: WorkbenchCheckpoint): boolean {const c = this.issued.get(token); return !!c && c.root === this.root && c.revision === this.revision;}
+  /** Prepare trusted patches and cancellation epochs without replacing any running state. */
+  prepareUpdates(updates: readonly WorkbenchPreparation[]) {
+    const token = this.checkpoint(), targets = new Set<string>(), order: string[] = [], prepared: WorkbenchUpdate[] = [];
+    if (!Array.isArray(updates) || !updates.length || updates.length > 100) fail('UPDATES');
+    const list = Object.getOwnPropertyDescriptors(updates);
+    if (Reflect.ownKeys(list).length !== updates.length + 1) fail('UPDATES');
+    for (let i = 0; i < updates.length; i++) {
+      const d = list[String(i)]; if (!d?.enumerable || !('value' in d)) fail('ACCESSOR');
+      const update = ownFields(d.value as object);
+      if (Object.keys(update).sort().join('|') !== 'advance|target|values') fail('UPDATE_SHAPE');
+      const name = this.targets.get(update.target as object); if (!name || targets.has(name)) fail('TARGET');
+      const fields = this.root[name]!, values = ownFields(update.values as object);
+      if (!Array.isArray(update.advance) || update.advance.length > 100) fail('ADVANCE');
+      const keys = Object.getOwnPropertyDescriptors(update.advance);
+      if (Reflect.ownKeys(keys).length !== update.advance.length + 1) fail('ADVANCE');
+      const seen = new Set<string>();
+      for (let j = 0; j < update.advance.length; j++) {
+        const field = keys[String(j)]; if (!field?.enumerable || !('value' in field) || typeof field.value !== 'string') fail('ACCESSOR');
+        const key = field.value, value = fields[key];
+        if (seen.has(key) || Object.hasOwn(values, key) || !Object.hasOwn(fields, key) || !Number.isSafeInteger(value) || (value as number) < 0 || value === Number.MAX_SAFE_INTEGER) fail('ADVANCE');
+        seen.add(key); values[key] = (value as number) + 1;
+      }
+      targets.add(name); order.push(name);
+      if (Object.keys(values).some(key => !Object.hasOwn(fields, key))) fail('UNKNOWN_FIELD');
+      if (!Object.keys(values).length) fail('EMPTY_UPDATE');
+      prepared.push(Object.freeze({target: update.target as object, values: Object.freeze(values)}));
+    }
+    if (!this.isCurrent(token)) fail('STALE_PREPARATION');
+    return Object.freeze({scope: 'WORKBENCH_PREPARED_UPDATES' as const, participants: Object.freeze([...targets].sort()), order: Object.freeze(order), updates: Object.freeze(prepared)});
+  }
   /** Trusted, already prepared field replacements. Caller must validate all financial and source semantics first. */
   commit(token: WorkbenchCheckpoint, updates: readonly WorkbenchUpdate[]): boolean {
     if (!this.isCurrent(token)) return false;

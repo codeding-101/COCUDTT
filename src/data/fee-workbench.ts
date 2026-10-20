@@ -75,6 +75,12 @@ export class FeeWorkbenchTransaction {
   private invalidate() {if (this.generation === Number.MAX_SAFE_INTEGER) fail('GENERATION_LIMIT'); this.generation++; this.pending = null;}
   state() {return Object.freeze({current: this.current, generation: this.generation, busy: this.busy, blocked: this.blocked, has_pending: this.pending !== null, effects: Object.freeze({...this.effects}), runtime_writes: 0 as const});}
   cancel() {this.invalidate();}
+  /** Issued private candidate only. Returning data does not apply it or authorize a running-app commit. */
+  preparedSnapshot(preview: FeeWorkbenchPreview) {
+    const c = this.capabilities.get(preview);
+    if (!c || preview !== this.pending || c.before !== this.current || this.blocked || this.busy) fail('STALE_PREPARED_SNAPSHOT');
+    return c.candidate;
+  }
   setBlocked(value: boolean) {if (typeof value !== 'boolean') fail('BLOCKED_FLAG'); if (value !== this.blocked) {this.invalidate(); this.blocked = value;}}
   /** A whole capture replaces the whole state; no caller can install just the project half. */
   async replace(expected: FeeWorkbenchSnapshot, input: FeeWorkbenchInput) {
