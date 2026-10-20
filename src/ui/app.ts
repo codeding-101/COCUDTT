@@ -263,6 +263,9 @@ const feeEnvelopeWorkspace=new FeeEnvelopeWorkspace({
  storage:createFeeEnvelopeBrowserStorage({getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value),removeItem:key=>localStorage.removeItem(key)},envelopeExclusive),
  cacheWritable:envelopeExclusive!==null,blocked:()=>workflow.recoveryStage!==null,write:writeFeeTaxFile,currentSources:currentEnvelopeSources,captureWorkbench:captureCurrentFeeWorkbench,
  prepareCandidate:async preview=>{const summary=await runtimeCandidatePreparer.prepare(preview);return{summary,backup_json:runtimeCandidatePreparer.backup(summary)};},
+ applyCandidate:(summary,active)=>runtimeCandidatePreparer.apply(summary,active),discardCandidate:summary=>runtimeCandidatePreparer.discard(summary),
+ afterApply:()=>runUi('RENDER',()=>{workflow.calculatedAt=new Date().toLocaleTimeString('zh-CN',{hour12:false});recomputeSensitivity();recomputeCustomerPreview();render();}),
+ applicationDisplayFailed:()=>showFatalFailure('RENDER'),
 });
 const runtimeCandidatePreparer=new RuntimeFeeWorkbenchCandidatePreparer({owner:workbenchState,capture:captureCurrentFeeWorkbench,targets:{get app(){return state;},workflow,bill:containerBill,pair:containerPair,tax:feeTaxWorkspace.controller,precision:feePrecisionWorkspace.controller,envelope:feeEnvelopeWorkspace.controller,taxUi:feeTaxWorkspace,precisionUi:feePrecisionWorkspace,envelopeUi:feeEnvelopeWorkspace}});
 /** Capture committed sources AND unfinished state. Never use currentEnvelopeSources() to silently omit blockers. */
@@ -345,8 +348,9 @@ function showFatalFailure(stage: FailureStage): void {
   workflow.recoveryReviewEpoch++; workflow.recoveryReviewBusy = false; workflow.inputLocations = [];
   if (workflow.stateInitialized) { state.result = null; state.comparison = null; }
   workflow.customerReviewed = false; workflow.customerPreview = null; workflow.sensitivityAnalysis = null;
-  showRecoveryView(stage,{retry:retryInterface,backup:backupRecovery});
+  showRecoveryView(stage,recoveryActions());
 }
+function recoveryActions() {return {retry:retryInterface,backup:backupRecovery,...(feeEnvelopeWorkspace.applicationBackup() ? {appliedBackup:()=>{void feeEnvelopeWorkspace.backupApplication();}} : {})};}
 function runUi(stage: FailureStage, operation: () => void): void {
   try { operation(); } catch { showFatalFailure(stage); }
 }
@@ -397,9 +401,9 @@ function backupRecovery(): void {
       ...(feeEnvelopeWorkspace.controller.state().current||feeEnvelopeWorkspace.controller.state().incoming_raw||feeEnvelopeRaw!==null?{fee_envelope_memory:feeEnvelopeWorkspace.controller.state(),fee_envelope_raw:feeEnvelopeRaw}:{}),
       ...(editorDraftText&&editorDraftText!=='null'?{container_cost_editor_draft_text:editorDraftText}:{})},null,2) + '\n';
     downloadText('internal-recovery-snapshot.json',text);
-    showRecoveryView(workflow.recoveryStage,{retry:retryInterface,backup:backupRecovery},'已发起内部恢复备份下载，请确认文件已保存；原项目与草稿未改写');
+    showRecoveryView(workflow.recoveryStage,recoveryActions(),'已发起内部恢复备份下载，请确认文件已保存；原项目与草稿未改写');
   } catch {
-    showRecoveryView(workflow.recoveryStage,{retry:retryInterface,backup:backupRecovery},'恢复备份下载失败，当前内存输入仍保留；请不要刷新，检查浏览器下载权限后重试');
+    showRecoveryView(workflow.recoveryStage,recoveryActions(),'恢复备份下载失败，当前内存输入仍保留；请不要刷新，检查浏览器下载权限后重试');
   }
 }
 

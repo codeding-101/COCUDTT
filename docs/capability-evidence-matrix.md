@@ -1,6 +1,6 @@
 # 能力与验证证据矩阵
 
-2026-10-20，第八十轮。面向中国一般贸易进口、单商品一票的本地内部测算工具。本文说明程序做了什么、用什么验证，以及没有证明什么；不以测试数量代替法规、真实业务或专业认证。
+2026-10-20，第八十一轮。面向中国一般贸易进口、单商品一票的本地内部测算工具。本文说明程序做了什么、用什么验证，以及没有证明什么；不以测试数量代替法规、真实业务或专业认证。
 
 ## 五条验收轴
 
@@ -81,3 +81,8 @@ flowchart LR
 运行费用预览的接入、来源/编辑/读取反例及无金融写入，由[实际适配](../src/ui/fee-workbench-preview.ts)、[30项边界测试](../tests/runtime-fee-workbench-preview.test.ts)、[原生浏览器](../tools/runtime-fee-preview-browser-check.mjs)与[接入门禁](../tools/check-runtime-fee-preview.mjs)分别支撑。未知保存证据与真实业务/专业未验收不被提升为已确认事实。
 
 第八十轮[实际候选准备](../src/ui/fee-workbench-candidate.ts)、[文件事实](../src/ui/file-evidence.ts)及[25项边界测试](../tests/runtime-fee-candidate.test.ts)覆盖计算差异、当前根零替换、过期/迟到和真实保存证据；诊断引用和SAVED适配器确认不代表导入权限或磁盘/专业认证。
+
+
+第八十一轮完成[明确整批应用与提交后恢复](runtime-fee-application-validation.md)：预览、勾选核对声明与最终确认分别执行；确认时重验来源、重算结果并按最新代次准备十组状态，一次写入费用与一份回执。纯引用不增费，原配对/成分/精度保留历史，客户旧确认撤销；缓存冲突、显示失败或另存取消不回滚已应用事实。正常面板与错误恢复页均可另存完整应用备份，项目/封套仍须分别保存。新增41项，完整113文件4321项通过；原生浏览器与发布验收见本轮记录。下一阶段完善从账单到客户重新报价的完整合成引导和应用后交接，不扩大未知历史、抵扣、海关或精度边界。
+
+本轮实际入口、一次根替换与失败保留分别由[应用适配](../src/ui/fee-workbench-candidate.ts)、[38项应用测试](../tests/runtime-fee-application.test.ts)、[原生流程](../tools/runtime-fee-application-browser-check.mjs)及[错误恢复入口](../src/ui/recovery.ts)支撑；独立面板采用和只读预览仍不自动应用费用。

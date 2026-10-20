@@ -1,7 +1,7 @@
 import { escapeHtml } from './format.js';
 export type FailureStage = 'STARTUP' | 'RENDER' | 'INTERACTION';
 const labels: Record<FailureStage,string> = {STARTUP:'启动',RENDER:'界面显示',INTERACTION:'操作处理'};
-export interface RecoveryActions { retry: () => void; backup: () => void }
+export interface RecoveryActions { retry: () => void; backup: () => void; appliedBackup?: () => void }
 
 /** Separate from the failed application renderer, with its own button listeners. */
 export function showRecoveryView(stage: FailureStage, actions: RecoveryActions, status = ''): void {
@@ -16,6 +16,7 @@ export function showRecoveryView(stage: FailureStage, actions: RecoveryActions, 
   app.insertAdjacentElement('afterend',panel);
   panel.querySelector('#recovery-retry')?.addEventListener('click',actions.retry);
   panel.querySelector('#recovery-backup')?.addEventListener('click',actions.backup);
+  if (actions.appliedBackup) {const button = document.createElement('button'); button.id = 'recovery-application-backup'; button.textContent = '下载最近已应用批次恢复备份'; button.addEventListener('click',actions.appliedBackup); panel.querySelector('#recovery-retry')?.before(button);}
 }
 export function clearRecoveryView(): void {
   document.querySelector('#app-recovery')?.remove();
