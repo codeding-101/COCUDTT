@@ -19,6 +19,13 @@ export function feeWorkflowTarget(key: unknown) {
   return typeof key === 'string' && Object.hasOwn(targets, key) ? targets[key as FeeWorkflowTarget] : null;
 }
 const go = (target: FeeWorkflowTarget, label: string) => `<button type="button" data-action="fee-workflow-go" data-fee-workflow-target="${target}">${h(label)} →</button>`;
+const requoteSteps: readonly {title: string; target: FeeWorkflowTarget; text: string}[] = [
+  {title: '保留历史，再核对已有费用', target: 'pair', text: '先备份应用时的原资料与恢复文件。已有费用只作引用时，明确移除旧选择、核对当前账单引用，再建立新的引用映射；退休映射与原回执保留，不能再选为新增费用。'},
+  {title: '成分记录明确删除、重新新增', target: 'attachment', text: '重绑当前配对后，先检查旧记录是否悬空。需要更换目标时，明确删除旧记录，再选择新映射新增；旧编号退休，不按名称迁移。逐项填写并重新核对拆税、抵扣、海关来源，新记录不继承旧确认，未知不能填零。'},
+  {title: '精度政策重新选择、单独确认', target: 'precision', text: '成分附件完成后，再重绑完整双来源。明确删除失配政策、选择新成分与原通道、填写政策并单独确认；原政策编号退休。原币金额保持，政策确认不代替业务或税务资格。'},
+  {title: '核对封套并检查完整批次', target: 'envelope', text: '逐项核对后，明确更新封套的当前来源，保留原历史与回执，再运行整批预览。只引用已有费用时，应为拟新增0笔且金额保持；任何待办都须处理。若需记录本次引用，仍须单独完成整批确认，预览和导航不提交。'},
+  {title: '分别保存，再重新确认客户内容', target: 'customer', text: '项目、账单、配对、成分、精度和封套分别另存，并保留历史备份。检查当前客户预览的原币实际报价、币种和条款，再明确勾选公开内容确认，按需导出HTML、Excel或PDF。资料核对不自动调整合同报价，引用回执与内部成分不进入客户报价。'},
+];
 export function feeWorkflowIssueTarget(code: string): FeeWorkflowTarget {
   if (code === 'MISSING_ENVELOPE' || code === 'WORKBENCH_SOURCES_DIFFER' || code === 'HISTORY_NOT_ESTABLISHED') return 'envelope';
   if (code === 'MISSING_BILL' || code === 'ACTIVE_BILL_READ') return 'bill';
@@ -58,6 +65,7 @@ export function renderFeeWorkflowGuide(result: RuntimeFeeWorkbenchPreview | null
     ${result?.issues.length ? `<ul class="fee-workflow-issues">${result.issues.map(code => `<li><span>${h(runtimeFeeWorkbenchIssue(code))} <small>（${h(code)}）</small></span>${go(feeWorkflowIssueTarget(code), '查看相关步骤')}</li>`).join('')}</ul>` : ''}
     <ol class="fee-workflow-steps">${steps.map(step => `<li data-fee-workflow-step="${step.id}"><div><h3>${h(step.title)}</h3><span class="fee-workflow-evidence">${h(presence(step))}</span></div><p>${h(step.text)}</p>${go(step.target, '前往核对')}</li>`).join('')}</ol>
     ${application ? `<aside data-fee-workflow-applied><strong>最近一次应用的交接提醒</strong><p>批次 ${h(application.transaction_id)} 已新增 ${application.costs_added} 笔费用、记录 ${application.references_recorded} 笔引用。这是当时的事实，不证明后来修改或切换的当前资料仍匹配。费用不会因保存失败而撤销，请勿重新计费。</p><p>先保留原资料与恢复备份，再分别另存项目、封套，最后重新核对客户报价。</p><p>继续核对时须明确修订配对并检查已有费用引用；附件重绑会撤销来源确认，旧映射记录可能悬空，不能自动换目标。需要新目标须明确删除旧记录并新增，退休编号保留；精度重绑也须重新确认政策。</p></aside>` : ''}
+    ${application ? `<details data-fee-workflow-requote><summary>应用后如何更新资料并再次报价</summary><p>以下是人工操作顺序，不代表当前资料已完成核对。保留历史、重新核对、确认引用和客户导出分别进行。</p><ol class="fee-workflow-steps">${requoteSteps.map(step => `<li><h3>${h(step.title)}</h3><p>${h(step.text)}</p>${go(step.target, '前往处理')}</li>`).join('')}</ol></details>` : ''}
     <details data-fee-workflow-files><summary>六类文件的原文证据 · 上次完整检查时</summary><p>打开证据不等于本轮另存；下载发起不证明文件已落盘。此处不读取磁盘，文件名未知不补造；后续修改需重新检查。</p>${files ? `<ul>${files}</ul>` : '<p>请先检查当前步骤。</p>'}</details>
     <details data-fee-workflow-example><summary>合成题：新增与引用为什么不同</summary><p>这是一组固定手算说明，不载入交易，也不赋予来源确认。假设商业换算明确为 1 USD = 7 CNY、新增费用由买方承担、不含报价、不计入海关完税价格且无税款抵扣；其他条件保持。该汇率不是海关汇率或市场推荐，海关排除也不是通用实务判断。</p><ul><li>新增 113 USD：买方总支付增加 791 CNY（113 × 7）。</li><li>仅引用已计入的 113 USD：买方总支付增加 0，不再复制费用。</li><li>引用已有 113 USD，同时新增 20 USD：只增加 140 CNY（20 × 7）。</li></ul><p>这些条件下卖方利润保持；原利润未知仍为未知。未知历史、示例来源、非零抵扣、部分海关金额或精度损失仍会阻断，不能照抄本题解除。</p></details>
   </details>`;
