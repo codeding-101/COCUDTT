@@ -5,7 +5,7 @@ export type FeeWorkbenchFile = typeof FEE_WORKBENCH_FILES[number];
 export const FEE_WORKBENCH_EDITORS = ['cost', 'review', 'attachment', 'precision', 'pending_input'] as const;
 export const FEE_WORKBENCH_ACTIVITY = ['project_read', 'bill_read', 'pair_read', 'attachment_mutation', 'precision_mutation', 'recovery'] as const;
 export interface FeeWorkbenchFileState {name: string | null; saved_raw: string | null; saved_at: string | null}
-/** Private integration contract, not an import format or a claim that the running app uses it. */
+/** Private integration contract. The running UI projects into it for read-only preview, never by file import. */
 export interface FeeWorkbenchInput {
   envelope_json: string;
   sources: FeeEnvelopeSources;
@@ -28,6 +28,9 @@ export interface FeeWorkbenchPreview {
   readonly status: 'STAGED' | 'BLOCKED';
   readonly transaction_id: string;
   readonly issues: readonly string[];
+  readonly diagnostics: readonly string[];
+  /** Exact prepared batch, for internal read-only review; never an import or approval token. */
+  readonly plan_json: string | null;
   readonly costs_added: number;
   readonly references_recorded: number;
   readonly before_sources: Readonly<FeeEnvelopeSources>;

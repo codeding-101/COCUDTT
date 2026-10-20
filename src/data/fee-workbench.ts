@@ -88,17 +88,17 @@ export class FeeWorkbenchTransaction {
   async preview(transaction_id: string): Promise<FeeWorkbenchPreview> {
     if (this.blocked || this.busy) fail('BLOCKED_OR_BUSY');
     this.invalidate(); const generation = this.generation, before = this.current, issues = readyIssues(before.input, this.envelope);
-    const blocked = (reasons: readonly string[]): FeeWorkbenchPreview => freeze({scope: 'FEE_WORKBENCH_SNAPSHOT_PREVIEW', status: 'BLOCKED', transaction_id, issues: [...reasons], costs_added: 0, references_recorded: 0, before_sources: copy(before.input.sources) as FeeWorkbenchInput['sources'], after_sources: null, historical_sources: [], runtime_writes: 0});
+    const blocked = (reasons: readonly string[], diagnostics: readonly string[] = []): FeeWorkbenchPreview => freeze({scope: 'FEE_WORKBENCH_SNAPSHOT_PREVIEW', status: 'BLOCKED', transaction_id, issues: [...reasons], diagnostics: [...diagnostics], plan_json: null, costs_added: 0, references_recorded: 0, before_sources: copy(before.input.sources) as FeeWorkbenchInput['sources'], after_sources: null, historical_sources: [], runtime_writes: 0});
     if (issues.length) return blocked(issues);
     const transaction = await prepareFeeApplicationTransaction(before.input.envelope_json, transaction_id);
     if (generation !== this.generation || before !== this.current || this.blocked) fail('STALE_PREVIEW');
-    if (transaction.status !== 'STAGED') return blocked(transaction.issues);
+    if (transaction.status !== 'STAGED') return blocked(transaction.issues, transaction.diagnostics);
     const staged = await stageFeeApplicationTransaction(transaction, before.input.envelope_json);
     if (staged.status !== 'STAGED' || !staged.envelope_json) fail('STAGING');
     const a = JSON.parse(staged.envelope_json) as FeeEnvelope;
     const candidate = snapshot(capture({...before.input, envelope_json: staged.envelope_json, sources: a.current_sources}), {transaction_id, costs_added: transaction.costs_added, receipts_added: 1});
     const backup_json = backup(candidate);
-    const p: FeeWorkbenchPreview = freeze({scope: 'FEE_WORKBENCH_SNAPSHOT_PREVIEW', status: 'STAGED', transaction_id, issues: [], costs_added: transaction.costs_added, references_recorded: transaction.references_recorded, before_sources: copy(before.input.sources) as FeeWorkbenchInput['sources'], after_sources: copy(candidate.input.sources) as FeeWorkbenchInput['sources'], historical_sources: transaction.costs_added ? ['pair', 'attachment', 'precision'] : [], runtime_writes: 0});
+    const p: FeeWorkbenchPreview = freeze({scope: 'FEE_WORKBENCH_SNAPSHOT_PREVIEW', status: 'STAGED', transaction_id, issues: [], diagnostics: [...transaction.diagnostics], plan_json: transaction.plan_json, costs_added: transaction.costs_added, references_recorded: transaction.references_recorded, before_sources: copy(before.input.sources) as FeeWorkbenchInput['sources'], after_sources: copy(candidate.input.sources) as FeeWorkbenchInput['sources'], historical_sources: transaction.costs_added ? ['pair', 'attachment', 'precision'] : [], runtime_writes: 0});
     if (generation !== this.generation || before !== this.current || this.blocked) fail('STALE_PREVIEW');
     this.capabilities.set(p, {transaction, before, candidate, backup_json}); this.pending = p; return p;
   }

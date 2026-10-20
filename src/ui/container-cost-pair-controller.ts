@@ -34,9 +34,10 @@ export class ContainerCostPairController {
  private targetCache:{key:string;decision:string;options:ReturnType<typeof containerReviewTargets>}|null=null;
  copyName='';copyAcknowledged=false;copyCandidate:{pair:ContainerCostPair;text:string;source_pair_id:string;source_revision:number}|null=null;
  private copyKey:string|null=null;
- private epoch=0;private loaded=false;
+ private epoch=0;private loaded=false;private readingToken:number|null=null;
  constructor(private readonly env:Environment){env.stateOwner?.bind(this,'pair');}
- cancelReads():void {this.epoch++;if(this.message.startsWith('正在读取'))this.message='配对读取已取消，当前资料保留。';}
+ workbenchCapture(){return{epoch:this.epoch,reading:this.readingToken!==null,write_busy:this.busy,loaded:this.loaded,copy_name:this.copyName,copy_acknowledged:this.copyAcknowledged,copy_candidate:this.copyCandidate?structuredClone(this.copyCandidate):null,copy_key:this.copyKey,message:this.message};}
+ cancelReads():void {this.epoch++;this.readingToken=null;if(this.message.startsWith('正在读取'))this.message='配对读取已取消，当前资料保留。';}
  liveIssues():string[]{return[...(this.env.inputIssues?.()??[]),...(this.pair?pairLiveIssues(this.pair,this.env.project(),this.env.bill()):[])];}
  loadLocal():void {
   if(this.loaded)return;this.loaded=true;
@@ -71,7 +72,7 @@ export class ContainerCostPairController {
   this.editor.fields[key]=value;this.message='编辑尚未提交；提交后另存配对，费用仍未应用。修改后的旧来源确认不能沿用。';this.persistEditor();this.env.render();
  }
  private set(pair:ContainerCostPair|null,review:PairReview|null,message:string):void {
-  this.epoch++;this.pair=pair;this.review=review;this.message=message;this.copyAcknowledged=false;this.copyKey=null;
+  this.epoch++;this.readingToken=null;this.pair=pair;this.review=review;this.message=message;this.copyAcknowledged=false;this.copyKey=null;
   try{localStorage.setItem(PAIR_STORAGE_KEY,pair?serializeContainerCostPair(pair):'null');}catch{this.message+=' 自动草稿保存失败；内存保留，请另存配对文件。';}
  }
  editCopy(dataset:DOMStringMap,value:string,checked=false):void {
@@ -170,8 +171,8 @@ export class ContainerCostPairController {
  async open(file:{text:()=>Promise<string>;size?:number}):Promise<void> {
   if(this.busy||this.env.blocked())return;
   if(this.editor||this.reviewEditor){this.message='请先提交或明确放弃未提交编辑，再打开配对文件；当前资料保留。';this.env.render();return;}
-  this.env.cancelOtherReads();const epoch=++this.epoch;this.message='正在读取完整配对资料；期间修改或其他读取会取消载入。';this.env.render();
-  if(epoch!==this.epoch||this.env.blocked())return;
+  this.env.cancelOtherReads();const epoch=++this.epoch;this.readingToken=epoch;this.message='正在读取完整配对资料；期间修改或其他读取会取消载入。';this.env.render();
+  if(epoch!==this.epoch||this.env.blocked()){if(this.readingToken===epoch)this.readingToken=null;return;}
   let installed=false;
   try{
    if((file.size??0)>CONTAINER_COST_PAIR_BYTES)throw Error('size');const text=await file.text();if(epoch!==this.epoch||this.env.blocked())return;
@@ -179,6 +180,7 @@ export class ContainerCostPairController {
    this.env.install(pair);installed=true;
    this.set(pair,review,'已打开同一修订的项目与账单；付款/假设和客户公开输入已重置，提案未应用。');
   }catch{if(epoch!==this.epoch||this.env.blocked())return;this.message='配对读取失败或资料不完整/版本/结构/大小不支持；当前完整资料保留，原文件请核对。';this.env.render();return;}
+  finally{if(this.readingToken===epoch){this.readingToken=null;if(!this.env.blocked())this.env.render();}}
   if(installed)this.env.afterInstall();
  }
  private async save(text:string):Promise<void> {

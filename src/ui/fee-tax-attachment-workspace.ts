@@ -22,6 +22,7 @@ export class FeeTaxAttachmentWorkspace {
  private exportBusy=false;private exportMessage='';private typing=false;
  private reviewKey='';private reviewGeneration=0;private reviewHtml='';
  constructor(private readonly env:Environment){this.controller=new FeeTaxAttachmentController({...env,write:(...args)=>env.write(...args),changed:()=>{this.refresh();env.onChange?.();}});env.stateOwner?.bind(this,'tax-workspace');}
+ workbenchCapture(){return{pending:this.pending?structuredClone(this.pending):null,export_busy:this.exportBusy,typing:this.typing};}
  private basis(){const s=this.controller.state();return JSON.stringify([s.attachment?.content_sha256,s.editor,this.env.currentPairText()]);}
  private button(action:string,label:string,disabled=false,extra=''){return`<button type="button" data-action="fee-tax-${action}"${disabled?' disabled':''}${extra}>${h(label)}</button>`;}
  render():string{return`<details class="panel fee-tax-workspace" data-evidence-section="fee-tax-attachment"><summary><span class="panel-title">费用与税务成分 · 独立内部假设</span></summary><div class="panel-body" data-fee-tax-host>${this.body()}</div></details>`;}
