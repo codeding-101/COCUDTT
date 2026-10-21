@@ -53,5 +53,18 @@ export async function feePerformanceHarness(raw: string) {
   }
   const capture = () => captureRuntimeFeeWorkbench(captureInput());
   const preparer = new RuntimeFeeWorkbenchCandidatePreparer({owner, capture, targets: {app, workflow, bill, pair, tax: taxUi.controller, precision: precisionUi.controller, envelope: envelopeUi.controller, taxUi, precisionUi, envelopeUi}});
-  return {owner, app, workflow, taxUi, precisionUi, envelopeUi, captureInput, capture, preparer};
+  /** Development-only explicit producer projections. No parsing of retained_json or runtime installation. */
+  const sourceViewReaders = () => [
+    {producer: 'project' as const, read: () => ({...app})},
+    {producer: 'workflow' as const, read: () => ({...workflow, storage: Object.fromEntries(data)})},
+    {producer: 'bill' as const, read: () => ({...bill.workbenchCapture(), draft: bill.draft})},
+    {producer: 'pair' as const, read: () => ({...pair.workbenchCapture(), pair: pair.pair, editor: pair.editor, review_editor: pair.reviewEditor})},
+    {producer: 'attachment' as const, read: () => taxUi.controller.workbenchCapture()},
+    {producer: 'precision' as const, read: () => precisionUi.controller.workbenchCapture()},
+    {producer: 'envelope' as const, read: () => envelopeUi.controller.workbenchCapture()},
+    {producer: 'attachment_workspace' as const, read: () => taxUi.workbenchCapture()},
+    {producer: 'precision_workspace' as const, read: () => precisionUi.workbenchCapture()},
+    {producer: 'envelope_workspace' as const, read: () => envelopeUi.workbenchCapture()},
+  ];
+  return {owner, app, workflow, taxUi, precisionUi, envelopeUi, captureInput, capture, preparer, sourceViewReaders};
 }

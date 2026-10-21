@@ -1,6 +1,6 @@
 # 能力与验证证据矩阵
 
-2026-10-21，第八十六轮。面向中国一般贸易进口、单商品一票的本地内部测算工具。本文说明程序做了什么、用什么验证，以及没有证明什么；不以测试数量代替法规、真实业务或专业认证。
+2026-10-21，第八十七轮。面向中国一般贸易进口、单商品一票的本地内部测算工具。本文说明程序做了什么、用什么验证，以及没有证明什么；不以测试数量代替法规、真实业务或专业认证。
 
 ## 五条验收轴
 
@@ -14,6 +14,7 @@
 
 | 能力与实现状态 | 源码及自动化证据 | 已覆盖与仍有边界 |
 |---|---|---|
+| 生产者只读来源视图：开发独立原型 | [设计](fee-source-view-design.md)、[验收与字节](fee-source-view-validation.md)、[协议测试](../tests/fee-source-view.test.ts)、[控制器测试](../tests/fee-source-view-state.test.ts) | 十组夹具投影、私有有效性/ABA/取消及原文证据；新增40项，122文件4485项。新诊断1/4笔还原、8笔超预算；不证明旧捕获等价或正式4笔可用，未接入运行工具 |
 | 术语、费用承担及风险：已启用 | [责任解析](../src/engine/responsibility/resolver.ts)、[基础概念测试](../tests/foundations.test.ts)、[风险测试](../tests/risk.test.ts)、[基础核验](foundations-validation.md) | 11术语、FCA两类地点、C类运费与风险分开；缺合同/地点保留待确认。FOB变形不能凭名称改变风险，补充合同仍须核对 |
 | 合同报价与方案：已启用 | [比较](../src/engine/compare.ts)、[实际报价测试](../tests/actual-quotes.test.ts)、[报价验收](actual-quotes-validation.md) | 实际报价/有效期/地点及模拟基准分别记录；缺实际报价不自动推成有效合同方案 |
 | 中国进口税基/税款：受限启用 | [完税价格](../src/engine/tax/dutiable-value.ts)、[进口税](../src/engine/tax/import-tax.ts)、[中国进口测试](../tests/china-import.test.ts)、[案例对照](../tests/import-case-acceptance.test.ts) | 净价/运保费、人工调整、支持的关税/消费税/VAT及舍入；不是税则库，不自动确认原产地、特许权费或特殊估价；其他国家专用税制未完成 |
