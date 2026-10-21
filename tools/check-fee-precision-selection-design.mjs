@@ -170,5 +170,6 @@ const standalone=new Set(['data/fee-envelope.ts','data/fee-application-proposal.
 function inactive(directory,prefix=''){for(const e of readdirSync(directory,{withFileTypes:true})){const path=prefix+e.name,u=new URL(e.name+(e.isDirectory()?'/':''),directory);if(e.isDirectory())inactive(u,path+'/');else if(e.name.endsWith('.ts')&&!standalone.has(path)&&/fee-precision-selection|INTERNAL_FEE_PRECISION_SELECTION/.test(readFileSync(u,'utf8')))throw Error('Selection file module must not enter running UI or old calculations');}}
 standalone.add('ui/fee-workflow-guide.ts'); // Read-only navigation; qualification still uses the original checks.
 standalone.add('data/fee-workflow-exercises.ts'); // Synthetic files never record a policy acknowledgement.
+standalone.add('ui/fee-workbench-source-adapter.ts'); // Independent plain-data projection, not a policy or adoption entry.
 inactive(new URL('../src/',import.meta.url));
 console.log(JSON.stringify({kind:fixture.kind,validCases:valid,rejectedCases:rejected,sourceLeafMutations:sourceMutations,basisLeafMutations:basisMutations,digestVectors:fixture.digest_vectors.length,productionParserImplemented:true,handoffModuleImplemented:true,runtimeIntegrated:true,scope:'DESIGN_ONLY_NO_FEE_WRITES'}));

@@ -1,6 +1,6 @@
 # 能力与验证证据矩阵
 
-2026-10-21，第八十七轮。面向中国一般贸易进口、单商品一票的本地内部测算工具。本文说明程序做了什么、用什么验证，以及没有证明什么；不以测试数量代替法规、真实业务或专业认证。
+2026-10-21，第八十八轮。面向中国一般贸易进口、单商品一票的本地内部测算工具。本文说明程序做了什么、用什么验证，以及没有证明什么；不以测试数量代替法规、真实业务或专业认证。
 
 ## 五条验收轴
 
@@ -14,6 +14,7 @@
 
 | 能力与实现状态 | 源码及自动化证据 | 已覆盖与仍有边界 |
 |---|---|---|
+| 真实页面来源适配：独立模块 | [覆盖设计](fee-source-adapter-design.md)、[27场景验收](fee-source-adapter-validation.md)、[模块](../src/ui/fee-workbench-source-adapter.ts)、[测试](../tests/fee-source-adapter.test.ts) | 九个根字段/二十项保留数据；47新增、124文件4532项，27个原app完整JSON对照。未接入运行入口，未证明全输入等价、提速或4/8容量提升 |
 | 生产者只读来源视图：开发独立原型 | [设计](fee-source-view-design.md)、[验收与字节](fee-source-view-validation.md)、[协议测试](../tests/fee-source-view.test.ts)、[控制器测试](../tests/fee-source-view-state.test.ts) | 十组夹具投影、私有有效性/ABA/取消及原文证据；新增40项，122文件4485项。新诊断1/4笔还原、8笔超预算；不证明旧捕获等价或正式4笔可用，未接入运行工具 |
 | 术语、费用承担及风险：已启用 | [责任解析](../src/engine/responsibility/resolver.ts)、[基础概念测试](../tests/foundations.test.ts)、[风险测试](../tests/risk.test.ts)、[基础核验](foundations-validation.md) | 11术语、FCA两类地点、C类运费与风险分开；缺合同/地点保留待确认。FOB变形不能凭名称改变风险，补充合同仍须核对 |
 | 合同报价与方案：已启用 | [比较](../src/engine/compare.ts)、[实际报价测试](../tests/actual-quotes.test.ts)、[报价验收](actual-quotes-validation.md) | 实际报价/有效期/地点及模拟基准分别记录；缺实际报价不自动推成有效合同方案 |
