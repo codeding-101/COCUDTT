@@ -1,0 +1,1764 @@
+{
+  "kind": "SYNTHETIC_FEE_SOURCE_COMPATIBILITY_BROWSER_MATRIX",
+  "version": "0.1",
+  "generated_at": "2026-10-21T10:31:44.499Z",
+  "browser": "Edg/155.0.4283.62",
+  "source_fingerprints": {
+    "src/ui/app.ts": "6846043e719dea87dd1eaf0a5cffb75cf328809a",
+    "src/ui/fee-workbench-source-adapter.ts": "aaa195ae27101de9fc8d54b8933b6352f5041d2f",
+    "src/data/fee-envelope-json.ts": "355ad1537ec028bbd7cc93630b0e6f26adeae7a2",
+    "src/data/fee-workbench.ts": "b701feb5005bbf515acbb9bedf5520c42f5705ea",
+    "src/ui/fee-workbench-preview.ts": "5dd51ecf4e0c993c7b5b54e933fa9b1ab0529705",
+    "src/ui/workbench-state.ts": "2f21586ad8e07a4b253aea65120c12555d3068e3",
+    "tools/fee-source-adapter-bridge.mjs": "9b67909f284ae908c6271449dcb74288b21ce864",
+    "tools/fee-source-compatibility.ts": "3a1c3c48a771f07ec5b4a5969e1d66677d7df0ca",
+    "tools/fee-source-compatibility-cases.ts": "dd0ef3576af5b2da66c273479d4cc35038df7770",
+    "tools/fee-source-compatibility-bridge.mjs": "bd17490e0c567658d98ab4a77aee5e94f47cd83f",
+    "tools/check-fee-source-compatibility-browser.mjs": "9fedf06ed09bae38f5cbbfd09fa0569ff7e014b6",
+    "package-lock.json": "9ac8c928e5e414873debb50557d86bbc61794887"
+  },
+  "offline_runtime_blob": "c5c59c2c98930c4d1a2bd9a7a56b80967498389b",
+  "cases": [
+    {
+      "id": "baseline",
+      "category": "BASELINE",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 314,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "plain",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "unicode",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 317,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "unicode_forms",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 317,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "opaque_text",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 317,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "marker_keys",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 319,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "key_order",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 319,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "null_prototype",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "shared_reference",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 319,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "negative_zero",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "depth_28",
+      "category": "JSON_DEPTH",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 343,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "depth_29",
+      "category": "JSON_DEPTH",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 344,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "depth_30",
+      "category": "JSON_DEPTH",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 345,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "depth_31",
+      "category": "JSON_DEPTH",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 346,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "depth_32",
+      "category": "JSON_DEPTH",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 347,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "undefined",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 315,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "function",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 315,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "symbol_value",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 315,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "symbol_key",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "non_enumerable",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "sparse_array",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 318,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "custom_prototype",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "cycle",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "REJECTED",
+        "reason": "SOURCE_READER_REJECTED"
+      },
+      "retained_parse": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "LEGACY_CAPTURE_REJECTED",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": null,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "nan",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "infinity",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "lone_high",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "lone_low",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "accessor",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 1,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "to_json",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 1,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "holder_project",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "holder_bill",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "holder_pair",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "holder_attachment",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "holder_precision",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "holder_envelope",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "holder_attachment_workspace",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "holder_precision_workspace",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "holder_envelope_workspace",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "nodes_frame_at",
+      "category": "JSON_NODES",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "result": "CAPTURE_EQUAL",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": 299955,
+      "actual_retained_nodes": 299955,
+      "predicted_frame_nodes": 300000,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "nodes_frame_over",
+      "category": "JSON_NODES",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": 299956,
+      "actual_retained_nodes": 299956,
+      "predicted_frame_nodes": 300001,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "nodes_retained_at",
+      "category": "JSON_NODES",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": 300000,
+      "actual_retained_nodes": 300000,
+      "predicted_frame_nodes": 300045,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "nodes_retained_over",
+      "category": "JSON_NODES",
+      "kind": "INTERNAL_FEE_SOURCE_COMPATIBILITY_DIAGNOSTIC",
+      "version": "0.1",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "source_frame": {
+        "status": "REJECTED",
+        "reason": "ENVELOPE_STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "result": "ADAPTER_REJECTS_LEGACY_CAPTURE",
+      "production_action": "KEEP_ORIGINAL_CAPTURE",
+      "financial_writes": 0,
+      "application_readiness": "NOT_TESTED",
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": 300001,
+      "actual_retained_nodes": 300001,
+      "predicted_frame_nodes": 300046,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    }
+  ],
+  "integration_decision": "KEEP_ORIGINAL_CAPTURE",
+  "ordinary_json_compatibility_gaps": [
+    "depth_29",
+    "depth_30",
+    "nodes_frame_over",
+    "nodes_retained_at"
+  ],
+  "runtime_integrated": false,
+  "production_capacity_changed": false,
+  "financial_writes": 0,
+  "financial_application_used": false,
+  "real_phone_verified": false,
+  "methodology": {
+    "scope": "Actual unchanged app capture, separate original retained JSON parser, independent frame and legacy reconstruction; synchronous synthetic states only",
+    "budget": "Original128MiB/300000nodes/depth32 unchanged; native matrix measures depth and node counterexamples. Exact128MiB UTF8 tests are separate unit evidence.",
+    "javascript": "Unsupported live JS objects are separated from ordinary JSON. Legacy getter/toJSON calls are measured; adapter must call neither.",
+    "protection": "Production keeps original capture. Diagnostic data is not a fallback implementation, candidate, source adoption, import or confirmation authority.",
+    "limits": "No full-input equivalence, production integration,4/8 capacity improvement,full browser-suite rerun,timing or memory claim. Transaction readiness is NOT_TESTED."
+  }
+}

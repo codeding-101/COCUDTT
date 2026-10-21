@@ -38,10 +38,11 @@ jobs:
         run: npm test
       - name: Check funding period design fixtures
         run: npm run check:funding-period-design
-      - name: Check import walkthrough and capability evidence
+      - name: Check walkthrough, evidence and source compatibility
         run: |
           node tools/build-import-walkthrough.mjs --check
           node tools/check-capability-evidence.mjs
+          node tools/check-fee-source-compatibility.mjs
       - name: Check container cost review design fixtures
         run: npm run check:container-review-design
       - name: Check fee tax component design fixtures

@@ -1,6 +1,8 @@
 # 能力与验证证据矩阵
 
-2026-10-21，第八十八轮。面向中国一般贸易进口、单商品一票的本地内部测算工具。本文说明程序做了什么、用什么验证，以及没有证明什么；不以测试数量代替法规、真实业务或专业认证。
+2026-10-21，第八十九轮。面向中国一般贸易进口、单商品一票的本地内部测算工具。本文说明程序做了什么、用什么验证，以及没有证明什么；不以测试数量代替法规、真实业务或专业认证。
+
+第八十九轮完成[来源适配兼容矩阵与CI门槛](fee-source-compatibility-validation.md)：新增37项，完整126文件4569项通过；42个真实浏览器场景分开核对原捕获、原保留解析、新帧和重建，21个完整捕获相同，确认4个普通JSON边界反例。实际128 MiB的ASCII/中文UTF8、300000节点和32深度均验证。**正式工具继续原捕获，新适配不接入；原4/8笔容量限制保持。**CI检查反例、源指纹和生产隔离，诊断不提供交易就绪、来源采用或确认资格。下一步先对齐语义预算并关闭四例，再分步只读接入。
 
 ## 五条验收轴
 
@@ -14,6 +16,7 @@
 
 | 能力与实现状态 | 源码及自动化证据 | 已覆盖与仍有边界 |
 |---|---|---|
+| 来源兼容矩阵与CI门槛：开发诊断 | [设计](fee-source-compatibility-design.md)、[验收](fee-source-compatibility-validation.md)、[42场景](cases/fee-source-compatibility.json)、[边界测试](../tests/fee-source-compatibility-boundary.test.ts) | 新增37项，126文件4569项；21相同捕获、四个普通JSON反例，保留原正式入口；不证明交易就绪或容量提升 |
 | 真实页面来源适配：独立模块 | [覆盖设计](fee-source-adapter-design.md)、[27场景验收](fee-source-adapter-validation.md)、[模块](../src/ui/fee-workbench-source-adapter.ts)、[测试](../tests/fee-source-adapter.test.ts) | 九个根字段/二十项保留数据；47新增、124文件4532项，27个原app完整JSON对照。未接入运行入口，未证明全输入等价、提速或4/8容量提升 |
 | 生产者只读来源视图：开发独立原型 | [设计](fee-source-view-design.md)、[验收与字节](fee-source-view-validation.md)、[协议测试](../tests/fee-source-view.test.ts)、[控制器测试](../tests/fee-source-view-state.test.ts) | 十组夹具投影、私有有效性/ABA/取消及原文证据；新增40项，122文件4485项。新诊断1/4笔还原、8笔超预算；不证明旧捕获等价或正式4笔可用，未接入运行工具 |
 | 术语、费用承担及风险：已启用 | [责任解析](../src/engine/responsibility/resolver.ts)、[基础概念测试](../tests/foundations.test.ts)、[风险测试](../tests/risk.test.ts)、[基础核验](foundations-validation.md) | 11术语、FCA两类地点、C类运费与风险分开；缺合同/地点保留待确认。FOB变形不能凭名称改变风险，补充合同仍须核对 |
