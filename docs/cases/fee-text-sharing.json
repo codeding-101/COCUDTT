@@ -1,0 +1,100 @@
+{
+  "kind": "SYNTHETIC_FEE_TEXT_SHARING_PROTOTYPE_EVIDENCE",
+  "version": "0.1",
+  "generated_at": "2026-10-21T01:25:28.776Z",
+  "environment": {
+    "node": "v24.19.0",
+    "vite": "7.3.7",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "source_fingerprints": {
+    "package.json": "96e2c735432f09787c7983f87c40416b2dda41f5",
+    "package-lock.json": "9ac8c928e5e414873debb50557d86bbc61794887",
+    "tools/fee-text-sharing-prototype.ts": "be9415d2b8429b82c949bd2059bce91074dfce8c",
+    "tools/check-fee-text-sharing.mjs": "6b03b60e8dfd949aa341527408127cebf52585fa",
+    "tools/fee-performance-fixture.ts": "2487fc0941e7f069708787cdd9d28497574ee046",
+    "tools/fee-performance-harness.ts": "ea3138260d410fe3918e9972f937d63163a07a99",
+    "tools/fee-performance-size.ts": "a6ffe46c4b8e549a10b5b1a921a798b545bc6fdd",
+    "src/data/fee-envelope-json.ts": "355ad1537ec028bbd7cc93630b0e6f26adeae7a2",
+    "src/domain/fee-envelope.ts": "30f6303aec15898be506343aadce0c359f0602af",
+    "src/ui/workbench-state.ts": "2f21586ad8e07a4b253aea65120c12555d3068e3",
+    "src/ui/fee-workbench-preview.ts": "5dd51ecf4e0c993c7b5b54e933fa9b1ab0529705",
+    "src/ui/fee-workbench-candidate.ts": "75d874d8d59692ba44f6fc4f4cdfa2d8fdecdab2"
+  },
+  "limits": {
+    "encoded_bytes": 134217728,
+    "expanded_json_bytes": 134217728,
+    "semantic_nodes": 300000,
+    "semantic_depth": 32,
+    "shared_texts": 4096,
+    "minimum_shared_utf8_bytes": 1024
+  },
+  "cases": [
+    {
+      "count": 1,
+      "status": "ROUNDTRIP_VERIFIED",
+      "expanded_json_utf8_bytes": 32479563,
+      "encoded_utf8_bytes": 29379547,
+      "bytes_saved": 3100016,
+      "shared_texts": 7,
+      "text_references": 10,
+      "opaque_retained_json_utf8_bytes": 14146232,
+      "roundtrip_equal": true,
+      "all_sources_exact": true,
+      "source_sha256": {
+        "project_json": "79bb1f38005aaf96418d23b58a346376734b053d299067e8e828cd53cbbcb7c2",
+        "bill_json": "874e8860617e78842e999fea62c74b9925da74c0a1c8289b9e843757316e64cf",
+        "pair_json": "cc09bac728faf4ebcfa3392bea7492e0235fba7557798d9b5368fd9d0d114778",
+        "attachment_json": "c2d7a33adca42cbbfac2f293e4f4093c225371b1e52d37ddfd2be524ce0ad5a7",
+        "precision_json": "395bc2451954e20f6707425f52597553b2bdc087042e4ebfc2b1ed9c7dbe5bc5"
+      },
+      "owner_revision_unchanged": true,
+      "candidate_preparation_run_here": false
+    },
+    {
+      "count": 4,
+      "status": "BLOCKED_EXPANDED_BUDGET",
+      "expanded_json_utf8_bytes": 199578320,
+      "encoded_utf8_bytes": null,
+      "bytes_saved": null,
+      "shared_texts": null,
+      "text_references": null,
+      "opaque_retained_json_utf8_bytes": 84697070,
+      "roundtrip_equal": null,
+      "all_sources_exact": null,
+      "source_sha256": null,
+      "owner_revision_unchanged": true,
+      "candidate_preparation_run_here": false
+    },
+    {
+      "count": 8,
+      "status": "BLOCKED_EXPANDED_BUDGET",
+      "expanded_json_utf8_bytes": 637708233,
+      "encoded_utf8_bytes": null,
+      "bytes_saved": null,
+      "shared_texts": null,
+      "text_references": null,
+      "opaque_retained_json_utf8_bytes": 268631847,
+      "roundtrip_equal": null,
+      "all_sources_exact": null,
+      "source_sha256": null,
+      "owner_revision_unchanged": true,
+      "candidate_preparation_run_here": false
+    }
+  ],
+  "financial_writes": 0,
+  "import_authority": false,
+  "confirmation_authority": false,
+  "runtime_integrated": false,
+  "production_capacity_changed": false,
+  "real_business_data": false,
+  "real_phone_verified": false,
+  "methodology": {
+    "input": "Same development-only 1/4/8 qualified synthetic fixtures as phase85; no business or downloadable template authority",
+    "scope": "Whole-string leaf sharing with flat, single-parent structural nodes. retained_json stays opaque and unchanged",
+    "expanded_budget": "Original128MiB retained. Oversized cases are preflighted and not encoded, decoded, previewed or prepared",
+    "timing_or_memory_claims": false,
+    "complete_runtime_preparation_test": "Separate unit test runs original one-row preview and all ten participants; this checker does not prepare/apply fees"
+  }
+}
