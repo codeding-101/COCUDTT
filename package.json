@@ -6,6 +6,8 @@
   "type": "module",
   "description": "国际贸易成本与贸易术语方案分析系统",
   "scripts": {
+    "check:fee-semantic-budget": "node tools/check-fee-semantic-budget.mjs",
+    "check:fee-semantic-budget:browser": "node tools/check-fee-semantic-budget-browser.mjs",
     "check:fee-source-compatibility": "node tools/check-fee-source-compatibility.mjs",
     "check:fee-source-compatibility:browser": "node tools/check-fee-source-compatibility-browser.mjs",
     "check:fee-source-adapter:browser": "node tools/check-fee-source-adapter-browser.mjs",
