@@ -171,5 +171,6 @@ function inactive(directory,prefix=''){for(const e of readdirSync(directory,{wit
 standalone.add('ui/fee-workflow-guide.ts'); // Read-only navigation; qualification still uses the original checks.
 standalone.add('data/fee-workflow-exercises.ts'); // Synthetic files never record a policy acknowledgement.
 standalone.add('ui/fee-workbench-source-adapter.ts'); // Independent plain-data projection, not a policy or adoption entry.
+standalone.add('ui/fee-workbench-source-readers.ts'); // Explicit read-only observations, independently qualified by phase91 native evidence.
 inactive(new URL('../src/',import.meta.url));
 console.log(JSON.stringify({kind:fixture.kind,validCases:valid,rejectedCases:rejected,sourceLeafMutations:sourceMutations,basisLeafMutations:basisMutations,digestVectors:fixture.digest_vectors.length,productionParserImplemented:true,handoffModuleImplemented:true,runtimeIntegrated:true,scope:'DESIGN_ONLY_NO_FEE_WRITES'}));

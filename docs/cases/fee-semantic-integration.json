@@ -1,0 +1,4111 @@
+{
+  "kind": "SYNTHETIC_FEE_SEMANTIC_INTEGRATION_BROWSER_MATRIX",
+  "version": "0.2",
+  "generated_at": "2026-10-22T07:02:21.587Z",
+  "browser": "Chromium/Edge (dedicated synthetic profile)",
+  "source_fingerprints": {
+    "src/ui/app.ts": "1d0525175aaee12ce8b42d2983c7cf7fc30da4c3",
+    "src/ui/fee-workbench-source-adapter.ts": "aaa195ae27101de9fc8d54b8933b6352f5041d2f",
+    "src/data/fee-envelope-json.ts": "355ad1537ec028bbd7cc93630b0e6f26adeae7a2",
+    "src/data/fee-workbench.ts": "b701feb5005bbf515acbb9bedf5520c42f5705ea",
+    "src/ui/fee-workbench-preview.ts": "5dd51ecf4e0c993c7b5b54e933fa9b1ab0529705",
+    "src/ui/workbench-state.ts": "2f21586ad8e07a4b253aea65120c12555d3068e3",
+    "tools/fee-source-adapter-bridge.mjs": "9b67909f284ae908c6271449dcb74288b21ce864",
+    "tools/fee-source-compatibility.ts": "3a1c3c48a771f07ec5b4a5969e1d66677d7df0ca",
+    "tools/fee-source-compatibility-cases.ts": "dd0ef3576af5b2da66c273479d4cc35038df7770",
+    "tools/fee-source-compatibility-bridge.mjs": "bd17490e0c567658d98ab4a77aee5e94f47cd83f",
+    "tools/check-fee-source-compatibility-browser.mjs": "9fedf06ed09bae38f5cbbfd09fa0569ff7e014b6",
+    "package-lock.json": "e8f4fefd577d80ff763528598f80bc9dbb3358ea",
+    "src/ui/fx-rows.ts": "d9dfa436dabff157b692b44fb86e3eb9e85bbac5",
+    "src/data/project-file.ts": "d1d658a794ca09dfa4feac308c5630f5e6c02e73",
+    "src/data/container-bill-file.ts": "324aa739a6deb98dfa53ad96cefbb505a58c9c9c",
+    "src/data/container-cost-pair.ts": "1e66c0915f0c5b17863558ce59bba61461ff32ea",
+    "src/domain/fee-envelope.ts": "30f6303aec15898be506343aadce0c359f0602af",
+    "tools/fee-source-semantic-budget.ts": "5b711b780c173c3a889a277dce5b324b282ba7a9",
+    "tools/fee-semantic-budget-diagnostic.ts": "42f8819eb4ccb6692afc2786e7d1b0a9444a475b",
+    "tools/fee-semantic-budget-bridge.mjs": "7f76fd2b4872ae6eb6b3bf375288ebffdba2c1b2",
+    "tools/check-fee-semantic-budget-browser.mjs": "3defc111259019560eed77081cb2a9ac119a10ff",
+    "src/ui/fee-workbench-semantic-capture.ts": "72d5bc18fc352ada214036dce84282e8f1c6da87",
+    "src/ui/fee-workbench-source-readers.ts": "d68140a7fcc095d487dfb23ee4cda7de7ee4e2c7",
+    "src/ui/fee-workbench-candidate.ts": "75d874d8d59692ba44f6fc4f4cdfa2d8fdecdab2",
+    "src/ui/fee-envelope-workspace.ts": "130dabbdc344a54b6799ed95dab7daa61e8ed74f",
+    "tools/fee-legacy-capture-oracle.mjs": "5f141b67c56bba4c2722b14ce0fea824883c6682",
+    "tools/fee-semantic-integration-diagnostic.ts": "9c016dc0b4d404c04ed8c0fde10df54725b139d7",
+    "tools/fee-semantic-integration-bridge.mjs": "51b6bd2774477ef5c60db02700ebdadc2c54b991",
+    "tools/check-fee-semantic-integration-browser.mjs": "db8d925be3d1f16e24ba35083dbe5fd91d7f6975"
+  },
+  "offline_runtime_blob": "9966a3dc64ffb6db96f0e2b6093db30826b6beeb",
+  "cases": [
+    {
+      "id": "baseline",
+      "category": "BASELINE",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 314,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "plain",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "unicode",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 317,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "unicode_forms",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 317,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "opaque_text",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 317,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "marker_keys",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 319,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "key_order",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 319,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "null_prototype",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "shared_reference",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 319,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "negative_zero",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "depth_28",
+      "category": "JSON_DEPTH",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 343,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "depth_29",
+      "category": "JSON_DEPTH",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 344,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "depth_30",
+      "category": "JSON_DEPTH",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 345,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "depth_31",
+      "category": "JSON_DEPTH",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "semantic_capture": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 346,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "depth_32",
+      "category": "JSON_DEPTH",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "semantic_capture": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 347,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "undefined",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 315,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "function",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 315,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "symbol_value",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 315,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "symbol_key",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "non_enumerable",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "sparse_array",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 318,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "custom_prototype",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "cycle",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "REJECTED",
+        "reason": "SOURCE_READER_REJECTED"
+      },
+      "retained_parse": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": null,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "nan",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "infinity",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "lone_high",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "semantic_capture": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "lone_low",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "semantic_capture": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "accessor",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 1,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "to_json",
+      "category": "UNSUPPORTED_JAVASCRIPT",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 316,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 1,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "holder_project",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "holder_bill",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "holder_pair",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "holder_attachment",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "holder_precision",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "holder_envelope",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "holder_attachment_workspace",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "holder_precision_workspace",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "holder_envelope_workspace",
+      "category": "JSON_EXTENSION",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": null,
+      "actual_retained_nodes": 322,
+      "predicted_frame_nodes": null,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "nodes_frame_at",
+      "category": "JSON_NODES",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": 299955,
+      "actual_retained_nodes": 299955,
+      "predicted_frame_nodes": 300000,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "nodes_frame_over",
+      "category": "JSON_NODES",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": 299956,
+      "actual_retained_nodes": 299956,
+      "predicted_frame_nodes": 300001,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "nodes_retained_at",
+      "category": "JSON_NODES",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "semantic_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "reconstruction": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "full_capture_equal": true,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": 300000,
+      "actual_retained_nodes": 300000,
+      "predicted_frame_nodes": 300045,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    },
+    {
+      "id": "nodes_retained_over",
+      "category": "JSON_NODES",
+      "kind": "INTERNAL_FEE_SEMANTIC_INTEGRATION_DIAGNOSTIC",
+      "version": "0.2",
+      "legacy_capture": {
+        "status": "ACCEPTED",
+        "reason": null
+      },
+      "retained_parse": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "semantic_capture": {
+        "status": "REJECTED",
+        "reason": "FEE_ENVELOPE_INVALID:STRICT_JSON"
+      },
+      "reconstruction": {
+        "status": "NOT_RUN",
+        "reason": null
+      },
+      "full_capture_equal": null,
+      "owner_unchanged": true,
+      "production_action": "USE_SEMANTIC_CAPTURE",
+      "application_readiness": "NOT_TESTED",
+      "financial_writes": 0,
+      "import_authority": false,
+      "confirmation_authority": false,
+      "baseline_retained_nodes": 314,
+      "baseline_frame_nodes": 359,
+      "requested_retained_nodes": 300001,
+      "actual_retained_nodes": 300001,
+      "predicted_frame_nodes": 300046,
+      "legacy_accessor_or_tojson_calls": 0,
+      "adapter_accessor_or_tojson_calls": 0,
+      "storage_reads": 20,
+      "storage_writes": 0,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true
+    }
+  ],
+  "operational": [
+    {
+      "label": "baseline",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 20523,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "uninitialized",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 10832,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "pending_only",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 20582,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "control_input",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": true,
+        "control": {
+          "tag": "INPUT",
+          "id": "synthetic-adapter-control",
+          "type": "text",
+          "value": "{未提交 原文",
+          "dataset": {
+            "path": "SYNTHETIC_FIELD",
+            "unknown": "保留"
+          },
+          "connected": true
+        }
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 21097,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "control_textarea",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": true,
+        "control": {
+          "tag": "TEXTAREA",
+          "id": "synthetic-adapter-control",
+          "type": "textarea",
+          "value": "{未提交 原文\n",
+          "dataset": {
+            "path": "SYNTHETIC_FIELD",
+            "unknown": "保留"
+          },
+          "connected": true
+        }
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 21117,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "control_select",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": true,
+        "control": {
+          "tag": "SELECT",
+          "id": "synthetic-adapter-control",
+          "type": "select-one",
+          "value": "SYNTHETIC_OPTION",
+          "dataset": {
+            "path": "SYNTHETIC_FIELD",
+            "unknown": "保留"
+          },
+          "connected": true
+        }
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 21109,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "control_checkbox",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": true,
+        "control": {
+          "tag": "INPUT",
+          "id": "synthetic-adapter-control",
+          "type": "checkbox",
+          "value": "SYNTHETIC_CHECKBOX",
+          "dataset": {
+            "path": "SYNTHETIC_FIELD",
+            "unknown": "保留"
+          },
+          "connected": true
+        }
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 21107,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "control_detached",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": true,
+        "control": {
+          "tag": "INPUT",
+          "id": "synthetic-adapter-control",
+          "type": "text",
+          "value": "{未提交 原文",
+          "dataset": {
+            "path": "SYNTHETIC_FIELD",
+            "unknown": "保留"
+          },
+          "connected": false
+        }
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 21099,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "control_other",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": true,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 20583,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "fx_matching",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 21268,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "fx_changed",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 21231,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "fx_incomplete",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 20993,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "fx_bad",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [
+        "INVALID_FX_OR_PROJECT"
+      ],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 16695,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "project_read_active",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": true,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 20519,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "project_read_stale",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 20520,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "recovery",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": true
+      },
+      "blockers": [],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 20522,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "file_busy",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [
+        "ACTIVE_FILE_WRITE"
+      ],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 20542,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "file_download",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 20576,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "file_saved",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 20623,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "storage_absent",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 16109,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "storage_empty",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 16109,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "storage_bad",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 16128,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "storage_throw_one",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        false,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 16110,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "storage_throw_all",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "legacy_utf8_bytes": 16119,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "envelope_read",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [
+        "ACTIVE_ENVELOPE"
+      ],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 20542,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "blockers_all",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [
+        "INVALID_FX_OR_PROJECT",
+        "ACTIVE_ENVELOPE",
+        "ACTIVE_FILE_WRITE"
+      ],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 16735,
+      "storage_reads": 20,
+      "storage_writes": 0
+    },
+    {
+      "label": "populated_formal_fixture",
+      "equal": true,
+      "different": [],
+      "owner_unchanged": true,
+      "project_and_receipts_unchanged": true,
+      "customer_review_unchanged": true,
+      "financial_writes": 0,
+      "root_fields": [
+        "scope",
+        "envelope_json",
+        "sources",
+        "fx",
+        "files",
+        "editors",
+        "activity",
+        "retained_json",
+        "blockers"
+      ],
+      "retained_fields": [
+        "project_raw",
+        "project_file",
+        "bill",
+        "pair",
+        "tax",
+        "precision",
+        "envelope",
+        "tax_workspace",
+        "precision_workspace",
+        "envelope_workspace",
+        "project_read_epoch",
+        "project_read_token",
+        "settlement_epoch",
+        "settlement_plan",
+        "sensitivity",
+        "customer_fields",
+        "customer_view",
+        "customer_reviewed",
+        "pending_control",
+        "storage"
+      ],
+      "source_fields": [
+        "project_json",
+        "bill_json",
+        "pair_json",
+        "attachment_json",
+        "precision_json"
+      ],
+      "file_holders": [
+        "project",
+        "bill",
+        "pair",
+        "attachment",
+        "precision",
+        "envelope"
+      ],
+      "activity": {
+        "project_read": false,
+        "bill_read": false,
+        "pair_read": false,
+        "attachment_mutation": false,
+        "precision_mutation": false,
+        "recovery": false
+      },
+      "blockers": [],
+      "pending": {
+        "present": false,
+        "control": null
+      },
+      "storage_availability": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "legacy_utf8_bytes": 32779884,
+      "storage_reads": 20,
+      "storage_writes": 0
+    }
+  ],
+  "closed_ordinary_json_counterexamples": [
+    "depth_29",
+    "depth_30",
+    "nodes_frame_over",
+    "nodes_retained_at"
+  ],
+  "legacy_oracle": {
+    "source_commit": "41ec3068b4a067673520d2a0a3bd9b596ca5de02",
+    "app_blob": "6846043e719dea87dd1eaf0a5cffb75cf328809a",
+    "binding": "captureCurrentFeeWorkbench"
+  },
+  "historical_counterexamples": {
+    "report": "docs/cases/fee-source-compatibility.json",
+    "source_commit": "df330a6b642339ef9c21ac2d3e4c4cfec756e69a",
+    "adapter_version": "0.1"
+  },
+  "integration_decision": "USE_SEMANTIC_CAPTURE",
+  "runtime_integrated": true,
+  "production_capacity_changed": false,
+  "financial_writes": 0,
+  "financial_application_used": false,
+  "real_phone_verified": false,
+  "navigation_dialogs": 0,
+  "unexpected_dialog": null,
+  "methodology": {
+    "scope": "Historical phase90 app capture and original retained parser compared with actual production semantic binding.42 synthetic compatibility states plus27 operational states, including original UI adoption of a formal fixture.",
+    "budget": "Unchanged original depth32/300000nodes at the canonical retained root; complete reconstructed capture uses original128MiB guard. Compound exact128MiB cases are separate unit evidence.",
+    "javascript": "14 unsupported JavaScript states remain negative. Legacy getter/toJSON calls measured; new prototype calls neither.",
+    "protection": "Production reading integrated; observation itself grants no application authority. Historical v0.1 and v0.2 evidence retained.",
+    "limits": "This matrix tests capture only. Full application/native evidence is recorded separately. No full-input equivalence,4/8 capacity,timing or peak-memory claim."
+  },
+  "public_redactions": [
+    "browser build metadata"
+  ]
+}

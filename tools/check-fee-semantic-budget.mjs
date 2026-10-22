@@ -1,3 +1,4 @@
+import {integratedFingerprint,integratedRuntime} from './fee-semantic-integration-evidence.mjs';
 import {readFileSync,readdirSync} from 'node:fs';
 import {resolve,join} from 'node:path';
 import {createHash} from 'node:crypto';
@@ -9,7 +10,7 @@ if(report.kind!=='SYNTHETIC_FEE_SEMANTIC_BUDGET_BROWSER_MATRIX'||report.version!
 if(blob(Buffer.from(read('docs/cases/fee-source-compatibility.json').toString('utf8').replace(/\r\n/g,'\n')))!=='1c6fe5d760dfadd3555cbb06e3876f254266fd05'||report.historical_counterexamples.source_commit!=='df330a6b642339ef9c21ac2d3e4c4cfec756e69a'||report.historical_counterexamples.adapter_version!=='0.1')throw Error('Historical counterexamples changed');
 for(const[path,sha]of Object.entries(report.source_fingerprints)){
  if(!/^(?:src|tools)\/[a-zA-Z0-9/._-]+$/.test(path)&&path!=='package-lock.json'||path.split('/').includes('..'))throw Error('Invalid fingerprint path');
- if(blob(Buffer.from(read(path).toString('utf8').replace(/\r\n/g,'\n')))!==sha)throw Error('Stale semantic evidence fingerprint '+path);
+ if(blob(Buffer.from(read(path).toString('utf8').replace(/\r\n/g,'\n')))!==sha&&!integratedFingerprint(path,sha))throw Error('Stale semantic evidence fingerprint '+path);
 }
 if(Object.keys(report.source_fingerprints).length!==21)throw Error('Incomplete semantic fingerprint coverage');
 const ids=new Set(),byId=new Map(),unsupported=['undefined','function','symbol_value','symbol_key','non_enumerable','sparse_array','custom_prototype','cycle','nan','infinity','lone_high','lone_low','accessor','to_json'];
@@ -33,5 +34,5 @@ for(const c of report.operational)if(c.equal!==true||c.different.length||c.owner
 if(report.operational.find(c=>c.label==='blockers_all').blockers.join(',')!=='INVALID_FX_OR_PROJECT,ACTIVE_ENVELOPE,ACTIVE_FILE_WRITE'||report.operational.find(c=>c.label==='storage_throw_all').storage_availability.some(Boolean))throw Error('Blocking or storage evidence differs');
 function production(directory){for(const entry of readdirSync(directory,{withFileTypes:true})){const path=join(directory,entry.name);if(entry.isDirectory())production(path);else if(entry.name.endsWith('.ts')&&/fee-source-semantic-budget|fee-semantic-budget/.test(readFileSync(path,'utf8')))throw Error('Independent semantic prototype imported into production');}}
 production(join(root,'src'));
-const runtime=read('trade-cost-engine.html');if(blob(runtime)!==report.offline_runtime_blob||report.offline_runtime_blob!=='c5c59c2c98930c4d1a2bd9a7a56b80967498389b'||runtime.includes(Buffer.from('__feeSourceSemanticBudget90')))throw Error('Production artifact or bridge isolation changed');
-console.log(JSON.stringify({kind:report.kind,compatibilityCases:42,operationalCases:27,exactCaptures:52,closedCounterexamples:closed,unsupportedJavaScript:14,productionAction:'KEEP_ORIGINAL_CAPTURE',transactionReadinessTested:false,financialWrites:0,runtimeIntegrated:false,scope:'COMMITTED_SYNTHETIC_BROWSER_EVIDENCE_AND_PRODUCTION_ISOLATION_CHECK'}));
+const runtime=read('trade-cost-engine.html');if(blob(runtime)!==report.offline_runtime_blob&&!integratedRuntime(report.offline_runtime_blob)||report.offline_runtime_blob!=='c5c59c2c98930c4d1a2bd9a7a56b80967498389b'||runtime.includes(Buffer.from('__feeSourceSemanticBudget90')))throw Error('Production artifact or bridge isolation changed');
+console.log(JSON.stringify({kind:report.kind,compatibilityCases:42,operationalCases:27,exactCaptures:52,closedCounterexamples:closed,unsupportedJavaScript:14,historicalProductionAction:'KEEP_ORIGINAL_CAPTURE',transactionReadinessTested:false,financialWrites:0,historicalRuntimeIntegrated:false,currentRuntimeIntegrated:true,scope:'HISTORICAL_SEMANTIC_EVIDENCE_WITH_CURRENT_INTEGRATION_QUALIFICATION'}));

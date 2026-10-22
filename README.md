@@ -25,7 +25,9 @@
 
 第六十八轮的[精度工作台](https://github.com/codeding-101/COCUDTT/blob/main/docs/fee-precision-selection-workspace-validation.md)已接入，入口是“高级设置 → 精度与换汇政策 · 内部核对”。先提交完整配对及成分附件，再明确新建；原值/候选/差额、双来源失效、草稿恢复/冲突备份和内部审计保持，政策不写费用或税基。
 
-第九十轮完成[来源语义预算0.2与反例关闭](https://github.com/codeding-101/COCUDTT/blob/main/docs/fee-semantic-budget-validation.md)：新增45项，完整128文件4614项；69个真实浏览器场景中52份完整捕获逐字一致，四个旧普通JSON反例全部关闭，14种不支持JS对象及原超深/超节点仍拒绝。复合快照的多层转义、中文/emoji实际128 MiB边界通过。**新原型仍独立，正式工具继续原捕获；原4/8笔容量限制保持。**旧0.1矩阵与反例原样保留，CI核对新旧证据及生产隔离。下一阶段接只读捕获并复验完整预览、候选、确认提交及恢复，再做同条件1/4/8测量。 另完成[Vitest5.0.3最小安全补丁](https://github.com/codeding-101/COCUDTT/blob/main/docs/vitest-patch-validation.md)：实际审计0项，旧42/新69场景在补丁环境重跑；CI审计门槛覆盖中风险告警。
+第九十一轮完成[只读语义捕获接入与完整流程复验](https://github.com/codeding-101/COCUDTT/blob/main/docs/fee-semantic-integration-validation.md)：正式工作台显式读取十组生产者，原文件、未提交状态、业务资格、历史和完整128 MiB预算保持。新增45项，完整130文件4659项；69个捕获场景中52份完整捕获与独立历史实现一致，四个旧反例保持关闭。全部46套原生浏览器流程在新产物重跑，覆盖预览、最新代次重准备、一次根替换、重复提交防护、提交后恢复、正式文件交接、客户隔离与窄屏。**原4/8笔容量仍受限，本轮不宣称提速或容量提升。**旧0.1/0.2矩阵原样保留，CI分别核对历史资格与当前接入。下一轮用同夹具复测1/4/8笔，分别记录捕获、准备、备份及失败原因。
+
+历史第九十轮完成[来源语义预算0.2与反例关闭](https://github.com/codeding-101/COCUDTT/blob/main/docs/fee-semantic-budget-validation.md)：新增45项，完整128文件4614项；69个真实浏览器场景中52份完整捕获逐字一致，四个旧普通JSON反例全部关闭，14种不支持JS对象及原超深/超节点仍拒绝。复合快照的多层转义、中文/emoji实际128 MiB边界通过。**新原型仍独立，正式工具继续原捕获；原4/8笔容量限制保持。**旧0.1矩阵与反例原样保留，CI核对新旧证据及生产隔离。下一阶段接只读捕获并复验完整预览、候选、确认提交及恢复，再做同条件1/4/8测量。 另完成[Vitest5.0.3最小安全补丁](https://github.com/codeding-101/COCUDTT/blob/main/docs/vitest-patch-validation.md)：实际审计0项，旧42/新69场景在补丁环境重跑；CI审计门槛覆盖中风险告警。
 
 历史第八十九轮完成[来源适配兼容矩阵与CI门槛](https://github.com/codeding-101/COCUDTT/blob/main/docs/fee-source-compatibility-validation.md)：新增37项，完整126文件4569项通过；42个真实浏览器场景分开核对原捕获、原保留解析、新帧和重建，21个完整捕获相同，确认4个普通JSON边界反例。实际128 MiB的ASCII/中文UTF8、300000节点和32深度均验证。**正式工具继续原捕获，新适配不接入；原4/8笔容量限制保持。**CI检查反例、源指纹和生产隔离，诊断不提供交易就绪、来源采用或确认资格。下一步先对齐语义预算并关闭四例，再分步只读接入。
 

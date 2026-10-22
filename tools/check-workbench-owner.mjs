@@ -2,6 +2,9 @@ import{readFileSync,readdirSync}from'node:fs';
 const root=new URL('../src/',import.meta.url),read=p=>readFileSync(new URL(p,root),'utf8');
 const imports=new Set(['ui/app.ts','ui/container-bill-controller.ts','ui/container-cost-pair-controller.ts','ui/fee-tax-attachment-controller.ts','ui/fee-precision-selection-controller.ts','ui/fee-envelope-controller.ts','ui/fee-envelope-workspace.ts','ui/fee-workbench-candidate.ts']);
 imports.add('ui/fee-workbench-source-adapter.ts'); // Type-only owner dependency; synchronous read consistency, never a write participant.
+imports.add('ui/fee-workbench-semantic-capture.ts'); // Type-only owner dependency in the production read path.
+const semanticCapture=read('ui/fee-workbench-semantic-capture.ts');
+if(/owner\s*\.\s*(?:bind|touch|commit|prepareUpdates)\s*\(/.test(semanticCapture)||!semanticCapture.includes('owner.checkpoint()')||!semanticCapture.includes('owner.isCurrent(checkpoint)'))throw Error('Semantic capture must only inspect owner consistency');
 const sourceAdapter=read('ui/fee-workbench-source-adapter.ts');
 if(/owner\s*\.\s*(?:bind|touch|commit|prepareUpdates)\s*\(/.test(sourceAdapter)||!sourceAdapter.includes('owner.checkpoint()')||!sourceAdapter.includes('owner.isCurrent(token)'))throw Error('Source adapter must only inspect owner consistency');
 const found=new Set();function walk(dir,prefix=''){for(const e of readdirSync(dir,{withFileTypes:true})){const path=prefix+e.name,url=new URL(e.name+(e.isDirectory()?'/':''),dir);if(e.isDirectory())walk(url,path+'/');else if(e.name.endsWith('.ts')){const text=readFileSync(url,'utf8');if(/from\s*['"][^'"]*workbench-state/.test(text)){if(!imports.has(path))throw Error('Owner must stay in runtime adapters: '+path);found.add(path);}}}}

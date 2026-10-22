@@ -84,6 +84,7 @@ function inactive(directory,prefix=''){for(const entry of readdirSync(directory,
 standaloneModules.add('ui/fee-workflow-guide.ts'); // Read-only navigation; checked separately by the runtime preview gate.
 standaloneModules.add('data/fee-workflow-exercises.ts'); // Independent EXAMPLE files; no current workbench or acknowledgements.
 standaloneModules.add('ui/fee-workbench-source-adapter.ts'); // Independent data projection; application entry remains unchanged.
+standaloneModules.add('ui/fee-workbench-source-readers.ts'); // Explicit read-only observations; phase91 integration evidence is checked separately.
 if(/fee-workbench-source-adapter/.test(readFileSync(new URL('../src/ui/app.ts',import.meta.url),'utf8')))throw Error('Independent source adapter must not enter app before integration validation');
 inactive(new URL('../src/',import.meta.url));
 console.log(JSON.stringify({kind:'FEE_TAX_ATTACHMENT_DESIGN',validCases:valid,rejectedCases:rejected,sourceLeafMutations:mutationChecks,digestVectors:fixture.digest_vectors.length,runtimeIntegrated:true,scope:'INTERNAL_READ_ONLY_ATTACHMENT'}));
