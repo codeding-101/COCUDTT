@@ -44,6 +44,7 @@ jobs:
           node tools/check-capability-evidence.mjs
           node tools/check-fee-source-compatibility.mjs
           node tools/check-fee-semantic-budget.mjs
+          node tools/check-fee-semantic-integration.mjs
       - name: Check container cost review design fixtures
         run: npm run check:container-review-design
       - name: Check fee tax component design fixtures

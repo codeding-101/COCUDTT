@@ -85,5 +85,6 @@ function inactive(directory,prefix=''){for(const e of readdirSync(directory,{wit
 modules.add('ui/fee-workflow-guide.ts'); // Read-only navigation; no precision policy or source installation.
 modules.add('data/fee-workflow-exercises.ts'); // Unresolved synthetic policies only, checked by the runtime gate.
 modules.add('ui/fee-workbench-source-adapter.ts'); // Independent capture compatibility only; no rounding policy or runtime entry.
+modules.add('ui/fee-workbench-source-readers.ts'); // Reads current controllers without selecting or applying precision policy.
 inactive(new URL('../src/',import.meta.url));
 console.log(JSON.stringify({kind:fixture.kind,validCases:valid,rejectedCases:rejected,constructedRoundingCases:constructed,inverseFxChecks:inverseChecks,runtimeIntegrated:true,numericModuleImplemented:true,independentOracleImportsProduction:false}));

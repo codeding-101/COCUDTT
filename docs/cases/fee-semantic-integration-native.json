@@ -1,0 +1,3545 @@
+{
+  "kind": "SYNTHETIC_FEE_SEMANTIC_INTEGRATION_NATIVE_REGRESSION",
+  "version": "1.0",
+  "generated_at": "2026-10-22T07:17:01.894Z",
+  "offline_runtime_blob": "9966a3dc64ffb6db96f0e2b6093db30826b6beeb",
+  "source_fingerprints": {
+    "package-lock.json": "e8f4fefd577d80ff763528598f80bc9dbb3358ea",
+    "package.json": "2600ec04d53d187e62821474bb2f66a27dc28cca",
+    "src/data/bilingual-summary.ts": "10590f3019cc8ec9888792abd8880addcf19eddb",
+    "src/data/calculation-assumptions.ts": "110cf022ac0a441265cdc676ebdc80fdc61669b0",
+    "src/data/container-bill-context.ts": "160e76a09052f48ca6c73af973bf4e7b90517a32",
+    "src/data/container-bill-file.ts": "324aa739a6deb98dfa53ad96cefbb505a58c9c9c",
+    "src/data/container-bill-templates.ts": "fd206ebb44ec91cbc8365c4f0d5671a52869f827",
+    "src/data/container-bill-workbook.ts": "f3ccd170fa1844561285da3b22558cccc5613df5",
+    "src/data/container-business-copy.ts": "ca5e0f91c58ebabf1af199649779bbdb1a0142ab",
+    "src/data/container-cost-editor.ts": "19a1fb8181aabeaf211efed2def5a8ded7608ccc",
+    "src/data/container-cost-pair.ts": "1e66c0915f0c5b17863558ce59bba61461ff32ea",
+    "src/data/container-cost-review-plan.ts": "cd976ab2f6749c5917f801f70641aacebc302c9f",
+    "src/data/container-pair-snapshot.ts": "b342bacf624492b0ffc1e9b67774ae197b09c3a8",
+    "src/data/container-review-editor.ts": "bef85778a8c60b04da54707c97d7fedf1bebaf4d",
+    "src/data/container-review-example.ts": "132e0538a6e97adc4641d5b66a4b966c1934ff6c",
+    "src/data/cost-presets.ts": "ea82e5424e235ec5813422523161c005e246882f",
+    "src/data/customer-document.ts": "ec5ee6315e6d3a50224a0edfaccfe39623f61fd3",
+    "src/data/customer-quote-view.ts": "a6bb33cd29ebaaf353ecda7c984afaacc2476e30",
+    "src/data/customer-quote.ts": "e7b138769aa072d53bd8ebe1a1c4aff7de7f5759",
+    "src/data/fee-application-coordinator.ts": "1ae7d618c8633fb6f11ec957e270a484126e0aa6",
+    "src/data/fee-application-proposal.ts": "16cebcd16a27212abe5a8463684b7784efe3c1be",
+    "src/data/fee-application-transaction.ts": "b38e25ff6701318c525846beb7fb4e9829936021",
+    "src/data/fee-envelope-json.ts": "355ad1537ec028bbd7cc93630b0e6f26adeae7a2",
+    "src/data/fee-envelope-schema.ts": "a93272b8ce71ac0ad04496ae4dc1f5006d629b51",
+    "src/data/fee-envelope-snapshot.ts": "48e0b6baf37644cc4a5675361610b08d91c69e22",
+    "src/data/fee-envelope.ts": "61d94cc590d96590cd0d44bf8a4926e0d20dc14d",
+    "src/data/fee-precision-selection-editor.ts": "d962a7f986da165be26a0918664009ab10a48696",
+    "src/data/fee-precision-selection-json.ts": "96f694321f7c7c93fbca876b91e6ad2be2dd9554",
+    "src/data/fee-precision-selection-snapshot.ts": "dee45571d8b4390b8db9380c1da952d6a0b7c4ad",
+    "src/data/fee-precision-selection.ts": "6308d9dc23bd06a9830c44af2279f1f8fab898ac",
+    "src/data/fee-tax-attachment-editor.ts": "a4630190c9b968aafc890f32da8215da00938cb4",
+    "src/data/fee-tax-attachment-json.ts": "b209eeb8eebe44bb7dbe23ecab4339f2a1c5dd84",
+    "src/data/fee-tax-attachment-snapshot.ts": "a4f9a4df36f4513a10e5b80812631a865fe7e85e",
+    "src/data/fee-tax-attachment.ts": "929a5e650cce7e5dde2bd49ec45126f5ca29b9ef",
+    "src/data/fee-workbench.ts": "b701feb5005bbf515acbb9bedf5520c42f5705ea",
+    "src/data/fee-workflow-exercises.ts": "8e1ced638189b0984f08c122fe210324c7f97550",
+    "src/data/funding-example.ts": "1226891bee3e58ceaa0da3b2cf657e4d2cc86095",
+    "src/data/index.ts": "f03e3c351a3a9382964db260fa6ed30b121aca0a",
+    "src/data/period-example.ts": "61db2b325c132cac479b179b91b5b22aee57a822",
+    "src/data/project-file.ts": "d1d658a794ca09dfa4feac308c5630f5e6c02e73",
+    "src/data/project-templates.ts": "883682d996b7e8b7082f2f47151db28aa58613af",
+    "src/data/project-validation.ts": "bb764c691fecd87c9d3d406b85ee54c1f025ab48",
+    "src/data/project-versions.ts": "1c09c1947e876eb80e0d412f3dece90d695e75e5",
+    "src/data/recent-project-store.ts": "820b081159d82617f28bbf9a08551994e265d82f",
+    "src/data/recent-projects.ts": "ffc93e0b6ba33a3d7355ace32308d0968cdff454",
+    "src/data/recovery-review.ts": "e8ee5fc9fb070f42b059c01054d61eabda45b8fd",
+    "src/data/rounding-example.ts": "468b25d3e1acd437d565b1be2d80c8c8a7815ad4",
+    "src/data/runtime-fee-backup.ts": "b65ae637385b674149654709f6f2c19b6d0b1432",
+    "src/data/sample-project.ts": "109726d7e46ccf5e4bffcfdfac2b5f2ea54c7907",
+    "src/data/settlement-context.ts": "6f1e03e19f173b8641831d2075406fbb933e10f2",
+    "src/data/settlement-file.ts": "099dd77ae76a7aa1de049c141af94b75f4d6d55c",
+    "src/data/settlement-workbook.ts": "316c38ebacfc3773aae954e7f6a2f166e8eb1594",
+    "src/data/template-guides.ts": "4dabea11fc5ab0a4fa813d1373429f458460716b",
+    "src/data/transport-cost-links.ts": "76ce44c7530375831faa45ae46c96e60100aa7c7",
+    "src/data/transport-project-schema.ts": "4c10dc2037680492192d694d6018442f9c317cb6",
+    "src/data/workbook-snapshot.ts": "a190049406d82c040b273ab12b4afcb535ad1775",
+    "src/data/xlsx-file.ts": "d87f4a15cd28d783658678160250347a6691329d",
+    "src/domain/container-bill-draft.ts": "68da076a4821831969b161921fa724a9b25b9c6e",
+    "src/domain/container-bill.ts": "4d14330f64e600f2f333a6de9bb908892aa99b79",
+    "src/domain/container-cost-pair.ts": "7b59c38d9ca0036c070ffd7928866334d40ff505",
+    "src/domain/container-cost-proposal.ts": "e15e5d63b241df08a448fc211e9fc4bed83e398f",
+    "src/domain/container-cost-review-plan.ts": "c7a52824f9d691c9824979a096772d1b3552b694",
+    "src/domain/container-cost-review.ts": "9f42eb31eb630cf183b3f4a08f661c626e74e958",
+    "src/domain/contract-evidence.ts": "d93fb25b0fb918d31c17b159c3603414f9ae88f0",
+    "src/domain/cost-item.ts": "6eef194097b7acaaabf0b89b36ffa4964a7cb2cd",
+    "src/domain/customer-quote.ts": "be8ebc0d965b76b50be69f36a3515cac270ed9fc",
+    "src/domain/date.ts": "84f5097c0ed894633b1987ba7a494a71441c0471",
+    "src/domain/decimal.ts": "540c7fcfbde4518fc8240271e6046ad52101577f",
+    "src/domain/enums.ts": "81f1d2a2abf7e311084d59eba9306192bf5d5fe1",
+    "src/domain/fee-application-proposal.ts": "31c0fa20eb4c408b629f23fd476e7d31603537b7",
+    "src/domain/fee-application-transaction.ts": "dbc6537dd7b9fc4374020c821e8746a9227ba21a",
+    "src/domain/fee-envelope.ts": "30f6303aec15898be506343aadce0c359f0602af",
+    "src/domain/fee-precision-selection.ts": "32ff5e34b327e8715d040330d71b1425039b568d",
+    "src/domain/fee-precision-validation.ts": "2c5136d7b1da50aeae25986db4cce8c6cf7124ac",
+    "src/domain/fee-precision.ts": "5fda121eecd93ce2d94aeb09b99d12e01aa91ee5",
+    "src/domain/fee-tax-attachment.ts": "3b91ac846af10a041155783de0f54e8b76957d2a",
+    "src/domain/fee-tax-components-validation.ts": "fa42347056c19af6def0935218229c76d3580592",
+    "src/domain/fee-tax-components.ts": "21cfce27580ae3304e799d9a28b300fdebd1cbf1",
+    "src/domain/fee-workbench.ts": "086a0a3781faf820c6679d897c562a58f063f66a",
+    "src/domain/funding-periods-validation.ts": "a1c3853d8ee39ef8c223d354f5745e6c4bd9e4a6",
+    "src/domain/funding-periods.ts": "6e61e9b6b3b091300a90cbb6b4488d483ffa5f2b",
+    "src/domain/funding.ts": "539067df82a2a629eb0c3a976892db4259228722",
+    "src/domain/fx.ts": "80e151ccecde1e197d9db11195f4ea814e56f995",
+    "src/domain/goods.ts": "f9204814174b4c033fb1ba6068e5d33de3e5e881",
+    "src/domain/hs-rate.ts": "5f8e9a3f372cc882311e40e739b2b752ef346bc0",
+    "src/domain/import-context.ts": "a31f7c75b3c370e46395b2f4648d537001ca4c18",
+    "src/domain/incoterm-basics.ts": "6ab2379b0e7dcffab6c75f8dc153adfd6a25f38d",
+    "src/domain/index.ts": "d91807fa5df1f0c1b91379eac38fa8f9422f66a2",
+    "src/domain/logistics-evidence.ts": "2658456975674be0fd70561acea9b51871a1e050",
+    "src/domain/logistics.ts": "dfcb48b9d4f3bf48a2785bbb8ea4c563c420c554",
+    "src/domain/money.ts": "4d36430b734ede5e94a9f4ecc6dd5f92bc8a37f6",
+    "src/domain/rate-table.ts": "e1c18dcc9435737eedaafe427022f4a3ef99dd65",
+    "src/domain/rebate.ts": "43144a40c99f0d0c9d8c4bc395af30316f1a0492",
+    "src/domain/rule.ts": "fd85b52ada1307f6f3180ef20ca2754f76198026",
+    "src/domain/scenario.ts": "c3c7042be0ca8ea52ad07b6808dc749526251a2b",
+    "src/domain/settlement-validation.ts": "547cf59c729bb12916006c7ebe13d7a00249b3e5",
+    "src/domain/settlement.ts": "41fc2a117279cbfa350ffb5b6df27db75a50e402",
+    "src/domain/source-evidence.ts": "4d3c8d4b6e3365e0f9985c3c0e237a8fb0f8d7fc",
+    "src/domain/tax-profile.ts": "04f71ec68095a91509813ca4cc9f12e6fd99f8de",
+    "src/domain/trade.ts": "a22f983d3485bce77fba010bd4d25a41499e7bea",
+    "src/domain/transport-cost-links.ts": "9b29d9b40bc571f802a1c06d424c7b9dd7e27ecb",
+    "src/domain/warning.ts": "0c57dcef6652fa012a35637979cc3831016e2b25",
+    "src/engine/aggregate.ts": "660e4090a30d1e7a08dcdddd9502dbfa0fdbf6ef",
+    "src/engine/analyze.ts": "fab20e9e951495e57afa0a7bcc56e8ef3ebad491",
+    "src/engine/calculation.ts": "de7797dc46a5701dfbdd1348ea59ad98431f97f7",
+    "src/engine/compare.ts": "c8d5760223e970d446929030150976ffb1c8cedd",
+    "src/engine/container-bill-draft.ts": "c4e2149fb9248adf56cec92dc908ef5c9b65b83b",
+    "src/engine/container-bill.ts": "bf5d802dd6cba53c8a9e25f503d9338270aeafdc",
+    "src/engine/container-cost-proposal.ts": "109d6f7a35760cfde1d42d2a942a18e4b93f43c4",
+    "src/engine/container-cost-review.ts": "8db1daa2ecfe067a939d3ac18b7804be71be0d7b",
+    "src/engine/contract-readiness.ts": "efdb991aa488828ff2556b6dd1f808f7ddd92cb4",
+    "src/engine/decision-readiness.ts": "c772b5bd8fb0ecb3cfb04721712789f6cc57f035",
+    "src/engine/errors.ts": "235717fbcf01e9fa1a6f90213d7907d743a64473",
+    "src/engine/fee-precision.ts": "e2881941056faea33a13181087f191313f4b2650",
+    "src/engine/fee-tax-components.ts": "f8c51ddc3c6185a9e25ff1069249664c1294e4ac",
+    "src/engine/funding-ledger.ts": "e501568f9ef395e71a542cad71308ced666b2aa3",
+    "src/engine/funding-periods.ts": "54e69db1f73f679e2b55a22ba596ab7704b05d72",
+    "src/engine/funding-rates.ts": "29570a76345e22892b006d9bf3a67f9a2b806a9b",
+    "src/engine/funding-rounding.ts": "a6ff60c47b9d29a50a1a1e1d455dfce4ec02ce2d",
+    "src/engine/funding.ts": "987c3aed2492fd50a8f1f3fce4cb2e86c31cf6e4",
+    "src/engine/fx.ts": "5d7b97f10d76924dab9c371021dd676758d9b26a",
+    "src/engine/graph.ts": "0767e43ab216acbf342b2ed6861cac85a1bd0245",
+    "src/engine/inclusion.ts": "3f784a10bb10159435d341850b59bcd9d47f6a1b",
+    "src/engine/index.ts": "35562ed7765edd7c87b601bd1e9024a7bb7929aa",
+    "src/engine/logistics-review.ts": "0cc0e591224d90a2caa9842d0a346db7397e5bb5",
+    "src/engine/pricing.ts": "69b9f4a60eaa1e1a78903d0292a9f2f64dbbbd69",
+    "src/engine/responsibility/resolver.ts": "2eeee6af8ac54be27489103131508f13bf936675",
+    "src/engine/responsibility/rules-incoterms2020.ts": "805b31cf6f9f314ef855a02f0c5ba423d2161983",
+    "src/engine/risk.ts": "bc1339fdf02d892021f5817f30683ce43231247a",
+    "src/engine/scenario-costs.ts": "9220f1d308d83459a0b65575d7b3650239abda4a",
+    "src/engine/sensitivity.ts": "a80c81b94772183489668df7e32667cb92525b6d",
+    "src/engine/settlement.ts": "75aa03b77117e17c2d8d884f31e2553b60041c77",
+    "src/engine/tax/china-import.ts": "41814d958080cae0cdf5e6cfba40a37443000c40",
+    "src/engine/tax/dutiable-value.ts": "cc0a8a9f541614c08272ec7b0f3194a8bbfb0bba",
+    "src/engine/tax/import-tax.ts": "83b034b38b7db9f5fecd936a6a96dfcf09db35a1",
+    "src/engine/tax/rebate.ts": "2a3485c6321d21d27839599316f8b140f7abeb61",
+    "src/engine/transport-cost-links.ts": "78d0744d4ec140c208632ff916e4c04a72a9e653",
+    "src/engine/visualization.ts": "3573903f432093a441915068a0fcf617b75ad2ec",
+    "src/main.ts": "f83a4d5321de1fc84de888db7b9bac83375089b0",
+    "src/ui/app.ts": "1d0525175aaee12ce8b42d2983c7cf7fc30da4c3",
+    "src/ui/bilingual-summary.ts": "07da011488eeeecb84a9ded27a5a59e56ec996b0",
+    "src/ui/calculation-assumptions.ts": "e1ba820b13d384ed1ec44a78b687bdc914e52aa3",
+    "src/ui/calculation-learning.ts": "dae9da9d0fddde18026970572020046814d4677a",
+    "src/ui/concept-check.ts": "0c47dcff5be2fcd25ec50c16b14a748720e67ed7",
+    "src/ui/container-bill-controller.ts": "b73d0f9fdb597623de1d55fdc055c18d3d5895ae",
+    "src/ui/container-bill.ts": "a2709a1cc9c509864f9ae55cff217625e18b8d3c",
+    "src/ui/container-cost-pair-controller.ts": "551cdc2dce734f47c74befddeb8e745010df4737",
+    "src/ui/container-cost-pair.ts": "a713eb469a7405f14fe8d737a4358627eb4af36a",
+    "src/ui/container-review.ts": "de703449a827b2951253d24c6d1f209285dee3b5",
+    "src/ui/contracts-input.ts": "66fb163542b94ff73852858f47f1b3a9f77b0408",
+    "src/ui/customer-pdf.ts": "e20056957d2e27d798cd2008f3d3423a26f75465",
+    "src/ui/customer-quote.ts": "74a2d959504df46c13f3dd7238859a31207f5008",
+    "src/ui/fee-envelope-controller.ts": "066983dcb071e9807c9c104ff74bc14b676215d9",
+    "src/ui/fee-envelope-storage.ts": "530c81feb3d76e838cf8795b9abac03bddce3639",
+    "src/ui/fee-envelope-workspace.ts": "130dabbdc344a54b6799ed95dab7daa61e8ed74f",
+    "src/ui/fee-precision-selection-controller.ts": "79aca3cacd024f9bcc886104d58dc189c95fabd7",
+    "src/ui/fee-precision-selection-form.ts": "d61e3781aed50e6e0981e5abfd52c9d274d6f5ff",
+    "src/ui/fee-precision-selection-workspace.ts": "96f3def99f273bb3bc2416ddff6d6b6dff962022",
+    "src/ui/fee-tax-attachment-controller.ts": "65696e531dce8586b15ea4e2e35fa00480ee41df",
+    "src/ui/fee-tax-attachment-form.ts": "5649c5a79dedefa20ba4ecf7b17562b8e49fbd06",
+    "src/ui/fee-tax-attachment-workspace.ts": "404e3894f3a6a411b6a6c8e0530f7249321fe5b6",
+    "src/ui/fee-workbench-candidate.ts": "75d874d8d59692ba44f6fc4f4cdfa2d8fdecdab2",
+    "src/ui/fee-workbench-preview.ts": "5dd51ecf4e0c993c7b5b54e933fa9b1ab0529705",
+    "src/ui/fee-workbench-semantic-capture.ts": "72d5bc18fc352ada214036dce84282e8f1c6da87",
+    "src/ui/fee-workbench-source-adapter.ts": "aaa195ae27101de9fc8d54b8933b6352f5041d2f",
+    "src/ui/fee-workbench-source-readers.ts": "d68140a7fcc095d487dfb23ee4cda7de7ee4e2c7",
+    "src/ui/fee-workflow-guide.ts": "065be375cafac027ee329fccff6f792d9bd55351",
+    "src/ui/field-help.ts": "1504916705a75e251b6f9f8c7fc69621cc504556",
+    "src/ui/file-evidence.ts": "892558484cc53bf071d8997c2903a202bf2e12c8",
+    "src/ui/format.ts": "522e1c03fac62126168e895667e8137ccddb7e36",
+    "src/ui/funding-example.ts": "e098486eeb95bce02f2b147bbfb017dd9b561694",
+    "src/ui/funding-ledger.ts": "5578a62f1158abc26d445d8a1b358693d1a902a0",
+    "src/ui/funding-periods.ts": "0e1a8c2a8863497228d7d019c89b03f787ecf489",
+    "src/ui/funding-rates.ts": "b9517292710f04b0ebc18ca6e5fbb331a1379118",
+    "src/ui/funding-rounding.ts": "3964878d7c622ff9c0d209bd678edee32f91b3a5",
+    "src/ui/funding.ts": "b66dc4997fe03cf7bef845125bc682b9f7dcf501",
+    "src/ui/fx-rows.ts": "d9dfa436dabff157b692b44fb86e3eb9e85bbac5",
+    "src/ui/input-location.ts": "eaf11bffb73576421b0861510a4ab67a1935d16f",
+    "src/ui/input-review.ts": "f6542ca872b5a12828e467aa1f48e886e933a504",
+    "src/ui/logistics-input.ts": "dddd077af8c52ee9f4ce6e755b48b845b1d1522b",
+    "src/ui/mobile-settings.ts": "dab742b408b332434630c5d6b80382d9fd62b447",
+    "src/ui/onboarding.ts": "af6c5616c33cd6f5809088f098b7649f416b65a2",
+    "src/ui/period-example.ts": "760270b74f8e7abdec7da63f9e5637451beedc39",
+    "src/ui/project-report.ts": "50cb74ad34f45dd6ae70f3b43b6e05a99ca4716b",
+    "src/ui/project-templates.ts": "d288d33ec6ed5fe1849443005cf719fb4d5c0df2",
+    "src/ui/quick-costs.ts": "3d1f6c2debdf71d98e1a3de7bb105499000b8e24",
+    "src/ui/recent-projects-controller.ts": "3958a5ebe54e35756451c2a7c63e5e533709767a",
+    "src/ui/recent-projects.ts": "9bd8845f8e3d5202e89cf3fe3b847b6d307f5ee0",
+    "src/ui/recovery-review.ts": "a9b97272e13bcfb49940c88da50adc428e2ec680",
+    "src/ui/recovery.ts": "a5c5cc408df87ab7acf5661481386ed810965833",
+    "src/ui/result-explanation.ts": "164d35b6d511349fd53fb1ec43cb2c2fe1ec83d2",
+    "src/ui/rounding-example.ts": "80897ad4b0f0e926a086151c33b7b488dc5b9d8c",
+    "src/ui/sensitivity.ts": "d1185d765ee45ade57ed1e44f22444426a6b7ea6",
+    "src/ui/settlement.ts": "51f769bb8daa3239e8588596cc086efbd6e5eb36",
+    "src/ui/source-editor.ts": "e13d5d234eb2b40bce8291aca0ddf6045f23dd01",
+    "src/ui/transport-cost-links.ts": "c9e0e8b409d6b2086ce308bc66d497bb745b01d1",
+    "src/ui/ui-failure.ts": "d1b517b5bf3439062214051c412ce538b91773cf",
+    "src/ui/views-input.ts": "2505651297347808d1d7c4938adcc9afb522fc2a",
+    "src/ui/views-output.ts": "931b9355675d58a1a0ffb7d68f58593e81108e63",
+    "src/ui/workbench-state.ts": "2f21586ad8e07a4b253aea65120c12555d3068e3",
+    "src/ui/workbook-export.ts": "844f810744ec47ca1155ebf20d7b0300d4f42925",
+    "src/ui/workspace.ts": "544ddc4c6a7385f018ef2ad6049015563fb9df7a",
+    "tests/fee-semantic-integration-size.test.ts": "72d2caf502d7a5b5aa38017ef63f7fb19d89933e",
+    "tests/fee-semantic-integration.test.ts": "7e8cb3fb49a85cfec0b79e7af95fc897c1fa3b17",
+    "tests/fixtures/actual-quotes.ts": "883641a04a39c610d782007fe1db57476808809f",
+    "tests/fixtures/cif-108300.ts": "224eddb51474970b5fe345c53d828df24c8503d4",
+    "tests/fixtures/fee-envelope.ts": "eabdb16ac37251417699aa4109e25555ed297966",
+    "tests/fixtures/fee-precision-controller.ts": "07b7991c4e443c7418eb3729bd4f8232e79b257c",
+    "tests/fixtures/fee-tax-attachment.ts": "9e87c590db8d506e14a8a2415b4a6a13a32116c7",
+    "tests/fixtures/fee-transaction.ts": "0b443c406e0a29051c35dfec83f9f221c6269e64",
+    "tests/fixtures/logistics-project.ts": "32204a9b6930eaddccb2987a4a3ecf0185b2af9a",
+    "tests/fixtures/runtime-candidate.ts": "b58d459e98df7cd1924ddfc274775ce5e073d3b1",
+    "tests/fixtures/virtual-trade.ts": "49d221c91d90410c9518b6dd953c2daff6a34130",
+    "tests/helpers/fee-semantic-fixture.ts": "658b442104611462d994975ca8a40fba7d3e51aa",
+    "tools/actual-quotes-browser-check.mjs": "9752d65a05de6d162f101e285f7e0dd5297891b3",
+    "tools/assumptions-browser-check.mjs": "ca2e9fc83ad64cee0d6f2631297dbc769b2acce1",
+    "tools/audit.mjs": "992860c7eb7833efdd047d8c3c87f68b5954d0b4",
+    "tools/benchmark-fee-browser.mjs": "5505daf24f131854bcaa038450ea49e5d82e1b16",
+    "tools/benchmark-fee-workbench.mjs": "17f07cf378f75800a795d0d15dcf22042f41bfdc",
+    "tools/bilingual-browser-check.mjs": "a7d04f4fcc3c8ba97363a273507d5297426fa50a",
+    "tools/browser-document.mjs": "ef1da139f3a0437f941ea9e49b678549536f0cd1",
+    "tools/build-fee-precision-selection-templates.mjs": "19811d99ef464716de834f5bb6d92e1b2d575f00",
+    "tools/build-import-walkthrough.mjs": "98108dfceda6c4363b6ae152cb44b2f129f42767",
+    "tools/build-project-catalog.mjs": "e14637370151b25a23e8edcded61e05bc423eef9",
+    "tools/build-single.mjs": "cca29ca6d0cfd70bc384b624c07f5047b998f5d1",
+    "tools/calculation-learning-browser-check.mjs": "084fee83931d08318d83e8155a9c18e94aa92633",
+    "tools/check-capability-evidence.mjs": "bb7ed13aca47ccf2bafaaa88091cedf7da3674b5",
+    "tools/check-container-cost-review-design.mjs": "77643da47e2ffda224744a075df9bd25487306c0",
+    "tools/check-fee-application-design.mjs": "c04785bb5b4b31f581483ba71529ea3c55fa8a85",
+    "tools/check-fee-envelope-design.mjs": "7ad3a53ded4aacd2befa8a42ba9b25959bb823fb",
+    "tools/check-fee-precision-design.mjs": "a90bcd5730290530fcc76c62688160c1e028992d",
+    "tools/check-fee-precision-selection-design.mjs": "a977105ce7a17253bf3bc4ac163e4d087caf3e6a",
+    "tools/check-fee-semantic-budget-browser.mjs": "3defc111259019560eed77081cb2a9ac119a10ff",
+    "tools/check-fee-semantic-budget.mjs": "637662ecda8ce4bb500526d5a2d33daf04f7f776",
+    "tools/check-fee-semantic-integration-browser.mjs": "db8d925be3d1f16e24ba35083dbe5fd91d7f6975",
+    "tools/check-fee-semantic-integration.mjs": "bd87f27ec77857b7853cfdf7eca22f13da96f367",
+    "tools/check-fee-source-adapter-browser.mjs": "5241edfed26491be268b21b83fd04b460631f841",
+    "tools/check-fee-source-compatibility-browser.mjs": "9fedf06ed09bae38f5cbbfd09fa0569ff7e014b6",
+    "tools/check-fee-source-compatibility.mjs": "1126212f0ba198c68e51b82d93fa7a3fa79c14c4",
+    "tools/check-fee-source-views.mjs": "fc421a74b4ccf072e3c3f4d462f1c65c1f131fb1",
+    "tools/check-fee-tax-attachment-design.mjs": "804ae12af5fa1c5dc693942b1738fad554e5dce0",
+    "tools/check-fee-tax-components-design.mjs": "1323c29c1083b41b232dd256a3f0213c4cc4614a",
+    "tools/check-fee-text-sharing.mjs": "6b03b60e8dfd949aa341527408127cebf52585fa",
+    "tools/check-funding-period-design.mjs": "5296ff232a77025edd722f05ac97d69e12481855",
+    "tools/check-import-cases.mjs": "20d284be4a272068e54423250303b2013fa62c54",
+    "tools/check-runtime-fee-preview.mjs": "446906e40a53a6d2d3eb699a28f0160e0eef1734",
+    "tools/check-workbench-owner.mjs": "8896d23c7c6fa157805488d0b4f6f95a42b7d1a8",
+    "tools/china-import-browser-check.mjs": "60702c43fe8bcafa49c6d63311ec2f1bb9597712",
+    "tools/container-bill-browser-check.mjs": "2d8a9635a695ec0bfb500bd8e872522cdae36ae3",
+    "tools/container-business-copy-browser-check.mjs": "8595146d73cf167821543cc284864e10b79c1afe",
+    "tools/container-cost-editor-browser-check.mjs": "948e1336d9df3f466cc1db70fbdf3dacfaa06a19",
+    "tools/container-cost-pair-browser-check.mjs": "1a6f35eccfdf3aef3210a9fa8b673bdbd10cbb12",
+    "tools/container-review-integration-browser-check.mjs": "2bb945e0c2c9f26572bae1d4fdf2c17cf380c5dd",
+    "tools/customer-quotes-browser-check.mjs": "5bcbdb3276165efcc2ec99fa48ef069a73772a05",
+    "tools/customer-views-browser-check.mjs": "b7f36ef6e16597a5b6143b4d73411645cae2652a",
+    "tools/excel-browser-check.mjs": "4d41df50310f17dd8c58fd6bfbe3b6b146c0c975",
+    "tools/explanation-browser-check.mjs": "a43b05fff4dbbc4426023b3f083e1045f03ef0aa",
+    "tools/fee-envelope-browser-check.mjs": "d5e12262b8dd37c215b231113530cc639617b778",
+    "tools/fee-legacy-capture-oracle.mjs": "5f141b67c56bba4c2722b14ce0fea824883c6682",
+    "tools/fee-performance-fixture.ts": "2487fc0941e7f069708787cdd9d28497574ee046",
+    "tools/fee-performance-harness.ts": "ea60982fb2d2b25409e84c38e31e8d9be96d37fe",
+    "tools/fee-performance-metrics.ts": "6dce0d0d777b30918b498385877197f984b93ace",
+    "tools/fee-performance-size.ts": "a6ffe46c4b8e549a10b5b1a921a798b545bc6fdd",
+    "tools/fee-precision-selection-browser-check.mjs": "64f107b82286039f89e451b8b83e1772d2a77496",
+    "tools/fee-semantic-budget-bridge.mjs": "7f76fd2b4872ae6eb6b3bf375288ebffdba2c1b2",
+    "tools/fee-semantic-budget-diagnostic.ts": "42f8819eb4ccb6692afc2786e7d1b0a9444a475b",
+    "tools/fee-semantic-integration-bridge.mjs": "51b6bd2774477ef5c60db02700ebdadc2c54b991",
+    "tools/fee-semantic-integration-diagnostic.ts": "9c016dc0b4d404c04ed8c0fde10df54725b139d7",
+    "tools/fee-semantic-integration-evidence.mjs": "445a328fff96224c4c85b0d585ee7b07bf187d97",
+    "tools/fee-source-adapter-bridge.mjs": "9b67909f284ae908c6271449dcb74288b21ce864",
+    "tools/fee-source-adapter-fixture.ts": "4ba37a13b03b4a13720736365a332fcfbba6d254",
+    "tools/fee-source-compatibility-bridge.mjs": "bd17490e0c567658d98ab4a77aee5e94f47cd83f",
+    "tools/fee-source-compatibility-cases.ts": "dd0ef3576af5b2da66c273479d4cc35038df7770",
+    "tools/fee-source-compatibility.ts": "3a1c3c48a771f07ec5b4a5969e1d66677d7df0ca",
+    "tools/fee-source-semantic-budget.ts": "5b711b780c173c3a889a277dce5b324b282ba7a9",
+    "tools/fee-source-view-prototype.ts": "acb55858c17bd32e35dbc0379fb3ca3a05657f84",
+    "tools/fee-tax-attachment-browser-check.mjs": "e337144d54545e600fd50544233bcae08c747d85",
+    "tools/fee-text-sharing-prototype.ts": "be9415d2b8429b82c949bd2059bce91074dfce8c",
+    "tools/fee-workflow-exercises-browser-check.mjs": "c5e28738415e884b45443b6b4b02717bf111a828",
+    "tools/fee-workflow-guide-browser-check.mjs": "ef777f216d054c0fac9bc7724dd58e24a7090bda",
+    "tools/foundations-browser-check.mjs": "3fc203a7290f4aa6e43a2dbc141f19213d9094c0",
+    "tools/funding-browser-check.mjs": "7b382d64132ff786cc47b16db62e08da05d96e62",
+    "tools/funding-example-browser-check.mjs": "bdd60af9b6d8d02fd52981b8f3c51d9b6e62cfe4",
+    "tools/funding-ledger-browser-check.mjs": "a2724fe2b60b4aaaf9c5bf385dc73709e8dd934a",
+    "tools/funding-period-integration-browser-check.mjs": "06a656028ce4fcf83536505569a74ac8561a1ca0",
+    "tools/funding-rates-browser-check.mjs": "cad8669161e1629bed40222d57f722ec51498f26",
+    "tools/funding-rounding-browser-check.mjs": "2887d7cf869a659005851f6478edef7154ed4296",
+    "tools/import-walkthrough-browser-check.mjs": "90f7619c03df6106de0a3d567306f51e6b0e461e",
+    "tools/input-review-browser-check.mjs": "e3b97986259505073372732fd3e29c8746a3725e",
+    "tools/logistics-browser-check.mjs": "2de724180654f8fdc62537d245fe7f7b3095b035",
+    "tools/mobile-settings-browser-check.mjs": "584dad72cb28991787ef64f0c5abbf0f5a558b0f",
+    "tools/onboarding-browser-check.mjs": "90ddfe1763388fa0c1ca49b31851416a0f92f62d",
+    "tools/pdf-browser-check.mjs": "00328cb1421439899902edfe9307cf6132aec548",
+    "tools/period-example-browser-check.mjs": "7e0d42b4677d4e3b493262543e58548f35c333d9",
+    "tools/post-application-requote-browser-check.mjs": "8f3c88cc71110d5e96d10c84209abd7e429f18f9",
+    "tools/professional-review-browser-check.mjs": "b8aa5408eb3bcf1baafc686f382ed18da4387687",
+    "tools/quick-costs-browser-check.mjs": "1cd7732b83509e7f921623dcce8bb8408f74f4ef",
+    "tools/recent-projects-browser-check.mjs": "dd8f8ceb59a81d66a576eab730c046f577d43bbf",
+    "tools/recovery-browser-check.mjs": "1a8cc4d319fc8088f8373698f90597caa1f44764",
+    "tools/rounding-example-browser-check.mjs": "e6074dae8b23583aa062ecd52cad6275cbfbe951",
+    "tools/run-browser-regression.mjs": "a0f7e71ff4dc242bea4537587f5a351fa57e8654",
+    "tools/runtime-fee-application-browser-check.mjs": "d4f1aa3775f07f747eb7f475c5f790dd41d0c9c1",
+    "tools/runtime-fee-backup-reader.mjs": "5d87d5f2edaab02c005c4116d5bd706463645098",
+    "tools/runtime-fee-preview-browser-check.mjs": "f19d63bc0d6b26ffc359878e5804675df8d0b293",
+    "tools/sensitivity-browser-check.mjs": "28f8867ad50dc2a137a40f7b0717e78dc7ce67f7",
+    "tools/serve.mjs": "265a826181c961098a34e2f76b3e33bb21a0de1f",
+    "tools/settlement-browser-check.mjs": "81144070f4e03956dc08c4fb7e474b711a503769",
+    "tools/templates-browser-check.mjs": "c867d2bc1e7defd16bad49d55c5d34568318fe5e",
+    "tools/transport-links-browser-check.mjs": "26dca308e7d99ce4b902f3577e44a18dbe28b77c",
+    "tools/workbench-state-browser-check.mjs": "4dfc62b912fe7c2ba142a4faaeea2fbfacf47421",
+    "tools/workspace-browser-check.mjs": "04745d6a753490700420c598026ee6f29e4bb078"
+  },
+  "suites": [
+    {
+      "suite": "china-import",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "93183a01bc9bfb131b256e5c655560aa6e82d4cc",
+      "report": {
+        "desktop": {
+          "width": 1440,
+          "scrollWidth": 1425,
+          "mode": true,
+          "quote": true
+        },
+        "mobile": {
+          "width": 390,
+          "viewportWidth": 390,
+          "scrollWidth": 390,
+          "mode": true,
+          "quote": true,
+          "overflow": []
+        },
+        "narrow": {
+          "viewportWidth": 320,
+          "scrollWidth": 320,
+          "overflow": [
+            {
+              "tag": "DIV",
+              "cls": "card seller",
+              "right": 322,
+              "text": "卖方成本与利润\n报价收入\n758,100.00\n承担费用\n−58,100.00\n采购含税成本\n−620,000.00\n中国出口退税\n不适用\n"
+            },
+            {
+              "tag": "DIV",
+              "cls": "card buyer",
+              "right": 322,
+              "text": "买方落地成本\n报价金额\n758,100.00\n报价外费用\n+0.00\n进口关税\n+38,338.20\n进口消费税\n+0.00\n进口增值税\n+"
+            },
+            {
+              "tag": "DIV",
+              "cls": "card",
+              "right": 322,
+              "text": "计税与风险\n\n费用规则：incoterms2020 · 实现版本 1.2（需结合合同核对）\n\n海关计税价格\n766,764.00\n\n中国一般"
+            }
+          ]
+        },
+        "scenarioMobile": {
+          "viewportWidth": 390,
+          "scrollWidth": 390
+        },
+        "scenarioNarrow": {
+          "viewportWidth": 320,
+          "scrollWidth": 320
+        },
+        "badFile": {
+          "error": true,
+          "unchanged": true,
+          "keptResult": true
+        },
+        "sampleReferenceOnly": true,
+        "sourceFlow": {
+          "groups": 4,
+          "confirmed": true,
+          "unknownSellerCost": true,
+          "invalidated": true,
+          "restored": true,
+          "originInvalidated": true,
+          "originReconfirmed": true,
+          "wrongCountryBlocked": true,
+          "deductionBlocked": true,
+          "deductionConfirmed": true,
+          "reportExported": true,
+          "useInvalidated": true,
+          "persisted": true,
+          "reopened": true,
+          "panelStayedOpen": true
+        },
+        "blankWorkflow": {
+          "empty": true,
+          "feeStartsEmpty": true,
+          "calculated": true,
+          "bundledBlocked": true,
+          "recovered": true
+        },
+        "scenarioCosts": {
+          "cif": true,
+          "fob": true,
+          "overlapBlocked": true,
+          "recovered": true,
+          "partialResultKept": true,
+          "panelStayedOpen": true,
+          "focusMaintained": true,
+          "persisted": true,
+          "reportExported": true
+        },
+        "sourcePanelsExpandedOnMobile": true,
+        "expiredFxBlocks": true,
+        "recoveredAfterDateCorrection": true,
+        "exceptions": [],
+        "protocol": "file://",
+        "browser": "Microsoft Edge"
+      }
+    },
+    {
+      "suite": "professional-review",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "6197102005aa267ac9edfb30369c73197a3ed751",
+      "report": {
+        "flow": {
+          "missing": true,
+          "seller": true,
+          "other": true,
+          "missingAgain": true,
+          "persistence": true,
+          "roundtrip": true,
+          "reportCorrect": true,
+          "introductionStayedOpen": true,
+          "linerPending": true,
+          "standardRestored": true
+        },
+        "toolMobile": {
+          "viewport": 320,
+          "content": 320
+        },
+        "introMobile": {
+          "viewport": 320,
+          "content": 320
+        },
+        "introDesktop": {
+          "viewport": 1425,
+          "content": 1425
+        },
+        "introPrint": {
+          "viewport": 1425,
+          "content": 1425
+        },
+        "offlineIntro": true,
+        "staticEntryLink": true,
+        "staticEntryWorks": true,
+        "exceptions": [],
+        "browser": "Microsoft Edge",
+        "protocols": [
+          "file://",
+          "http://127.0.0.1"
+        ],
+        "fileSaveUsesApiSubstitute": true,
+        "realPrintPaginationVerified": false
+      }
+    },
+    {
+      "suite": "actual-quotes",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "7ace36969fbdc5215372f12bc326a3560cee6b02",
+      "report": {
+        "flow": {
+          "missing": true,
+          "cifReady": true,
+          "cifSurvives": true,
+          "fobReady": true,
+          "expired": true,
+          "editInvalidates": true,
+          "overrideWorks": true,
+          "overrideInvalidates": true,
+          "persistence": true,
+          "restored": true,
+          "reportWorks": true,
+          "roundtrip": true,
+          "staleRecovery": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "browser": "Microsoft Edge",
+        "protocol": "file://",
+        "fileSaveUsesApiSubstitute": true,
+        "realPrintPaginationVerified": false
+      }
+    },
+    {
+      "suite": "logistics",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "3b8cc86309b97efccd1b524be3dfac9421689f72",
+      "report": {
+        "flow": {
+          "missing": true,
+          "ready": true,
+          "lowCover": true,
+          "currency": true,
+          "lowerCover": true,
+          "agreedCover": true,
+          "laterCarrier": true,
+          "agreedPoint": true,
+          "reminders": true,
+          "emptyNewFee": true,
+          "ddCalculated": true,
+          "ddConflict": true,
+          "distinctScope": true,
+          "persistence": true,
+          "invalidated": true,
+          "roundtrip": true,
+          "reportWorks": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425,
+            "overflow": []
+          },
+          {
+            "viewport": 390,
+            "content": 390,
+            "overflow": []
+          },
+          {
+            "viewport": 320,
+            "content": 320,
+            "overflow": [
+              {
+                "tag": "DIV",
+                "class": "card seller",
+                "text": "\n          卖方成本与利润\n          报价收入10,700.00\n          承担费用−70",
+                "right": 322
+              },
+              {
+                "tag": "DIV",
+                "class": "card buyer",
+                "text": "\n          买方落地成本\n          报价金额10,700.00\n          报价外费用+60",
+                "right": 322
+              },
+              {
+                "tag": "DIV",
+                "class": "card",
+                "text": "\n          计税与风险\n          费用规则：incoterms2020 · 实现版本 1.2（需结合",
+                "right": 322
+              }
+            ]
+          }
+        ],
+        "exceptions": [],
+        "browser": "Microsoft Edge",
+        "protocol": "file://",
+        "fileSaveUsesApiSubstitute": true,
+        "realPrintPaginationVerified": false
+      }
+    },
+    {
+      "suite": "explanation",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "7eab67d2cba2761813663580984ff3e6ba004747",
+      "report": {
+        "checks": {
+          "initial": true,
+          "keyboard": true,
+          "reasoning": true,
+          "recalculation": true,
+          "openState": true,
+          "unknownProfit": true,
+          "enlargedText": true,
+          "rounding": true,
+          "dualFx": true,
+          "ddp": true,
+          "negative": true,
+          "report": true,
+          "reportOpen": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425,
+            "barWidthsValid": true
+          },
+          {
+            "viewport": 753,
+            "content": 753,
+            "barWidthsValid": true
+          },
+          {
+            "viewport": 390,
+            "content": 390,
+            "barWidthsValid": true
+          },
+          {
+            "viewport": 320,
+            "content": 320,
+            "barWidthsValid": true
+          }
+        ],
+        "exceptions": [],
+        "browser": "Microsoft Edge",
+        "protocol": "file://",
+        "saveUsesApiSubstitute": true,
+        "actualMobileVerified": false,
+        "realPrintPaginationVerified": false,
+        "actualBrowserZoomVerified": false
+      }
+    },
+    {
+      "suite": "foundations",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "c174a185748f23ea082075bceb0bd54c67eac4e0",
+      "report": {
+        "checks": {
+          "initialPending": true,
+          "unconfirmed": true,
+          "ready": true,
+          "sellerPlace": true,
+          "other": true,
+          "invalidated": true,
+          "quoteMismatch": true,
+          "restored": true,
+          "missing": true,
+          "zeroBlocked": true,
+          "recovered": true,
+          "reportWorks": true,
+          "roundtrip": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "saveUsesApiSubstitute": true,
+        "actualMobileVerified": false,
+        "realPrintPaginationVerified": false
+      }
+    },
+    {
+      "suite": "sensitivity",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "266a3195a4470bc8589d9459e499ffadff99d67d",
+      "report": {
+        "checks": {
+          "freight": true,
+          "unknownProfit": true,
+          "reference": true,
+          "unchanged": true,
+          "retained": true,
+          "invalid": true,
+          "recovered": true,
+          "recomputed": true,
+          "reset": true,
+          "conditional": true,
+          "pendingKept": true,
+          "commercial": true,
+          "customs": true,
+          "invalidated": true,
+          "unchangedFx": true,
+          "report": true,
+          "savedBaseline": true,
+          "reportOpen": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "browser": "Microsoft Edge",
+        "protocol": "file://",
+        "saveUsesApiSubstitute": true,
+        "actualMobileVerified": false,
+        "realPrintPaginationVerified": false
+      }
+    },
+    {
+      "suite": "customer-quotes",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "64ac97771c407529e481ebddce6f7b653dbcc540",
+      "report": {
+        "checks": {
+          "initiallyBlocked": true,
+          "previewWorks": true,
+          "publicPreview": true,
+          "draftUnchanged": true,
+          "reviewed": true,
+          "customerExport": true,
+          "fileNamePublic": true,
+          "noInternalSnapshot": true,
+          "internalKept": true,
+          "publicChangeInvalidates": true,
+          "projectChangeInvalidates": true,
+          "precision": true,
+          "expired": true,
+          "cancelled": true,
+          "writeFailure": true,
+          "failureKeepsDraft": true,
+          "openResets": true,
+          "simulationBlocked": true,
+          "customerFileOpened": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "reportLayouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "browser": "Microsoft Edge",
+        "protocol": "file://",
+        "saveUsesApiSubstitute": true,
+        "actualMobileVerified": false,
+        "realPrintPaginationVerified": false
+      }
+    },
+    {
+      "suite": "excel",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "b987b4d3e41e642f458e425d761e00ae59fc3d34",
+      "report": {
+        "checks": {
+          "initiallyBlocked": true,
+          "customerBoundary": true,
+          "nativeNumericAmount": true,
+          "noFormulas": true,
+          "publicFilename": true,
+          "internalKept": true,
+          "draftUnchanged": true,
+          "publicEditInvalidates": true,
+          "projectEditInvalidates": true,
+          "precisionText": true,
+          "cancelled": true,
+          "writeFailure": true,
+          "failureKeepsDraft": true,
+          "realDownload": true,
+          "downloadKeepsDraft": true,
+          "simulationBlocked": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "realHeadlessDownloadVerified": true,
+        "savePickerUsesApiSubstitute": true,
+        "actualMobileVerified": false
+      }
+    },
+    {
+      "suite": "pdf",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "34552b79c5d70c626cce2a7c39ed2a71ade6e7ff",
+      "report": {
+        "checks": {
+          "initiallyBlocked": true,
+          "nativePdf": true,
+          "publicMetadata": true,
+          "customerBoundary": true,
+          "publicFilename": true,
+          "draftUnchanged": true,
+          "publicEditInvalidates": true,
+          "busyPreventsDuplicate": true,
+          "immutableSnapshot": true,
+          "editStillNeedsReview": true,
+          "cancelled": true,
+          "unsupportedGlyphPreserved": true,
+          "writeFailureRecovered": true,
+          "realDownload": true,
+          "downloadKeepsDraft": true,
+          "simulationBlocked": true,
+          "noNetworkResources": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "offlineVerified": true,
+        "realHeadlessDownloadVerified": true,
+        "savePickerUsesApiSubstitute": true,
+        "actualMobileVerified": false
+      }
+    },
+    {
+      "suite": "bilingual",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "80e0ad615e684cda9c3ef714b9096de5f2d11408",
+      "report": {
+        "checks": {
+          "initiallyBlocked": true,
+          "previewWorks": true,
+          "publicPreview": true,
+          "draftUnchanged": true,
+          "reviewed": true,
+          "customerExport": true,
+          "fileNamePublic": true,
+          "noInternalSnapshot": true,
+          "internalKept": true,
+          "publicChangeInvalidates": true,
+          "projectChangeInvalidates": true,
+          "precision": true,
+          "expired": true,
+          "realDownload": true,
+          "downloadKeepsDraft": true,
+          "originalWording": true,
+          "noLanguagePrecedence": true,
+          "cancelled": true,
+          "writeFailure": true,
+          "failureKeepsDraft": true,
+          "openResets": true,
+          "simulationBlocked": true,
+          "customerFileOpened": true,
+          "noNetworkResources": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "reportLayouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "browser": "Microsoft Edge",
+        "protocol": "file://",
+        "offlineVerified": true,
+        "realHeadlessDownloadVerified": true,
+        "saveUsesApiSubstitute": true,
+        "actualMobileVerified": false,
+        "realPrintPaginationVerified": false
+      }
+    },
+    {
+      "suite": "templates",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "6d97c771165f2b7a0b9e30b61c145045a3ba70e6",
+      "report": {
+        "checks": {
+          "guideEntryVisible": true,
+          "guideFocus": true,
+          "guideOpenReadOnly": true,
+          "sixGuides": true,
+          "guideSections": true,
+          "cifBoundary": true,
+          "blankBoundary": true,
+          "guidesSurviveRender": true,
+          "guideModeReadOnly": true,
+          "entryCommitsPendingInput": true,
+          "china-import-blankMatches": true,
+          "china-import-container-checklistMatches": true,
+          "china-import-actual-quotesMatches": true,
+          "china-import-synthetic-exampleMatches": true,
+          "professional-blankMatches": true,
+          "cif-synthetic-exampleMatches": true,
+          "currentSchemaMatches": true,
+          "legacySchemaMatches": true,
+          "noCurrentData": true,
+          "downloadsKeepDraft": true,
+          "china-import-blank.jsonOpened": true,
+          "china-import-blank.jsonNote": true,
+          "china-import-container-checklist.jsonOpened": true,
+          "china-import-container-checklist.jsonNote": true,
+          "china-import-actual-quotes.jsonOpened": true,
+          "china-import-actual-quotes.jsonNote": true,
+          "china-import-synthetic-example.jsonOpened": true,
+          "china-import-synthetic-example.jsonNote": true,
+          "professional-blank.jsonOpened": true,
+          "professional-blank.jsonNote": true,
+          "cif-synthetic-example.jsonOpened": true,
+          "cif-synthetic-example.jsonNote": true,
+          "busyPreventsDuplicate": true,
+          "cancelled": true,
+          "failureKeepsDraft": true,
+          "realDownload": true,
+          "oldVersionOnly": true,
+          "noImplicitChinaMode": true,
+          "precisionAndExtensionKept": true,
+          "savedVersion": true,
+          "schemaCannotReplaceProject": true,
+          "futureVersionBlocked": true,
+          "noNetworkResources": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "offlineVerified": true,
+        "realHeadlessDownloadVerified": true,
+        "savePickerUsesApiSubstitute": true,
+        "actualMobileVerified": false
+      }
+    },
+    {
+      "suite": "settlement",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "b0fe6b00157c31d83f7af9259f44b2dfdd1f56ba",
+      "report": {
+        "checks": {
+          "unknownBankNotZero": true,
+          "totalsByCurrency": true,
+          "keepsProjectDraft": true,
+          "separatePlanFile": true,
+          "internalReportIncludesPlan": true,
+          "customerDoesNotIncludePlan": true,
+          "busyGuard": true,
+          "snapshot": true,
+          "cancelKeepsInput": true,
+          "failureKeepsDraft": true,
+          "realDownload": true,
+          "badImportKeepsPlan": true,
+          "importRoundtrip": true,
+          "quoteChangeBlocks": true,
+          "rebindKeepsInputs": true,
+          "advancePaymentBlocked": true,
+          "openProjectResetsPlan": true,
+          "simulationCannotBind": true,
+          "noNetworkResources": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "offlineVerified": true,
+        "realHeadlessDownloadVerified": true,
+        "savePickerUsesApiSubstitute": true,
+        "actualMobileVerified": false
+      }
+    },
+    {
+      "suite": "funding",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "03525a1b7ce8a1dee5d465d2861f03c321b18c5c",
+      "report": {
+        "checks": {
+          "blankNotZero": true,
+          "simpleInterest": true,
+          "independentPaymentPrerequisites": true,
+          "opportunitySeparate": true,
+          "missingRateBlocks": true,
+          "explicitZero": true,
+          "sameDayZero": true,
+          "reversedDatesBlock": true,
+          "leapFixed365": true,
+          "omittedNotZero": true,
+          "projectDraftKept": true,
+          "version11": true,
+          "internalWorkbook": true,
+          "internalHtml": true,
+          "customerWorkbookIsolated": true,
+          "customerHtmlIsolated": true,
+          "excelSnapshot": true,
+          "quoteChangeBlocks": true,
+          "rebindKeepsInput": true,
+          "legacyNoDefaults": true,
+          "explicitUpgrade": true,
+          "realWorkbookDownload": true,
+          "noNetworkResources": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "offlineVerified": true,
+        "realHeadlessDownloadVerified": true,
+        "savePickerUsesApiSubstitute": true,
+        "actualMobileVerified": false
+      }
+    },
+    {
+      "suite": "recovery",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "97cdd501636ecc5b21e4c44ccf7469fc2590a26f",
+      "report": {
+        "checks": {
+          "hidesOldResults": true,
+          "noPrivateException": true,
+          "preservesDraft": true,
+          "realInternalBackup": true,
+          "retryKeepsInputs": true,
+          "retryDoesNotWriteDraft": true,
+          "reviewReadOnly": true,
+          "reviewSeparatesRawFx": true,
+          "invalidClearsOldReview": true,
+          "futureVersionRejected": true,
+          "clearCancelsSlowReview": true,
+          "expectedInputFailureNotFatal": true,
+          "inputLocationOpensAndFocuses": true,
+          "inputLocationDoesNotSave": true,
+          "fixedInputRemovesLocations": true,
+          "startupRenderFailureRecovered": true,
+          "startupRetry": true,
+          "noNetworkResources": true
+        },
+        "layouts": [
+          {
+            "viewport": 1440,
+            "content": 1440
+          },
+          {
+            "viewport": 768,
+            "content": 768
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "reviewLayouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "offlineVerified": true,
+        "realHeadlessBackupDownloadVerified": true,
+        "actualMobileVerified": false,
+        "faultsInjectedThroughDomSetter": true
+      }
+    },
+    {
+      "suite": "funding-ledger",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "72b7b98aa892b1efd8bc89e1d17eff582c8b4cc9",
+      "report": {
+        "checks": {
+          "explicitUpgradeUnconfirmed": true,
+          "blankEventBlocks": true,
+          "segmentResult": true,
+          "segmentsVisible": true,
+          "overdrawBlocks": true,
+          "currencyBlocks": true,
+          "unsortedBlocks": true,
+          "switchUnconfirmed": true,
+          "constantDoesNotUseEvents": true,
+          "noTradeMutation": true,
+          "customerReviewKept": true,
+          "version12RawEvents": true,
+          "workbookAudit": true,
+          "reportAudit": true,
+          "customerIsolated": true,
+          "frozenExport": true,
+          "slowImportCancelled": true,
+          "roundTrip": true,
+          "endDayNoExtraInterest": true,
+          "realDownload": true,
+          "noNetworkResources": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "offlineVerified": true,
+        "realHeadlessDownloadVerified": true,
+        "savePickerUsesApiSubstitute": true,
+        "actualMobileVerified": false
+      }
+    },
+    {
+      "suite": "funding-example",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "f289c02c12d9ae9a87a968e945b0082b03f3b53f",
+      "report": {
+        "checks": {
+          "projectMatchesTracked": true,
+          "planMatchesTracked": true,
+          "recordMatchesTracked": true,
+          "guideMatchesTracked": true,
+          "noCurrentData": true,
+          "currentInputsKept": true,
+          "guideMime": true,
+          "cancelKeepsDraft": true,
+          "privateReadErrorHidden": true,
+          "invalidKindNoFallback": true,
+          "pairedCaseCalculates": true,
+          "sourceStaysExample": true,
+          "wrongPairBlocks": true,
+          "recordCannotImport": true,
+          "projectNativeDownload": true,
+          "planNativeDownload": true,
+          "recordNativeDownload": true,
+          "guideNativeDownload": true,
+          "downloadsDontSaveProject": true,
+          "offlineGuide": true,
+          "noNetworkResources": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "guideLayouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "offlineVerified": true,
+        "fourNativeDownloadsVerified": true,
+        "savePickerUsesApiSubstitute": true,
+        "actualMobileVerified": false
+      }
+    },
+    {
+      "suite": "funding-rates",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "b21d3223ba4098cd57aeda1521e0ae02509714bd",
+      "report": {
+        "checks": {
+          "explicitConfirmation": true,
+          "handTotal65": true,
+          "openingRateLabel": true,
+          "cashUnchanged": true,
+          "draftUnchanged": true,
+          "invalidBlocks": true,
+          "duplicateBlocks": true,
+          "switchRequiresConfirm": true,
+          "constantRestores50": true,
+          "version13": true,
+          "roundTrip": true,
+          "internalAudit": true,
+          "clientPrivacy": true,
+          "frozenExport": true,
+          "slowImportCancelled": true,
+          "startZeroRate": true,
+          "endDayNoInterest": true,
+          "legacyCollisionProtected": true,
+          "realDownload": true,
+          "noNetworkResources": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "offlineVerified": true,
+        "realHeadlessDownloadVerified": true,
+        "savePickerUsesApiSubstitute": true,
+        "actualMobileVerified": false
+      }
+    },
+    {
+      "suite": "funding-rounding",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "9dad4e2f5b9581d8ace5f392c31ec3c166f0b5e5",
+      "report": {
+        "checks": {
+          "explicitConfirmation": true,
+          "totalHandCheck": true,
+          "scopeRequiresConfirm": true,
+          "boundaryRequiresConfirm": true,
+          "intervalHandCheck": true,
+          "dateInvalidatesBoundary": true,
+          "addRemoveInvalidatesBoundary": true,
+          "negativeLayerDifference": true,
+          "halfEvenAvailable": true,
+          "invalidUnitBlocks": true,
+          "explicitNoRounding": true,
+          "version14": true,
+          "roundTrip": true,
+          "cashUnchanged": true,
+          "draftUnchanged": true,
+          "internalAudit": true,
+          "clientPrivacy": true,
+          "frozenJson": true,
+          "frozenExcel": true,
+          "slowImportCancelled": true,
+          "legacyCollisionProtected": true,
+          "legacyRawPreserved": true,
+          "realDownload": true,
+          "noNetworkResources": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "offlineVerified": true,
+        "realHeadlessDownloadVerified": true,
+        "savePickerUsesApiSubstitute": true,
+        "actualMobileVerified": false
+      }
+    },
+    {
+      "suite": "rounding-example",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "738e822453b55fa2568f49f544757e377bc92241",
+      "report": {
+        "checks": {
+          "projectMatchesTracked": true,
+          "planMatchesTracked": true,
+          "recordMatchesTracked": true,
+          "guideMatchesTracked": true,
+          "noCurrentData": true,
+          "currentInputsKept": true,
+          "guideMime": true,
+          "cancelKeepsDraft": true,
+          "privateErrorHidden": true,
+          "invalidKindNoFallback": true,
+          "pairedDefault": true,
+          "sourceStaysExample": true,
+          "scopeNeedsConfirm": true,
+          "boundaryNeedsConfirm": true,
+          "interval03": true,
+          "halfEven03": true,
+          "downNegativeDifference": true,
+          "dateClearsBoundary": true,
+          "oldPairBlocks": true,
+          "recordCannotImport": true,
+          "internalHtml": true,
+          "internalExcel": true,
+          "clientIsolation": true,
+          "projectNativeDownload": true,
+          "planNativeDownload": true,
+          "recordNativeDownload": true,
+          "guideNativeDownload": true,
+          "downloadsDontSaveProject": true,
+          "offlineGuide": true,
+          "noNetworkResources": true
+        },
+        "toolLayouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "guideLayouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "offlineVerified": true,
+        "realHeadlessDownloadVerified": true,
+        "savePickerUsesApiSubstitute": true,
+        "actualMobileVerified": false
+      }
+    },
+    {
+      "suite": "funding-period-integration",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "8dcdafdd8a0d3d922554b4cd60d3d6bb85c27198",
+      "report": {
+        "checks": {
+          "explicitUpgrade": true,
+          "emptyTableNoFacts": true,
+          "independentConfirmation": true,
+          "onePeriodHand": true,
+          "exactAndSources": true,
+          "twoPeriodsHand": true,
+          "threePeriodsHand": true,
+          "modeRequiresReconfirmation": true,
+          "halfEven": true,
+          "downNegativeDifference": true,
+          "eventEditInvalidates": true,
+          "addRemoveInvalidates": true,
+          "badCoverageBlocks": true,
+          "badUnitBlocks": true,
+          "plan15Roundtrip": true,
+          "reloadHand": true,
+          "internalHtml": true,
+          "internalXlsx": true,
+          "customerPrivacy": true,
+          "frozenJson": true,
+          "cancelKeepsInput": true,
+          "privatePathHidden": true,
+          "slowReadCancelled": true,
+          "recoveryRaw15": true,
+          "retryKeepsInputs": true,
+          "recoveryReadOnly": true,
+          "legacyCollisionBlocked": true,
+          "legacyRawPreserved": true,
+          "futureDoesNotReplace": true,
+          "cashUnchanged": true,
+          "draftUnchanged": true,
+          "nativeXlsx": true,
+          "nativeJson": true,
+          "noExternalResources": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "offlineVerified": true,
+        "actualMobileVerified": false,
+        "savePickerUsesApiSubstitute": true
+      }
+    },
+    {
+      "suite": "period-example",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "265f0eba610d340b8695365569537a7ef2af5dd3",
+      "report": {
+        "checks": {
+          "projectMatchesTracked": true,
+          "planMatchesTracked": true,
+          "recordMatchesTracked": true,
+          "guideMatchesTracked": true,
+          "noCurrentData": true,
+          "currentInputsKept": true,
+          "guideMime": true,
+          "cancelKeepsDraft": true,
+          "privateErrorHidden": true,
+          "invalidKindNoFallback": true,
+          "pairedDefault": true,
+          "sourceStaysExample": true,
+          "crossingFragments": true,
+          "referenceInvalidates": true,
+          "reconfirmRestores": true,
+          "gapBlocks": true,
+          "modeInvalidates": true,
+          "downHand": true,
+          "halfEvenHand": true,
+          "dailyHand": true,
+          "cashUnchanged": true,
+          "savedDailyPlan": true,
+          "reloadDaily": true,
+          "oldPairBlocks": true,
+          "recordCannotImport": true,
+          "internalHtml": true,
+          "internalExcel": true,
+          "clientIsolation": true,
+          "projectNativeDownload": true,
+          "planNativeDownload": true,
+          "recordNativeDownload": true,
+          "guideNativeDownload": true,
+          "downloadsDontSaveProject": true,
+          "offlineGuide": true,
+          "noNetworkResources": true
+        },
+        "toolLayouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "guideLayouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "offlineVerified": true,
+        "realHeadlessDownloadVerified": true,
+        "savePickerUsesApiSubstitute": true,
+        "actualMobileVerified": false
+      }
+    },
+    {
+      "suite": "transport-links",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "f0f43d6542464f5f383cfa6d6eaf56dc42993f47",
+      "report": {
+        "checks": {
+          "explicitEmpty": true,
+          "noSourceNotConfirmed": true,
+          "confirmed": true,
+          "cashUnchanged": true,
+          "overlongSourceRejected": true,
+          "saved09": true,
+          "editInvalidates": true,
+          "reloadConfirmed": true,
+          "routeInvalidates": true,
+          "deletedReferencePreserved": true,
+          "gapBlocks": true,
+          "internalHtml": true,
+          "internalExcel": true,
+          "clientIsolation": true,
+          "badFileKeepsProject": true,
+          "futureKeepsProject": true,
+          "legacyCollision": true,
+          "cancelKeepsInput": true,
+          "failureHidesPath": true,
+          "frozenSave": true,
+          "lateReadCancelled": true,
+          "rawRecovery09": true,
+          "retryKeepsUnconfirmed": true,
+          "draft09Reload": true,
+          "readOnlyRecovery": true,
+          "native09Download": true,
+          "overlapCandidate": true,
+          "overlapResolvedWithoutDeleting": true,
+          "resolutionSavedAndAudited": true,
+          "resolutionEditInvalidates": true,
+          "noInventedContainment": true,
+          "offlineResources": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "actualMobileVerified": false,
+        "savePickerFaultsUseApiSubstitutes": true,
+        "nativeDownloadVerified": true
+      }
+    },
+    {
+      "suite": "container-bill",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "e5ea7e9a809e73e0a667300d486f1baf16ad326a",
+      "report": {
+        "checks": {
+          "emptyNoDefaults": true,
+          "sameClockNewBillIdentity": true,
+          "deletedLineIdentityNotReused": true,
+          "identityRoundtrip": true,
+          "structuredHandCalculation": true,
+          "oldCashUnchanged": true,
+          "sourceConfirmed": true,
+          "savedIndependent": true,
+          "editInvalidates": true,
+          "projectDoesNotEmbedBill": true,
+          "internalAudit": true,
+          "customerIsolation": true,
+          "customerHtmlPdfIsolation": true,
+          "staticResourcesIsolated": true,
+          "futureKeepsInput": true,
+          "badKeepsInput": true,
+          "cancelKeepsInput": true,
+          "writeErrorHidden": true,
+          "frozenSave": true,
+          "lateReadCancelled": true,
+          "explicitBindingInvalidates": true,
+          "projectOpenKeepsBill": true,
+          "unsupportedPreserved": true,
+          "switchDoesNotDelete": true,
+          "explicitCleanup": true,
+          "combinedCandidate": true,
+          "rawRecovery": true,
+          "retryKeepsInput": true,
+          "independentDraftReload": true,
+          "readOnlyRecovery": true,
+          "nativeIndependentDownload": true,
+          "offlineResources": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "actualMobileVerified": false,
+        "savePickerFaultsUseApiSubstitutes": true,
+        "nativeDownloadVerified": true
+      }
+    },
+    {
+      "suite": "container-cost-pair",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "6f80ff3e220c11faaad876f2817f2abb81c4f0fe",
+      "report": {
+        "checks": {
+          "openBoth": true,
+          "exactPairRoundtrip": true,
+          "rawFxPreserved": true,
+          "noCostWrite": true,
+          "sourceNotPromoted": true,
+          "projectSaveStateUnchanged": true,
+          "explicitReferences": true,
+          "removeKeepsHistory": true,
+          "standaloneIsolation": true,
+          "customerIsolation": true,
+          "projectMismatch": true,
+          "explicitCapture": true,
+          "billMismatch": true,
+          "reloadPreservesRawFx": true,
+          "incompleteFxNotDropped": true,
+          "duplicateFxNotOverwritten": true,
+          "badReadKeepsPair": true,
+          "futureKeepsPair": true,
+          "cancelKeepsPair": true,
+          "writeErrorHidden": true,
+          "frozenSave": true,
+          "lateReadCancelled": true,
+          "separateProjectShowsMismatch": true,
+          "clearKeepsBoth": true,
+          "newPairEmpty": true,
+          "failureHidesOldResult": true,
+          "rawCompleteRecovery": true,
+          "retryBoth": true,
+          "recoveryTenParts": true,
+          "nativeCompleteDownload": true,
+          "offlineResources": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "actualMobileVerified": false,
+        "savePickerFaultsUseApiSubstitutes": true,
+        "nativeDownloadVerified": true
+      }
+    },
+    {
+      "suite": "container-cost-editor",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "330b5d4053ffc598130696c64d6adfb996724722",
+      "report": {
+        "checks": {
+          "noFinancialDefaults": true,
+          "uniqueMetadata": true,
+          "incompleteKeepsPair": true,
+          "explicitFactsOnly": true,
+          "focusRestored": true,
+          "pendingNotSelected": true,
+          "pendingCannotSaveOld": true,
+          "pendingCannotClear": true,
+          "pendingCannotReplace": true,
+          "customerDraftIsolation": true,
+          "reloadUnsubmitted": true,
+          "submitNoCostWrite": true,
+          "rawFxKept": true,
+          "sourceUnverified": true,
+          "completeClearsDraft": true,
+          "explicitConfirmation": true,
+          "noopKeepsRevision": true,
+          "changedRevokesSource": true,
+          "mappingStable": true,
+          "reconfirmCurrent": true,
+          "changedContextBlocked": true,
+          "explicitRebase": true,
+          "retiredIdRejected": true,
+          "freshIdNotReused": true,
+          "exactPrecisionPreserved": true,
+          "precisionStillBlocked": true,
+          "emptySourceCannotConfirm": true,
+          "fatalHidesResults": true,
+          "rawEditorRecovery": true,
+          "retryKeepsEditor": true,
+          "recoveryTwelveParts": true,
+          "storageFailureKeepsMemory": true,
+          "editorEscaped": true,
+          "nativePairDownload": true,
+          "offlineResources": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "actualMobileVerified": false,
+        "syntheticEvidenceOnly": true,
+        "savePickerFaultsUseApiSubstitutes": true,
+        "nativeDownloadVerified": true
+      }
+    },
+    {
+      "suite": "container-business-copy",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "eb887d6bb0d3c01687d2c621058bdc20a0863aec",
+      "report": {
+        "checks": {
+          "explicitAcceptanceRequired": true,
+          "nameChangeRevokesAcceptance": true,
+          "focusRestored": true,
+          "prepareCancelsLateRead": true,
+          "originalDraftsUnchanged": true,
+          "candidateVisible": true,
+          "newIdentity": true,
+          "newTarget": true,
+          "localReferencesPreserved": true,
+          "noCostApplication": true,
+          "confirmationCleared": true,
+          "insuranceAndLinksReset": true,
+          "rawValuesKept": true,
+          "opaqueExtensionKept": true,
+          "originalSaveStateUnchanged": true,
+          "customerIsolation": true,
+          "cancelKeepsCandidate": true,
+          "writeFailureHidden": true,
+          "failedRetrySameIdentity": true,
+          "doubleClickSingleWrite": true,
+          "frozenAfterOriginalEdit": true,
+          "newCandidateNotOverwritten": true,
+          "discardKeepsOriginal": true,
+          "precisionNotRounded": true,
+          "explicitOpenCopy": true,
+          "precisionAndBindingPending": true,
+          "fatalHidesOldResults": true,
+          "rawBackupBoth": true,
+          "retryKeepsCandidate": true,
+          "recoveryElevenParts": true,
+          "nativeCopyDownload": true,
+          "refreshDoesNotInstallCandidate": true,
+          "offlineResources": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "actualMobileVerified": false,
+        "syntheticEvidenceOnly": true,
+        "savePickerFaultsUseApiSubstitutes": true,
+        "nativeDownloadVerified": true
+      }
+    },
+    {
+      "suite": "container-review-integration",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "5765a6032813f1772cd27511c96c54b009e80e36",
+      "report": {
+        "checks": {
+          "explicitExample": true,
+          "noFeeApplication": true,
+          "exampleCannotConfirm": true,
+          "focusRestored": true,
+          "pendingBlocksSave": true,
+          "savedUnconfirmed": true,
+          "independentProject": true,
+          "crossLabelCoverage": true,
+          "explicitConfirmation": true,
+          "editRevokesConfirmation": true,
+          "futureDateBlocked": true,
+          "pairedFileContainsRecords": true,
+          "cancelKeepsPair": true,
+          "failedSaveKeepsPair": true,
+          "privateFailureHidden": true,
+          "liveMismatchVisible": true,
+          "captureInvalidates": true,
+          "businessRevision": true,
+          "moneyAndItemsUnchanged": true,
+          "copyClearsRecords": true,
+          "internalHtmlContains": true,
+          "internalExcelContains": true,
+          "editCancelsLateRead": true,
+          "refreshRestoresDraft": true,
+          "refreshDoesNotSubmit": true,
+          "recoveryHidesOld": true,
+          "backupPreservesEditor": true,
+          "retryKeepsDraft": true,
+          "recoveryParts": true,
+          "nativeDownload": true,
+          "customerIsolation": true,
+          "offlineResources": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "syntheticOnly": true,
+        "realPhoneVerified": false,
+        "saveFaultsUseApiSubstitutes": true,
+        "nativeDownloadVerified": true
+      }
+    },
+    {
+      "suite": "workspace",
+      "mode": "both",
+      "exitCode": 0,
+      "report_blob": "2c3419b8ad2e6056f0638c1576d2f3e072a27f1a",
+      "report": {
+        "checks": {
+          "defaultBeginner": true,
+          "coreBeforeResults": true,
+          "advancedCollapsed": true,
+          "coreVisible": true,
+          "referenceBadge": true,
+          "modeNoBusinessMutation": true,
+          "professionalAllAnchors": true,
+          "professionalVisible": true,
+          "modePersists": true,
+          "reloadNoBusinessMutation": true,
+          "pendingVisible": true,
+          "staleKpiHidden": true,
+          "pendingBlocksExports": true,
+          "uncommittedNotSaved": true,
+          "enterRecomputes": true,
+          "blankDoesNotInvent": true,
+          "multipleRepairLinks": true,
+          "noStaleMoney": true,
+          "hiddenRepairRevealed": true,
+          "negativeQuantity": true,
+          "exactFieldFocus": true,
+          "zeroFxBlocked": true,
+          "fxRepairRevealed": true,
+          "fxRecovery": true,
+          "quickCostEntry": true,
+          "formulaEntry": true,
+          "reversePricingClear": true,
+          "actualAnchorPreserved": true,
+          "pairReviewUnaffected": true,
+          "compactMobileHeader": true,
+          "noPreferenceInProject": true,
+          "nativeFirstClickSwitches": true,
+          "nativeEditCommitted": true,
+          "nativeFirstClickMenu": true,
+          "nativeFirstClickSave": true,
+          "offlineResources": true
+        },
+        "layouts": [
+          {
+            "mode": "beginner",
+            "viewport": 1425,
+            "content": 1425,
+            "header": 65.5
+          },
+          {
+            "mode": "beginner",
+            "viewport": 753,
+            "content": 753,
+            "header": 109.25
+          },
+          {
+            "mode": "beginner",
+            "viewport": 390,
+            "content": 390,
+            "header": 107.75
+          },
+          {
+            "mode": "beginner",
+            "viewport": 320,
+            "content": 320,
+            "header": 107.75
+          },
+          {
+            "mode": "professional",
+            "viewport": 1425,
+            "content": 1425,
+            "header": 65.5
+          },
+          {
+            "mode": "professional",
+            "viewport": 753,
+            "content": 753,
+            "header": 109.25
+          },
+          {
+            "mode": "professional",
+            "viewport": 390,
+            "content": 390,
+            "header": 107.75
+          },
+          {
+            "mode": "professional",
+            "viewport": 320,
+            "content": 320,
+            "header": 107.75
+          }
+        ],
+        "exceptions": [],
+        "syntheticOnly": true,
+        "realPhoneVerified": false
+      }
+    },
+    {
+      "suite": "quick-costs",
+      "mode": "both",
+      "exitCode": 0,
+      "report_blob": "f1f791904e9ed8f97824d3d7aeca7b76200d3ee4",
+      "report": {
+        "checks": {
+          "noAutoSelection": true,
+          "selectionNoMutation": true,
+          "originalCurrency": true,
+          "onlySelectedRow": true,
+          "profitRecomputed": true,
+          "focusRestored": true,
+          "convertedCurrency": true,
+          "originalPrecision": true,
+          "emptyNotZero": true,
+          "pendingHidden": true,
+          "firstClickHelp": true,
+          "helpCommitsInput": true,
+          "modalFocusContained": true,
+          "escapeReturnsFocus": true,
+          "helpNoMutation": true,
+          "helpSurvivesRerender": true,
+          "rerenderReturnFocus": true,
+          "multipleRowsSeparate": true,
+          "complexReadOnly": true,
+          "forgedComplexBlocked": true,
+          "staleViewBlocked": true,
+          "nativeSaveExact": true,
+          "refreshRetainsAmount": true,
+          "refreshNoSelection": true,
+          "pairSnapshotUntouched": true,
+          "pairMismatchVisible": true,
+          "fatalDismissesModal": true,
+          "retryUnblocked": true,
+          "noUiInProject": true,
+          "offlineResources": true
+        },
+        "layouts": [
+          {
+            "view": "quick",
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "view": "help",
+            "viewport": 1425,
+            "content": 1425,
+            "dialog": 500
+          },
+          {
+            "view": "quick",
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "view": "help",
+            "viewport": 753,
+            "content": 753,
+            "dialog": 500
+          },
+          {
+            "view": "quick",
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "view": "help",
+            "viewport": 390,
+            "content": 390,
+            "dialog": 362
+          },
+          {
+            "view": "quick",
+            "viewport": 320,
+            "content": 320
+          },
+          {
+            "view": "help",
+            "viewport": 320,
+            "content": 320,
+            "dialog": 292
+          }
+        ],
+        "exceptions": [],
+        "syntheticOnly": true,
+        "realPhoneVerified": false,
+        "nativeInputAndMouseVerified": true
+      }
+    },
+    {
+      "suite": "calculation-learning",
+      "mode": "both",
+      "exitCode": 0,
+      "report_blob": "45919002067bc226244b6cd1503073a7105c7197",
+      "report": {
+        "checks": {
+          "defaultCollapsed": true,
+          "openOnlyUi": true,
+          "openFocus": true,
+          "originalRecords": true,
+          "referenceLanguage": true,
+          "pendingHidesRecords": true,
+          "nativeFirstClick": true,
+          "nativeInputCommitted": true,
+          "exactOperands": true,
+          "reasonNavigation": true,
+          "chartNavigation": true,
+          "formulaNavigation": true,
+          "navigationReadOnly": true,
+          "expansionRetained": true,
+          "professionalSameRecord": true,
+          "blockedNoStalePanel": true,
+          "repairRestoresPanel": true,
+          "dualFx": true,
+          "unknownProfit": true,
+          "rawPrecision": true,
+          "escapedText": true,
+          "derivedNoFabricatedFx": true,
+          "projectInputsPreserved": true,
+          "reloadFromRecords": true,
+          "noUiInProject": true,
+          "offlineResources": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "syntheticOnly": true,
+        "nativeInputAndMouseVerified": true,
+        "realPhoneVerified": false
+      }
+    },
+    {
+      "suite": "mobile-settings",
+      "mode": "both",
+      "exitCode": 0,
+      "report_blob": "61e4af8275144e76ea8a90be0e8019dbb68b7d06",
+      "report": {
+        "checks": {
+          "nativeOpen": true,
+          "openReadOnly": true,
+          "singleOriginalForm": true,
+          "panelHosted": true,
+          "tabContained": true,
+          "returnCommitsExact": true,
+          "returnFocus": true,
+          "returnScroll": true,
+          "bodyRestored": true,
+          "profitUpdated": true,
+          "escapeCommitsSource": true,
+          "nestedHelp": true,
+          "helpReturnsInside": true,
+          "hostScrollRetained": true,
+          "nativeSaveExact": true,
+          "saveKeepsView": true,
+          "saveCancelPreserves": true,
+          "saveFailurePreserves": true,
+          "openCancelPreserves": true,
+          "openFailurePreserves": true,
+          "importLeavesOldScope": true,
+          "resizeRetainsInput": true,
+          "resizeUnlocks": true,
+          "errorRoutesIntoView": true,
+          "lateReadPreservesInput": true,
+          "lateReadKeepsView": true,
+          "recoveryUnblocked": true,
+          "retryPreservesInput": true,
+          "noUiInProject": true,
+          "offlineResources": true
+        },
+        "layouts": [
+          {
+            "viewport": 700,
+            "content": 700,
+            "dialog": 700,
+            "dialogContent": 700,
+            "host": 701.5
+          },
+          {
+            "viewport": 390,
+            "content": 390,
+            "dialog": 390,
+            "dialogContent": 390,
+            "host": 701.5
+          },
+          {
+            "viewport": 320,
+            "content": 320,
+            "dialog": 320,
+            "dialogContent": 320,
+            "host": 701.5
+          }
+        ],
+        "exceptions": [],
+        "syntheticOnly": true,
+        "nativeInputMouseKeyboardAndFileChooser": true,
+        "realPhoneVerified": false
+      }
+    },
+    {
+      "suite": "input-review",
+      "mode": "both",
+      "exitCode": 0,
+      "report_blob": "acc623aac0ee7a403047c86ce21363c01a2a9da8",
+      "report": {
+        "checks": {
+          "defaultCollapsed": true,
+          "openReadOnly": true,
+          "noFalsePrecisionCertification": true,
+          "quantityExact": true,
+          "specificPrecisionHint": true,
+          "keyboardLocator": true,
+          "locatorReadOnly": true,
+          "pendingHidesOldReview": true,
+          "commitShowsFreshText": true,
+          "savePreservesRaw": true,
+          "noReviewUiInProject": true,
+          "stableTargetAfterListChange": true,
+          "inactiveIgnored": true,
+          "feeLocatorMobile": true,
+          "negativeOffsetPreserved": true,
+          "returnFocus": true,
+          "tinyRateRaw": true,
+          "originalErrorRetained": true,
+          "fxLocatorMobile": true,
+          "suspectUnit": true,
+          "unitLocator": true,
+          "noUnitConversion": true,
+          "extremeAmountAdvisory": true,
+          "professionalRetainsReview": true,
+          "offlineOnly": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "syntheticOnly": true,
+        "realPhoneVerified": false
+      }
+    },
+    {
+      "suite": "assumptions",
+      "mode": "both",
+      "exitCode": 0,
+      "report_blob": "96fe93db2da10afcb354a90b5da3833513ce3e4e",
+      "report": {
+        "checks": {
+          "htmlSummaryAtFront": true,
+          "htmlCurrentInput": true,
+          "excelComparisonContext": true,
+          "rawAndAppliedFx": true,
+          "noFalseSourceCertification": true,
+          "inactiveNotParsed": true,
+          "netAndVatAssumptions": true,
+          "pendingRetained": true,
+          "noHtmlExecutableContent": true,
+          "noXlsxFormulaOrLink": true,
+          "originalSheetCount": true,
+          "snapshotRetained": true,
+          "exportsReadOnly": true,
+          "pendingPickerKeepsSnapshot": true,
+          "laterEditPreserved": true,
+          "customerIsolation": true,
+          "failedCurrentStillExports": true,
+          "printIncludesSummary": true,
+          "reportOffline": true,
+          "offlineOnly": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "summary": 1391
+          },
+          {
+            "viewport": 753,
+            "summary": 719
+          },
+          {
+            "viewport": 390,
+            "summary": 356
+          },
+          {
+            "viewport": 320,
+            "summary": 286
+          }
+        ],
+        "exceptions": [],
+        "syntheticOnly": true,
+        "realPhoneVerified": false,
+        "savePickerUsesApiSubstitute": true
+      }
+    },
+    {
+      "suite": "customer-views",
+      "mode": "both",
+      "exitCode": 0,
+      "report_blob": "8c6c38d5eceed2cdc71dbd83f1a6c6b587bddac8",
+      "report": {
+        "checks": {
+          "fullDefault": true,
+          "inputInvalidatesReview": true,
+          "nativeSwitchCommitsText": true,
+          "switchFocus": true,
+          "viewRequiresReview": true,
+          "reviewCommitsPendingText": true,
+          "sameViewKeepsReview": true,
+          "compactNames": true,
+          "compactPublicOnly": true,
+          "compactContent": true,
+          "compactGeneratedTime": true,
+          "compactPdfMode": true,
+          "fullSwitchUnchecks": true,
+          "fullNames": true,
+          "fullPublicOnly": true,
+          "fullContent": true,
+          "fullGeneratedTime": true,
+          "fullPdfMode": true,
+          "identicalExcelPublicCells": true,
+          "compactPdfNoMorePages": true,
+          "viewAndExportsReadOnly": true,
+          "asyncPdfRetainsMode": true,
+          "asyncViewStillNeedsReview": true,
+          "cancelPreserves": true,
+          "unsupportedPdfKeepsText": true,
+          "viewNotInProject": true,
+          "openResetsFull": true,
+          "offlineOnly": true
+        },
+        "layouts": [
+          {
+            "view": "full",
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "view": "full",
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "view": "full",
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "view": "full",
+            "viewport": 320,
+            "content": 320
+          },
+          {
+            "view": "compact",
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "view": "compact",
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "view": "compact",
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "view": "compact",
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "pdfPages": {
+          "compact": 3,
+          "full": 4
+        },
+        "exceptions": [],
+        "syntheticOnly": true,
+        "realPhoneVerified": false,
+        "savePickerUsesApiSubstitute": true
+      }
+    },
+    {
+      "suite": "recent-projects",
+      "mode": "both",
+      "exitCode": 0,
+      "report_blob": "38b0d1964a9b8b9720495bcd439cbd78fdbdb5a8",
+      "report": {
+        "checks": {
+          "startupNoCacheIO": true,
+          "expandNoCacheIO": true,
+          "readIsReadOnly": true,
+          "copyRequiresConsent": true,
+          "captureExact": true,
+          "captureDoesNotSaveFile": true,
+          "duplicateNoWrite": true,
+          "pendingEditRevokes": true,
+          "refreshCommitsPending": true,
+          "openRestoresExact": true,
+          "openKeepsCatalog": true,
+          "openMarkedUnsaved": true,
+          "storageEventRevokes": true,
+          "keyboardUnchecks": true,
+          "keyboardExecutes": true,
+          "prepareCommitsCustomer": true,
+          "openResetsCustomer": true,
+          "customerNotCaptured": true,
+          "incompleteFxBlocked": true,
+          "fullDoesNotEvict": true,
+          "rawLeaseRejects": true,
+          "invalidCachePreserved": true,
+          "backupExact": true,
+          "backupCancelKeepsRaw": true,
+          "backupFailureNoSecrets": true,
+          "realDownloadExact": true,
+          "clearRequiresConsent": true,
+          "clearTargetOnly": true,
+          "quotaNoFalseSuccess": true,
+          "deleteTargetOnly": true,
+          "noCacheInProject": true,
+          "localRequestsOnly": true
+        },
+        "layouts": [
+          {
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "syntheticOnly": true,
+        "realPhoneVerified": false
+      }
+    },
+    {
+      "suite": "onboarding",
+      "mode": "both",
+      "exitCode": 0,
+      "report_blob": "c8b2c3e3bd5cdb09613f12ae17e3ca1191726001",
+      "report": {
+        "checks": {
+          "firstUseAutoOpen": true,
+          "beginnerDefault": true,
+          "initialHeadingFocused": true,
+          "firstBackDisabled": true,
+          "noPreferenceWrittenOnOpen": true,
+          "tabFromHeading": true,
+          "shiftTabWraps": true,
+          "tabWraps": true,
+          "keyboardNext": true,
+          "selectionRetained": true,
+          "stepsReadOnly": true,
+          "rerenderRetainsGuide": true,
+          "modeChangeKeepsBusiness": true,
+          "escapeReturnsEntry": true,
+          "suppressionSaved": true,
+          "suppressionSurvivesFresh": true,
+          "manualReopens": true,
+          "lastStepHasStart": true,
+          "finishReadOnly": true,
+          "preferenceReenabled": true,
+          "uiNotInBusiness": true,
+          "existingDraftNoAuto": true,
+          "professionalNoAuto": true,
+          "openCommitsCurrentInput": true,
+          "storageFailureClose": true,
+          "storageFailurePreservesDraft": true,
+          "storageFailureReopen": true,
+          "recoveryClosesGuide": true,
+          "recoveryDoesNotSavePreference": true,
+          "retryPreservesBusiness": true,
+          "retryNoPopup": true,
+          "unavailableDialogNonfatal": true,
+          "offlineOnly": true
+        },
+        "layouts": [
+          {
+            "step": 1,
+            "viewport": 1425,
+            "content": 1425,
+            "dialog": 600,
+            "dialogContent": 598,
+            "height": 519.15625,
+            "viewportHeight": 844
+          },
+          {
+            "step": 1,
+            "viewport": 753,
+            "content": 753,
+            "dialog": 600,
+            "dialogContent": 598,
+            "height": 519.15625,
+            "viewportHeight": 844
+          },
+          {
+            "step": 1,
+            "viewport": 390,
+            "content": 390,
+            "dialog": 366,
+            "dialogContent": 364,
+            "height": 560.9375,
+            "viewportHeight": 844
+          },
+          {
+            "step": 1,
+            "viewport": 320,
+            "content": 320,
+            "dialog": 296,
+            "dialogContent": 294,
+            "height": 604.125,
+            "viewportHeight": 844
+          },
+          {
+            "step": 2,
+            "viewport": 1425,
+            "content": 1425,
+            "dialog": 600,
+            "dialogContent": 598,
+            "height": 544.34375,
+            "viewportHeight": 844
+          },
+          {
+            "step": 2,
+            "viewport": 753,
+            "content": 753,
+            "dialog": 600,
+            "dialogContent": 598,
+            "height": 544.34375,
+            "viewportHeight": 844
+          },
+          {
+            "step": 2,
+            "viewport": 390,
+            "content": 390,
+            "dialog": 366,
+            "dialogContent": 364,
+            "height": 611.3125,
+            "viewportHeight": 844
+          },
+          {
+            "step": 2,
+            "viewport": 320,
+            "content": 320,
+            "dialog": 296,
+            "dialogContent": 294,
+            "height": 654.5,
+            "viewportHeight": 844
+          },
+          {
+            "step": 3,
+            "viewport": 1425,
+            "content": 1425,
+            "dialog": 600,
+            "dialogContent": 598,
+            "height": 544.34375,
+            "viewportHeight": 844
+          },
+          {
+            "step": 3,
+            "viewport": 753,
+            "content": 753,
+            "dialog": 600,
+            "dialogContent": 598,
+            "height": 544.34375,
+            "viewportHeight": 844
+          },
+          {
+            "step": 3,
+            "viewport": 390,
+            "content": 390,
+            "dialog": 366,
+            "dialogContent": 364,
+            "height": 586.125,
+            "viewportHeight": 844
+          },
+          {
+            "step": 3,
+            "viewport": 320,
+            "content": 320,
+            "dialog": 296,
+            "dialogContent": 294,
+            "height": 654.5,
+            "viewportHeight": 844
+          },
+          {
+            "step": 4,
+            "viewport": 1425,
+            "content": 1425,
+            "dialog": 600,
+            "dialogContent": 598,
+            "height": 544.34375,
+            "viewportHeight": 844
+          },
+          {
+            "step": 4,
+            "viewport": 753,
+            "content": 753,
+            "dialog": 600,
+            "dialogContent": 598,
+            "height": 544.34375,
+            "viewportHeight": 844
+          },
+          {
+            "step": 4,
+            "viewport": 390,
+            "content": 390,
+            "dialog": 366,
+            "dialogContent": 364,
+            "height": 611.3125,
+            "viewportHeight": 844
+          },
+          {
+            "step": 4,
+            "viewport": 320,
+            "content": 320,
+            "dialog": 296,
+            "dialogContent": 294,
+            "height": 654.5,
+            "viewportHeight": 844
+          }
+        ],
+        "exceptions": [],
+        "syntheticOnly": true,
+        "realPhoneVerified": false
+      }
+    },
+    {
+      "suite": "fee-tax-attachment",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "280863797fc91404729c02d0b9bf064d001de951",
+      "report": {
+        "checks": {
+          "explicitReplacement": true,
+          "noAutomaticTarget": true,
+          "unknownDefaults": true,
+          "explicitExactFacts": true,
+          "noDefaultRate": true,
+          "focusAndPersistence": true,
+          "explicitUnconfirmed": true,
+          "exactChannels": true,
+          "separateAcknowledgements": true,
+          "explanation": true,
+          "internalHtml": true,
+          "realWorkbook": true,
+          "separateJson": true,
+          "inputEventPersists": true,
+          "pendingBlocksExports": true,
+          "pendingBackup": true,
+          "invalidRetained": true,
+          "editRevokesAll": true,
+          "projectBillPairUnchanged": true,
+          "previewOnly": true,
+          "invalidOpenPreserves": true,
+          "cancelSavePreserves": true,
+          "failedSavePreserves": true,
+          "nativeJsonDownload": true,
+          "downloadDoesNotClaimSaved": true,
+          "noAutomaticRecovery": true,
+          "explicitRecovery": true,
+          "conflictVisible": true,
+          "rawConflictBackup": true,
+          "globalRecoveryBackup": true,
+          "retryPreservesEditor": true,
+          "mobilePointerInput": true,
+          "offlineResources": true
+        },
+        "layouts": [
+          {
+            "width": 1440,
+            "viewport": 1425,
+            "content": 1425,
+            "editorVisible": true,
+            "panelWidth": 1192
+          },
+          {
+            "width": 768,
+            "viewport": 753,
+            "content": 753,
+            "editorVisible": true,
+            "panelWidth": 665
+          },
+          {
+            "width": 390,
+            "viewport": 390,
+            "content": 390,
+            "editorVisible": true,
+            "panelWidth": 334
+          },
+          {
+            "width": 320,
+            "viewport": 320,
+            "content": 320,
+            "editorVisible": true,
+            "panelWidth": 264
+          }
+        ],
+        "exceptions": [],
+        "realPhoneVerified": false,
+        "pickerFailureChecks": "API substitutions",
+        "nativeDownloadVerified": true
+      }
+    },
+    {
+      "suite": "fee-precision-selection",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "96f20aaff8ececb58ccd932661a452e4d312a977",
+      "report": {
+        "checks": {
+          "openOnlyPreviews": true,
+          "adoptNeedsConfirmation": true,
+          "exactSources": true,
+          "exactOriginal": true,
+          "unfinishedDraftRetained": true,
+          "unsubmittedExportsBlocked": true,
+          "invalidSubmitPreserves": true,
+          "policyDoesNotClearBusiness": true,
+          "internalHtml": true,
+          "realWorkbook": true,
+          "noImplicitSlot": true,
+          "noDefaultSlot": true,
+          "noDefaultPolicy": true,
+          "unknownStaysUnknown": true,
+          "unknownCannotConfirm": true,
+          "zeroFxRejected": true,
+          "pendingSourceBlocks": true,
+          "sameSourcesRestorePolicy": true,
+          "committedSourceInvalidates": true,
+          "rebindRevokesReceipts": true,
+          "rebindPreservesOriginal": true,
+          "projectBillPairUnchanged": true,
+          "staleConfirmationBlocked": true,
+          "saveCancelPreserves": true,
+          "saveFailurePreserves": true,
+          "nativeJsonDownload": true,
+          "downloadNotSaved": true,
+          "nativeHtmlDownload": true,
+          "nativeXlsxDownload": true,
+          "noAutomaticRecovery": true,
+          "explicitRecovery": true,
+          "unloadedAttachmentBlocks": true,
+          "quotaVisible": true,
+          "quotaMemoryBackup": true,
+          "storageConflictVisible": true,
+          "conflictRawBackup": true,
+          "globalRecoveryIncludesBoth": true,
+          "retryRetainsEditor": true,
+          "mobilePointerDraft": true,
+          "expectedResourcesOnly": true
+        },
+        "layouts": [
+          {
+            "width": 1440,
+            "viewport": 1425,
+            "content": 1425,
+            "panel": 1192
+          },
+          {
+            "width": 768,
+            "viewport": 753,
+            "content": 753,
+            "panel": 665
+          },
+          {
+            "width": 390,
+            "viewport": 390,
+            "content": 390,
+            "panel": 334
+          },
+          {
+            "width": 320,
+            "viewport": 320,
+            "content": 320,
+            "panel": 264
+          }
+        ],
+        "exceptions": [],
+        "transport": "LOCAL_FILE_OFFLINE",
+        "offlineEmulation": true,
+        "downloadDirectory": "LOCAL_SYNTHETIC_ARTIFACT_DIRECTORY",
+        "nativeDownloads": [
+          "JSON",
+          "HTML",
+          "XLSX",
+          "memory backup",
+          "global recovery"
+        ],
+        "faults": "API substitutions for picker/disk/quota; actual storage events and native downloads",
+        "realPhoneVerified": false,
+        "public_redactions": [
+          "local download directory"
+        ]
+      }
+    },
+    {
+      "suite": "fee-envelope",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "d43f2bf6b9f88c8d2bbdd6a7b1574a94650f7537",
+      "report": {
+        "checks": {
+          "noAutomaticCache": true,
+          "panelCollapsed": true,
+          "captureNeedsConfirmation": true,
+          "unknownCannotAutoAdopt": true,
+          "nativeJson": true,
+          "downloadNotSaved": true,
+          "nativeFileExact": true,
+          "full-export-customer-quote": true,
+          "full-export-customer-xlsx": true,
+          "full-export-customer-pdf": true,
+          "compact-export-customer-quote": true,
+          "compact-export-customer-xlsx": true,
+          "compact-export-customer-pdf": true,
+          "coreProjectBillPairUnchanged": true,
+          "nativeInternalHtml": true,
+          "nativeInternalWorkbook": true,
+          "locksAvailable": true,
+          "nativeCacheExact": true,
+          "badFileKeepsCurrent": true,
+          "nativeBadRawBackup": true,
+          "strictNativeUtf8": true,
+          "olderBlocked": true,
+          "forkBlocked": true,
+          "reloadDoesNotAutoRestore": true,
+          "explicitRecovery": true,
+          "nativeLockConflict": true,
+          "nativeStorageEventPreservesCurrent": true,
+          "otherTabMemoryPreserved": true,
+          "clearLeaseProtectsBranch": true,
+          "newBusinessNotInstalled": true,
+          "frozenSaveAndNewDirty": true,
+          "cancelPreservesDirty": true,
+          "beforeUnloadWarns": true,
+          "contextABADiscardsLateRead": true,
+          "quotaBackupRetains": true,
+          "globalRecoveryHasEnvelope": true,
+          "retryRetainsEnvelope": true,
+          "noLockDisablesWrites": true,
+          "mobileNativeBackup": true,
+          "expectedResourcesOnly": true
+        },
+        "layouts": [
+          {
+            "width": 1440,
+            "viewport": 1425,
+            "content": 1425,
+            "panel": 1192
+          },
+          {
+            "width": 768,
+            "viewport": 753,
+            "content": 753,
+            "panel": 665
+          },
+          {
+            "width": 390,
+            "viewport": 390,
+            "content": 390,
+            "panel": 334
+          },
+          {
+            "width": 320,
+            "viewport": 320,
+            "content": 320,
+            "panel": 264
+          }
+        ],
+        "exceptions": [],
+        "transport": "FILE_OFFLINE",
+        "nativeDownloads": [
+          "JSON",
+          "HTML",
+          "XLSX",
+          "bad raw TXT",
+          "current raw TXT",
+          "global recovery"
+        ],
+        "cache": "native Web Locks + actual second tab/storage events; fault substitutions for quota/picker/render",
+        "realPhoneVerified": false
+      }
+    },
+    {
+      "suite": "workbench-state",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "e4ded904723c9b84fab0c408ad9f3b53bffe7d03",
+      "report": {
+        "checks": {
+          "full-export-customer-quote-privacy": true,
+          "full-export-customer-xlsx-privacy": true,
+          "compact-export-customer-quote-privacy": true,
+          "compact-export-customer-xlsx-privacy": true,
+          "noFeeEntry": true,
+          "ownerParticipants": true,
+          "ownerRevision": true,
+          "rawFxKept": true,
+          "projectKept": true,
+          "noPrivateException": true,
+          "backupNotAutoInstall": true,
+          "retryInputs": true,
+          "projectFilePrivacy": true,
+          "retryDoesNotDuplicateOwners": true,
+          "revisionAdvances": true,
+          "rawFxStillKept": true,
+          "expectedResourcesOnly": true
+        },
+        "layouts": [
+          {
+            "width": 1440,
+            "viewport": 1425,
+            "content": 1425
+          },
+          {
+            "width": 768,
+            "viewport": 753,
+            "content": 753
+          },
+          {
+            "width": 390,
+            "viewport": 390,
+            "content": 390
+          },
+          {
+            "width": 320,
+            "viewport": 320,
+            "content": 320
+          }
+        ],
+        "exceptions": [],
+        "baseline": {
+          "status": "NOT_REQUESTED"
+        },
+        "transport": "FILE_OFFLINE",
+        "syntheticOnly": true,
+        "realPhoneVerified": false,
+        "financialApplicationEntry": true,
+        "ownershipScenarioFinancialWrites": 0,
+        "nativeRecoveryDownloads": 2,
+        "customerFilesCompared": 0,
+        "savePickerUsesApiSubstitute": true
+      }
+    },
+    {
+      "suite": "runtime-fee-preview",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "62b951186617fa57a3dd7b947b4d5c32505f7c38",
+      "report": {
+        "checks": {
+          "defaultCollapsed": true,
+          "missingSourcesSpecific": true,
+          "fullSources": true,
+          "fxLeaseRetained": true,
+          "unknownSaveEvidence": true,
+          "actualEnvelopeSaveEvidence": true,
+          "readyWholeBatch": true,
+          "originalAmount": true,
+          "noImplicitApplication": true,
+          "tenPreparedOwners": true,
+          "preparedReceiptOnly": true,
+          "customerReconfirmationPrepared": true,
+          "actualRecalculation": true,
+          "fileOpenOriginals": true,
+          "noSourceOrReceiptWrite": true,
+          "noCacheWrite": true,
+          "noCustomerApproval": true,
+          "candidateVisible": true,
+          "preparedNativeDownload": true,
+          "compactBackupBound": true,
+          "projectSaveBlocks": true,
+          "projectSavedEvidence": true,
+          "downloadKeepsDirtyAndEvidence": true,
+          "cancelDiscardsLate": true,
+          "nativeSecondTabInvalidates": true,
+          "projectReadBlocks": true,
+          "projectReadCaptured": true,
+          "rawFxBlocks": true,
+          "retryInvalidatesPreview": true,
+          "retryKeepsAllSources": true,
+          "backupNoAuthority": true,
+          "mobileActualDownload": true,
+          "downloadNotSaved": true,
+          "resourcesLocalOnly": true
+        },
+        "layouts": [
+          {
+            "width": 1440,
+            "viewport": 1425,
+            "content": 1425,
+            "panel": 1156
+          },
+          {
+            "width": 768,
+            "viewport": 753,
+            "content": 753,
+            "panel": 629
+          },
+          {
+            "width": 390,
+            "viewport": 390,
+            "content": 390,
+            "panel": 306
+          },
+          {
+            "width": 320,
+            "viewport": 320,
+            "content": 320,
+            "panel": 236
+          }
+        ],
+        "exceptions": [],
+        "transport": "FILE_OFFLINE",
+        "nativeDownloads": 3,
+        "realPhoneVerified": false,
+        "fixtureSynthetic": true,
+        "financialApplicationEntry": true,
+        "previewFinancialWrites": 0,
+        "fileUploadUsesApiSubstitute": true,
+        "pickerUsedForInspectionUsesApiSubstitute": true
+      }
+    },
+    {
+      "suite": "runtime-fee-application",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "f4b87d5374d5d5c73410c24ebfa2207cdc2613a9",
+      "report": {
+        "checks": {
+          "customerReviewCanBeExplicit": true,
+          "confirmationSeparate": true,
+          "previewNoFinancialWrite": true,
+          "disabledWithoutAcknowledgement": true,
+          "costAndReceiptTogether": true,
+          "customerReviewRevoked": true,
+          "originalSourcesRetained": true,
+          "fxAndSaveEvidenceRetained": true,
+          "noAutomaticCacheWrite": true,
+          "repeatedOldButtonNoCharge": true,
+          "actualApplicationDownload": true,
+          "completeBeforeAndAfter": true,
+          "actualRecalculation": true,
+          "backupBound": true,
+          "canceledSaveKeepsApplied": true,
+          "nativeCrossTabCasConflict": true,
+          "canceledDuringRecheck": true,
+          "inputWinsDuringRecheck": true,
+          "oldConfirmationCannotApplyNewPreview": true,
+          "postCommitRecoveryAvailable": true,
+          "displayFailureBackupKeepsReceipt": true,
+          "retryDoesNotReapply": true,
+          "referenceOnly": true,
+          "mixedBatch": true,
+          "mixedArchiveRoundtrip": true,
+          "mobileExplicitApplication": true,
+          "resourcesLocalOnly": true
+        },
+        "layouts": [
+          {
+            "width": 1440,
+            "viewport": 1425,
+            "content": 1425,
+            "panel": 1156
+          },
+          {
+            "width": 768,
+            "viewport": 753,
+            "content": 753,
+            "panel": 629
+          },
+          {
+            "width": 390,
+            "viewport": 390,
+            "content": 390,
+            "panel": 306
+          },
+          {
+            "width": 320,
+            "viewport": 320,
+            "content": 320,
+            "panel": 236
+          }
+        ],
+        "exceptions": [],
+        "transport": "FILE_OFFLINE",
+        "nativeDownloads": 3,
+        "realPhoneVerified": false,
+        "fixtureSynthetic": true,
+        "financialApplicationEntry": true,
+        "fileUploadUsesApiSubstitute": true,
+        "pickerUsedForInspectionUsesApiSubstitute": true
+      }
+    },
+    {
+      "suite": "fee-workflow-guide",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "0d8fee91677c620e24ba02344836b19071284984",
+      "report": {
+        "checks": {
+          "entryFocusesGuide": true,
+          "missingBillSpecific": true,
+          "blockerLocatesBill": true,
+          "fullCheckStillSeparate": true,
+          "sixFileEvidence": true,
+          "navigation-bill": true,
+          "navigation-pair": true,
+          "navigation-attachment": true,
+          "navigation-precision": true,
+          "navigation-envelope": true,
+          "navigation-preview": true,
+          "navigation-customer": true,
+          "navigationKeepsFinancialAndFiles": true,
+          "navigationKeepsCache": true,
+          "rawInputImmediatelyInvalidatesGuide": true,
+          "forgedNavigationIgnored": true,
+          "appliedHistoryReminder": true,
+          "customerOldReviewNotGranted": true,
+          "customer-visible-1440": true,
+          "customer-visible-768": true,
+          "drawer-390": true,
+          "customer-visible-390": true,
+          "drawer-320": true,
+          "customer-visible-320": true,
+          "resourcesLocalOnly": true
+        },
+        "layouts": [
+          {
+            "width": 1440,
+            "viewport": 1425,
+            "content": 1425,
+            "panel": 1156,
+            "targets": true
+          },
+          {
+            "width": 768,
+            "viewport": 753,
+            "content": 753,
+            "panel": 629,
+            "targets": true
+          },
+          {
+            "width": 390,
+            "viewport": 390,
+            "content": 390,
+            "panel": 306,
+            "targets": true
+          },
+          {
+            "width": 320,
+            "viewport": 320,
+            "content": 320,
+            "panel": 236,
+            "targets": true
+          }
+        ],
+        "exceptions": [],
+        "transport": "FILE_OFFLINE",
+        "fixtureSynthetic": true,
+        "realPhoneVerified": false,
+        "fileUploadUsesApiSubstitute": true,
+        "pickerUsedForInspectionUsesApiSubstitute": true,
+        "navigationFinancialWrites": 0
+      }
+    },
+    {
+      "suite": "fee-workflow-exercises",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "2ab3be2ac723670dedc50540e250c82f26c6a7de",
+      "report": {
+        "checks": {
+          "customerReviewExplicitBeforeDownload": true,
+          "actualDesktopZip20Files": true,
+          "independent19Fingerprints": true,
+          "examplesNeverConfirmed": true,
+          "downloadKeepsAllSourcesFilesFxAndCustomer": true,
+          "downloadKeepsCache": true,
+          "canceledSaveKeepsInputs": true,
+          "doubleClickOnlyOnePicker": true,
+          "lateSaveKeepsUserEdit": true,
+          "exerciseSaveNeverMarksProjectSaved": true,
+          "noNewCostOrReceipt": true,
+          "actualArchiveFilesOpened": true,
+          "openDoesNotApply": true,
+          "examplePreviewBlocked": true,
+          "unknownTaxStaysUnknown": true,
+          "explicitReferenceCreatesNewMapping": true,
+          "taxRebindRevokesAllConfirmations": true,
+          "rebindNeverRetargets": true,
+          "precisionRebindRevokesPolicy": true,
+          "rebindKeepsFeeAndOriginalReceipt": true,
+          "customerReviewStillRevoked": true,
+          "applicationReminderKept": true,
+          "unreviewedHandoffCannotApply": true,
+          "actualMobileZip": true,
+          "repeatDownloadIndependentIdentity": true,
+          "resourcesLocalOnly": true
+        },
+        "layouts": [
+          {
+            "width": 1440,
+            "viewport": 1425,
+            "content": 1425,
+            "panel": 1128,
+            "buttonHeight": 44
+          },
+          {
+            "width": 768,
+            "viewport": 753,
+            "content": 753,
+            "panel": 601,
+            "buttonHeight": 44
+          },
+          {
+            "width": 390,
+            "viewport": 390,
+            "content": 390,
+            "panel": 285.8125,
+            "buttonHeight": 44
+          },
+          {
+            "width": 320,
+            "viewport": 320,
+            "content": 320,
+            "panel": 215.8125,
+            "buttonHeight": 44
+          }
+        ],
+        "exceptions": [],
+        "transport": "FILE_OFFLINE",
+        "actualZipDownloads": 2,
+        "syntheticCases": 3,
+        "filesPerZip": 20,
+        "fixtureSynthetic": true,
+        "realPhoneVerified": false,
+        "fileUploadUsesApiSubstitute": true,
+        "cancelAndDelayedSaveUseApiSubstitute": true
+      }
+    },
+    {
+      "suite": "post-application-requote",
+      "mode": "professional",
+      "exitCode": 0,
+      "report_blob": "4d8a2ec8f5af215cf41ade93d448a3d79524d409",
+      "report": {
+        "checks": {
+          "oldCustomerExplicitlyReviewed": true,
+          "firstApplyAddsOneFeeAndReceipt": true,
+          "applicationRevokesCustomerReview": true,
+          "newTaxIdentityAndRetiredOldId": true,
+          "newTargetExplicit": true,
+          "newTaxNeverInheritsConfirmation": true,
+          "newPrecisionIdentityAndRetiredOldId": true,
+          "newPolicyNeverInheritsConfirmation": true,
+          "missingNewPolicyStillBlocks": true,
+          "editingRecordsNeverChangesProject": true,
+          "firstReceiptRetainedBeforeReference": true,
+          "onlyReferenceCandidate": true,
+          "unknownProfitNotZero": true,
+          "referenceNoDuplicateFee": true,
+          "referenceAddsOneReceiptRetainsOriginal": true,
+          "customerStillNeedsReview": true,
+          "sixActualFormalDownloadsMatchCurrentBytes": true,
+          "savedRetiredIdsAndTwoReceipts": true,
+          "explicitNewCustomerReview": true,
+          "actualCustomerHtmlAndExcelPublicFields": true,
+          "internalSourcesAndLedgerExcluded": true,
+          "actualCustomerPdfValid": true,
+          "customerContractQuoteUnchanged": true,
+          "exportKeepsProjectReceiptAndReview": true,
+          "fiveManualHandoffSteps": true,
+          "sixOriginalInputsReopenSavedFiles": true,
+          "reopenPreservesTwoReceipts": true,
+          "reopenResetsCustomerFieldsAndReview": true,
+          "samePageReopenKeepsHistoricalReminder": true,
+          "freshLoadDoesNotInventApplicationReminder": true,
+          "resourcesLocalOnly": true
+        },
+        "layouts": [
+          {
+            "width": 1440,
+            "viewport": 1425,
+            "content": 1425,
+            "buttonHeight": 44
+          },
+          {
+            "width": 768,
+            "viewport": 753,
+            "content": 753,
+            "buttonHeight": 44
+          },
+          {
+            "width": 390,
+            "viewport": 390,
+            "content": 390,
+            "buttonHeight": 44
+          },
+          {
+            "width": 320,
+            "viewport": 320,
+            "content": 320,
+            "buttonHeight": 44
+          }
+        ],
+        "exceptions": [],
+        "transport": "FILE_OFFLINE",
+        "actualJsonDownloads": 6,
+        "actualCustomerDownloads": 3,
+        "fixtureSynthetic": true,
+        "realPhoneVerified": false,
+        "fileUploadUsesApiSubstitute": true,
+        "backupInspectionUsesSaveApiSubstitute": true,
+        "customerPdfCheck": "Actual downloaded PDF structure and metadata; existing full PDF suite retains layout and text checks"
+      }
+    }
+  ],
+  "unit": {
+    "success": true,
+    "files": 130,
+    "passed": 4659,
+    "new_tests": 45
+  },
+  "real_phone_verified": false,
+  "professional_review_verified": false,
+  "production_capacity_changed": false,
+  "methodology": "Published reports remove local filesystem metadata; original unredacted reports remain local. All46 existing native suites rerun against the integrated offline runtime, plus built module HTTP entry. File inputs and fault injection use the original documented API substitutes; downloads,Web Locks,second tabs and width checks retain each suite original scope. No real business or performance/capacity claim."
+}
