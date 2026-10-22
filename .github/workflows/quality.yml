@@ -17,7 +17,7 @@ jobs:
   verify:
     name: Verify on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -33,7 +33,7 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
       - name: Check dependency advisories
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=moderate
       - name: Run calculation and file regression tests
         run: npm test
       - name: Check funding period design fixtures
@@ -43,6 +43,7 @@ jobs:
           node tools/build-import-walkthrough.mjs --check
           node tools/check-capability-evidence.mjs
           node tools/check-fee-source-compatibility.mjs
+          node tools/check-fee-semantic-budget.mjs
       - name: Check container cost review design fixtures
         run: npm run check:container-review-design
       - name: Check fee tax component design fixtures
