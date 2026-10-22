@@ -2,6 +2,8 @@ import {readFileSync,readdirSync} from 'node:fs';
 import {resolve,join} from 'node:path';
 import {createHash} from 'node:crypto';
 const root=resolve(import.meta.dirname,'..'),read=path=>readFileSync(join(root,path)),blob=bytes=>createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+const pkg=JSON.parse(read('package.json')),lock=JSON.parse(read('package-lock.json'));
+if(pkg.devDependencies.vitest!=='5.0.3'||lock.packages[''].devDependencies.vitest!=='5.0.3'||lock.packages['node_modules/vitest'].version!=='5.0.3'||lock.packages['node_modules/@vitest/mocker'].version!=='5.0.3'||pkg.devDependencies.vite!=='7.3.7')throw Error('Reviewed test security patch differs');
 const report=JSON.parse(read('docs/cases/fee-source-semantic-budget.json'));
 if(report.kind!=='SYNTHETIC_FEE_SEMANTIC_BUDGET_BROWSER_MATRIX'||report.version!=='0.2'||report.integration_decision!=='KEEP_ORIGINAL_CAPTURE'||report.runtime_integrated!==false||report.production_capacity_changed!==false||report.financial_writes!==0||report.financial_application_used!==false||report.real_phone_verified!==false||report.unexpected_dialog!==null||!Number.isSafeInteger(report.navigation_dialogs)||report.navigation_dialogs<0||report.cases.length!==42||report.operational.length!==27)throw Error('Semantic evidence scope differs');
 if(blob(Buffer.from(read('docs/cases/fee-source-compatibility.json').toString('utf8').replace(/\r\n/g,'\n')))!=='1c6fe5d760dfadd3555cbb06e3876f254266fd05'||report.historical_counterexamples.source_commit!=='df330a6b642339ef9c21ac2d3e4c4cfec756e69a'||report.historical_counterexamples.adapter_version!=='0.1')throw Error('Historical counterexamples changed');

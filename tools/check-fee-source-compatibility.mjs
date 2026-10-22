@@ -2,7 +2,10 @@ import {readFileSync,readdirSync} from 'node:fs';
 import {resolve,join} from 'node:path';
 import {createHash} from 'node:crypto';
 const root=resolve(import.meta.dirname,'..'),read=path=>readFileSync(join(root,path)),blob=bytes=>createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
-const report=JSON.parse(read('docs/cases/fee-source-compatibility.json').toString('utf8'));
+const historicalBytes=Buffer.from(read('docs/cases/fee-source-compatibility.json').toString('utf8').replace(/\r\n/g,'\n')),historical=JSON.parse(historicalBytes),report=JSON.parse(read('docs/cases/fee-source-compatibility-patch.json').toString('utf8'));
+// Keep phase89 evidence immutable; the separately rerun record qualifies the changed test-only lockfile.
+if(blob(historicalBytes)!=='1c6fe5d760dfadd3555cbb06e3876f254266fd05'||JSON.stringify(report.cases)!==JSON.stringify(historical.cases)||report.offline_runtime_blob!==historical.offline_runtime_blob)throw Error('Historical compatibility facts changed');
+if(Object.keys(historical.source_fingerprints).length!==Object.keys(report.source_fingerprints).length||Object.entries(historical.source_fingerprints).some(([path,sha])=>path!=='package-lock.json'&&report.source_fingerprints[path]!==sha)||historical.source_fingerprints['package-lock.json']===report.source_fingerprints['package-lock.json'])throw Error('Patch qualification must change only the dependency fingerprint');
 if(report.kind!=='SYNTHETIC_FEE_SOURCE_COMPATIBILITY_BROWSER_MATRIX'||report.version!=='0.1'||report.integration_decision!=='KEEP_ORIGINAL_CAPTURE'||report.runtime_integrated!==false||report.production_capacity_changed!==false||report.financial_writes!==0||report.financial_application_used!==false||report.real_phone_verified!==false||report.cases.length!==42)throw Error('Compatibility scope differs');
 for(const[path,sha]of Object.entries(report.source_fingerprints)){
  if(!/^(?:src|tools)\/[a-zA-Z0-9/._-]+$/.test(path)&&path!=='package-lock.json'||path.split('/').includes('..'))throw Error('Invalid fingerprint path');

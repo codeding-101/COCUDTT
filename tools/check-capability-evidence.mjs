@@ -15,6 +15,7 @@ files.push('docs/fee-source-compatibility-design.md');
 files.push('docs/fee-source-compatibility-validation.md');
 files.push('docs/fee-semantic-budget-design.md');
 files.push('docs/fee-semantic-budget-validation.md');
+files.push('docs/vitest-patch-validation.md');
 for(const file of files){const text=readFileSync(resolve(root,file),'utf8');for(const match of text.matchAll(/\]\(([^)]+)\)/g)){
  const target=match[1];if(/^(https?:|#)/.test(target))continue;
  const full=resolve(dirname(resolve(root,file)),target.split('#')[0]),path=relative(root,full);

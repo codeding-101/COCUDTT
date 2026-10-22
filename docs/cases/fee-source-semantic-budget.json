@@ -1,7 +1,7 @@
 {
   "kind": "SYNTHETIC_FEE_SEMANTIC_BUDGET_BROWSER_MATRIX",
   "version": "0.2",
-  "generated_at": "2026-10-22T02:00:14.285Z",
+  "generated_at": "2026-10-22T02:27:53.961Z",
   "browser": "Edg/155.0.4283.62",
   "source_fingerprints": {
     "src/ui/app.ts": "6846043e719dea87dd1eaf0a5cffb75cf328809a",
@@ -15,7 +15,7 @@
     "tools/fee-source-compatibility-cases.ts": "dd0ef3576af5b2da66c273479d4cc35038df7770",
     "tools/fee-source-compatibility-bridge.mjs": "bd17490e0c567658d98ab4a77aee5e94f47cd83f",
     "tools/check-fee-source-compatibility-browser.mjs": "9fedf06ed09bae38f5cbbfd09fa0569ff7e014b6",
-    "package-lock.json": "9ac8c928e5e414873debb50557d86bbc61794887",
+    "package-lock.json": "e8f4fefd577d80ff763528598f80bc9dbb3358ea",
     "src/ui/fx-rows.ts": "d9dfa436dabff157b692b44fb86e3eb9e85bbac5",
     "src/data/project-file.ts": "d1d658a794ca09dfa4feac308c5630f5e6c02e73",
     "src/data/container-bill-file.ts": "324aa739a6deb98dfa53ad96cefbb505a58c9c9c",
