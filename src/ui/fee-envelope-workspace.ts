@@ -9,6 +9,7 @@ import {captureRuntimeFeeWorkbench, previewRuntimeFeeWorkbench, renderRuntimeFee
 import type {RuntimeFeeApplicationRecord, RuntimeFeeCandidateSummary} from './fee-workbench-candidate.js';
 import {encodeRuntimeFeeBackup} from '../data/runtime-fee-backup.js';
 import {renderFeeWorkflowGuide} from './fee-workflow-guide.js';
+import {renderFeeWorkbenchSaveGuidance, type FeeWorkbenchSaveNotice} from './fee-workbench-save-guidance.js';
 
 export interface FeeEnvelopeWorkspaceEnvironment {
   stateOwner?: WorkbenchStateOwner;
@@ -46,13 +47,14 @@ export class FeeEnvelopeWorkspace {
   private workbenchConfirmation: {token: string; generation: number; summary: RuntimeFeeCandidateSummary; acknowledged: boolean} | null = null;
   private workbenchApplication: RuntimeFeeApplicationRecord | null = null;
   private workbenchGeneration = 0; private workbenchBusy = false; private workbenchMessage = '';
+  private workbenchSaveNotice: FeeWorkbenchSaveNotice | null = null;
   constructor(private readonly env: FeeEnvelopeWorkspaceEnvironment) {
     this.controller = new FeeEnvelopeController({stateOwner:env.stateOwner,storage: env.storage, blocked: () => env.blocked() || this.busy, changed: () => {this.invalidateWorkbenchPreview(); this.refresh();}, write: (...args) => env.write(...args)});
     env.stateOwner?.bind(this, 'envelope-workspace');
   }
   private live() { try { return this.env.currentSources(); } catch { return null; } }
   workbenchCapture() {return {pending: this.pending ? structuredClone(this.pending) : null, generation: this.generation, busy: this.busy, exporting: this.exporting, business_name: this.businessName, choices: {...this.choices}};}
-  private invalidateWorkbenchPreview() {this.workbenchGeneration++; if (this.workbenchResult || this.workbenchBusy) this.workbenchMessage = '资料或操作状态已变化，请重新核对完整批次；原项目保持。'; if (this.workbenchCandidate) this.env.discardCandidate?.(this.workbenchCandidate.summary); this.workbenchResult = null; this.workbenchCandidate = null; this.workbenchConfirmation = null; this.workbenchBusy = false; this.refreshGuide();}
+  private invalidateWorkbenchPreview() {this.workbenchGeneration++; this.workbenchSaveNotice = null; if (this.workbenchResult || this.workbenchBusy) this.workbenchMessage = '资料或操作状态已变化，请重新核对完整批次；原项目保持。'; if (this.workbenchCandidate) this.env.discardCandidate?.(this.workbenchCandidate.summary); this.workbenchResult = null; this.workbenchCandidate = null; this.workbenchConfirmation = null; this.workbenchBusy = false; this.refreshGuide();}
   private refreshGuide() {
     if (typeof document === 'undefined') return;
     const panel = document.querySelector<HTMLDetailsElement>('[data-fee-workflow-guide]'); if (!panel) return;
@@ -78,6 +80,7 @@ export class FeeEnvelopeWorkspace {
       ${this.pending ? `<section class="fee-envelope-confirm" role="alert"><p>${h(({capture: '从当前完整来源生成历史未知候选，不推定未消费。', update: '更新当前封套内来源并保留旧历史，不更新工作台。', 'new-business': '复制当前配对为独立新业务候选，重建身份并撤销已知确认，不识别真实订单。', clear: '仅移除所选本机缓存，原文留在内存，当前文件保持。'} as Record<string,string>)[this.pending.action] ?? '')} 请先另存需要保留的资料。</p>${this.button('confirm', '确认执行', locked, ` data-fee-envelope-token="${this.pending.token}"`)}${b('cancel', '取消操作')}</section>` : ''}
       ${s.current ? `<div data-fee-envelope-review>${this.reviewHtml || '正在核对封套内来源与历史…'}</div>` : ''}
       ${this.env.captureWorkbench ? renderRuntimeFeeWorkbenchPreview(this.workbenchResult, this.workbenchBusy, this.workbenchMessage) : ''}
+      ${renderFeeWorkbenchSaveGuidance(this.workbenchSaveNotice)}
       ${renderRuntimeFeeWorkbenchCandidate(this.workbenchCandidate?.summary ?? null)}
       ${this.env.applyCandidate && this.workbenchCandidate ? `<div class="panel-actions">${this.button('workbench-arm', '核对完成，准备整批应用', this.workbenchBusy || locked || writing)}</div>` : ''}
       ${this.workbenchConfirmation ? `<section class="fee-envelope-confirm" data-fee-workbench-confirmation role="region" aria-label="确认整批费用应用"><h3>确认应用当前完整批次</h3><p>拟新增 ${this.workbenchConfirmation.summary.costs_added} 笔费用，并记录一份整批回执。原配对、成分与精度资料保留；客户报价的旧确认将撤销。仅有引用的行不会再次增加费用。</p><label class="fee-envelope-check"><input type="checkbox" data-fee-envelope-choice="apply-batch"${this.workbenchConfirmation.acknowledged ? ' checked' : ''}${this.workbenchBusy ? ' disabled' : ''}>我已核对原币金额、费用归属及税务依据，确认应用整批资料，并会重新检查客户报价和另存文件。</label><div class="panel-actions">${this.button('workbench-apply', this.workbenchBusy ? '正在重新核对并应用…' : '确认整批应用', this.workbenchBusy || !this.workbenchConfirmation.acknowledged || locked || writing, ` data-fee-envelope-apply-token="${h(this.workbenchConfirmation.token)}"`)}${this.button('workbench-cancel', '取消，保留当前项目')}</div></section>` : ''}
@@ -173,11 +176,13 @@ export class FeeEnvelopeWorkspace {
     if (key === 'workbench-application-backup') {await this.backupApplication(); return;}
     if (key === 'workbench-cancel') {this.invalidateWorkbenchPreview(); this.workbenchMessage = '本次预览已清除，当前项目和独立资料保持。'; this.refresh(); return;}
     if (key === 'workbench-arm') {
+      this.workbenchSaveNotice = null;
       if (!this.env.applyCandidate || this.workbenchBusy || this.exporting || !this.workbenchCandidate || !this.workbenchResult) return;
       if (JSON.stringify(captureRuntimeFeeWorkbench(this.env.captureWorkbench())) !== JSON.stringify(this.workbenchResult.capture)) {this.invalidateWorkbenchPreview(); this.refresh(); return;}
       this.workbenchConfirmation = {token: crypto.randomUUID(), generation: this.workbenchGeneration, summary: this.workbenchCandidate.summary, acknowledged: false}; this.refresh(); return;
     }
     if (key === 'workbench-apply') {
+      this.workbenchSaveNotice = null;
       if (this.workbenchBusy || !this.env.applyCandidate) return;
       const confirmation = this.workbenchConfirmation;
       if (!confirmation || confirmation.token !== data.feeEnvelopeApplyToken || !confirmation.acknowledged) {this.invalidateWorkbenchPreview(); this.workbenchMessage = '确认已失效或尚未完整勾选，未应用费用；请重新预览。'; this.refresh(); return;}
@@ -192,10 +197,27 @@ export class FeeEnvelopeWorkspace {
     }
     if (key === 'workbench-backup') {
       if (this.exporting) return;
-      const capture = captureRuntimeFeeWorkbench(this.env.captureWorkbench());
-      const raw = this.workbenchCandidate && this.workbenchResult && JSON.stringify(capture) === JSON.stringify(this.workbenchResult.capture) ? this.workbenchCandidate.backup_json : encodeRuntimeFeeBackup(JSON.stringify({kind: 'INTERNAL_RUNTIME_FEE_WORKBENCH_CHECK_BACKUP', version: '0.1', capture, preview: this.workbenchResult, financial_writes: 0, import_authority: false}, null, 2) + '\n');
+      let raw: string;
+      try {
+        const capture = captureRuntimeFeeWorkbench(this.env.captureWorkbench());
+        raw = this.workbenchCandidate && this.workbenchResult && JSON.stringify(capture) === JSON.stringify(this.workbenchResult.capture) ? this.workbenchCandidate.backup_json : encodeRuntimeFeeBackup(JSON.stringify({kind: 'INTERNAL_RUNTIME_FEE_WORKBENCH_CHECK_BACKUP', version: '0.1', capture, preview: this.workbenchResult, financial_writes: 0, import_authority: false}, null, 2) + '\n');
+      } catch {
+        this.workbenchSaveNotice = 'BACKUP_UNAVAILABLE'; this.workbenchMessage = '工作台检查备份未生成；原资料保留，请按下方指引逐份另存当前源文件。'; this.refresh(); return;
+      }
+      const generation = this.workbenchGeneration;
+      this.workbenchSaveNotice = null;
       this.exporting = true; this.refresh();
-      try {const status = await this.env.write('internal-fee-workbench-check.json', raw, 'application/json'); this.workbenchMessage = status === 'SAVED' ? '已另存点击时的内部检查资料；当前项目保存状态保持。' : '已发起内部检查资料下载，请确认落盘；不标记项目或封套已保存。';}
+      try {
+        const status = await this.env.write('internal-fee-workbench-check.json', raw, 'application/json');
+        if (generation !== this.workbenchGeneration || this.env.blocked()) return;
+        if (status !== 'SAVED' && status !== 'DOWNLOAD_STARTED') throw Error('WRITE_RESULT');
+        this.workbenchMessage = status === 'SAVED' ? '已另存点击时的内部检查资料；当前项目保存状态保持。' : '已发起内部检查资料下载，请确认落盘；不标记项目或封套已保存。';
+      } catch (error) {
+        if (generation !== this.workbenchGeneration || this.env.blocked()) return;
+        const cancelled = error instanceof Error && error.name === 'AbortError';
+        this.workbenchSaveNotice = cancelled ? 'SAVE_CANCELLED' : 'SAVE_UNCONFIRMED';
+        this.workbenchMessage = cancelled ? '已取消工作台检查备份另存；不标记项目或封套已保存。' : '工作台检查备份另存未完成，无法确认文件已保存；请核对目标文件后重试，或逐份另存当前源文件。';
+      }
       finally {this.exporting = false; this.refresh();}
       return;
     }
@@ -210,8 +232,8 @@ export class FeeEnvelopeWorkspace {
       const candidate = result.status === 'STAGED' && this.env.prepareCandidate ? await this.env.prepareCandidate(result) : null;
       if (generation !== this.workbenchGeneration || this.env.blocked()) return;
       if (basis !== JSON.stringify(captureRuntimeFeeWorkbench(this.env.captureWorkbench()))) {this.invalidateWorkbenchPreview(); this.workbenchMessage = '核对期间完整资料已变化，迟到预览已丢弃，请重新核对。'; return;}
-      this.workbenchResult = result; this.workbenchCandidate = candidate; this.workbenchMessage = result.status === 'STAGED' ? '完整批次已准备，仅供核对；实际费用和回执尚未写入。' : '请处理以下具体待办后重新核对；当前费用保持。';
-    } catch {if (generation === this.workbenchGeneration) this.workbenchMessage = '完整检查未完成；原文保留，可另存当前工作台检查备份后继续核对。';}
+      this.workbenchResult = result; this.workbenchCandidate = candidate; this.workbenchSaveNotice = null; this.workbenchMessage = result.status === 'STAGED' ? '完整批次已准备，仅供核对；实际费用和回执尚未写入。' : '请处理以下具体待办后重新核对；当前费用保持。';
+    } catch {if (generation === this.workbenchGeneration) {this.workbenchSaveNotice = 'CHECK_UNAVAILABLE'; this.workbenchMessage = '完整检查未完成；本次检查未应用费用，原资料保留。请按下方指引逐份另存；整份检查备份也可能无法生成。';}}
     finally {if (generation === this.workbenchGeneration) this.workbenchBusy = false; this.refresh();}
   }
 }

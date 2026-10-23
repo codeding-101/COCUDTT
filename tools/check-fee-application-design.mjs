@@ -116,5 +116,6 @@ runtimePreview.add('ui/fee-workflow-guide.ts'); // Read-only preview types and n
 standalone.add('ui/fee-workbench-source-adapter.ts'); // Independent reconstruction only; existing no-storage/no-DOM-write guard still applies.
 standalone.add('ui/fee-workbench-source-readers.ts'); // Original no-storage/no-DOM-write restrictions still apply.
 standalone.add('ui/fee-workbench-semantic-capture.ts'); // Read-only production capture; application authority remains in the original candidate preparer.
+standalone.add('ui/fee-workbench-save-guidance.ts'); // Pure HTML view; the original no-storage/no-DOM-write guard applies.
 inactive(new URL('../src/',import.meta.url));if(found.size!==standalone.size)throw Error('Missing standalone proposal module');
 console.log(JSON.stringify({kind:fixture.kind,validCases:valid,rejectedCases:rejected,sourceMutations,constructedMappings:constructed,digestVectors:fixture.digest_vectors.length,productionImports:false,productionModuleImplemented:true,independentAggregateCoordinatorImplemented:true,workbenchSnapshotImplemented:true,runtimePreviewIntegrated:true,runtimeIntegrated:true,explicitApplicationEntry:true,scope:'INDEPENDENT_ORACLE_WITH_EXPLICIT_RUNTIME_APPLICATION'}));

@@ -98,5 +98,6 @@ standalone.add('data/fee-workflow-exercises.ts'); // Only legacy adoption: UNKNO
 standalone.add('ui/fee-workbench-source-adapter.ts'); // Independent compatibility projection; existing standalone effect restrictions still apply.
 standalone.add('ui/fee-workbench-source-readers.ts'); // Explicit observations; existing standalone effect restrictions still apply.
 standalone.add('ui/fee-workbench-semantic-capture.ts'); // Original JSON guards, no adoption or application authority.
+standalone.add('ui/fee-workbench-save-guidance.ts'); // Pure HTML view, subject to the existing independent-module effect restrictions.
 inactive(new URL('../src/',import.meta.url));if(found.size!==standalone.size+1+runtime.size)throw Error('Missing envelope module');
 console.log(JSON.stringify({kind:fixture.kind,validCases:valid,rejectedCases:rejected,receiptLeafMutations:receiptMutations,renamedIdentityChecks,digestVectors:fixture.digest_vectors.length,productionImports:false,productionParserImplemented:true,independentControllerImplemented:true,runtimeIntegrated:true,applicationEntryEnabled:true,independentAdoptionWrites:0,scope:'INTERNAL_ENVELOPE_WITH_EXPLICIT_RUNTIME_APPLICATION'}));
