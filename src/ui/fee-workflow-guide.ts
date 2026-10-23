@@ -4,6 +4,12 @@ import type {RuntimeFeeApplicationRecord} from './fee-workbench-candidate.js';
 import {escapeHtml as h} from './format.js';
 
 const targets = {
+  'save-project': {section: 'workspace-core', selector: '[data-action="save"]'},
+  'save-bill': {section: 'container-bill', selector: '[data-action="bill-save"]'},
+  'save-pair': {section: 'container-cost-pair', selector: '[data-action="pair-save"]'},
+  'save-attachment': {section: 'fee-tax-attachment', selector: '[data-action="fee-tax-save"]'},
+  'save-precision': {section: 'fee-precision-selection', selector: '[data-action="fee-precision-save"]'},
+  'save-envelope': {section: 'fee-envelope', selector: '[data-action="fee-envelope-save"]'},
   bill: {section: 'container-bill', selector: '[data-evidence-section="container-bill"] > summary'},
   pair: {section: 'container-cost-pair', selector: '[data-evidence-section="container-cost-pair"] > summary'},
   attachment: {section: 'fee-tax-attachment', selector: '[data-evidence-section="fee-tax-attachment"] > summary'},

@@ -1,6 +1,7 @@
 import {readFileSync,readdirSync} from 'node:fs';
 import {resolve,join} from 'node:path';
 import {createHash} from 'node:crypto';
+import {guidanceFingerprint,guidanceRuntime} from './fee-save-guidance-evidence.mjs';
 const root=resolve(import.meta.dirname,'..'),read=path=>readFileSync(join(root,path)),blob=bytes=>createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
 const pkg=JSON.parse(read('package.json')),lock=JSON.parse(read('package-lock.json'));
 if(pkg.devDependencies.vitest!=='5.0.3'||lock.packages[''].devDependencies.vitest!=='5.0.3'||lock.packages['node_modules/vitest'].version!=='5.0.3'||lock.packages['node_modules/@vitest/mocker'].version!=='5.0.3'||pkg.devDependencies.vite!=='7.3.7')throw Error('Reviewed test security patch differs');
@@ -10,7 +11,7 @@ if(report.kind!=='SYNTHETIC_FEE_SEMANTIC_INTEGRATION_BROWSER_MATRIX'||report.ver
 if(blob(Buffer.from(read('docs/cases/fee-source-compatibility.json').toString('utf8').replace(/\r\n/g,'\n')))!=='1c6fe5d760dfadd3555cbb06e3876f254266fd05'||report.historical_counterexamples.source_commit!=='df330a6b642339ef9c21ac2d3e4c4cfec756e69a'||report.historical_counterexamples.adapter_version!=='0.1')throw Error('Historical counterexamples changed');
 for(const[path,sha]of Object.entries(report.source_fingerprints)){
  if(!/^(?:src|tools)\/[a-zA-Z0-9/._-]+$/.test(path)&&path!=='package-lock.json'||path.split('/').includes('..'))throw Error('Invalid fingerprint path');
- if(blob(Buffer.from(read(path).toString('utf8').replace(/\r\n/g,'\n')))!==sha)throw Error('Stale semantic evidence fingerprint '+path);
+ if(blob(Buffer.from(read(path).toString('utf8').replace(/\r\n/g,'\n')))!==sha&&!guidanceFingerprint(path,sha))throw Error('Stale semantic evidence fingerprint '+path);
 }
 if(Object.keys(report.source_fingerprints).length!==29)throw Error('Incomplete semantic fingerprint coverage');
 const ids=new Set(),byId=new Map(),unsupported=['undefined','function','symbol_value','symbol_key','non_enumerable','sparse_array','custom_prototype','cycle','nan','infinity','lone_high','lone_low','accessor','to_json'];
@@ -36,7 +37,7 @@ function production(directory){for(const entry of readdirSync(directory,{withFil
 production(join(root,'src'));
 const app=read('src/ui/app.ts').toString('utf8');
 if(!app.includes("from './fee-workbench-semantic-capture.js'")||!app.includes('captureFeeSemanticBudget(workbenchState,{')||app.includes('captureFeeWorkbenchSourceFrame')||app.includes('captureLegacyFeeWorkbench91'))throw Error('Explicit production capture binding missing');
-const runtime=read('trade-cost-engine.html');if(blob(runtime)!==report.offline_runtime_blob||['__feeSemanticIntegration91','__feeSourceSemanticBudget90','__feeSourceCompatibility89','captureLegacyFeeWorkbench91'].some(s=>runtime.includes(Buffer.from(s))))throw Error('Production artifact or bridge isolation changed');
+const runtime=read('trade-cost-engine.html');if(blob(runtime)!==report.offline_runtime_blob&&!guidanceRuntime(report.offline_runtime_blob)||['__feeSemanticIntegration91','__feeSourceSemanticBudget90','__feeSourceCompatibility89','captureLegacyFeeWorkbench91'].some(s=>runtime.includes(Buffer.from(s))))throw Error('Production artifact or bridge isolation changed');
 const native=JSON.parse(read('docs/cases/fee-semantic-integration-native.json'));
 function portable(value){
  if(typeof value==='string'&&/^(?:[A-Za-z]:[\\/]|file:\/\/\/|\\\\|\/(?:Users|home)\/)/.test(value))throw Error('Public evidence contains a local absolute path');
@@ -44,7 +45,7 @@ function portable(value){
 }
 portable(native);
 if(native.kind!=='SYNTHETIC_FEE_SEMANTIC_INTEGRATION_NATIVE_REGRESSION'||native.offline_runtime_blob!==report.offline_runtime_blob||native.real_phone_verified!==false||native.professional_review_verified!==false||native.production_capacity_changed!==false||native.suites.length!==46||new Set(native.suites.map(s=>s.suite)).size!==46||native.suites.some(s=>s.exitCode!==0||!s.report||!s.report_blob))throw Error('Complete native evidence missing');
-for(const[path,sha]of Object.entries(native.source_fingerprints))if(blob(Buffer.from(read(path).toString('utf8').replace(/\r\n/g,'\n')))!==sha)throw Error('Stale full native source '+path);
+for(const[path,sha]of Object.entries(native.source_fingerprints))if(blob(Buffer.from(read(path).toString('utf8').replace(/\r\n/g,'\n')))!==sha&&!guidanceFingerprint(path,sha))throw Error('Stale full native source '+path);
 if(Object.keys(native.source_fingerprints).length<300)throw Error('Incomplete native source coverage');
 const suiteDeclaration=read('tools/run-browser-regression.mjs').toString('utf8').match(/const suites=(\[[^\]]+\])/);
 if(!suiteDeclaration||JSON.stringify(native.suites.map(s=>s.suite))!==JSON.stringify(JSON.parse(suiteDeclaration[1].replaceAll("'",'"'))))throw Error('Native suite identities differ');
@@ -56,4 +57,4 @@ const application=native.suites.find(s=>s.suite==='runtime-fee-application').rep
 for(const key of ['costAndReceiptTogether','repeatedOldButtonNoCharge','completeBeforeAndAfter','postCommitRecoveryAvailable','displayFailureBackupKeepsReceipt','retryDoesNotReapply','customerReviewRevoked','originalSourcesRetained','fxAndSaveEvidenceRetained','mobileExplicitApplication'])if(application[key]!==true)throw Error('Missing atomic apply or recovery evidence '+key);
 for(const s of native.suites){const bytes=Buffer.from(JSON.stringify(s.report,null,2));if(blob(bytes)!==s.report_blob)throw Error('Native report changed '+s.suite);}
 if(native.unit.files!==130||native.unit.passed!==4659||native.unit.new_tests!==45||native.unit.success!==true)throw Error('Production guard regression missing');
-console.log(JSON.stringify({kind:report.kind,compatibilityCases:42,operationalCases:27,exactCaptures:52,closedCounterexamples:closed,unsupportedJavaScript:14,productionAction:'USE_SEMANTIC_CAPTURE',transactionReadinessTested:true,captureFinancialWrites:0,nativeApplicationVerified:true,nativeSuites:46,runtimeIntegrated:true,scope:'COMMITTED_CAPTURE_AND_FULL_NATIVE_INTEGRATION_EVIDENCE'}));
+console.log(JSON.stringify({kind:report.kind,compatibilityCases:42,operationalCases:27,exactCaptures:52,closedCounterexamples:closed,unsupportedJavaScript:14,productionAction:'USE_SEMANTIC_CAPTURE',transactionReadinessTested:true,captureFinancialWrites:0,nativeApplicationVerified:true,nativeSuites:46,runtimeIntegrated:true,historicalRuntime:report.offline_runtime_blob,currentRuntime:blob(runtime),currentNativeRevalidated:guidanceRuntime(report.offline_runtime_blob),scope:'HISTORICAL_PHASE91_WITH_CURRENT_SAVE_GUIDANCE_REVALIDATION'}));
