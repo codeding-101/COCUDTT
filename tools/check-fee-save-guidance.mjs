@@ -2,6 +2,7 @@ import {readFileSync,readdirSync,existsSync} from 'node:fs';
 import {resolve,join,dirname,relative,isAbsolute} from 'node:path';
 import {createHash} from 'node:crypto';
 import {guidanceHistoricalPins,guidanceChangedHistoricalPaths,guidanceFingerprint,guidanceRuntime} from './fee-save-guidance-evidence.mjs';
+import {layeredCaptureFingerprints} from './fee-layered-capture-evidence.mjs';
 const root=resolve(import.meta.dirname,'..'),read=p=>readFileSync(join(root,p)),blob=b=>createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex'),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b),fail=m=>{throw Error('Save guidance evidence: '+m);};
 const r=JSON.parse(read('docs/cases/fee-save-guidance-native.json'));
 function portable(v){if(typeof v==='string'&&/^(?:[A-Za-z]:[\\/]|file:\/\/\/|\\\\|\/(?:Users|home)\/)/.test(v))fail('local absolute path');if(v&&typeof v==='object')Object.values(v).forEach(portable);}portable(r);
@@ -9,8 +10,9 @@ if(r.kind!=='SYNTHETIC_FEE_SAVE_GUIDANCE_NATIVE_REGRESSION'||r.version!=='1.0'||
 if(r.historical_runtime_blob!=='9966a3dc64ffb6db96f0e2b6093db30826b6beeb'||!guidanceRuntime(r.historical_runtime_blob)||!same(r.historical_reports,guidanceHistoricalPins))fail('explicit historical qualification');
 const paths=[];function walk(dir){for(const e of readdirSync(join(root,dir),{withFileTypes:true})){const p=dir+'/'+e.name;if(e.isDirectory())walk(p);else if(e.name.endsWith('.ts'))paths.push(p);}}
 walk('src');walk('tests');for(const e of readdirSync(join(root,'tools')))if(/\.(?:mjs|ts)$/.test(e))paths.push('tools/'+e);paths.push('package.json','package-lock.json');paths.sort();
-if(!same(Object.keys(r.source_fingerprints).sort(),paths))fail('source/test/tool coverage');
-for(const p of paths)if(blob(Buffer.from(read(p).toString('utf8').replace(/\r\n/g,'\n')))!==r.source_fingerprints[p])fail('stale source '+p);
+const qualified=layeredCaptureFingerprints(r.source_fingerprints,paths);
+if(!same(Object.keys(qualified).sort(),paths))fail('source/test/tool coverage');
+for(const p of paths)if(blob(Buffer.from(read(p).toString('utf8').replace(/\r\n/g,'\n')))!==qualified[p])fail('stale source '+p);
 const old=JSON.parse(read('docs/cases/fee-capacity-stages.json'));
 for(const[p,sha]of Object.entries(old.source_fingerprints))if(r.source_fingerprints[p]!==sha&&!guidanceFingerprint(p,sha))fail('unqualified historical source '+p);
 if(!same(r.changed_historical_paths,guidanceChangedHistoricalPaths))fail('historical change allowlist');
@@ -30,4 +32,4 @@ if(pressure.kind!=='SYNTHETIC_FEE_SAVE_GUIDANCE_ADDITIONAL_PRESSURE'||pressure.o
 if(r.initial_failed_probe.counted_as_pass!==false||r.initial_failed_probe.status!=='CDP_RUNTIME_EVALUATE_TIMEOUT'||r.initial_failed_probe.driver_source_fingerprint!==null||r.initial_failed_probe.cause_proven!==false||r.initial_native_failure.counted_as_full_pass!==false||r.initial_native_failure.backup_bytes!==9328914||r.initial_native_failure.review_limit_bytes!==5*1024*1024)fail('initial failures were hidden or promoted');
 const runtime=read('trade-cost-engine.html');if(blob(runtime)!==r.offline_runtime_blob||['__feeCapacity92','__feeSemanticIntegration91'].some(s=>runtime.includes(Buffer.from(s))))fail('offline deliverable or diagnostic isolation');
 let links=0;for(const file of ['docs/fee-save-guidance-design.md','docs/fee-save-guidance-validation.md'])for(const m of read(file).toString('utf8').matchAll(/\]\(([^)]+)\)/g)){const target=m[1];if(/^(?:https?:|#)/.test(target))continue;const full=resolve(root,dirname(file),target.split('#')[0]),p=relative(root,full);if(p.startsWith('..')||isAbsolute(p)||!existsSync(full))fail('document link '+target);links++;}
-console.log(JSON.stringify({kind:r.kind,nativeSuites:46,currentCaptureCases:69,guidanceChecks:Object.keys(g.checks).length,guidanceLayouts:8,formalFileSaves:24,unitFiles:132,unitTests:4720,newTests:27,sourceFingerprints:paths.length,localLinks:links,financialModelChanged:false,capacityChanged:false,timingRemeasured:false}));
+console.log(JSON.stringify({kind:r.kind,nativeSuites:46,currentCaptureCases:69,guidanceChecks:Object.keys(g.checks).length,guidanceLayouts:8,formalFileSaves:24,unitFiles:132,unitTests:4720,newTests:27,sourceFingerprints:Object.keys(r.source_fingerprints).length,currentSourceFingerprints:paths.length,scope:'HISTORICAL_PHASE93_SAME_RUNTIME_WITH_LAYERED_PROTOCOL_QUALIFICATION',localLinks:links,financialModelChanged:false,capacityChanged:false,timingRemeasured:false}));
