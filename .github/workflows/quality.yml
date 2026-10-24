@@ -48,6 +48,7 @@ jobs:
           node tools/check-fee-capacity-stages.mjs
           node tools/check-fee-save-guidance.mjs
           node tools/check-fee-layered-capture.mjs
+          node tools/check-fee-layered-source-mapping.mjs
       - name: Check container cost review design fixtures
         run: npm run check:container-review-design
       - name: Check fee tax component design fixtures

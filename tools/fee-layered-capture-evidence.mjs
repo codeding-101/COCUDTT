@@ -2,6 +2,7 @@
 import {readFileSync,readdirSync} from 'node:fs';
 import {resolve,join} from 'node:path';
 import {createHash} from 'node:crypto';
+import {sourceMappingQualifiedFingerprints,sourceMappingHistoricalFingerprint} from './fee-layered-source-evidence.mjs';
 const root=resolve(import.meta.dirname,'..'),read=p=>readFileSync(join(root,p)),blob=b=>createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex');
 export const layeredHistoricalPins={
  'docs/cases/fee-save-guidance-native.json':'fcde6e69f016c1d05d6815b525f7c14221e9a322',
@@ -17,8 +18,8 @@ export function layeredCaptureFingerprints(previous,paths){
  assertLayeredHistoricalPins();const r=JSON.parse(read('docs/cases/fee-layered-capture.json')),old=JSON.parse(read('docs/cases/fee-save-guidance-native.json'));
  if(r.kind!=='SYNTHETIC_FEE_LAYERED_CAPTURE_PROTOCOL'||r.version!=='0.1'||r.base_source_commit!=='84858f66263d062c1235c17395cf9cb5458d1d80'||r.offline_runtime_blob!=='3d1ab6e3413840b44e80de577956b0364343952c'||blob(read('trade-cost-engine.html'))!==r.offline_runtime_blob||r.runtime_integrated!==false||r.production_capacity_changed!==false||r.financial_writes!==0)throw Error('Layered scope qualification missing');
  if(JSON.stringify(previous)!==JSON.stringify(old.source_fingerprints)||old.source_fingerprints[layeredChangedHistoricalPath]!=='27c13d030420165a4dde727e61e64df17a9b2f43')throw Error('Layered historical source inventory changed');
- const expected=Object.keys(previous).concat(layeredAddedCodePaths).sort(),actual=layeredCurrentFingerprints();
- if(JSON.stringify(paths)!==JSON.stringify(expected)||JSON.stringify(Object.keys(r.source_fingerprints).sort())!==JSON.stringify(expected)||JSON.stringify(actual)!==JSON.stringify(r.source_fingerprints))throw Error('Layered source coverage or fingerprints changed');
- for(const[p,sha]of Object.entries(previous))if(p!==layeredChangedHistoricalPath&&actual[p]!==sha)throw Error('Original production/test/tool changed '+p);
+ const expected=Object.keys(previous).concat(layeredAddedCodePaths).sort(),actual=sourceMappingQualifiedFingerprints(r.source_fingerprints,paths);
+ if(JSON.stringify(Object.keys(r.source_fingerprints).sort())!==JSON.stringify(expected))throw Error('Layered historical source coverage changed');
+ for(const[p,sha]of Object.entries(previous))if(p!==layeredChangedHistoricalPath&&actual[p]!==sha&&!sourceMappingHistoricalFingerprint(p,sha))throw Error('Original production/test/tool changed '+p);
  return actual;
 }

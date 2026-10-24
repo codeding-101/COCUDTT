@@ -2,6 +2,7 @@
 import {readFileSync} from 'node:fs';
 import {join,resolve} from 'node:path';
 import {createHash} from 'node:crypto';
+import {sourceMappingHistoricalFingerprint} from './fee-layered-source-evidence.mjs';
 const root=resolve(import.meta.dirname,'..'),read=path=>readFileSync(join(root,path)),blob=b=>createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex');
 export const guidanceHistoricalPins = {"docs/cases/fee-semantic-integration.json":"a4e828d7d381ff1b11f18327a423d83b185b92fd","docs/cases/fee-semantic-integration-native.json":"10b74badb33f8f895e5c1cfd9fbe36e8f2166119","docs/cases/fee-capacity-stages.json":"3d0ca1c65ab290e36495ffee0ef9fd57cc051215"};
 const historical=[];
@@ -18,8 +19,9 @@ function report(){
  return current;
 }
 export function guidanceFingerprint(path,sha){
+ if(sourceMappingHistoricalFingerprint(path,sha))return true;
  if(!guidanceChangedHistoricalPaths.includes(path)||!historical.some(r=>r.source_fingerprints[path]===sha))return false;
- return report().source_fingerprints[path]===blob(Buffer.from(read(path).toString('utf8').replace(/\r\n/g,'\n')));
+ return report().source_fingerprints[path]===blob(Buffer.from(read(path).toString('utf8').replace(/\r\n/g,'\n')))||sourceMappingHistoricalFingerprint(path,report().source_fingerprints[path]);
 }
 export function guidanceRuntime(sha){
  return sha==='9966a3dc64ffb6db96f0e2b6093db30826b6beeb'&&report().historical_runtime_blob===sha&&report().offline_runtime_blob===blob(read('trade-cost-engine.html'));
