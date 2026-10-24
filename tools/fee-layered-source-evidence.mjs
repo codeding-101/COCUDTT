@@ -1,5 +1,6 @@
 /** Same-runtime qualification of phase95 observation tools; historical reports and all production files are immutable. */
 import{readFileSync,readdirSync}from'node:fs';import{resolve,join}from'node:path';import{createHash}from'node:crypto';
+import{browserRecoveryQualifiedFingerprints}from'./fee-browser-recovery-evidence.mjs';
 const root=resolve(import.meta.dirname,'..'),read=p=>readFileSync(join(root,p)),blob=b=>createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex');
 export const sourceMappingHistoricalPins={
  'docs/cases/fee-layered-capture.json':'e76897b967035fda0d4b454091a53d03f6a894e2',
@@ -30,8 +31,8 @@ export function sourceMappingQualifiedFingerprints(baseline,paths){
  assertSourceMappingHistoricalPins();assertFastUriSecurityPatch();const r=JSON.parse(read('docs/cases/fee-layered-source-mapping.json')),old=JSON.parse(read('docs/cases/fee-layered-capture.json'));
  if(r.kind!=='SYNTHETIC_FEE_LAYERED_SOURCE_MAPPING_EVIDENCE'||r.version!=='0.1'||r.base_source_commit!=='62d787702f2c223d4395d0aa736c041ebe4edb49'||r.offline_runtime_blob!=='3d1ab6e3413840b44e80de577956b0364343952c'||blob(read('trade-cost-engine.html'))!==r.offline_runtime_blob||r.runtime_integrated!==false||r.production_capacity_changed!==false||r.financial_writes!==0)throw Error('Source mapping qualification missing');
  if(JSON.stringify(baseline)!==JSON.stringify(old.source_fingerprints)||Object.entries(sourceMappingChangedPaths).some(([p,sha])=>baseline[p]!==sha))throw Error('Source mapping original inventory changed');
- const expected=Object.keys(baseline).concat(sourceMappingAddedPaths).sort(),actual=sourceMappingCurrentFingerprints();
- if(JSON.stringify(paths)!==JSON.stringify(expected)||JSON.stringify(Object.keys(r.source_fingerprints).sort())!==JSON.stringify(expected)||JSON.stringify(r.source_fingerprints)!==JSON.stringify(actual))throw Error('Source mapping coverage or fingerprints changed');
+ const expected=Object.keys(baseline).concat(sourceMappingAddedPaths).sort(),actual=browserRecoveryQualifiedFingerprints(r.source_fingerprints,paths);
+ if(JSON.stringify(Object.keys(r.source_fingerprints).sort())!==JSON.stringify(expected))throw Error('Source mapping historical coverage changed');
  for(const[p,sha]of Object.entries(baseline))if(!Object.hasOwn(sourceMappingChangedPaths,p)&&actual[p]!==sha)throw Error('Original production/test/tool changed '+p);
  return actual;
 }
