@@ -1,5 +1,6 @@
 /** Phase97 qualification: immutable historical reports, unchanged runtime and explicitly enumerated additions. */
 import{readFileSync,readdirSync}from'node:fs';import{resolve,join}from'node:path';import{createHash}from'node:crypto';
+import{recoveryQualifiedFingerprints}from'./fee-recovery-evidence.mjs';
 const root=resolve(import.meta.dirname,'..'),read=p=>readFileSync(join(root,p)),blob=b=>createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex');
 export const nativeCodecHistoricalPins={'docs/cases/fee-browser-recovery-design.json':'056faaccabd47224c02399fb0a2a0249f25ebab1','docs/cases/fee-layered-source-mapping.json':'a355b0ac444c27b7bf37e90b00049684a82e1f1c','docs/cases/fee-layered-capture.json':'e76897b967035fda0d4b454091a53d03f6a894e2','docs/cases/fee-save-guidance-native.json':'fcde6e69f016c1d05d6815b525f7c14221e9a322','docs/cases/fee-semantic-integration.json':'a4e828d7d381ff1b11f18327a423d83b185b92fd','docs/cases/fee-semantic-integration-native.json':'10b74badb33f8f895e5c1cfd9fbe36e8f2166119','docs/cases/fee-capacity-stages.json':'3d0ca1c65ab290e36495ffee0ef9fd57cc051215'};
 export const nativeCodecAddedPaths=['tools/fee-browser-native-codec.ts','tools/fee-browser-native-diagnostic.ts','tools/fee-browser-native-bridge.mjs','tools/check-fee-browser-native-browser.mjs','tools/check-fee-browser-native-isolated.mjs','tools/fee-browser-native-resource-probe.ts','tools/fee-browser-native-evidence.mjs','tools/check-fee-browser-native.mjs','tests/fee-browser-native-codec.test.ts','tests/fee-browser-native-resource.test.ts'].sort();
@@ -12,7 +13,7 @@ export function nativeCodecQualifiedFingerprints(baseline,paths){
  if(r.kind!=='SYNTHETIC_FEE_BROWSER_NATIVE_CODEC_EVIDENCE'||r.version!=='0.1'||r.base_source_commit!=='f31b457ab316e9bce10ccd3d9ce2b18b1e41b901'||r.offline_runtime_blob!=='3d1ab6e3413840b44e80de577956b0364343952c'||blob(read('trade-cost-engine.html'))!==r.offline_runtime_blob||r.native_codec_implemented!==true||r.runtime_integrated!==false||r.full_workbench_reopen_implemented!==false||r.production_capacity_changed!==false||r.financial_writes!==0)throw Error('Native codec scope qualification');
  if(JSON.stringify(baseline)!==JSON.stringify(old.source_fingerprints)||Object.entries(nativeCodecChangedPaths).some(([p,s])=>baseline[p]!==s))throw Error('Native codec baseline inventory');
  const expected=Object.keys(baseline).concat(nativeCodecAddedPaths).sort();
- if(JSON.stringify(paths)!==JSON.stringify(expected)||JSON.stringify(Object.keys(r.source_fingerprints).sort())!==JSON.stringify(expected)||JSON.stringify(r.source_fingerprints)!==JSON.stringify(actual))throw Error('Native codec current coverage');
- for(const[p,s]of Object.entries(baseline))if(!Object.hasOwn(nativeCodecChangedPaths,p)&&actual[p]!==s)throw Error('Original source/test/tool/dependency changed '+p);
- return actual;
+ if(JSON.stringify(Object.keys(r.source_fingerprints).sort())!==JSON.stringify(expected))throw Error('Native codec historical coverage');
+ for(const[p,s]of Object.entries(baseline))if(!Object.hasOwn(nativeCodecChangedPaths,p)&&r.source_fingerprints[p]!==s)throw Error('Original historical source/test/tool/dependency changed '+p);
+ return recoveryQualifiedFingerprints(r.source_fingerprints,paths);
 }

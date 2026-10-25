@@ -51,6 +51,7 @@ jobs:
           node tools/check-fee-layered-source-mapping.mjs
           node tools/check-fee-browser-recovery-design.mjs
           node tools/check-fee-browser-native.mjs
+          node tools/check-fee-recovery-format.mjs
       - name: Check container cost review design fixtures
         run: npm run check:container-review-design
       - name: Check fee tax component design fixtures
