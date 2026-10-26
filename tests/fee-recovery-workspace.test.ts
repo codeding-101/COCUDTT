@@ -1,4 +1,4 @@
-import {describe,it,expect,vi,afterEach} from 'vitest';
+import {describe,it,expect,vi,afterEach,beforeAll} from 'vitest';
 import {FeeRecoveryFormat,type FeeRecoveryData} from '../tools/fee-recovery-format';
 import {FeeRecoveryWorkspace} from '../tools/fee-recovery-workspace';
 import {feeRecoveryFixture as fixture,FEE_RECOVERY_CASE_DATE as captured_at} from '../tools/fee-recovery-cases';
@@ -75,16 +75,27 @@ describe('independent restoration stages frozen data, then replaces only its qua
     const format=new FeeRecoveryFormat(),raw=await format.encode(f.parts,f.supplement,signal(),{captured_at}),store=new FeeRecoveryWorkspace(format),staged=await store.stage(raw),data=store.confirm(staged,'REPLACE_QUARANTINE_DATA');
     expect(staged.browser_input_requires_reentry).toBe(true);expect(data).toMatchObject({requires_input_review:true,browser_input_requires_reentry:true,active_reads:0,runtime_installed:false});expect(data.archive.supplement.pending_control).toStrictEqual(f.supplement.pending_control);
   });
-  it('recomputes the current valid project with the actual engine while old candidates and applied receipts remain inert',async()=>{
+  describe('complete real applied-history input',()=>{
+   async function prepareHistory(){
     const transaction=await transactionFixture(),f=await runtimeCandidateFixture(transaction.raw),preview=await previewRuntimeFeeWorkbench(f.capture(),'recovery98'),summary=await f.preparer.prepare(preview),candidateBackup=f.preparer.backup(summary),record=await f.preparer.apply(summary,()=>true);
     const capture=f.capture(),{retained_json:_,...capture_shell}=capture,base=fixture(),r=base.parts.retained_root as Record<string,unknown>;
     Object.assign(r,{project_raw:structuredClone(f.app.project),project_file:{name:null,saved_at:null,dirty:f.app.dirty,saved_raw_known:false},bill:f.bill.workbenchCapture(),pair:f.pair.workbenchCapture(),tax:f.taxUi.controller.workbenchCapture(),precision:f.precisionUi.controller.workbenchCapture(),envelope:f.envelopeUi.controller.workbenchCapture(),tax_workspace:f.taxUi.workbenchCapture(),precision_workspace:f.precisionUi.workbenchCapture(),envelope_workspace:f.envelopeUi.workbenchCapture(),customer_fields:f.workflow.customerFields,customer_reviewed:f.workflow.customerReviewed});
     base.parts.capture_shell=capture_shell;base.supplement.workflow.state_initialized=true;base.supplement.envelope_ui.workbench_application=record;base.supplement.envelope_ui.workbench_candidate={summary,backup_json:candidateBackup};
-    const fees=f.app.project.items.length,currentRaw=f.envelopeUi.controller.state().current!.raw_json,ledger=JSON.parse(JSON.parse(currentRaw).ledger_json),before=JSON.stringify(f.capture()),apply=vi.spyOn(f.preparer,'apply');
-    const format=new FeeRecoveryFormat(),raw=await format.encode(base.parts,base.supplement,signal(),{captured_at}),store=new FeeRecoveryWorkspace(format),staged=await store.stage(raw),d=store.confirm(staged,'REPLACE_QUARANTINE_DATA');
+    const fees=f.app.project.items.length,currentRaw=f.envelopeUi.controller.state().current!.raw_json,ledger=JSON.parse(JSON.parse(currentRaw).ledger_json),before=JSON.stringify(capture),apply=vi.spyOn(f.preparer,'apply');
+    const format=new FeeRecoveryFormat(),raw=await format.encode(base.parts,base.supplement,signal(),{captured_at});
+    return{f,capture,record,fees,ledger,before,apply,format,raw};
+   }
+   // Arrange complete input separately from exercising restoration; each phase is bounded at 60s.
+   // All original source/history/receipt assertions and both real decode/restore operations remain.
+   let history:Awaited<ReturnType<typeof prepareHistory>>;
+   beforeAll(async()=>{history=await prepareHistory();},60000);
+   it('recomputes the current valid project with the actual engine while old candidates and applied receipts remain inert',async()=>{
+    const{f,capture,record,fees,ledger,before,apply,format,raw}=history;
+    const store=new FeeRecoveryWorkspace(format),staged=await store.stage(raw),d=store.confirm(staged,'REPLACE_QUARANTINE_DATA');
     const project=parseProject(capture.sources.project_json!),trade=toTrade(project),scenario=scenarioWithDerivedInclusions(toScenario(project),trade),expected=analyze({trade,scenario,taxProfile:project.tax_profile,fxBooks:project.fx_books,...(project.export_date?{today:project.export_date}:{})});
     expect(d.calculation).toMatchObject({status:'CALCULATED_FOR_REVIEW',seller_profit:expected.seller.margin?.toString()??null,buyer_total:expected.buyer.landed_cost_with_tax.toString(),cost_count:fees,business_approval:false});
     expect(JSON.parse(JSON.parse(d.archive.restoration.capture.envelope_json!).ledger_json)).toEqual(ledger);expect(ledger.receipt_refs).toHaveLength(1);expect(d.archive.supplement.envelope_ui.workbench_application).toStrictEqual(record);expect(apply).not.toHaveBeenCalled();expect(JSON.stringify(f.capture())).toBe(before);expect(f.setItem).not.toHaveBeenCalled();expect(f.write).not.toHaveBeenCalled();
     const again=await store.stage(raw);store.confirm(again,'REPLACE_QUARANTINE_DATA');expect(f.app.project.items).toHaveLength(fees);expect(JSON.parse(JSON.parse(f.envelopeUi.controller.state().current!.raw_json).ledger_json).receipt_refs).toHaveLength(1);
   },60000);
+  });
 });
