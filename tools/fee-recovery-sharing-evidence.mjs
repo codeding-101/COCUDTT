@@ -1,4 +1,5 @@
 /** Phase99: immutable recovery evidence, explicit additions and unchanged production behavior. */
+import{reopenQualifiedFingerprints}from'./fee-recovery-reopen-evidence.mjs';
 import{readFileSync,readdirSync}from'node:fs';import{resolve,join}from'node:path';import{createHash}from'node:crypto';
 const root=resolve(import.meta.dirname,'..'),read=p=>readFileSync(join(root,p)),blob=b=>createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex');
 export const sharingHistoricalPins={'docs/cases/fee-browser-recovery-design.json':'056faaccabd47224c02399fb0a2a0249f25ebab1','docs/cases/fee-layered-source-mapping.json':'a355b0ac444c27b7bf37e90b00049684a82e1f1c','docs/cases/fee-layered-capture.json':'e76897b967035fda0d4b454091a53d03f6a894e2','docs/cases/fee-save-guidance-native.json':'fcde6e69f016c1d05d6815b525f7c14221e9a322','docs/cases/fee-semantic-integration.json':'a4e828d7d381ff1b11f18327a423d83b185b92fd','docs/cases/fee-semantic-integration-native.json':'10b74badb33f8f895e5c1cfd9fbe36e8f2166119','docs/cases/fee-capacity-stages.json':'3d0ca1c65ab290e36495ffee0ef9fd57cc051215','docs/cases/fee-browser-native-codec.json':'7e7a0bb5e23fe85cd6b019d187087c00f3560747','docs/cases/fee-recovery-format.json':'8aa6395d96cb2448b1ab0021e2ec8cbd18050ee1'};
@@ -8,9 +9,8 @@ export function sharingPaths(){const paths=[];function walk(dir){for(const e of 
 export function sharingFingerprints(){return Object.fromEntries(sharingPaths().map(p=>[p,blob(Buffer.from(read(p).toString('utf8').replace(/\r\n/g,'\n')))]));}
 export function assertSharingHistory(){for(const[p,s]of Object.entries(sharingHistoricalPins))if(blob(Buffer.from(read(p).toString('utf8').replace(/\r\n/g,'\n')))!==s)throw Error('Sharing historical evidence changed '+p);}
 export function sharingQualifiedFingerprints(baseline,paths){
- assertSharingHistory();const old=JSON.parse(read('docs/cases/fee-recovery-format.json')),actual=sharingFingerprints(),expected=Object.keys(baseline).concat(sharingAddedPaths).sort();
- if(JSON.stringify(baseline)!==JSON.stringify(old.source_fingerprints)||Object.keys(baseline).length!==499||Object.entries(sharingChangedPaths).some(([p,s])=>baseline[p]!==s)||JSON.stringify(paths)!==JSON.stringify(expected))throw Error('Sharing baseline inventory');
- for(const[p,s]of Object.entries(baseline))if(!Object.hasOwn(sharingChangedPaths,p)&&actual[p]!==s)throw Error('Original source/test/tool/dependency changed '+p);
- if(blob(read('trade-cost-engine.html'))!=='3d1ab6e3413840b44e80de577956b0364343952c'||old.recovery_data_format_implemented!==true||old.independent_data_restore_implemented!==true||old.full_live_workbench_reopen_implemented!==false||old.runtime_integrated!==false||old.production_capacity_changed!==false)throw Error('Sharing runtime/history scope');
- return actual;
+ assertSharingHistory();const old=JSON.parse(read('docs/cases/fee-recovery-format.json')),recorded=JSON.parse(read('docs/cases/fee-recovery-sharing.json')).source_fingerprints,expected=Object.keys(baseline).concat(sharingAddedPaths).sort();
+ if(JSON.stringify(baseline)!==JSON.stringify(old.source_fingerprints)||Object.keys(baseline).length!==499||Object.entries(sharingChangedPaths).some(([p,s])=>baseline[p]!==s)||JSON.stringify(Object.keys(recorded).sort())!==JSON.stringify(expected))throw Error('Sharing historical baseline inventory');
+ for(const[p,s]of Object.entries(baseline))if(!Object.hasOwn(sharingChangedPaths,p)&&recorded[p]!==s)throw Error('Original historical source/test/tool/dependency changed '+p);
+ return reopenQualifiedFingerprints(recorded,paths);
 }

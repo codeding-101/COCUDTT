@@ -1,0 +1,23 @@
+/** Developer-only manifest UI. Uses text escaping and native controls; does not attach to the production application. */
+import {escapeHtml as h} from '../src/ui/format';
+import {FeeRecoveryReopen,type FeeRecoveryManifest} from './fee-recovery-reopen';
+const explanations:Record<string,string>={PROJECT_NOT_AVAILABLE:'缺少可计算的已提交项目，请保留原文件核对。',UNCOMMITTED_INPUT_REVIEW_REQUIRED:'存在未提交输入；本轮不会自动采用，请返回原工作台处理。',CAPTURE_INPUT_REVIEW_REQUIRED:'捕获时已有输入待办，请先核对。',BROWSER_NUMBER_REENTRY_REQUIRED:'浏览器无效数字缓冲无法取回，需要重新输入。',FILE_RESELECTION_REQUIRED:'未读取的文件仅有元数据，需要重新选取。',ARCHIVE_PRESERVED:'全部原文、未知扩展与应用历史保留在档案中。',OLD_AUTHORITY_RESET:'旧候选、确认、任务和客户勾选不生效。',NO_STORAGE_OR_FILE_WRITE:'此次核对不写浏览器存储或文件。',SEPARATE_SESSION_ONLY:'仅创建独立已提交资料会话；正式工作台不替换。',HISTORICAL_ACTIVITY_NOT_RESUMED:'历史读取及忙碌状态不会继续运行。',CUSTOMER_REVIEW_MUST_BE_REPEATED:'客户公开内容需要重新核对。',HISTORICAL_CANDIDATE_NOT_EXECUTABLE:'历史候选及确认只供查看，不能直接应用。',UNKNOWN_EXTENSIONS_ARCHIVED_ONLY:'未知扩展只归档，不作为可执行状态。'};
+export function renderFeeRecoveryManifest(m:FeeRecoveryManifest):string{
+ return `<section data-recovery-manifest><h2>恢复清单</h2><p>${m.can_open?'已提交资料可在独立会话核对':'需要处理以下输入后再恢复'}</p><p>捕获时间：${h(m.captured_at)} · 展开资料 ${(m.logical_utf8_bytes/1024/1024).toFixed(2)} MiB</p><ul>${[...m.blockers,...m.notices].map(n=>`<li>${h(explanations[n]??n)}</li>`).join('')}</ul><table><thead><tr><th>资料</th><th>状态</th><th>原文 UTF8 字节</th></tr></thead><tbody>${m.sources.map(s=>`<tr><td>${h(s.name)}</td><td>${s.present?'保留':'未提供'}</td><td>${s.utf8_bytes}</td></tr>`).join('')}</tbody></table><p>新所有者：${m.participants.length} 组。${m.historical_application_present?'含已应用历史；费用和回执按已提交事实保留，不重放。':''}</p></section>`;
+}
+export class FeeRecoveryReopenPanel {
+ private manifest:FeeRecoveryManifest|null=null;private message='选择恢复文件，先查看清单。';private busy=false;private disposed=false;private epoch=0;
+ private readonly changed=(event:Event)=>{const e=event.target;if(e instanceof HTMLInputElement&&e.matches('[data-recovery-file]')){const f=e.files?.[0];if(f)void this.openFile(f);}};
+ private readonly clicked=(event:Event)=>{const e=event.target;if(!(e instanceof Element))return;const action=e.closest<HTMLElement>('[data-recovery-action]')?.dataset.recoveryAction;if(action==='cancel')this.cancel();if(action==='open')this.confirm();};
+ constructor(private readonly host:HTMLElement,private readonly recovery=new FeeRecoveryReopen()){host.addEventListener('change',this.changed);host.addEventListener('click',this.clicked);this.render();}
+ private render(){if(this.disposed)return;const d=this.recovery.current()?.diagnostics();this.host.innerHTML=`<h1>独立恢复核对原型</h1><p>本页用于开发验证，不是正式工具的完整工作台重开功能。内部资料请勿直接发送客户。</p><label>恢复文件<input data-recovery-file type="file" accept=".json,application/json"></label><p role="status" data-recovery-status>${h(this.message)}</p>${this.manifest?renderFeeRecoveryManifest(this.manifest):''}<div class="recovery-actions"><button type="button" data-recovery-action="open"${this.busy||!this.manifest?.can_open?' disabled':''}>明确打开独立核对会话</button><button type="button" data-recovery-action="cancel">取消本次准备</button></div>${d?`<section data-recovery-session><h2>已提交资料已载入</h2><p>${d.cost_count} 笔费用 · 卖方利润 ${h(d.seller_profit??'未知')} · 买方总支付 ${h(d.buyer_total)}</p><p>${d.owner.participants.length} 组新所有者；客户确认需要重新核对。原文与历史仍归档，未重放任何补丁。</p></section>`:''}`;}
+ async openFile(file:{size:number;text():Promise<string>}){
+  if(this.disposed)return;const epoch=++this.epoch;this.recovery.cancel();this.manifest=null;this.busy=true;this.message='正在读取并检查恢复资料…';this.render();
+  try{if(!Number.isSafeInteger(file.size)||file.size<0||file.size>64*1024*1024)throw Error('SIZE');const raw=await file.text();if(this.disposed||epoch!==this.epoch)return;const m=await this.recovery.stage(raw);if(this.disposed||epoch!==this.epoch)return;this.manifest=m;this.message=m.can_open?'清单已就绪，明确选择后才打开独立会话。':'资料完整保留，请先处理清单中的输入待办。';}
+  catch{if(this.disposed||epoch!==this.epoch)return;this.manifest=null;this.message='无法准备该恢复资料：版本、完整性、输入或大小未通过检查；当前会话和原文件保留。';}
+  finally{if(!this.disposed&&epoch===this.epoch){this.busy=false;this.render();}}
+ }
+ private confirm(){if(this.busy||!this.manifest)return;try{this.recovery.confirm(this.manifest,'OPEN_SEPARATE_RECOVERY_SESSION');this.manifest=null;this.message='独立核对会话已打开；正式工作台、浏览器存储和文件均未替换。';}catch{this.message='准备已过期或输入尚待复核，当前会话保留。';}this.render();}
+ cancel(){if(this.disposed)return;this.epoch++;this.recovery.cancel();this.manifest=null;this.busy=false;this.message='已取消本次准备，当前会话保留。';this.render();}
+ dispose(){this.disposed=true;this.epoch++;this.recovery.dispose();this.host.removeEventListener('change',this.changed);this.host.removeEventListener('click',this.clicked);}
+}
