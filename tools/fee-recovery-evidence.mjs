@@ -1,5 +1,6 @@
 /** Phase98 qualification. Historical evidence is immutable; recovery remains independent data only. */
 import{readFileSync,readdirSync}from'node:fs';import{resolve,join}from'node:path';import{createHash}from'node:crypto';
+import{sharingQualifiedFingerprints}from'./fee-recovery-sharing-evidence.mjs';
 const root=resolve(import.meta.dirname,'..'),read=p=>readFileSync(join(root,p)),blob=b=>createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex');
 export const recoveryHistoricalPins={'docs/cases/fee-browser-recovery-design.json':'056faaccabd47224c02399fb0a2a0249f25ebab1','docs/cases/fee-layered-source-mapping.json':'a355b0ac444c27b7bf37e90b00049684a82e1f1c','docs/cases/fee-layered-capture.json':'e76897b967035fda0d4b454091a53d03f6a894e2','docs/cases/fee-save-guidance-native.json':'fcde6e69f016c1d05d6815b525f7c14221e9a322','docs/cases/fee-semantic-integration.json':'a4e828d7d381ff1b11f18327a423d83b185b92fd','docs/cases/fee-semantic-integration-native.json':'10b74badb33f8f895e5c1cfd9fbe36e8f2166119','docs/cases/fee-capacity-stages.json':'3d0ca1c65ab290e36495ffee0ef9fd57cc051215','docs/cases/fee-browser-native-codec.json':'7e7a0bb5e23fe85cd6b019d187087c00f3560747'};
 export const recoveryAddedPaths=['tools/fee-recovery-supplement.ts','tools/fee-recovery-format.ts','tools/fee-recovery-workspace.ts','tools/fee-recovery-cases.ts','tools/fee-recovery-probe.ts','tools/fee-recovery-browser-bridge.mjs','tools/check-fee-recovery-browser.mjs','tools/fee-recovery-evidence.mjs','tools/check-fee-recovery-format.mjs','tests/fee-recovery-format.test.ts','tests/fee-recovery-workspace.test.ts'].sort();
@@ -8,9 +9,8 @@ export function recoveryPaths(){const paths=[];function walk(dir){for(const e of
 export function recoveryFingerprints(){return Object.fromEntries(recoveryPaths().map(p=>[p,blob(Buffer.from(read(p).toString('utf8').replace(/\r\n/g,'\n')))]));}
 export function assertRecoveryHistory(){for(const[p,s]of Object.entries(recoveryHistoricalPins))if(blob(Buffer.from(read(p).toString('utf8').replace(/\r\n/g,'\n')))!==s)throw Error('Recovery historical report changed '+p);}
 export function recoveryQualifiedFingerprints(baseline,paths){
- assertRecoveryHistory();const old=JSON.parse(read('docs/cases/fee-browser-native-codec.json')),actual=recoveryFingerprints(),expected=Object.keys(baseline).concat(recoveryAddedPaths).sort();
- if(JSON.stringify(baseline)!==JSON.stringify(old.source_fingerprints)||Object.keys(baseline).length!==488||Object.entries(recoveryChangedPaths).some(([p,s])=>baseline[p]!==s)||JSON.stringify(paths)!==JSON.stringify(expected))throw Error('Recovery baseline inventory');
- for(const[p,s]of Object.entries(baseline))if(!Object.hasOwn(recoveryChangedPaths,p)&&actual[p]!==s)throw Error('Original source/test/tool/dependency changed '+p);
- if(blob(read('trade-cost-engine.html'))!=='3d1ab6e3413840b44e80de577956b0364343952c')throw Error('Recovery runtime changed');
- return actual;
+ assertRecoveryHistory();const old=JSON.parse(read('docs/cases/fee-browser-native-codec.json')),recorded=JSON.parse(read('docs/cases/fee-recovery-format.json')).source_fingerprints,expected=Object.keys(baseline).concat(recoveryAddedPaths).sort();
+ if(JSON.stringify(baseline)!==JSON.stringify(old.source_fingerprints)||Object.keys(baseline).length!==488||Object.entries(recoveryChangedPaths).some(([p,s])=>baseline[p]!==s)||JSON.stringify(Object.keys(recorded).sort())!==JSON.stringify(expected))throw Error('Recovery historical baseline inventory');
+ for(const[p,s]of Object.entries(baseline))if(!Object.hasOwn(recoveryChangedPaths,p)&&recorded[p]!==s)throw Error('Original historical source/test/tool/dependency changed '+p);
+ return sharingQualifiedFingerprints(recorded,paths);
 }
