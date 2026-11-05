@@ -9,13 +9,17 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 concurrency:
   group: quality-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  verify:
-    name: Verify on ${{ matrix.os }}
+  unit:
+    name: Calculation and file tests on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     strategy:
@@ -34,11 +38,45 @@ jobs:
         run: npm ci
       - name: Check dependency advisories
         run: npm audit --audit-level=moderate
-      - name: Run calculation and file regression tests
+      - name: Run original-budget regression tests
         run: npm test
+  models:
+    name: Source and recovery checks on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Check dependency advisories
+        run: npm audit --audit-level=moderate
       - name: Check funding period design fixtures
         run: npm run check:funding-period-design
-      - name: Check walkthrough, evidence and source compatibility
+      - name: Check container cost review design fixtures
+        run: npm run check:container-review-design
+      - name: Check fee tax component design fixtures
+        run: node tools/check-fee-tax-components-design.mjs
+      - name: Check fee tax attachment lifecycle design
+        run: node tools/check-fee-tax-attachment-design.mjs
+      - name: Check fee precision and adjustment design
+        run: node tools/check-fee-precision-design.mjs
+      - name: Check fee precision selection lifecycle design
+        run: node tools/check-fee-precision-selection-design.mjs
+      - name: Check fee application transaction design
+        run: node tools/check-fee-application-design.mjs
+      - name: Check fee envelope and history design
+        run: node tools/check-fee-envelope-design.mjs
+      - name: Check complete source and recovery contracts
         run: |
           node tools/build-import-walkthrough.mjs --check
           node tools/check-capability-evidence.mjs
@@ -62,6 +100,28 @@ jobs:
           node tools/check-fee-recovery-package.mjs
           node tools/check-fee-package-session.mjs
           node tools/check-fee-package-continuation.mjs
+  workbench:
+    name: Business session and component checks on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Check dependency advisories
+        run: npm audit --audit-level=moderate
+      - name: Check complete workbench and component contracts
+        run: |
           node tools/check-fee-workbench-switch.mjs
           node tools/check-fee-contract-settlement.mjs
           node tools/check-fee-bank-funding.mjs
@@ -82,22 +142,29 @@ jobs:
           node tools/check-fee-modal-recovery.mjs
           node tools/check-fee-modal-composition.mjs
           node tools/check-fee-business-modal.mjs
-      - name: Check container cost review design fixtures
-        run: npm run check:container-review-design
-      - name: Check fee tax component design fixtures
-        run: node tools/check-fee-tax-components-design.mjs
-      - name: Check fee tax attachment lifecycle design
-        run: node tools/check-fee-tax-attachment-design.mjs
-      - name: Check fee precision and adjustment design
-        run: node tools/check-fee-precision-design.mjs
-      - name: Check fee precision selection lifecycle design
-        run: node tools/check-fee-precision-selection-design.mjs
-      - name: Check fee application transaction design
-        run: node tools/check-fee-application-design.mjs
-      - name: Check fee envelope and history design
-        run: node tools/check-fee-envelope-design.mjs
       - name: Audit UI bindings and engine codes
         run: npm run audit
+  build:
+    name: Build verified offline deliverable on ${{ matrix.os }}
+    needs: [unit, models, workbench]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Check dependency advisories
+        run: npm audit --audit-level=moderate
       - name: Typecheck and build offline deliverable
         run: npm run build:single
       - name: Verify tracked deliverable matches source
