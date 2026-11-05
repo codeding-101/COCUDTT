@@ -1,3 +1,5 @@
+/** Historical artifact comparison only; phase124 independently checks the current build. */
+import{historicalRuntime}from'./fee-input-preservation-evidence.mjs';
 import {readFileSync,writeFileSync,existsSync} from 'node:fs';
 import {resolve,join,dirname,relative,isAbsolute} from 'node:path';
 import {createHash} from 'node:crypto';
@@ -9,7 +11,7 @@ const root=resolve(import.meta.dirname,'..'),read=p=>readFileSync(join(root,p)),
 const policy=JSON.parse(read('tsconfig.json')).compilerOptions,typeArgs=[];
 for(const key of ['target','module','moduleResolution','lib','types','strict','noUncheckedIndexedAccess','noImplicitOverride','noFallthroughCasesInSwitch','verbatimModuleSyntax','isolatedModules','skipLibCheck'])if(policy[key]!==undefined)typeArgs.push('--'+key,Array.isArray(policy[key])?policy[key].join(','):String(policy[key]));
 execFileSync(process.execPath,['node_modules/typescript/bin/tsc','--ignoreConfig','--noEmit',...typeArgs,'tools/fee-layered-capture-diagnostic.ts'],{cwd:root,encoding:'utf8',timeout:120000});
-assertLayeredHistoricalPins();const runtime=blob(read('trade-cost-engine.html'));if(runtime!=='3d1ab6e3413840b44e80de577956b0364343952c')fail('runtime changed');
+assertLayeredHistoricalPins();const runtime=historicalRuntime().blob;if(runtime!=='3d1ab6e3413840b44e80de577956b0364343952c')fail('runtime changed');
 const server=await createServer({root,configFile:false,optimizeDeps:{noDiscovery:true,include:[]},server:{middlewareMode:true,hmr:false,watch:null},appType:'custom'});let actual,ids;
 try{const module=await server.ssrLoadModule('/tools/fee-layered-capture-diagnostic.ts');actual=await module.runFeeLayeredCaptureDiagnostic();ids=module.FEE_LAYERED_DIAGNOSTIC_CASES;}finally{await server.close();}
 const historical=JSON.parse(read('docs/cases/fee-save-guidance-native.json')),paths=layeredCurrentPaths(),fingerprints=layeredCurrentFingerprints();

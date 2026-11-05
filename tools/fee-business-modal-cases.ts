@@ -1,0 +1,7 @@
+import{BusinessModalPaint,BusinessModalCloseGuard,type BusinessCloseFacts}from'./fee-business-modal';
+/** Portable bounded coordinator cases; real model/native DOM are verified separately. */
+export function probeBusinessModal(){const cases:{id:string;checks:Record<string,boolean>}[]=[];
+ {let blocked=true,painted=0,masked=0;const p=new BusinessModalPaint(()=>true,()=>blocked,()=>masked++);p.request('FULL',()=>painted++);p.request('RESULT',()=>painted+=100);blocked=false;const before=painted===0;p.retry();cases.push({id:'explicit_deferred_render',checks:{no_early_render:before,full_supersedes_result:painted===1,masked:masked===2,bounded:p.inspect().retained_jobs===0}});}
+ {const facts:BusinessCloseFacts={usable:true,pendingTrade:false,unsavedBusiness:false,unreadFiles:0,physicalTasks:0,deferredPaint:false,pendingHandoff:false},g=new BusinessModalCloseGuard(()=>facts,()=> 'same');const t=g.prepare();let copied=false,unack=false;try{g.acknowledge({...t},true);}catch{copied=true;}try{g.consume(t,'CLOSE_SAVED_INDEPENDENT_BUSINESS_VIEW');}catch{unack=true;}g.acknowledge(t,true);g.consume(t,'CLOSE_SAVED_INDEPENDENT_BUSINESS_VIEW');cases.push({id:'explicit_close_identity',checks:{copy_refused:copied,ack_required:unack,consumed:g.inspect().consumed,no_save_write:g.inspect().source_saved===false}});}
+ return{cases,production_integrated:false,new_fee_applications:0,source_save_state_written:false};
+}

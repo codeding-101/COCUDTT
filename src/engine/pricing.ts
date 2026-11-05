@@ -33,6 +33,8 @@ const FIELD_LABELS: Record<string, string> = {
   quantity: '数量',
   unit: '单位',
   calculation_base: '计算基数',
+  days: '天数',
+  up_to: '档位上界',
 };
 
 /** 同一个字段在不同计费方式下叫法不同 */
@@ -70,6 +72,20 @@ function requireNumeric(value: Numeric | undefined, field: string, item: CostIte
   if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) {
     missing(item, field);
   }
+  const invalid = (): never => {
+    throw new EngineError('PRICING_INPUT_INVALID',
+      `费用「${item.cost_name}」的「${fieldLabel(field, item)}」不是有效的有限数值，请核对数字格式`,
+      {cost_id: item.cost_id, pricing_method: item.pricing_method, field});
+  };
+  let number: Decimal;
+  try { number = d(value); }
+  catch (error) {
+    // Only the decimal parser's expected input rejection is a field error.
+    // Unexpected resolver/callback failures still reach the runtime boundary.
+    if (error instanceof Error && error.message.startsWith('[DecimalError] Invalid argument:')) invalid();
+    throw error;
+  }
+  if (!number.isFinite()) invalid();
   return value;
 }
 
@@ -114,7 +130,7 @@ export function computeGrossAmount(item: CostItem, ctx: PricingContext): Decimal
       const rate = requireNumeric(item.rate, 'rate', item);
       const baseRef = item.calculation_base;
       if (baseRef === undefined) missing(item, 'calculation_base');
-      const base = ctx.resolveBase(baseRef);
+      const base = requireNumeric(ctx.resolveBase(baseRef), 'calculation_base', item);
       return priced('解析基数 × 比率', `${base} × ${rate}`, mul(base, rate));
     }
 
@@ -132,7 +148,7 @@ export function computeGrossAmount(item: CostItem, ctx: PricingContext): Decimal
           { cost_id: item.cost_id },
         );
       }
-      return priced('计费天数 × 日费率', `${days} × ${rate}`, mul(days, rate));
+      return priced('计费天数 × 日费率', `${days} × ${rate}`, mul(requireNumeric(days, 'days', item), rate));
     }
 
     case 'TIERED':
@@ -151,6 +167,11 @@ function normalizeTiers(item: CostItem): Tier[] {
     );
   }
 
+  // Validate before comparisons; malformed bounds otherwise escape as library errors.
+  for (const tier of tiers) {
+    if (!isBlank(tier.rate)) requireNumeric(tier.rate, 'rate', item);
+    if (tier.up_to !== null) requireNumeric(tier.up_to, 'up_to', item);
+  }
   const sorted = [...tiers].sort((a, b) => {
     if (a.up_to === null) return 1;
     if (b.up_to === null) return -1;
@@ -216,7 +237,7 @@ function tierQuantity(item: CostItem, ctx: PricingContext): Decimal {
         { cost_id: item.cost_id },
       );
     }
-    return d(days);
+    return d(requireNumeric(days, 'days', item));
   }
   if (item.quantity === undefined || item.quantity === null) {
     throw new EngineError(
@@ -225,7 +246,7 @@ function tierQuantity(item: CostItem, ctx: PricingContext): Decimal {
       { cost_id: item.cost_id },
     );
   }
-  return d(item.quantity);
+  return d(requireNumeric(item.quantity, 'quantity', item));
 }
 
 /**

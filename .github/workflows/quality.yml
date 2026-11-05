@@ -54,6 +54,34 @@ jobs:
           node tools/check-fee-recovery-format.mjs
           node tools/check-fee-recovery-sharing.mjs
           node tools/check-fee-recovery-reopen.mjs
+          node tools/check-fee-recovery-business.mjs
+          node tools/check-fee-recovery-review.mjs
+          node tools/check-fee-recovery-preferences.mjs
+          node tools/check-fee-recovery-trade.mjs
+          node tools/check-fee-recovery-reconcile.mjs
+          node tools/check-fee-recovery-package.mjs
+          node tools/check-fee-package-session.mjs
+          node tools/check-fee-package-continuation.mjs
+          node tools/check-fee-workbench-switch.mjs
+          node tools/check-fee-contract-settlement.mjs
+          node tools/check-fee-bank-funding.mjs
+          node tools/check-fee-trade-forms.mjs
+          node tools/check-fee-session-lifecycle.mjs
+          node tools/check-fee-workbench-observation.mjs
+          node tools/check-fee-workbench-boundaries.mjs
+          node tools/check-fee-workbench-handoff.mjs
+          node tools/check-fee-workbench-retention.mjs
+          node tools/check-fee-session-timing.mjs
+          node tools/check-fee-resource-owner.mjs
+          node tools/check-fee-json-stability.mjs
+          node tools/check-fee-field-help.mjs
+          node tools/check-fee-onboarding.mjs
+          node tools/check-fee-component-session.mjs
+          node tools/check-fee-mobile-settings.mjs
+          node tools/check-fee-input-preservation.mjs
+          node tools/check-fee-modal-recovery.mjs
+          node tools/check-fee-modal-composition.mjs
+          node tools/check-fee-business-modal.mjs
       - name: Check container cost review design fixtures
         run: npm run check:container-review-design
       - name: Check fee tax component design fixtures

@@ -1,3 +1,5 @@
+/** Historical artifact comparison only; phase124 independently checks the current build. */
+import{historicalRuntime}from'./fee-input-preservation-evidence.mjs';
 import {readFileSync,readdirSync,existsSync} from 'node:fs';
 import {resolve,join,dirname,relative,isAbsolute} from 'node:path';
 import {createHash} from 'node:crypto';
@@ -14,7 +16,7 @@ for(const[path,sha]of Object.entries(fps)){
  if(path.split('/').includes('..')||! /^(?:(?:src|tests|tools)\/[a-zA-Z0-9/._-]+|package(?:-lock)?\.json)$/.test(path)||blob(Buffer.from(read(path).toString('utf8').replace(/\r\n/g,'\n')))!==sha&&!guidanceFingerprint(path,sha))fail('stale or invalid fingerprint '+path);
 }
 const runtime=read('trade-cost-engine.html');
-if(blob(runtime)!==r.offline_runtime_blob&&!guidanceRuntime(r.offline_runtime_blob)||r.offline_runtime_blob!==native.offline_runtime_blob||['__feeCapacity92','CAPACITY_TRACE_BUSY'].some(s=>runtime.includes(Buffer.from(s))))fail('runtime or diagnostic isolation');
+if(historicalRuntime().blob!==r.offline_runtime_blob&&!guidanceRuntime(r.offline_runtime_blob)||r.offline_runtime_blob!==native.offline_runtime_blob||['__feeCapacity92','CAPACITY_TRACE_BUSY'].some(s=>runtime.includes(Buffer.from(s))))fail('runtime or diagnostic isolation');
 function production(directory){for(const entry of readdirSync(directory,{withFileTypes:true})){const path=join(directory,entry.name);if(entry.isDirectory())production(path);else if(entry.name.endsWith('.ts')&&/(?:fee-capacity-|__feeCapacity92)/.test(readFileSync(path,'utf8')))fail('production imported diagnostic');}}production(join(root,'src'));
 const budget=128*1024*1024,leaf=count=>count===4?'WHOLE_CAPTURE':'RETAINED_ROOT',saveKeys=['save','bill-save','pair-save','fee-tax-save','fee-precision-save','fee-envelope-save'];
 function events(trace,mode){
@@ -48,4 +50,4 @@ const ui=r.offline_ui;
 if(ui.offline_runtime_blob!==r.offline_runtime_blob||ui.financial_writes!==0||ui.confirmation_authority!==false||ui.resources_local_only!==true||ui.exceptions.length||ui.all_sizes_supported!==false||!same(ui.cases.map(c=>c.count),[1,4,8])||ui.methodology.repeated!==3||ui.methodology.latency_thresholds!==false)fail('original offline measurement');
 for(const c of ui.cases){const t=c.preview_including_capture_prepare_render,ordered=[...t.repeated_ms].sort((a,b)=>a-b);if(t.repeated_ms.length!==3||t.repeated_min_ms!==ordered[0]||t.repeated_median_ms!==ordered[1]||t.repeated_max_ms!==ordered[2]||[t.first_ms,...ordered].some(n=>!Number.isFinite(n)||n<0)||Object.values(c.verified).some(v=>v!==true)||c.preview_statuses.length!==4||c.preview_statuses.some(s=>s!==(c.count===1?'STAGED':'REFUSED'))||c.status!==(c.count===1?'MEASURED':'APP_REFUSED')||c.count!==1&&(c.prepared_backup_including_capture_encode_save_api!==null||c.candidate_profit_unknown!==null||c.backup_encoded_utf8_bytes.length))fail('offline sample semantics');}
 let links=0;for(const file of ['docs/fee-capacity-stages-design.md','docs/fee-capacity-stages-validation.md'])for(const match of read(file).toString('utf8').matchAll(/\]\(([^)]+)\)/g)){const url=match[1];if(/^(?:https?:|#)/.test(url))continue;const full=resolve(root,dirname(file),url.split('#')[0]),path=relative(root,full);if(path.startsWith('..')||isAbsolute(path)||!existsSync(full))fail('document link '+url);links++;}
-console.log(JSON.stringify({kind:r.kind,counts:[1,4,8],measuredSamples:12,shapePasses:3,formalFileSaves:18,refusalStages:{4:'WHOLE_CAPTURE',8:'RETAINED_ROOT'},sourceFingerprints:Object.keys(fps).length,localLinks:links,financialWrites:0,capacityChanged:false,historicalRuntime:r.offline_runtime_blob,currentRuntime:blob(runtime),timingRemeasured:false,scope:'HISTORICAL_PHASE92_WITH_CURRENT_SAVE_GUIDANCE_REVALIDATION'}));
+console.log(JSON.stringify({kind:r.kind,counts:[1,4,8],measuredSamples:12,shapePasses:3,formalFileSaves:18,refusalStages:{4:'WHOLE_CAPTURE',8:'RETAINED_ROOT'},sourceFingerprints:Object.keys(fps).length,localLinks:links,financialWrites:0,capacityChanged:false,historicalRuntime:r.offline_runtime_blob,currentRuntime:historicalRuntime().blob,timingRemeasured:false,scope:'HISTORICAL_PHASE92_WITH_CURRENT_SAVE_GUIDANCE_REVALIDATION'}));

@@ -20,11 +20,14 @@ import {rowsToBooks,booksToRows,type FxRow} from '../src/ui/fx-rows';
 import type {FeeSourceStorage} from '../src/ui/fee-workbench-source-adapter';
 import {FeeRecoveryFormat,type FeeRecoveryData} from './fee-recovery-format';
 import {freezeRecoveryData} from './fee-recovery-supplement';
+import {FeeRecoveredBusinessSession} from './fee-recovery-business';
 
 type Data=Record<string,unknown>;
 function fail(code:string):never{throw Error('FEE_RECOVERY_REOPEN_'+code);}
 const copy=<T>(v:T):T=>structuredClone(v);
 const participants=Object.freeze(['app','workflow','bill','pair','tax-controller','precision-controller','envelope-controller','tax-workspace','precision-workspace','envelope-workspace']);
+const confirmedSessions=new WeakSet<object>();
+const businessCreating=new WeakSet<object>();
 export interface FeeRecoveryManifest {
  readonly scope:'SEPARATE_COMMITTED_RECOVERY_MANIFEST';readonly version:'0.1';readonly captured_at:string;readonly logical_utf8_bytes:number;
  readonly sources:readonly {name:string;present:boolean;utf8_bytes:number}[];readonly participants:readonly string[];
@@ -103,6 +106,13 @@ class ReopenedSession {
   seller_profit:this.app.result.seller.margin?.toString()??null,buyer_total:this.app.result.buyer.landed_cost_with_tax.toString(),cost_count:this.app.project.items.length,comparison_count:this.app.comparison.columns.length,
   customer_reviewed:this.workflow.customerReviewed,active_reads:0,pending_patch_replays:0,financial_writes:0,...this.effects,full_live_workbench_reopen:false,production_integrated:false});}
  preview(){return previewRuntimeFeeWorkbench(this.capture(),'separate-recovery-review');}
+ /** A confirmed read-only session stays unchanged; business operations use a second fresh set of holders. */
+ async newBusinessSession(signal:AbortSignal=new AbortController().signal):Promise<FeeRecoveredBusinessSession>{
+  if(!confirmedSessions.has(this))fail('EXPLICIT_OPEN_REQUIRED');if(businessCreating.has(this))fail('BUSY');if(signal.aborted)fail('CANCELLED');businessCreating.add(this);
+  try{const fresh=await prepare(this.archive,signal);if(signal.aborted)fail('CANCELLED');
+  return new FeeRecoveredBusinessSession({archive:fresh.archive,diagnostics:()=>fresh.diagnostics(),project:()=>fresh.app.project,runtime:{owner:fresh.owner,capture:()=>fresh.capture(),targets:{app:fresh.app,workflow:fresh.workflow,bill:fresh.bill,pair:fresh.pair,tax:fresh.tax.controller,precision:fresh.precision.controller,envelope:fresh.envelope.controller,taxUi:fresh.tax,precisionUi:fresh.precision,envelopeUi:fresh.envelope}}});
+  }finally{businessCreating.delete(this);}
+ }
 }
 export type FeeReopenedSession=ReopenedSession;
 async function prepare(a:FeeRecoveryData,signal:AbortSignal):Promise<ReopenedSession>{
@@ -144,6 +154,6 @@ export class FeeRecoveryReopen {
  }
  confirm(summary:FeeRecoveryManifest,choice:'OPEN_SEPARATE_RECOVERY_SESSION'):ReopenedSession{
   const candidate=this.issued.get(summary);if(!candidate)fail('FOREIGN_OR_CONSUMED');this.check(candidate.op);if(choice!=='OPEN_SEPARATE_RECOVERY_SESSION')fail('CHOICE_REQUIRED');if(!candidate.session||!summary.can_open)fail('INPUT_REVIEW_REQUIRED');
-  if(!this.owner.commit(candidate.op.checkpoint,[{target:this.slot,values:{session:candidate.session}}]))fail('STALE');this.issued.delete(summary);candidate.op.cleanup();this.operation=null;return candidate.session;
+  if(!this.owner.commit(candidate.op.checkpoint,[{target:this.slot,values:{session:candidate.session}}]))fail('STALE');confirmedSessions.add(candidate.session);this.issued.delete(summary);candidate.op.cleanup();this.operation=null;return candidate.session;
  }
 }

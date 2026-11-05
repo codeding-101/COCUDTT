@@ -1,0 +1,45 @@
+import{historicalInputReport}from'./fee-modal-recovery-evidence.mjs';
+import{buildSwitchInventory}from'./fee-workbench-switch-inventory.mjs';
+import{buildWorkbenchObservationPlan}from'./fee-workbench-observation-inventory.mjs';
+import{buildWorkbenchBoundaryPlan}from'./fee-workbench-boundaries-inventory.mjs';
+import{buildWorkbenchHandoffInventory}from'./fee-workbench-handoff-inventory.mjs';
+/** Current source/compiled artifact evidence; historical runtime pins cannot certify this build. */
+import {readFileSync,writeFileSync,existsSync} from 'node:fs';
+import {resolve,join,dirname} from 'node:path';
+import {createHash} from 'node:crypto';
+import {inputPreservationQualifiedFingerprints,inputPreservationHistoricalPins,verifyInputPreservationRuntime,qualifyHistoricalWorkbenchInventory} from './fee-input-preservation-evidence.mjs';
+const root=resolve(import.meta.dirname,'..'),file=join(root,'docs/cases/fee-input-preservation-accepted.json');
+const read=p=>JSON.parse(readFileSync(p,'utf8').replace(/^\ufeff/,'')),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b),sha=b=>createHash('sha256').update(b).digest('hex');
+const fail=m=>{throw Error('Input preservation: '+m);},fps=historicalInputReport().source_fingerprints,runtime=verifyInputPreservationRuntime(),writing=process.argv.includes('--write');
+if(writing)fail('historical phase124 report is immutable; write the phase125 modal recovery report instead');
+const workbenchAst=historicalInputReport().workbench_ast;
+let r;
+if(writing){
+ const at=process.argv.indexOf('--write'),[browserFile,unitFile,financialFile]=process.argv.slice(at+1);
+ if(!financialFile||existsSync(file))fail('new complete evidence required; never overwrite a completed report');
+ const raw=readFileSync(unitFile),t=JSON.parse(raw),start=read(join(dirname(unitFile),'unit-source-start.json')),status=read(join(dirname(unitFile),'full-regression-status.json'));
+ if(!t.success||t.numTotalTests!==6240||t.numPassedTests!==6240||t.numFailedTests||t.numPendingTests||t.testResults.length!==170||start.phase!==124||start.workers!==2||start.timeoutsRelaxed||status.status!=='PASSED'||!status.typescriptUnchanged||!same(start.typescript,Object.fromEntries(Object.entries(fps).filter(([p])=>p.endsWith('.ts')))))fail('complete original-budget regression bound to actual TypeScript');
+ const cases=t.testResults.find(t=>t.name.replaceAll('\\','/').endsWith('/tests/pricing-validation.test.ts'));
+ if(cases?.assertionResults.length!==79||cases.assertionResults.some(t=>t.status!=='passed'))fail('79 numeric input boundaries');
+ r={kind:'CURRENT_INPUT_PRESERVATION_EVIDENCE',workbench_ast:workbenchAst,version:'0.1',phase:124,qualification_attempt:4,prior_qualification_report:{path:'docs/cases/fee-input-preservation-verified.json',blob:'2208fe6dd69c6dc0631da3d301cee78698d3e3fd',status:'CORE_EVIDENCE_PASSED_ENGINEERING_FAILED',failed_gate:'workbench-switch'},generated_at:new Date().toISOString(),source_fingerprints:fps,historical_reports:inputPreservationHistoricalPins,
+  unit:{files:170,total:6240,passed:6240,failed:0,pending:0,new_tests:79,typescript_bound:true,report_sha256:sha(raw)},runtime,
+  browser:read(browserFile),financial_browser:read(financialFile),production_source_changed:true,client_runtime_changed:true,pricing_input_validation_changed:true,
+  tax_rules_changed:false,incoterms_rules_changed:false,file_format_changed:false,dependencies_changed:false,budgets_relaxed:false,
+  resolved_previous_findings:3,remaining_previous_findings:6,mobile_hardening_complete:false,full_workbench_switch:false,original_application_cleanup_verified:false,isolated_mobile_component_installed:false,
+  full_financial_suites_rerun_this_phase:true,reused_unchanged_runtime_financial_suites:0,project_file_writes:0,archives_uploaded:0,
+  publication_status:'HELD_LOCAL_BY_USER',local_only:true,main_updated:false,pages_updated:false,remote_ci_executed:false,real_phone_verified:false,professional_review_verified:false,global_timing_stability_proven:false,first_interrupted_start_snapshot_available:false};
+}else{if(!existsSync(file))fail('completed current report missing');r=read(file);}
+if(!same(r.workbench_ast,workbenchAst)||r.kind!=='CURRENT_INPUT_PRESERVATION_EVIDENCE'||!same(r.source_fingerprints,fps)||!same(r.historical_reports,inputPreservationHistoricalPins)||!same(r.runtime,runtime)||r.unit.passed!==6240||r.unit.total!==6240||r.unit.files!==170||r.unit.new_tests!==79||r.unit.failed||r.unit.pending||!r.unit.typescript_bound)fail('current source/runtime/unit drift');
+const b=r.browser,f=r.financial_browser;
+if(b.kind!=='CURRENT_INPUT_PRESERVATION_BROWSER_EVIDENCE'||!same(b.source_fingerprints,fps)||b.original_app_blob!==fps['src/ui/app.ts']||!b.app_probe_appended_only||b.component_source_transformed||!b.actual_form_nodes_used||b.states.length!==27||Object.keys(b.checks).length!==38||Object.values(b.checks).some(v=>v!==true)||b.exceptions.length||b.unexpected_dialog||!b.driver_navigation_bounded||b.cdp_command_timeout_ms!==30000)fail('current real form replay');
+const fixed=['collapsed_reverse_tab_stays_at_first','rerender_replaces_selected_file','invalid_amount_uses_recovery'];
+const remaining=['overflow_priority_not_restored','foreign_overflow_overwritten','missing_placeholder_leaves_hidden_form','missing_host_reports_open','show_modal_failure_needs_host_recovery','close_failure_leaves_modal_lock'];
+if(!same(b.fixed.map(v=>v.id),fixed)||b.fixed.some(v=>v.status!=='FIXED_AND_REPLAYED'||!v.fixed)||!same(b.findings.map(v=>v.id),remaining)||b.findings.some(v=>v.fixed!==false)||r.resolved_previous_findings!==3||r.remaining_previous_findings!==6||r.mobile_hardening_complete!==false)fail('precise fixed and remaining findings');
+if(b.invalid_text_evidence.model!=='-e'||b.invalid_text_evidence.input!=='-e'||!b.invalid_text_evidence.error||b.invalid_text_evidence.recovery!==null||!b.fixed.find(v=>v.id==='invalid_amount_uses_recovery').evidence.error_code)fail('invalid cost keeps raw and uses an engine field error');
+if(b.layouts.length!==3||b.layouts.some(v=>!v.open||v.content>v.viewport||v.dialog_width>v.width||v.dialog_content>v.dialog_client||v.host_content>v.host_client)||b.file_retention_cases.length!==6||Object.values(b.file_read_ownership).some(v=>v!==true)||b.original_application_listeners_wrapped||!b.production_source_changed||!b.client_runtime_changed||b.full_workbench_switch||b.isolated_mobile_component_installed)fail('files, layouts and scope');
+const financialMetadataDifferences=Object.keys(fps).filter(p=>f.source_fingerprints[p]!==fps[p]),allowedFinancialDifferences=new Set(['tests/project-io.test.ts','tools/fee-input-preservation-evidence.mjs','tools/check-fee-input-preservation.mjs','tools/check-fee-layered-source-mapping.mjs','tools/check-fee-browser-recovery-design.mjs','tools/check-fee-browser-native.mjs',"tools/check-fee-workbench-switch.mjs","tools/check-fee-workbench-observation.mjs","tools/check-fee-workbench-boundaries.mjs","tools/check-fee-workbench-handoff.mjs"]);
+if(!same(Object.keys(f.source_fingerprints),Object.keys(fps))||financialMetadataDifferences.some(p=>!allowedFinancialDifferences.has(p))||!f.same_source_bound||f.offline_runtime_sha256!==runtime.sha256||f.suites.length!==46||f.suites.some(s=>s.exitCode!==0||!s.report_sha256||!s.report_files.length)||!r.full_financial_suites_rerun_this_phase||r.reused_unchanged_runtime_financial_suites!==0)fail('fresh 46-suite same-source and artifact financial regression');
+if(r.publication_status!=='HELD_LOCAL_BY_USER'||!r.local_only||r.first_interrupted_start_snapshot_available!==false||r.project_file_writes||r.archives_uploaded)fail('publication/archive scope');
+for(const key of['tax_rules_changed','incoterms_rules_changed','file_format_changed','dependencies_changed','budgets_relaxed','mobile_hardening_complete','full_workbench_switch','original_application_cleanup_verified','isolated_mobile_component_installed','main_updated','pages_updated','remote_ci_executed','real_phone_verified','professional_review_verified','global_timing_stability_proven'])if(r[key]!==false)fail('unsupported claim '+key);
+if(writing){r.financial_source_scope='EXACT_RUNTIME_AND_EXECUTED_SOURCES';r.financial_post_run_test_metadata_differences=financialMetadataDifferences;r.financial_original_observed_map_retained=true;writeFileSync(file,JSON.stringify(r,null,2)+'\n');}else if(r.financial_source_scope!=='EXACT_RUNTIME_AND_EXECUTED_SOURCES'||!same(r.financial_post_run_test_metadata_differences,financialMetadataDifferences)||!r.financial_original_observed_map_retained)fail('original financial observation and explicit metadata changes');
+console.log(JSON.stringify({historicalPhase124Qualified:true,scope:'HISTORICAL_PHASE124_WITH_CURRENT_MODAL_SOURCE_QUALIFICATION',tests:6240,newTests:79,nativeStates:27,nativeChecks:38,resolvedFindings:3,remainingFindings:6,financialSuites:46,runtimeChanged:true,sourceFingerprints:Object.keys(fps).length,historicalReports:Object.keys(inputPreservationHistoricalPins).length,localOnly:true,reportWritten:writing}));

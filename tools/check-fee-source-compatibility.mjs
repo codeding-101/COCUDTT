@@ -1,3 +1,5 @@
+/** Historical artifact comparison only; phase124 independently checks the current build. */
+import{historicalRuntime}from'./fee-input-preservation-evidence.mjs';
 import {integratedFingerprint,integratedRuntime} from './fee-semantic-integration-evidence.mjs';
 import {readFileSync,readdirSync} from 'node:fs';
 import {resolve,join} from 'node:path';
@@ -34,5 +36,5 @@ for(const id of ['accessor','to_json'])if(caseById.get(id)?.legacy_accessor_or_t
 const app=read('src/ui/app.ts').toString('utf8');if(app.includes('captureFeeWorkbenchSourceFrame')||app.includes('projectFeeSourceFrameToLegacy')||app.includes('fee-source-compatibility'))throw Error('Known compatibility gaps: retain original production capture');
 function production(directory){for(const entry of readdirSync(directory,{withFileTypes:true})){const path=join(directory,entry.name);if(entry.isDirectory())production(path);else if(entry.name.endsWith('.ts')&&/fee-source-compatibility/.test(readFileSync(path,'utf8')))throw Error('Developer diagnostic imported into production source');}}
 production(join(root,'src'));
-const runtime=read('trade-cost-engine.html');if(blob(runtime)!==report.offline_runtime_blob&&!integratedRuntime(report.offline_runtime_blob)||report.offline_runtime_blob!=='c5c59c2c98930c4d1a2bd9a7a56b80967498389b'||runtime.includes(Buffer.from('__feeSourceCompatibility89')))throw Error('Production runtime or bridge isolation changed');
+const runtime=read('trade-cost-engine.html');if(historicalRuntime().blob!==report.offline_runtime_blob&&!integratedRuntime(report.offline_runtime_blob)||report.offline_runtime_blob!=='c5c59c2c98930c4d1a2bd9a7a56b80967498389b'||runtime.includes(Buffer.from('__feeSourceCompatibility89')))throw Error('Production runtime or bridge isolation changed');
 console.log(JSON.stringify({kind:report.kind,cases:42,exactCaptures:report.cases.filter(c=>c.full_capture_equal===true).length,ordinaryJsonGaps:gaps,historicalProductionAction:'KEEP_ORIGINAL_CAPTURE',transactionReadinessTested:false,financialWrites:0,historicalRuntimeIntegrated:false,currentRuntimeIntegrated:true,scope:'HISTORICAL_COMPATIBILITY_EVIDENCE_WITH_CURRENT_INTEGRATION_QUALIFICATION'}));

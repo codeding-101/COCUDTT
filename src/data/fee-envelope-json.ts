@@ -3,6 +3,11 @@ const fail=():never=>{throw new FeeEnvelopeError('STRICT_JSON')};
 const encoder=new TextEncoder();
 /** Lone surrogates would lose identity when fingerprinted as UTF-8. */
 function string(value:string):string {
+ // Node tooling can use its strict UTF-16 intrinsic. The client build retains the original loop.
+ if(import.meta.env.SSR){
+  const native=Reflect.get(String.prototype,'isWellFormed');
+  if(typeof native==='function'){if(!Reflect.apply(native,value,[]))fail();return value;}
+ }
  for(let i=0;i<value.length;i++){const n=value.charCodeAt(i);if(n>=0xd800&&n<=0xdbff){const next=value.charCodeAt(++i);if(!(next>=0xdc00&&next<=0xdfff))fail();}else if(n>=0xdc00&&n<=0xdfff)fail();}
  return value;
 }

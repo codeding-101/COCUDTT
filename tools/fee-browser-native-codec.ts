@@ -72,14 +72,20 @@ function own(value: unknown, expected?: readonly string[]): Record<string, unkno
 }
 /** Sizes of a JSON string token, and of that token escaped once more as opaque retained text. */
 function textMetrics(text: string): Metrics {
-  const bytes = feeBrowserNativeUtf8Bytes(text); let compact = bytes + 2, escaped = bytes + 4;
-  for (const match of text.matchAll(/["\\\u0000-\u001f\ud800-\udfff]/g)) {
-    const i = match.index, code = text.charCodeAt(i);
-    if (code >= 0xd800 && code <= 0xdbff) {if (!(text.charCodeAt(i + 1) >= 0xdc00 && text.charCodeAt(i + 1) <= 0xdfff)) fail('UNICODE'); continue;}
-    if (code >= 0xdc00 && code <= 0xdfff) {if (!(text.charCodeAt(i - 1) >= 0xd800 && text.charCodeAt(i - 1) <= 0xdbff)) fail('UNICODE'); continue;}
+  let compact = 2, escaped = 4;
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i); let bytes: number;
+    if (code < 128) bytes = 1;
+    else if (code < 2048) bytes = 2;
+    else if (code >= 0xd800 && code <= 0xdbff) {
+      const next = text.charCodeAt(++i); if (!(next >= 0xdc00 && next <= 0xdfff)) fail('UNICODE'); bytes = 4;
+    } else {if (code >= 0xdc00 && code <= 0xdfff) fail('UNICODE'); bytes = 3;}
+    compact += bytes; escaped += bytes;
     if (code === 34 || code === 92) {compact++; escaped += 3;}
-    else if ([8, 9, 10, 12, 13].includes(code)) {compact++; escaped += 2;}
-    else {compact += 5; escaped += 6;}
+    else if (code < 32) {
+      if (code === 8 || code === 9 || code === 10 || code === 12 || code === 13) {compact++; escaped += 2;}
+      else {compact += 5; escaped += 6;}
+    }
   }
   return {compact, pretty: compact, escapedCompact: escaped, escapedPretty: escaped};
 }
@@ -107,7 +113,6 @@ function forest(parts: FeeLayeredCaptureParts) {
     if (typeof value === 'boolean') {nodes.push(['boolean', value]); return;}
     if (typeof value === 'number') {if (!Number.isFinite(value)) fail('NUMBER'); nodes.push(Object.is(value, -0) ? ['negative-zero'] : ['number', value]); return;}
     if (typeof value === 'string') {
-      textMetrics(value);
       if (feeBrowserNativeUtf8Bytes(value) < FEE_LAYERED_CAPTURE_LIMITS.shared_text_min_bytes) nodes.push(['text', value]);
       else {let id = ids.get(value); if (id === undefined) {if (texts.length >= FEE_LAYERED_CAPTURE_LIMITS.text_entries) fail('TEXT_LIMIT'); id = texts.length; ids.set(value, id); texts.push(value);} nodes.push(['text-ref', id]);}
       return;
@@ -121,7 +126,7 @@ function forest(parts: FeeLayeredCaptureParts) {
       nodes.push(['array', length]);
       for (let i = 0; i < length; i++) {const d = ds[String(i)]; if (!d?.enumerable || !('value' in d)) fail('FIELDS'); visit(d.value, depth + 1);}
     } else {
-      const fields = own(value), names = Object.keys(fields); names.forEach(textMetrics);
+      const fields = own(value), names = Object.keys(fields); names.forEach(feeBrowserNativeUtf8Bytes);
       nodes.push(['object', JSON.stringify(names)]); names.forEach(k => visit(fields[k], depth + 1));
     }
     parents.delete(value);
@@ -132,9 +137,9 @@ function forest(parts: FeeLayeredCaptureParts) {
 }
 function inspect(nodes: readonly unknown[], texts: readonly unknown[], retainedNodes: number, retainedFormat: FeeLayeredRetainedFormat) {
   if (!count(retainedNodes, 300000) || !retainedNodes || nodes.length > 600000 || texts.length > 4096) fail('TABLE_LIMIT');
-  const unique = new Set<string>();
-  for (const t of texts) {if (typeof t !== 'string' || feeBrowserNativeUtf8Bytes(t) < 1024) fail('TEXT_ENTRY'); textMetrics(t); if (unique.has(t)) fail('DUPLICATE_TEXT'); unique.add(t);}
-  const used = new Set<number>(), cache = new Map<string, Metrics>(), names = new Map<number, string[]>(); let at = 0, rootNodes = 0, rootDepth = 0;
+  const cache = new Map<string, Metrics>();
+  for (const t of texts) {if (typeof t !== 'string' || feeBrowserNativeUtf8Bytes(t) < 1024) fail('TEXT_ENTRY'); const m = textMetrics(t); if (cache.has(t)) fail('DUPLICATE_TEXT'); cache.set(t, m);}
+  const used = new Set<number>(), names = new Map<number, string[]>(); let at = 0, rootNodes = 0, rootDepth = 0;
   const metric = (s: string) => {let m = cache.get(s); if (!m) {m = textMetrics(s); if (s.length >= 512 && cache.size < 4096) cache.set(s, m);} return m;};
   const walk = (depth: number): Metrics => {
     if (++rootNodes > 300000 || depth > 32) fail('SEMANTIC_LIMIT'); rootDepth = Math.max(rootDepth, depth);

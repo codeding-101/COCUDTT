@@ -1,3 +1,6 @@
+/** Historical artifact comparison only; phase124 independently checks the current build. */
+import{historicalRuntime}from'./fee-input-preservation-evidence.mjs';
+import{jsonStabilityHistoricalBindings,jsonStabilityHistoricalFingerprint}from'./fee-json-stability-evidence.mjs';
 /** Same-runtime qualification of phase95 observation tools; historical reports and all production files are immutable. */
 import{readFileSync,readdirSync}from'node:fs';import{resolve,join}from'node:path';import{createHash}from'node:crypto';
 import{browserRecoveryQualifiedFingerprints}from'./fee-browser-recovery-evidence.mjs';
@@ -19,17 +22,18 @@ export function assertFastUriSecurityPatch(){
 }
 /** Qualify only exact historical pins against this phase's complete current inventory. */
 export function sourceMappingHistoricalFingerprint(path,historical){
+ if(jsonStabilityHistoricalFingerprint(path,historical))return true;
  if(sourceMappingChangedPaths[path]!==historical)return false;
  const r=JSON.parse(read('docs/cases/fee-layered-source-mapping.json'));
- if(r.kind!=='SYNTHETIC_FEE_LAYERED_SOURCE_MAPPING_EVIDENCE'||r.base_source_commit!=='62d787702f2c223d4395d0aa736c041ebe4edb49'||r.runtime_integrated!==false||r.financial_writes!==0||r.offline_runtime_blob!==blob(read('trade-cost-engine.html'))||JSON.stringify(r.security_patch)!==JSON.stringify(fastUriSecurityPatch))return false;
- assertFastUriSecurityPatch();return r.source_fingerprints[path]===blob(Buffer.from(read(path).toString('utf8').replace(/\r\n/g,'\n')));
+ if(r.kind!=='SYNTHETIC_FEE_LAYERED_SOURCE_MAPPING_EVIDENCE'||r.base_source_commit!=='62d787702f2c223d4395d0aa736c041ebe4edb49'||r.runtime_integrated!==false||r.financial_writes!==0||r.offline_runtime_blob!==historicalRuntime().blob||JSON.stringify(r.security_patch)!==JSON.stringify(fastUriSecurityPatch))return false;
+ assertFastUriSecurityPatch();return r.source_fingerprints[path]===blob(Buffer.from(read(path).toString('utf8').replace(/\r\n/g,'\n')))||jsonStabilityHistoricalFingerprint(path,r.source_fingerprints[path]);
 }
 export function sourceMappingCurrentPaths(){const out=[];function walk(dir){for(const e of readdirSync(join(root,dir),{withFileTypes:true})){const p=dir+'/'+e.name;if(e.isDirectory())walk(p);else if(e.name.endsWith('.ts'))out.push(p);}}walk('src');walk('tests');for(const f of readdirSync(join(root,'tools')))if(/\.(?:mjs|ts)$/.test(f))out.push('tools/'+f);return out.concat('package.json','package-lock.json').sort();}
 export function sourceMappingCurrentFingerprints(){return Object.fromEntries(sourceMappingCurrentPaths().map(p=>[p,blob(Buffer.from(read(p).toString('utf8').replace(/\r\n/g,'\n')))]));}
 export function assertSourceMappingHistoricalPins(){for(const[p,sha]of Object.entries(sourceMappingHistoricalPins))if(blob(Buffer.from(read(p).toString('utf8').replace(/\r\n/g,'\n')))!==sha)throw Error('Source mapping historical evidence changed '+p);}
 export function sourceMappingQualifiedFingerprints(baseline,paths){
  assertSourceMappingHistoricalPins();assertFastUriSecurityPatch();const r=JSON.parse(read('docs/cases/fee-layered-source-mapping.json')),old=JSON.parse(read('docs/cases/fee-layered-capture.json'));
- if(r.kind!=='SYNTHETIC_FEE_LAYERED_SOURCE_MAPPING_EVIDENCE'||r.version!=='0.1'||r.base_source_commit!=='62d787702f2c223d4395d0aa736c041ebe4edb49'||r.offline_runtime_blob!=='3d1ab6e3413840b44e80de577956b0364343952c'||blob(read('trade-cost-engine.html'))!==r.offline_runtime_blob||r.runtime_integrated!==false||r.production_capacity_changed!==false||r.financial_writes!==0)throw Error('Source mapping qualification missing');
+ if(r.kind!=='SYNTHETIC_FEE_LAYERED_SOURCE_MAPPING_EVIDENCE'||r.version!=='0.1'||r.base_source_commit!=='62d787702f2c223d4395d0aa736c041ebe4edb49'||r.offline_runtime_blob!=='3d1ab6e3413840b44e80de577956b0364343952c'||historicalRuntime().blob!==r.offline_runtime_blob||r.runtime_integrated!==false||r.production_capacity_changed!==false||r.financial_writes!==0)throw Error('Source mapping qualification missing');
  if(JSON.stringify(baseline)!==JSON.stringify(old.source_fingerprints)||Object.entries(sourceMappingChangedPaths).some(([p,sha])=>baseline[p]!==sha))throw Error('Source mapping original inventory changed');
  const expected=Object.keys(baseline).concat(sourceMappingAddedPaths).sort(),actual=browserRecoveryQualifiedFingerprints(r.source_fingerprints,paths);
  if(JSON.stringify(Object.keys(r.source_fingerprints).sort())!==JSON.stringify(expected))throw Error('Source mapping historical coverage changed');

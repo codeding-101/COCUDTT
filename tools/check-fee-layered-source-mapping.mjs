@@ -1,10 +1,13 @@
+import{inputPreservationAddedPaths,inputPreservationQualifiedFingerprints}from'./fee-input-preservation-evidence.mjs';
+/** Historical artifact comparison only; phase124 independently checks the current build. */
+import{historicalRuntime}from'./fee-input-preservation-evidence.mjs';
 import{readFileSync,writeFileSync,existsSync}from'node:fs';import{resolve,join,dirname,relative,isAbsolute}from'node:path';import{createHash}from'node:crypto';import{execFileSync}from'node:child_process';import{createServer}from'vite';
 import{sourceMappingHistoricalPins,sourceMappingAddedPaths,sourceMappingChangedPaths,sourceMappingCurrentPaths,sourceMappingCurrentFingerprints,assertSourceMappingHistoricalPins,sourceMappingQualifiedFingerprints,fastUriSecurityPatch,assertFastUriSecurityPatch}from'./fee-layered-source-evidence.mjs';
 const root=resolve(import.meta.dirname,'..'),read=p=>readFileSync(join(root,p)),blob=b=>createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex'),fail=m=>{throw Error('Layered source evidence: '+m);},same=(a,b)=>JSON.stringify(a)===JSON.stringify(b),file='docs/cases/fee-layered-source-mapping.json';
 if(process.argv.includes('--write'))fail('Phase95 evidence is immutable; generate the current browser recovery design report instead');
 const policy=JSON.parse(read('tsconfig.json')).compilerOptions,args=[];for(const key of['target','module','moduleResolution','lib','types','strict','noUncheckedIndexedAccess','noImplicitOverride','noFallthroughCasesInSwitch','verbatimModuleSyntax','isolatedModules','skipLibCheck'])if(policy[key]!==undefined)args.push('--'+key,Array.isArray(policy[key])?policy[key].join(','):String(policy[key]));
 execFileSync(process.execPath,['node_modules/typescript/bin/tsc','--ignoreConfig','--noEmit',...args,'tools/fee-layered-source-diagnostic.ts','tools/fee-layered-browser-port.ts','tools/fee-layered-browser-utf8.ts'],{cwd:root,encoding:'utf8',timeout:120000});
-assertSourceMappingHistoricalPins();assertFastUriSecurityPatch();const runtime=blob(read('trade-cost-engine.html'));if(runtime!=='3d1ab6e3413840b44e80de577956b0364343952c')fail('runtime changed');
+assertSourceMappingHistoricalPins();assertFastUriSecurityPatch();const runtime=historicalRuntime().blob;if(runtime!=='3d1ab6e3413840b44e80de577956b0364343952c')fail('runtime changed');
 // Fresh controlled Node + in-memory WebCrypto port comparison, separately from the recorded actual-browser matrix.
 const loader=await createServer({root,configFile:false,optimizeDeps:{noDiscovery:true,include:[]},server:{middlewareMode:true,hmr:false,watch:null},appType:'custom'});let portServer,active;
 try{
@@ -31,7 +34,9 @@ const paths=sourceMappingCurrentPaths(),fps=sourceMappingQualifiedFingerprints(J
 if(!same(r.security_patch,fastUriSecurityPatch))fail('security patch qualification');
 if(n.kind!=='SYNTHETIC_FEE_LAYERED_SOURCE_BROWSER_MAPPING'||n.version!=='0.1'||n.base_source_commit!==r.base_source_commit||n.offline_runtime_blob!==runtime||!same(n.compatibility.map(c=>c.id),old.cases.map(c=>c.id))||!same(n.operational.map(c=>c.label),old.operational.map(c=>c.label))||n.compatibility.length!==42||n.operational.length!==27)fail('original69 identities');
 for(const[p,sha]of Object.entries(n.source_fingerprints))if(fps[p]!==sha)fail('measured binding changed '+p);
-for(const p of Object.keys(fps).filter(p=>p.startsWith('src/')))if(!Object.hasOwn(n.source_fingerprints,p))fail('uncovered production source '+p);
+// The historical report covers its measured modules; declared new modules require the current gate.
+const currentInputSource=inputPreservationQualifiedFingerprints();
+for(const p of Object.keys(fps).filter(p=>p.startsWith('src/')))if(!Object.hasOwn(n.source_fingerprints,p)&&(!inputPreservationAddedPaths.includes(p)||fps[p]!==currentInputSource[p]))fail('uncovered production source '+p);
 for(const c of n.compatibility){if(c.kind!=='INTERNAL_FEE_LAYERED_SOURCE_DIAGNOSTIC'||c.version!=='0.1'||c.production_action!=='KEEP_CURRENT_CAPTURE'||c.runtime_integrated!==false||c.application_readiness!=='NOT_TESTED'||c.import_authority!==false||c.confirmation_authority!==false||!c.acceptance_equal||!c.owner_unchanged||c.full_capture_equal===false||c.storage_reads!==30||c.storage_writes!==0||c.adapter_accessor_or_tojson_calls!==0||!c.project_and_receipts_unchanged||!c.customer_review_unchanged)fail('compatibility '+c.id);}
 for(const id of['undefined','function','symbol_value','symbol_key','non_enumerable','sparse_array','custom_prototype','cycle','nan','infinity','lone_high','lone_low','accessor','to_json']){const c=n.compatibility.find(c=>c.id===id);if(c?.production_capture.status!=='REJECTED'||c.reconstruction.status!=='NOT_RUN')fail('unsupported JavaScript '+id);}
 const closed=['depth_29','depth_30','nodes_frame_over','nodes_retained_at'];if(!same(n.closed_counterexamples,closed)||closed.some(id=>n.compatibility.find(c=>c.id===id)?.full_capture_equal!==true)||n.compatibility.filter(c=>c.full_capture_equal===true).length!==25)fail('closed boundary cases');

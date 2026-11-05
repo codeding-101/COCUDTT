@@ -1,11 +1,6 @@
 import{afterEach,describe,expect,it,vi}from'vitest';
 import{MobileSettingsController}from'../src/ui/mobile-settings';
-function environment(){
- let small=true,marker:any=null;const original={},body={style:{overflow:'auto'}},trigger={dataset:{action:'show-mobile-settings'},focus:vi.fn()},host={scrollTop:0,append:(el:any)=>{el.parentElement=host}},panel={open:false,parentElement:original,before:(el:any)=>{marker=el;el.replaceWith=(p:any)=>{p.parentElement=original;marker=null}}};
- const events=new Map<string,(event:any)=>void>(),dialog={open:false,isConnected:true,contains:()=>true,showModal:vi.fn(function(){dialog.open=true}),close:vi.fn(function(){dialog.open=false;events.get('close')?.({})}),addEventListener:(key:string,fn:(event:any)=>void)=>events.set(key,fn),querySelector:(selector:string)=>selector.includes('host')?host:selector.includes('advanced-settings')?panel:null,querySelectorAll:()=>[trigger]};
- vi.stubGlobal('matchMedia',()=>({matches:small}));vi.stubGlobal('window',{scrollX:5,scrollY:456,scrollTo:vi.fn()});vi.stubGlobal('document',{body,activeElement:trigger,createElement:()=>({dataset:{}}),querySelector:(selector:string)=>selector==='#mobile-settings-dialog'?dialog:selector.includes('placeholder')?marker:selector.includes('host')?host:selector.includes('advanced-settings')?panel:null,querySelectorAll:()=>[trigger]});
- return{body,panel,host,dialog,events,trigger,desktop:()=>{small=false},original};
-}
+import{mobileSettingsEnvironment as environment}from'./helpers/mobile-settings-dom';
 describe('mobile settings hosts one existing form and only retains UI state',()=>{
  afterEach(()=>vi.unstubAllGlobals());
  it('queued native close cannot dismiss a newly reopened view',()=>{const e=environment(),c=new MobileSettingsController();c.open(e.trigger as any);c.dismiss(false);c.open(e.trigger as any);e.events.get('close')!({});expect(c.isOpen).toBe(true);expect(e.dialog.open).toBe(true);});

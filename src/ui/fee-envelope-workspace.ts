@@ -1,4 +1,5 @@
 import type {WorkbenchStateOwner} from './workbench-state.js';
+import {replaceWorkspaceMarkup} from './file-input-retention.js';
 import {FeeEnvelopeController, FEE_ENVELOPE_STORAGE_KEY, type FeeEnvelopeStorage, type FeeEnvelopeFileSource, type FeeEnvelopeBackup} from './fee-envelope-controller.js';
 import {adoptLegacyFeeEnvelope, createNewFeeEnvelopeFromPair, serializeFeeEnvelope, parseFeeEnvelope, reviewFeeEnvelope} from '../data/fee-envelope.js';
 import {feeEnvelopeInternalHtml, feeEnvelopeInternalWorkbook} from '../data/fee-envelope-snapshot.js';
@@ -95,7 +96,7 @@ export class FeeEnvelopeWorkspace {
     const selection = field && active instanceof HTMLInputElement ? [active.selectionStart, active.selectionEnd] as const : null;
     const workbenchOpen = host.querySelector<HTMLDetailsElement>('[data-fee-workbench-panel]')?.open;
     const guideOpen = [...host.querySelectorAll<HTMLDetailsElement>('[data-fee-workflow-guide] details, [data-fee-workflow-guide]')].filter(el => el.open).map(el => [...el.attributes].find(a => a.name.startsWith('data-fee-workflow-'))?.name).filter((v): v is string => !!v);
-    host.innerHTML = this.body();
+    replaceWorkspaceMarkup(host,this.body(),true);
     for (const name of guideOpen) {const panel = host.querySelector<HTMLDetailsElement>(`[${name}]`); if (panel) panel.open = true;}
     if (workbenchOpen) {const panel = host.querySelector<HTMLDetailsElement>('[data-fee-workbench-panel]'); if (panel) panel.open = true;}
     if (field || choice) { const next = host.querySelector<HTMLInputElement>(field ? '[data-fee-envelope-field="business-name"]' : `[data-fee-envelope-choice="${choice}"]`); next?.focus(); if (next && field && selection && selection[0] !== null) next.setSelectionRange(selection[0], selection[1]); }

@@ -1,3 +1,6 @@
+/** Historical artifact comparison only; phase124 independently checks the current build. */
+import{historicalRuntime}from'./fee-input-preservation-evidence.mjs';
+import{jsonStabilityHistoricalBindings,jsonStabilityHistoricalFingerprint}from'./fee-json-stability-evidence.mjs';
 /** Phase97 qualification: immutable historical reports, unchanged runtime and explicitly enumerated additions. */
 import{readFileSync,readdirSync}from'node:fs';import{resolve,join}from'node:path';import{createHash}from'node:crypto';
 import{recoveryQualifiedFingerprints}from'./fee-recovery-evidence.mjs';
@@ -9,8 +12,8 @@ export function nativeCodecPaths(){const paths=[];function walk(dir){for(const e
 export function nativeCodecFingerprints(){return Object.fromEntries(nativeCodecPaths().map(p=>[p,blob(Buffer.from(read(p).toString('utf8').replace(/\r\n/g,'\n')))]));}
 export function assertNativeCodecHistory(){for(const[p,sha]of Object.entries(nativeCodecHistoricalPins))if(blob(Buffer.from(read(p).toString('utf8').replace(/\r\n/g,'\n')))!==sha)throw Error('Native codec historical report changed '+p);}
 export function nativeCodecQualifiedFingerprints(baseline,paths){
- assertNativeCodecHistory();const r=JSON.parse(read('docs/cases/fee-browser-native-codec.json')),old=JSON.parse(read('docs/cases/fee-browser-recovery-design.json')),actual=nativeCodecFingerprints();
- if(r.kind!=='SYNTHETIC_FEE_BROWSER_NATIVE_CODEC_EVIDENCE'||r.version!=='0.1'||r.base_source_commit!=='f31b457ab316e9bce10ccd3d9ce2b18b1e41b901'||r.offline_runtime_blob!=='3d1ab6e3413840b44e80de577956b0364343952c'||blob(read('trade-cost-engine.html'))!==r.offline_runtime_blob||r.native_codec_implemented!==true||r.runtime_integrated!==false||r.full_workbench_reopen_implemented!==false||r.production_capacity_changed!==false||r.financial_writes!==0)throw Error('Native codec scope qualification');
+ assertNativeCodecHistory();const r=JSON.parse(read('docs/cases/fee-browser-native-codec.json')),old=JSON.parse(read('docs/cases/fee-browser-recovery-design.json')),actual=jsonStabilityHistoricalBindings(nativeCodecFingerprints());
+ if(r.kind!=='SYNTHETIC_FEE_BROWSER_NATIVE_CODEC_EVIDENCE'||r.version!=='0.1'||r.base_source_commit!=='f31b457ab316e9bce10ccd3d9ce2b18b1e41b901'||r.offline_runtime_blob!=='3d1ab6e3413840b44e80de577956b0364343952c'||historicalRuntime().blob!==r.offline_runtime_blob||r.native_codec_implemented!==true||r.runtime_integrated!==false||r.full_workbench_reopen_implemented!==false||r.production_capacity_changed!==false||r.financial_writes!==0)throw Error('Native codec scope qualification');
  if(JSON.stringify(baseline)!==JSON.stringify(old.source_fingerprints)||Object.entries(nativeCodecChangedPaths).some(([p,s])=>baseline[p]!==s))throw Error('Native codec baseline inventory');
  const expected=Object.keys(baseline).concat(nativeCodecAddedPaths).sort();
  if(JSON.stringify(Object.keys(r.source_fingerprints).sort())!==JSON.stringify(expected))throw Error('Native codec historical coverage');

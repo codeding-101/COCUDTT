@@ -1,3 +1,6 @@
+/** Historical artifact comparison only; phase124 independently checks the current build. */
+import{historicalRuntime}from'./fee-input-preservation-evidence.mjs';
+import{jsonStabilityHistoricalBindings,jsonStabilityHistoricalFingerprint}from'./fee-json-stability-evidence.mjs';
 /** Explicit phase96 qualification; old source reports remain byte-for-byte historical evidence. */
 import{readFileSync,readdirSync}from'node:fs';import{resolve,join}from'node:path';import{createHash}from'node:crypto';
 import{nativeCodecQualifiedFingerprints}from'./fee-browser-native-evidence.mjs';
@@ -9,8 +12,8 @@ export function browserRecoveryCurrentPaths(){const paths=[];function walk(dir){
 export function browserRecoveryFingerprints(){return Object.fromEntries(browserRecoveryCurrentPaths().map(p=>[p,blob(Buffer.from(read(p).toString('utf8').replace(/\r\n/g,'\n')))]));}
 export function assertBrowserRecoveryHistoricalPins(){for(const[p,sha]of Object.entries(browserRecoveryHistoricalPins))if(blob(Buffer.from(read(p).toString('utf8').replace(/\r\n/g,'\n')))!==sha)throw Error('Browser recovery historical report changed '+p);}
 export function browserRecoveryQualifiedFingerprints(baseline,paths){
- assertBrowserRecoveryHistoricalPins();const r=JSON.parse(read('docs/cases/fee-browser-recovery-design.json')),old=JSON.parse(read('docs/cases/fee-layered-source-mapping.json')),actual=browserRecoveryFingerprints();
- if(r.kind!=='SYNTHETIC_FEE_BROWSER_RECOVERY_INTERFACE_DESIGN'||r.version!=='0.1'||r.base_source_commit!=='905f0be7ea5ac87ece895c556f289742deeff4b3'||r.offline_runtime_blob!=='3d1ab6e3413840b44e80de577956b0364343952c'||blob(read('trade-cost-engine.html'))!==r.offline_runtime_blob||r.runtime_integrated!==false||r.native_codec_implemented!==false||r.full_workbench_reopen_implemented!==false||r.production_capacity_changed!==false||r.financial_writes!==0)throw Error('Browser recovery scope qualification');
+ assertBrowserRecoveryHistoricalPins();const r=JSON.parse(read('docs/cases/fee-browser-recovery-design.json')),old=JSON.parse(read('docs/cases/fee-layered-source-mapping.json')),actual=jsonStabilityHistoricalBindings(browserRecoveryFingerprints());
+ if(r.kind!=='SYNTHETIC_FEE_BROWSER_RECOVERY_INTERFACE_DESIGN'||r.version!=='0.1'||r.base_source_commit!=='905f0be7ea5ac87ece895c556f289742deeff4b3'||r.offline_runtime_blob!=='3d1ab6e3413840b44e80de577956b0364343952c'||historicalRuntime().blob!==r.offline_runtime_blob||r.runtime_integrated!==false||r.native_codec_implemented!==false||r.full_workbench_reopen_implemented!==false||r.production_capacity_changed!==false||r.financial_writes!==0)throw Error('Browser recovery scope qualification');
  if(JSON.stringify(baseline)!==JSON.stringify(old.source_fingerprints)||Object.entries(browserRecoveryChangedPaths).some(([p,sha])=>baseline[p]!==sha))throw Error('Browser recovery baseline inventory');
  const expected=Object.keys(baseline).concat(browserRecoveryAddedPaths).sort();
  if(JSON.stringify(Object.keys(r.source_fingerprints).sort())!==JSON.stringify(expected))throw Error('Browser recovery historical coverage');

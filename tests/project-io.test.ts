@@ -43,6 +43,14 @@ describe('打开、保存项目的失败处理', () => {
     recoveryPanel=null;
     const app = {
       hidden:false,
+      // This IO harness transports markup only. Native file identity is checked in the browser.
+      ownerDocument:{createElement:(tag:string)=>{
+        if(tag!=='template')throw Error('IO test ownerDocument only supports template rendering');
+        const content={markup:'',querySelectorAll:()=>[]};
+        return{content,get innerHTML(){return content.markup;},set innerHTML(value:string){content.markup=value;}};
+      }},
+      querySelectorAll:()=>[],
+      replaceChildren(fragment:{markup:string}):void{app.innerHTML=fragment.markup;},
       get innerHTML() { return html; },
       set innerHTML(value: string) { html = value; },
       addEventListener: (name: string, handler: (event: { target: ElementStub }) => void) => listeners.set(name, handler),

@@ -1,4 +1,5 @@
 import {FeeTaxAttachmentController,FEE_TAX_ATTACHMENT_STORAGE_KEYS,type FeeTaxAttachmentControllerEnvironment} from './fee-tax-attachment-controller.js';
+import {replaceWorkspaceMarkup} from './file-input-retention.js';
 import {reviewFeeTaxAttachment} from '../data/fee-tax-attachment.js';
 import {parseContainerCostPair,reviewContainerCostPair} from '../data/container-cost-pair.js';
 import {feeTaxAttachmentInternalHtml,feeTaxAttachmentWorkbookSheet} from '../data/fee-tax-attachment-snapshot.js';
@@ -60,7 +61,7 @@ export class FeeTaxAttachmentWorkspace {
   if(this.typing){const status=host.querySelector('[data-fee-tax-status]');if(status)status.textContent=this.controller.state().message;return;}
   const active=document.activeElement,field=active instanceof HTMLElement?active.dataset.feeTaxField:undefined;
   const selection=active instanceof HTMLInputElement?[active.selectionStart,active.selectionEnd] as const:null;
-  host.innerHTML=this.body();
+  replaceWorkspaceMarkup(host,this.body(),true);
   if(field){const next=host.querySelector<HTMLInputElement|HTMLSelectElement>(`[data-fee-tax-field="${field}"]`);next?.focus();if(next instanceof HTMLInputElement&&selection&&selection[0]!==null)next.setSelectionRange(selection[0],selection[1]);}
   this.review();
  }

@@ -1,4 +1,5 @@
 import {FeePrecisionSelectionController,FEE_PRECISION_SELECTION_STORAGE_KEYS,type FeePrecisionSelectionControllerEnvironment} from './fee-precision-selection-controller.js';
+import {replaceWorkspaceMarkup} from './file-input-retention.js';
 import {reviewFeePrecisionSelection} from '../data/fee-precision-selection.js';
 import {feePrecisionSelectionInternalHtml,feePrecisionSelectionWorkbookSheet} from '../data/fee-precision-selection-snapshot.js';
 import {FEE_PRECISION_CHANNELS,type PrecisionFraction} from '../domain/fee-precision.js';
@@ -59,7 +60,7 @@ export class FeePrecisionSelectionWorkspace {
   if(typeof document==='undefined')return;const host=document.querySelector<HTMLElement>('[data-fee-precision-host]');if(!host)return;
   if(this.typing){const s=this.controller.state(),status=host.querySelector('[data-fee-precision-status]'),storage=host.querySelector('[data-fee-precision-storage]');if(status)status.textContent=s.message;if(storage)storage.textContent=`文件槽：${s.storage_status.committed??'暂无已知故障'}；编辑槽：${s.storage_status.editor??'暂无已知故障'}`;return;}
   const active=document.activeElement,field=active instanceof HTMLElement?active.dataset.feePrecisionField:undefined,selection=active instanceof HTMLInputElement?[active.selectionStart,active.selectionEnd] as const:null;
-  host.innerHTML=this.body();
+  replaceWorkspaceMarkup(host,this.body(),true);
   if(field){const next=host.querySelector<HTMLInputElement|HTMLSelectElement>(`[data-fee-precision-field="${field}"]`);next?.focus();if(next instanceof HTMLInputElement&&selection&&selection[0]!==null)next.setSelectionRange(selection[0],selection[1]);}
   this.review();
  }

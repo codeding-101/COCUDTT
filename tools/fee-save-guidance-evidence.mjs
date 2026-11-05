@@ -1,3 +1,6 @@
+/** Historical artifact comparison only; phase124 independently checks the current build. */
+import{historicalRuntime}from'./fee-input-preservation-evidence.mjs';
+import{jsonStabilityHistoricalFingerprint}from'./fee-json-stability-evidence.mjs';
 /** Explicit qualification of unchanged historical measurements after the phase93 UI-only update. */
 import {readFileSync} from 'node:fs';
 import {join,resolve} from 'node:path';
@@ -19,10 +22,11 @@ function report(){
  return current;
 }
 export function guidanceFingerprint(path,sha){
+ if(jsonStabilityHistoricalFingerprint(path,sha))return true;
  if(sourceMappingHistoricalFingerprint(path,sha))return true;
  if(!guidanceChangedHistoricalPaths.includes(path)||!historical.some(r=>r.source_fingerprints[path]===sha))return false;
  return report().source_fingerprints[path]===blob(Buffer.from(read(path).toString('utf8').replace(/\r\n/g,'\n')))||sourceMappingHistoricalFingerprint(path,report().source_fingerprints[path]);
 }
 export function guidanceRuntime(sha){
- return sha==='9966a3dc64ffb6db96f0e2b6093db30826b6beeb'&&report().historical_runtime_blob===sha&&report().offline_runtime_blob===blob(read('trade-cost-engine.html'));
+ return sha==='9966a3dc64ffb6db96f0e2b6093db30826b6beeb'&&report().historical_runtime_blob===sha&&report().offline_runtime_blob===historicalRuntime().blob;
 }

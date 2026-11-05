@@ -55,6 +55,7 @@ import {renderCalculationLearning,focusLearningTarget} from './calculation-learn
 import {QuickCostsController} from './quick-costs.js';
 import {FieldHelpController} from './field-help.js';
 import {MobileSettingsController} from './mobile-settings.js';
+import {replaceWorkspaceMarkup,takeSelectedFile} from './file-input-retention.js';
 import{OnboardingController}from'./onboarding.js';
 import {inputReviews,renderInputReview,inputReviewElement} from './input-review.js';
 import { createProjectReport } from './project-report.js';
@@ -1446,12 +1447,13 @@ function renderApp(): void {
   const app = document.querySelector<HTMLDivElement>('#app');
   if (app === null) return;
   const focused = focusKeyOf(document.activeElement ?? document.body);
+  const preserveFileSelections=mobileSettings.isSameProject(state.project);
   const mobileReset=mobileSettings.beforeRender(state.project);
   const saveState = saveStateText();
   const workspace: WorkspaceResult = {project:currentProject(),result:state.result,comparison:state.comparison,error:state.error,
     issues:state.error===null?[]:workspaceIssues(currentProject(),state.fxRows),calculatedAt: workflow.calculatedAt,mode:workflow.workspaceMode};
 
-  app.innerHTML = `
+  const markup = `
     <div class="workspace" data-workspace-mode="${workflow.workspaceMode}" data-calculation-pending="${workflow.pendingCalculation}">
     <header class="app-bar">
       <div class="brand">国际贸易成本<span class="sub">COCUDTT · 本地工作台</span></div>
@@ -1532,6 +1534,7 @@ function renderApp(): void {
     ${mobileSettings.render(saveState.text,state.status)}
     </div>
   `;
+  replaceWorkspaceMarkup(app,markup,preserveFileSelections);
 
   document.querySelectorAll<HTMLDetailsElement>('details.panel').forEach((element) => {
     const key = element.dataset.section;
@@ -1681,13 +1684,13 @@ function bind(): void {
     const envelopeTarget=event.target;
     if(envelopeTarget instanceof HTMLInputElement&&envelopeTarget.dataset.feeEnvelopeChoice!==undefined){feeEnvelopeWorkspace.choice(envelopeTarget.dataset.feeEnvelopeChoice,envelopeTarget.checked);return;}
     if(envelopeTarget instanceof HTMLInputElement&&envelopeTarget.dataset.feeEnvelopeField!==undefined){feeEnvelopeWorkspace.field(envelopeTarget.value);return;}
-    if(envelopeTarget instanceof HTMLInputElement&&envelopeTarget.id==='fee-envelope-file-input'){const file=envelopeTarget.files?.[0];if(file)void feeEnvelopeWorkspace.openFile(file);return;}
+    if(envelopeTarget instanceof HTMLInputElement&&envelopeTarget.id==='fee-envelope-file-input'){const file=takeSelectedFile(envelopeTarget);if(file)void feeEnvelopeWorkspace.openFile(file);return;}
     feeEnvelopeWorkspace.externalChanged();
     const target = event.target;
     if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement)&&target.dataset.feeTaxField!==undefined){if(workflow.editedControl===target)workflow.editedControl=null;feeTaxWorkspace.field(target.dataset.feeTaxField,target.value);return;}
     if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement)&&target.dataset.feePrecisionField!==undefined){if(workflow.editedControl===target)workflow.editedControl=null;feePrecisionWorkspace.field(target.dataset.feePrecisionField,target.value);return;}
-    if(target instanceof HTMLInputElement&&target.id==='fee-precision-file-input'){const file=target.files?.[0];if(file)void feePrecisionWorkspace.controller.openFile(file);return;}
-    if(target instanceof HTMLInputElement&&target.id==='fee-tax-file-input'){const file=target.files?.[0];if(file)void feeTaxWorkspace.controller.openFile(file);return;}
+    if(target instanceof HTMLInputElement&&target.id==='fee-precision-file-input'){const file=takeSelectedFile(target);if(file)void feePrecisionWorkspace.controller.openFile(file);return;}
+    if(target instanceof HTMLInputElement&&target.id==='fee-tax-file-input'){const file=takeSelectedFile(target);if(file)void feeTaxWorkspace.controller.openFile(file);return;}
     if(target instanceof HTMLInputElement&&target.dataset.recentField!==undefined){
       const {recentField,recentGeneration}=target.dataset,checked=target.checked;
       flushInput();recentProjects.accept(recentField,checked,recentGeneration);return;
@@ -1695,7 +1698,7 @@ function bind(): void {
     invalidateRecentProjects();
     if(workflow.editedControl===target)workflow.editedControl=null;
     if(target instanceof HTMLInputElement&&target.dataset.onboardingField==='hide'){onboarding.setHidden(target.checked);return;}
-    if(target instanceof HTMLInputElement&&target.id==='pair-file-input'){const file=target.files?.[0];if(file)void containerPair.open(file);return;}
+    if(target instanceof HTMLInputElement&&target.id==='pair-file-input'){const file=takeSelectedFile(target);if(file)void containerPair.open(file);return;}
     containerPair.cancelReads();
     if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement)&&target.dataset.quickCostField!==undefined){
       const {quickCostKind,quickCostField,quickCostLease,quickCostId}=target.dataset;
@@ -1706,12 +1709,12 @@ function bind(): void {
     if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement||target instanceof HTMLTextAreaElement)&&target.dataset.pairReviewField!==undefined){containerPair.editReview(target.dataset,target.value);return;}
     if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement||target instanceof HTMLTextAreaElement)&&target.dataset.pairEditorField!==undefined){containerPair.edit(target.dataset,target.value);return;}
     if(target instanceof HTMLInputElement&&target.id==='bill-file-input'){
-     const file=target.files?.[0];if(file)void containerBill.open(file);return;
+     const file=takeSelectedFile(target);if(file)void containerBill.open(file);return;
     }
     if((target instanceof HTMLInputElement||target instanceof HTMLSelectElement||target instanceof HTMLTextAreaElement)&&target.dataset.billField!==undefined){containerBill.edit(target.dataset,target.value);return;}
 
     if (target instanceof HTMLInputElement && target.id === 'recovery-review-input') {
-      const file = target.files?.[0];
+      const file = takeSelectedFile(target);
       if (!file) return;
       const epoch = ++workflow.recoveryReviewEpoch;
       workflow.recoveryReview = null; workflow.recoveryReviewError = null; workflow.recoveryReviewBusy = true;
@@ -1733,7 +1736,7 @@ function bind(): void {
     }
 
     if (target instanceof HTMLInputElement && target.id === 'settlement-file-input') {
-      const file = target.files?.[0];
+      const file = takeSelectedFile(target);
       if (!file) return;
       const epoch = ++workflow.settlementEpoch;
       void file.text().then(text => {
@@ -1749,7 +1752,7 @@ function bind(): void {
 
     if (target instanceof HTMLInputElement && target.id === 'file-input') {
       containerPair.cancelReads();
-      const file = target.files?.[0];
+      const file = takeSelectedFile(target);
       if (file === undefined) return;
       const epoch=++workflow.projectReadEpoch;
       workflow.projectReadToken=epoch;

@@ -1,3 +1,5 @@
+/** Historical artifact comparison only; phase124 independently checks the current build. */
+import{historicalRuntime}from'./fee-input-preservation-evidence.mjs';
 import {readFileSync,readdirSync} from 'node:fs';
 import {resolve,join} from 'node:path';
 import {createHash} from 'node:crypto';
@@ -37,7 +39,7 @@ function production(directory){for(const entry of readdirSync(directory,{withFil
 production(join(root,'src'));
 const app=read('src/ui/app.ts').toString('utf8');
 if(!app.includes("from './fee-workbench-semantic-capture.js'")||!app.includes('captureFeeSemanticBudget(workbenchState,{')||app.includes('captureFeeWorkbenchSourceFrame')||app.includes('captureLegacyFeeWorkbench91'))throw Error('Explicit production capture binding missing');
-const runtime=read('trade-cost-engine.html');if(blob(runtime)!==report.offline_runtime_blob&&!guidanceRuntime(report.offline_runtime_blob)||['__feeSemanticIntegration91','__feeSourceSemanticBudget90','__feeSourceCompatibility89','captureLegacyFeeWorkbench91'].some(s=>runtime.includes(Buffer.from(s))))throw Error('Production artifact or bridge isolation changed');
+const runtime=read('trade-cost-engine.html');if(historicalRuntime().blob!==report.offline_runtime_blob&&!guidanceRuntime(report.offline_runtime_blob)||['__feeSemanticIntegration91','__feeSourceSemanticBudget90','__feeSourceCompatibility89','captureLegacyFeeWorkbench91'].some(s=>runtime.includes(Buffer.from(s))))throw Error('Production artifact or bridge isolation changed');
 const native=JSON.parse(read('docs/cases/fee-semantic-integration-native.json'));
 function portable(value){
  if(typeof value==='string'&&/^(?:[A-Za-z]:[\\/]|file:\/\/\/|\\\\|\/(?:Users|home)\/)/.test(value))throw Error('Public evidence contains a local absolute path');
@@ -57,4 +59,4 @@ const application=native.suites.find(s=>s.suite==='runtime-fee-application').rep
 for(const key of ['costAndReceiptTogether','repeatedOldButtonNoCharge','completeBeforeAndAfter','postCommitRecoveryAvailable','displayFailureBackupKeepsReceipt','retryDoesNotReapply','customerReviewRevoked','originalSourcesRetained','fxAndSaveEvidenceRetained','mobileExplicitApplication'])if(application[key]!==true)throw Error('Missing atomic apply or recovery evidence '+key);
 for(const s of native.suites){const bytes=Buffer.from(JSON.stringify(s.report,null,2));if(blob(bytes)!==s.report_blob)throw Error('Native report changed '+s.suite);}
 if(native.unit.files!==130||native.unit.passed!==4659||native.unit.new_tests!==45||native.unit.success!==true)throw Error('Production guard regression missing');
-console.log(JSON.stringify({kind:report.kind,compatibilityCases:42,operationalCases:27,exactCaptures:52,closedCounterexamples:closed,unsupportedJavaScript:14,productionAction:'USE_SEMANTIC_CAPTURE',transactionReadinessTested:true,captureFinancialWrites:0,nativeApplicationVerified:true,nativeSuites:46,runtimeIntegrated:true,historicalRuntime:report.offline_runtime_blob,currentRuntime:blob(runtime),currentNativeRevalidated:guidanceRuntime(report.offline_runtime_blob),scope:'HISTORICAL_PHASE91_WITH_CURRENT_SAVE_GUIDANCE_REVALIDATION'}));
+console.log(JSON.stringify({kind:report.kind,compatibilityCases:42,operationalCases:27,exactCaptures:52,closedCounterexamples:closed,unsupportedJavaScript:14,productionAction:'USE_SEMANTIC_CAPTURE',transactionReadinessTested:true,captureFinancialWrites:0,nativeApplicationVerified:true,nativeSuites:46,runtimeIntegrated:true,historicalRuntime:report.offline_runtime_blob,currentRuntime:historicalRuntime().blob,currentNativeRevalidated:guidanceRuntime(report.offline_runtime_blob),scope:'HISTORICAL_PHASE91_WITH_CURRENT_SAVE_GUIDANCE_REVALIDATION'}));

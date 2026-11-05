@@ -1,0 +1,41 @@
+/** Opt-in, reversible instance observation. No financial input, stored approval or root installation. */
+import type{WorkbenchStateOwner}from'../src/ui/workbench-state';
+import{FeeWorkbenchSwitchCheck,type SwitchReview}from'./fee-workbench-switch';
+export interface ObservationHolderPlan{readonly id:string;readonly fields:readonly string[];readonly methods:readonly string[]}
+export class WorkbenchObservationError extends Error{constructor(readonly code:string){super('WORKBENCH_OBSERVATION_'+code);}}
+function fail(code:string):never{throw new WorkbenchObservationError(code);}
+const leases=new WeakMap<object,object>(),bad=new Set(['__proto__','prototype','constructor']);
+interface Hook{target:object;key:string;before:PropertyDescriptor|undefined;installed:PropertyDescriptor;value:()=>unknown;id:string}
+export class WorkbenchMutationObservation{
+  private closed=false;private epoch=0;private notifying=false;private notificationErrors=0;private readonly listeners=new Set<(event:Readonly<{epoch:number;holder:string;reason:string}>)=>void>();private readonly hooks:Hook[]=[];private readonly issued=new WeakMap<object,number>();private readonly marker={};private readonly targets:Readonly<Record<string,object>>;readonly plan:readonly ObservationHolderPlan[];
+  constructor(plan:readonly ObservationHolderPlan[],targets:Record<string,object>){
+    if(!Array.isArray(plan)||!plan.length||plan.length>30||new Set(plan.map(p=>p.id)).size!==plan.length||new Set(Object.values(targets)).size!==plan.length||Object.keys(targets).sort().join('|')!==plan.map(p=>p.id).sort().join('|'))fail('PLAN');
+    this.plan=Object.freeze(plan.map(p=>Object.freeze({id:p.id,fields:Object.freeze([...p.fields]),methods:Object.freeze([...p.methods])})));this.targets=Object.freeze({...targets});const pending:Hook[]=[];
+    for(const p of this.plan){const target=targets[p.id];if(!target||leases.has(target)||!p.fields.length||new Set([...p.fields,...p.methods]).size!==p.fields.length+p.methods.length)fail('TARGET');
+      const own=Object.getOwnPropertyDescriptors(target),keys=Reflect.ownKeys(own);if(keys.some(k=>typeof k!=='string')||keys.filter(k=>k!=='env'&&k!=='controller').sort().join('|')!==[...p.fields].sort().join('|'))fail('FIELD_COVERAGE');
+      for(const key of p.fields){const d=own[key];if(bad.has(key)||!d||!('value'in d)||!d.configurable||!d.writable||!d.enumerable)fail('FIELD_DESCRIPTOR');let current=d.value;
+        const installed:PropertyDescriptor={enumerable:true,configurable:true,get:()=>current,set:(value:unknown)=>{current=value;this.touch(p.id,'FIELD_WRITE');}};pending.push({target,key,before:d,installed,value:()=>current,id:p.id});}
+      for(const key of p.methods){if(bad.has(key)||Object.hasOwn(own,key))fail('METHOD');let proto=Object.getPrototypeOf(target),d:PropertyDescriptor|undefined;while(proto&&!d){d=Object.getOwnPropertyDescriptor(proto,key);proto=Object.getPrototypeOf(proto);}if(!d||typeof d.value!=='function'||!d.configurable||!d.writable)fail('METHOD');const original=d.value,observer=this;
+        const wrapper=function(this:unknown,...args:unknown[]){if(this!==target||observer.closed)return Reflect.apply(original,this,args);observer.touch(p.id,'METHOD_ENTRY');try{return Reflect.apply(original,this,args);}finally{observer.touch(p.id,'METHOD_RETURN');}};
+        pending.push({target,key,before:undefined,installed:{value:wrapper,writable:true,configurable:true,enumerable:false},value:()=>original,id:p.id});}
+    }
+    try{for(const hook of pending){Object.defineProperty(hook.target,hook.key,hook.installed);this.hooks.push(hook);}for(const target of Object.values(targets))leases.set(target,this.marker);this.touch('observer','ATTACHED');}
+    catch(error){for(const h of this.hooks.reverse()){if(h.before)Object.defineProperty(h.target,h.key,h.before);else Reflect.deleteProperty(h.target,h.key);}this.hooks.length=0;throw error;}
+  }
+  private touch(holder:string,reason:string){if(this.closed)return;if(this.epoch===Number.MAX_SAFE_INTEGER)fail('EPOCH_LIMIT');this.epoch++;if(this.notifying)return;this.notifying=true;try{for(const listener of[...this.listeners])try{listener(Object.freeze({epoch:this.epoch,holder,reason}));}catch{this.notificationErrors++;}}finally{this.notifying=false;}}
+  private ours(h:Hook){const d=Object.getOwnPropertyDescriptor(h.target,h.key),i=h.installed;return!!d&&d.configurable===i.configurable&&d.enumerable===i.enumerable&&('value'in i?d.value===i.value&&d.writable===i.writable:d.get===i.get&&d.set===i.set);}
+  status(){const changed=new Set<string>();if(!this.closed){for(const h of this.hooks)if(!this.ours(h))changed.add(h.id);for(const p of this.plan){const extra=Reflect.ownKeys(this.targets[p.id]!).filter(k=>typeof k!=='string'||!['env','controller',...p.fields,...p.methods].includes(k));if(extra.length)changed.add(p.id);}}
+    return Object.freeze({scope:'REVERSIBLE_CONTROLLER_OBSERVATION',attached:!this.closed,epoch:this.epoch,holders:this.plan.length,fields:this.plan.reduce((n,p)=>n+p.fields.length,0),methods:this.plan.reduce((n,p)=>n+p.methods.length,0),changed_holders:Object.freeze([...changed].sort()),subscriptions:this.listeners.size,notification_errors:this.notificationErrors,coverage:'OWN_FIELD_ASSIGNMENTS_AND_DECLARED_METHOD_ENTRIES',arbitrary_nested_mutations_covered:false,preexisting_method_references_covered:false,financial_writes:0,switch_enabled:false});}
+  subscribe(listener:(event:Readonly<{epoch:number;holder:string;reason:string}>)=>void){if(this.closed)fail('CLOSED');if(typeof listener!=='function')fail('SUBSCRIBER');this.listeners.add(listener);let active=true;return()=>{if(active){active=false;this.listeners.delete(listener);}};}
+  checkpoint(){if(this.closed)fail('CLOSED');const status=this.status();if(status.changed_holders.length)fail('HOOK_COVERAGE_CHANGED');const token=Object.freeze({scope:'CONTROLLER_OBSERVATION_CHECKPOINT',epoch:this.epoch});this.issued.set(token,this.epoch);return token;}
+  isCurrent(token:object){return!this.closed&&this.issued.get(token)===this.epoch&&this.status().changed_holders.length===0;}
+  detach(){if(this.closed)return Object.freeze({restored:0,conflicts:0,financial_writes:0});let restored=0,conflicts=0;this.closed=true;this.listeners.clear();for(const h of[...this.hooks].reverse()){if(!this.ours(h)){conflicts++;continue;}if(h.before)Object.defineProperty(h.target,h.key,{...h.before,value:h.value()});else Reflect.deleteProperty(h.target,h.key);restored++;}for(const target of Object.values(this.targets))if(leases.get(target)===this.marker)leases.delete(target);return Object.freeze({restored,conflicts,financial_writes:0});}
+}
+export interface ResourceObservation{snapshot():{epoch:number;observing:boolean;unknown:number;active:number;sites:number};isCurrent(epoch:number):boolean}
+export class FeeWorkbenchObservationCheck{
+  private closed=false;private readonly issued=new WeakMap<object,{mutation:object;resource:number;legacy:SwitchReview}>();
+  constructor(private readonly owner:WorkbenchStateOwner,private readonly legacy:FeeWorkbenchSwitchCheck,private readonly mutations:WorkbenchMutationObservation,private readonly resources:ResourceObservation){}
+  inspect(){if(this.closed)fail('CLOSED');const before=this.owner.checkpoint(),mutation=this.mutations.checkpoint(),resource=this.resources.snapshot(),legacy=this.legacy.inspect();if(!this.owner.isCurrent(before)||!this.mutations.isCurrent(mutation)||!this.resources.isCurrent(resource.epoch))fail('STALE_OBSERVATION');const report=Object.freeze({scope:'READ_ONLY_WORKBENCH_OBSERVATION',legacy,controllers:this.mutations.status(),resources:resource,observation_complete:resource.observing&&resource.unknown===0,full_freshness_verified:false,switch_enabled:false,financial_writes:0,import_authority:false,confirmation_authority:false,nested_external_mutations_covered:false,resource_scope:'INSTRUMENTED_SOURCE_CALL_SITES_ONLY'});this.issued.set(report,{mutation,resource:resource.epoch,legacy});return report;}
+  matches(report:object){const p=this.issued.get(report);return!this.closed&&!!p&&this.mutations.isCurrent(p.mutation)&&this.resources.isCurrent(p.resource)&&this.legacy.matchesCurrentObservation(p.legacy);}
+  dispose(){this.closed=true;}
+}

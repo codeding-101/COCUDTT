@@ -1,3 +1,5 @@
+/** Historical artifact comparison only; phase124 independently checks the current build. */
+import{historicalRuntime}from'./fee-input-preservation-evidence.mjs';
 /** Same-runtime qualification only for the phase94 developer protocol additions and one evidence gate. */
 import {readFileSync,readdirSync} from 'node:fs';
 import {resolve,join} from 'node:path';
@@ -16,7 +18,7 @@ export function layeredCurrentFingerprints(){return Object.fromEntries(layeredCu
 export function assertLayeredHistoricalPins(){for(const[p,sha]of Object.entries(layeredHistoricalPins))if(blob(Buffer.from(read(p).toString('utf8').replace(/\r\n/g,'\n')))!==sha)throw Error('Layered historical evidence changed '+p);}
 export function layeredCaptureFingerprints(previous,paths){
  assertLayeredHistoricalPins();const r=JSON.parse(read('docs/cases/fee-layered-capture.json')),old=JSON.parse(read('docs/cases/fee-save-guidance-native.json'));
- if(r.kind!=='SYNTHETIC_FEE_LAYERED_CAPTURE_PROTOCOL'||r.version!=='0.1'||r.base_source_commit!=='84858f66263d062c1235c17395cf9cb5458d1d80'||r.offline_runtime_blob!=='3d1ab6e3413840b44e80de577956b0364343952c'||blob(read('trade-cost-engine.html'))!==r.offline_runtime_blob||r.runtime_integrated!==false||r.production_capacity_changed!==false||r.financial_writes!==0)throw Error('Layered scope qualification missing');
+ if(r.kind!=='SYNTHETIC_FEE_LAYERED_CAPTURE_PROTOCOL'||r.version!=='0.1'||r.base_source_commit!=='84858f66263d062c1235c17395cf9cb5458d1d80'||r.offline_runtime_blob!=='3d1ab6e3413840b44e80de577956b0364343952c'||historicalRuntime().blob!==r.offline_runtime_blob||r.runtime_integrated!==false||r.production_capacity_changed!==false||r.financial_writes!==0)throw Error('Layered scope qualification missing');
  if(JSON.stringify(previous)!==JSON.stringify(old.source_fingerprints)||old.source_fingerprints[layeredChangedHistoricalPath]!=='27c13d030420165a4dde727e61e64df17a9b2f43')throw Error('Layered historical source inventory changed');
  const expected=Object.keys(previous).concat(layeredAddedCodePaths).sort(),actual=sourceMappingQualifiedFingerprints(r.source_fingerprints,paths);
  if(JSON.stringify(Object.keys(r.source_fingerprints).sort())!==JSON.stringify(expected))throw Error('Layered historical source coverage changed');
